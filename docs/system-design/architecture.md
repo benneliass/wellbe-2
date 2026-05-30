@@ -30,6 +30,22 @@ flowchart TD
 |L7|Safety, privacy, and governance|Prevent diagnosis claims, panic language, unsafe instructions, bias amplification, alert overload, and privacy violations.|M21 Safety & Triage; M02; M26|Clinical Safety Case Log; Feature Risk Register; False Positive/Negative Review; Bias Controls|Very high|
 |L8|User surfaces and shareable outputs|Present memory as simple, layered interfaces: dashboard, Health Thread, visit prep, doctor packet, post-visit checks, mobile/bot logging.|M29/M30/M32/M33; frontend-core; timeline; doctor-summary|Health Thread Dashboard; Visit Packet; Pending Loop Inbox; Correction Review; Share Link/Export|Medium|
 
+## New components (integrated)
+
+| Component | Layer | Doc reference |
+|---|---|---|
+| Knowledge Graph (typed nodes, scored edges, visualization) | L2 | `knowledge_graph.md` |
+| Intelligence Engines (pattern, temporal, confounder, contradiction, missing data) | L3/L4 | `intelligence_engines.md` |
+| Mood / Energy Logging | L1 | `system_design.md` — Data Capture |
+| Wearable Integration | L1 | `integrations.md` |
+| Cross-Device Intelligence | L2 | `integrations.md` |
+| Environmental Context Ingestion | L1 | `integrations.md` |
+| Medical Institution Integration (user-pull FHIR) | L1 | `integrations.md` |
+| Research Agent + Myth Buster | L6 | `feature-backlog/feature_backlog.md` — WB2-F035, F036 |
+| Health-Adaptive UI | L8 | `feature-backlog/feature_backlog.md` — WB2-F040 |
+
+All integrations write through the same Data Factory path (L1). The Knowledge Graph (L2) is the primary input for Intelligence Engines (L3/L4). Research Agent and Myth Buster operate at L6 (investigation/explanation). Health-Adaptive UI reads from L7 (safety triage output) and L3 (baseline deviation).
+
 ## Architectural rule
 
 The Safety + Governance Gate runs before any user-facing AI output. Lower layers must not depend on upper layers. The Health Thread Engine can consume Data Factory outputs, but it cannot overwrite raw context or remove provenance.

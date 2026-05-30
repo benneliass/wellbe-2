@@ -44,6 +44,15 @@ Every item must have exactly one `component:` label. Components map directly to 
 | `component:visit-packet` | `docs/feature-backlog/feature_backlog.md` — pre/post visit packets |
 | `component:share-export` | `docs/feature-backlog/feature_backlog.md` — scoped share and export |
 | `component:responsibility-memory` | `docs/feature-backlog/feature_backlog.md` — responsibility ledger |
+| `component:knowledge-graph` | `docs/system-design/knowledge_graph.md` — typed nodes, edges, visualization |
+| `component:intelligence-engines` | `docs/system-design/intelligence_engines.md` — pattern, temporal, confounder, contradiction, missing data |
+| `component:wearable-integration` | `docs/system-design/integrations.md` — device connection, metrics |
+| `component:cross-device` | `docs/system-design/integrations.md` — cross-device intelligence |
+| `component:medical-integration` | `docs/system-design/integrations.md` — FHIR user-pull |
+| `component:environmental-context` | `docs/system-design/integrations.md` — weather, AQ, public health, conflict |
+| `component:research-agent` | `docs/feature-backlog/feature_backlog.md` — WB2-F035, WB2-F036 |
+| `component:mood-logging` | `docs/system-design/system_design.md` — Data Capture / WB2-F034 |
+| `component:health-adaptive-ui` | `docs/feature-backlog/feature_backlog.md` — WB2-F040 |
 
 ---
 
