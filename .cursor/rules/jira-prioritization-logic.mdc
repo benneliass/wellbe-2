@@ -5,6 +5,23 @@ alwaysApply: true
 
 # Jira Prioritization Logic
 
+## Priority Tier → Jira Field Value Mapping
+
+When writing to Jira via MCP, always pass the **Jira field name** (right column), not the internal tier label:
+
+| Internal tier | Jira `priority.name` value |
+|---|---|
+| `P0-blocker` | `Highest` |
+| `P1-critical` | `High` |
+| `P2-important` | `Medium` |
+| `P3-backlog` | `Low` |
+
+Example in `additional_fields`: `{"priority": {"name": "High"}}` for a `P1-critical` item.
+
+No inference required — always use this table. Never pass the internal label (`P1-critical`) directly to Jira.
+
+---
+
 ## Quick-Reference Checklist (Run First)
 
 Before assigning any priority, check these signals in order. The first signal that fires sets the floor — subsequent signals can only raise priority, never lower it.
