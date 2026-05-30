@@ -60,14 +60,50 @@ Additionally, every item created or updated during a triage run is stamped with:
 
 The Jira Roadmap is ordered by `priority-tier` then `phase`. After every approved triage run this view automatically reflects the new state. It is the canonical answer to "what matters right now."
 
-### 2.4 Dashboard Widgets
+### 2.4 Saved Filters
 
-| Widget | What it shows |
+Five saved filters back all dashboard gadgets. Filter names are prefixed `[WEL]` for easy discovery.
+
+| Filter name | JQL |
 |---|---|
-| Needs attention | Items flagged `needs-review` or `blocked-by-change` |
-| Active priorities | All P0 and P1 items currently open |
-| Recent changes | Items re-prioritized in the last 7 days |
-| Deferred backlog | All items with `phase=deferred` — visible but non-blocking |
+| `[WEL] Needs Review` | `project = WEL AND labels = "re-eval:needs-review" ORDER BY priority ASC` |
+| `[WEL] Blocked by Change` | `project = WEL AND labels = "re-eval:blocked-by-change" ORDER BY priority ASC` |
+| `[WEL] Orphans` | `project = WEL AND labels not in ("re-eval:clean", "re-eval:needs-review", "re-eval:blocked-by-change") AND created <= "-1d" ORDER BY created DESC` |
+| `[WEL] Active P0 + P1` | `project = WEL AND priority in ("P0-blocker", "P1-critical") AND statusCategory != Done ORDER BY priority ASC` |
+| `[WEL] Deferred Backlog` | `project = WEL AND fixVersion = "deferred" ORDER BY priority ASC` |
+
+### 2.5 Dashboards
+
+Three dashboards. The Roadmap tab (`/roadmap`) is the primary strategic view and is not a custom dashboard.
+
+**Dashboard 1 — WEL: Triage Health** (check daily)
+
+Answers: is anything broken or stalled?
+
+| Gadget | Filter | Display |
+|---|---|---|
+| Issue Statistics | `[WEL] Needs Review` | Count |
+| Issue Statistics | `[WEL] Blocked by Change` | Count |
+| Issue Statistics | `[WEL] Orphans` | Count |
+| Filter Results | `[WEL] Active P0 + P1` | List |
+
+**Dashboard 2 — WEL: Deferred Backlog** (check monthly)
+
+Answers: what are we not forgetting about?
+
+| Gadget | Filter | Display |
+|---|---|---|
+| Filter Results | `[WEL] Deferred Backlog` | List |
+| Issue Statistics | `[WEL] Deferred Backlog` | Group by label (layer) |
+
+**Dashboard 3 — WEL: Roadmap State** (check weekly)
+
+Supplements the native Roadmap tab with triage signals.
+
+| Gadget | Filter | Display |
+|---|---|---|
+| Filter Results | `[WEL] Active P0 + P1` | List |
+| Filter Results | `[WEL] Needs Review` | List |
 
 ---
 
