@@ -1,0 +1,48 @@
+capability,feature_name,v1_description,v1_status,date_packaged
+C1 — Store,M03 hardening,Enforce RawContextEvent immutability and source provenance at storage,✅ Done,2026-05-30
+C2 — Understand,health-entity-layering,Classify extracted entities into graph layers and eligibility tiers,⬜ Planned,2026-05-30
+C3 — Find,smart-indexing,"Make every user input searchable, retrievable, linkable, and provenance-preserving across all index types",✅ Done,2026-05-30
+C5 — Connect,health-graph-core,"Build the Health Knowledge Graph with typed nodes, scored edges, auto-linking, and query API",✅ Done,2026-05-30
+C6 — Think,ai-orchestrator-core,"AI orchestration with structured outputs, baseline/anomaly engine (M10), and evidence ranking (M16)",✅ Done,2026-05-30
+C7 — Show,onboarding,"Capture consent, baseline profile, goals, and initial health context before intelligence starts",✅ Done,2026-05-30
+C7 — Show,symptom-logging,"Capture symptoms quickly, preserve raw wording, and produce structured symptom episodes",✅ Done,2026-05-30
+C7 — Show,concerns,"Track active health concerns with triage, evidence, hypotheses, and status changes",✅ Done,2026-05-30
+C7 — Show,graph-explorer,"Let users inspect connected symptoms, metrics, hypotheses, evidence, body regions, and concerns",✅ Done,2026-05-30
+C7 — Show,frontend-core,"First experience layer: health dashboard, symptom log, graph view, concerns view, safety triage",✅ Done,2026-05-30
+C7 — Show,visual-language-v3,"WellBe visual system: orb, flow, motion, and graph cockpit",✅ Done,2026-05-30
+C7 — Show,design-system-v2,"Full design system: teal palette, light/dark mode, sidebar navigation, component library",✅ Done,2026-05-30
+C7 — Show,wearable-integration,"Connect wearables, manage sync status, import metrics, configure device placement",⬜ Planned,2026-05-30
+C7 — Show,timeline,"Chronological health context with provenance, confidence, and filters",⬜ Planned,2026-05-30
+C7 — Show,home-dashboard,"Landing page showing today's health state, active concerns, coaching, and investigation progress",⬜ Planned,2026-05-30
+C7 — Show,metrics-dashboard,"Time-series health metric charts with personal baselines, anomaly highlighting, and correlation views",⬜ Planned,2026-05-30
+C7 — Show,mood-energy-logging,"Capture mood, anxiety, stress, energy, focus, and social energy as longitudinal context",⬜ Planned,2026-05-30
+C7 — Show,professor,"Answer user questions with personal context, evidence, and safe health education",⬜ Planned,2026-05-30
+C7 — Show,settings-and-privacy,"Full user control over account, consent, integrations, data export, and deletion",⬜ Planned,2026-05-30
+C7 — Show,telegram-core,"Low-friction conversational logging, summaries, concerns, and notifications via Telegram",⬜ Planned,2026-05-30
+C7 — Show,adaptive-shell,Intent-driven UI shell that composes flows and dashboards based on user need,⬜ Planned,2026-05-30
+C7 — Show,health-adaptive-ui,Health-state driven ambient UI color system reflecting the user's general health signal,⬜ Planned,2026-05-30
+C7 — Show,graph-node-context,"Show metrics, vitals, and labs on graph node drill-down",🔄 In Progress,2026-05-30
+C7 — Show,graph-scope-filters,"Filter the graph landscape by investigation, concern, or demo case",⬜ Planned,2026-05-30
+C7 — Show,health-timeline-event-detail,Expandable timeline rows showing full event payload and metric values,🔄 In Progress,2026-05-30
+C7 — Show,health-timeline-scroll-panel,Bounded scroll panel for timeline surfaces,⬜ Planned,2026-05-30
+C8 — Investigate,document-upload,"Upload files, scans, photos, and PDFs as source-linked health context with OCR extraction",✅ Done,2026-05-30
+C8 — Investigate,investigation-triage,Guided health investigation flow: intake → evidence → safety checks → clinician handoff,⬜ Planned,2026-05-30
+C8 — Investigate,doctor-summary,"Clinician-ready summaries with timeline, evidence, uncertainty, and source traceability",⬜ Planned,2026-05-30
+C8 — Investigate,pattern-detection-engine,"Temporal patterns, co-occurrence, and compound triggers from indexed context",⬜ Planned,2026-05-30
+C8 — Investigate,temporal-analysis-engine,Time-lagged correlations and temporal order validation across context streams,⬜ Planned,2026-05-30
+C8 — Investigate,confounder-detection-engine,Identify confounding variables in apparent health relationships,⬜ Planned,2026-05-30
+C8 — Investigate,contradiction-resolution-engine,Surface and manage conflicting health signals without hiding them,⬜ Planned,2026-05-30
+C8 — Investigate,missing-data-detection-engine,Surface gaps that would clarify patterns if filled,⬜ Planned,2026-05-30
+C8 — Investigate,env-context-ingestion,Ingest local weather and environmental context; correlate with mood and health states,⬜ Planned,2026-05-30
+C9 — Research,symptom-expression-assistant,"Help users articulate symptoms in free text, clarify wording, and confirm structured episodes",⬜ Planned,2026-05-30
+C9 — Research,myth-buster,Investigate personal health theories against personal data and external evidence,⬜ Planned,2026-05-30
+C9 — Research,personal-experiments,"Design, run, and evaluate safe n=1 experiments to test health hypotheses",⬜ Planned,2026-05-30
+C9 — Research,alternative-options,Generate multiple evidence-scored paths for any health problem,⬜ Planned,2026-05-30
+C10 — Coach,coach,"Turn insight into safe daily action plans, goals, and low-risk experiments",⬜ Planned,2026-05-30
+C10 — Coach,body-map,Map physical issues and devices onto anatomical regions while preserving raw descriptions,⬜ Planned,2026-05-30
+C11 — Expand,cross-device-intelligence,Detect health signals from paired devices via baseline learning and asymmetry alerts,⬜ Planned,2026-05-30
+C11 — Expand,doctor-discovery,"Help users find doctors by specialty, body system, and location with source-backed ranking",⬜ Planned,2026-05-30
+C11 — Expand,medical-institution-integration,"Connect WellBe to hospitals, clinics, labs, and patient portals with consent",⬜ Planned,2026-05-30
+C11 — Expand,mobile-watch-apps,Mobile and watch client surfaces for low-friction logging and ambient health signals,⬜ Planned,2026-05-30
+C11 — Expand,context-integrity-engine,"Validate provenance, completeness, and processing integrity across all derived facts",⬜ Planned,2026-05-30
+C11 — Expand,api-gateway,"Single entry point with envelope contract, tracing, and centralized routing",✅ Done,2026-05-30

@@ -1,0 +1,34 @@
+module_id,module_name,v1_area,v1_description,date_packaged
+M01,Infrastructure,Foundation,"Databases, storage, event bus, observability, CI/CD",2026-05-30
+M02,Auth & Consent,Foundation,"Authentication, user profiles, consent management",2026-05-30
+M03,Raw Context Vault,Foundation,Immutable store of every raw input ever received — the factory core,2026-05-30
+M04,Processing Pipeline,Foundation,"Classify, extract entities, score quality, produce indexed knowledge",2026-05-30
+M31,API Gateway,Foundation,Single entry point for all client communication,2026-05-30
+M05,Medical Area,Domain Areas (what gets captured),"Diagnoses, medications, labs, clinical documents, health standards",2026-05-30
+M06,Mental / Emotional,Domain Areas (what gets captured),"Mood, anxiety, stress, depression signals, journaling, therapy notes",2026-05-30
+M07,Physical / Performance,Domain Areas (what gets captured),"Wearable metrics, sleep, HRV, recovery, exercise",2026-05-30
+M08,Lifestyle / Context,Domain Areas (what gets captured),"Work, nutrition, environment, travel, social — non-medical context that affects health",2026-05-30
+M09,Health Knowledge Graph,Knowledge Layer,"Entities, relationships, evidence-weighted connections, graph traversal",2026-05-30
+M10,Baseline & Anomaly,Intelligence Engines (what gets discovered),"Personal baselines, deviation detection, cross-device correlation",2026-05-30
+M11,Pattern Detection,Intelligence Engines (what gets discovered),"Temporal patterns, co-occurrence, compound triggers",2026-05-30
+M12,Temporal Relationships,Intelligence Engines (what gets discovered),What preceded what; time-lagged correlations,2026-05-30
+M13,Confounder Detection,Intelligence Engines (what gets discovered),Identifies confounding variables in apparent patterns,2026-05-30
+M14,Missing Data,Intelligence Engines (what gets discovered),"Detects gaps that, if filled, could clarify trends",2026-05-30
+M15,Contradiction Resolution,Intelligence Engines (what gets discovered),Surfaces and manages conflicting signals without hiding them,2026-05-30
+M16,Evidence Ranking,Intelligence Engines (what gets discovered),Scores and ranks evidence quality across all sources,2026-05-30
+M17,Hypothesis Engine,Reasoning Layer (what gets hypothesized),"Generates, tracks, and manages health hypotheses",2026-05-30
+M18,Research Brainstorm,Reasoning Layer (what gets hypothesized),Turns hypotheses into structured research questions,2026-05-30
+M19,Research Agent,Reasoning Layer (what gets hypothesized),Searches external evidence; links research to personal context,2026-05-30
+M20,Personal Experiments,Reasoning Layer (what gets hypothesized),Designs and tracks n=1 experiments to test hypotheses,2026-05-30
+M21,Safety & Triage Engine,Safety,"Rule-based safety gate — triage before every output, no AI bypass",2026-05-30
+M22,Concern Tracker,Safety,Active health concern lifecycle management,2026-05-30
+M23,Professor Engine,User-Facing Engines,Teaches the user; connects general health knowledge to their personal context,2026-05-30
+M24,Coach Engine,User-Facing Engines,"Daily actions, goal tracking, habit management",2026-05-30
+M25,Alternative Options,User-Facing Engines,Surfaces multi-path options for health decisions,2026-05-30
+M26,Context Integrity,User-Facing Engines,Validates nothing was lost; every fact has a source; all processing is complete,2026-05-30
+M27,AI Orchestrator,AI & Ingestion,"Multi-agent AI coordination, prompt routing, structured output enforcement",2026-05-30
+M28,Ingestion Layer,AI & Ingestion,"Wearables, calendar, files, external APIs — all external data sources",2026-05-30
+M29,Web Frontend,Surfaces,Next.js product interface,2026-05-30
+M30,Mobile / Watch,Surfaces,Mobile and wearable client interfaces,2026-05-30
+M32,Telegram Bot,Surfaces,"Conversational logging, summaries, concerns, and notifications",2026-05-30
+M33,Body Map,Surfaces,Interactive anatomical map for symptom location and pattern visualization,2026-05-30
