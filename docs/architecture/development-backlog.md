@@ -6,7 +6,7 @@ Structured dev work items for **everything referenced across the design that sti
 - **Phase** → `mvp` / `post-mvp` / `deferred`, consistent with `../feature-backlog/feature_backlog.md`.
 - IDs `WB-DEV-NNN` are local to this doc and map to proposed Jira Stories in the last section.
 
-> **Jira status (2026-05-30):** At the time of writing, the WEL project Epics were **mid-bootstrap** by a concurrent agent (only `WEL-12` E1 Health Thread Core, `WEL-13` E2 Care Continuity, `WEL-14` E3 Memory Layer, `WEL-15` E4 Safety and Privacy existed; 10 were planned). Per `../../.cursor/rules/jira-autonomy-thresholds.mdc`, Stories must not be created as orphans before their parent Epics exist. **No Jira Stories were created.** They are recorded below and should be filed under the WEL Epics once the full Epic set is present, using triage session label `triage-2026-05-30-002`.
+> **Jira status (2026-05-30, updated):** All 10 Epics are present (WEL-12 through WEL-21). **28 Stories were filed** under the correct Epics during triage session `triage-2026-05-30-002` (WEL-64 through WEL-91). See the filed-story mapping in the last section.
 
 ---
 
@@ -73,39 +73,39 @@ Structured dev work items for **everything referenced across the design that sti
 
 ---
 
-## Proposed Jira Stories (to file under WEL Epics once present)
+## Filed Jira Stories — triage-2026-05-30-002
 
-These were **not created** (Epics mid-bootstrap — see note at top). When the full Epic set exists, file each as a Story under the matching Epic with all required metadata per `../../.cursor/rules/jira-writing-standards.mdc`, session label `triage-2026-05-30-002`, and a description referencing the relevant `docs/` section.
+All stories filed on 2026-05-30. All 10 Epics confirmed present before filing. Triage session label: `triage-2026-05-30-002`. Priority mapping used: P1-critical → High, P2-important → Medium, P3-backlog → Low (Jira standard names).
 
-> Component labels marked `(new)` assume the taxonomy additions the concurrent agent is making to `../../.cursor/rules/jira-triage-taxonomy.mdc` (e.g. `component:knowledge-graph`, `component:intelligence-engines`, `component:integrations`, `component:adaptive-ui`). If a new label is not yet present at filing time, use the closest existing label and flag for re-eval.
+> **Note on P0-blocker in the original table:** Stories cannot carry P0 priority per `jira-prioritization-logic.mdc`. WB-DEV-004 and WB-DEV-011 were proposed as P0-blocker in the draft table but filed as P1-critical (High) with the safety-gate and dependency-chain rationale preserved in their descriptions.
 
-| Proposed Story (from WB-DEV) | Likely Epic | layer | component | impact | phase | priority |
+| WB-DEV | Jira Story | Parent Epic | layer | component | phase | priority (tier) |
 |---|---|---|---|---|---|---|
-| WB-DEV-001/002 Auth + consent/share model | E4 Safety and Privacy (`WEL-15`) | layer:infra | component:safety-model | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-004 Raw Context Vault | E? Data Factory | layer:core | component:data-factory | impact:cross-cutting | mvp | P0-blocker |
-| WB-DEV-005/006 Ingestion + Processing | E? Data Factory | layer:feature-backend | component:data-factory | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-007 Hybrid OCR pipeline | E? Data Factory | layer:feature-backend | component:data-factory | impact:component-local | mvp | P2-important |
-| WB-DEV-008 Evidence & Provenance | E? Data Factory | layer:core | component:data-factory | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-009/010 Knowledge Graph + auto-link | E? Knowledge Graph | layer:feature-backend | component:knowledge-graph (new) | impact:cross-cutting | post-mvp | P2-important |
-| WB-DEV-011 Health Thread Engine + state machine | E1 Health Thread Core (`WEL-12`) | layer:core | component:health-thread | impact:cross-cutting | mvp | P0-blocker |
-| WB-DEV-012 Six Memories | E3 Memory Layer (`WEL-14`) | layer:feature-backend | component:story-memory | impact:component-local | mvp/post-mvp | P1-critical |
-| WB-DEV-013/014 Continuity & Closure | E2 Care Continuity (`WEL-13`) | layer:feature-backend | component:pending-tracker | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-015 Safety & Governance Gate | E4 Safety and Privacy (`WEL-15`) | layer:infra | component:safety-model | impact:cross-cutting | mvp | P0-blocker |
-| WB-DEV-016 Correction Service | E3 Memory Layer (`WEL-14`) | layer:feature-backend | component:story-memory | impact:component-local | mvp | P1-critical |
-| WB-DEV-017 Notification & Audit | E4 Safety and Privacy (`WEL-15`) | layer:infra | component:safety-model | impact:component-local | mvp | P2-important |
-| WB-DEV-018 API & Contract layer | E1 Health Thread Core (`WEL-12`) | layer:feature-api | component:health-thread | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-019/020 Event backbone + Temporal | E? Data Factory / Platform | layer:infra | component:data-factory | impact:cross-cutting | mvp | P1-critical |
-| WB-DEV-101 Mood/energy logging | E? Data Factory | layer:feature-frontend | component:data-factory | impact:self-contained | mvp | P2-important |
-| WB-DEV-102 Visit Packet + scoped share | E2 Care Continuity (`WEL-13`) | layer:feature-frontend | component:visit-packet | impact:component-local | mvp | P1-critical |
-| WB-DEV-103 Normal-test safety net | E2 Care Continuity (`WEL-13`) | layer:feature-backend | component:pending-tracker | impact:component-local | mvp | P1-critical |
-| WB-DEV-104 Graph visualization | E? Knowledge Graph | layer:feature-frontend | component:knowledge-graph (new) | impact:component-local | post-mvp | P2-important |
-| WB-DEV-105–109 Intelligence engines | E? Intelligence Engines | layer:feature-backend | component:intelligence-engines (new) | impact:cross-cutting | post-mvp | P2-important |
-| WB-DEV-110 Research Agent | E? Investigation | layer:feature-backend | component:intelligence-engines (new) | impact:component-local | post-mvp | P2-important |
-| WB-DEV-111 Myth Buster | E? Investigation | layer:feature-backend | component:intelligence-engines (new) | impact:component-local | post-mvp | P2-important |
-| WB-DEV-112 Environmental ingestion | E? Integrations | layer:feature-integration | component:integrations (new) | impact:component-local | post-mvp | P3-backlog |
-| WB-DEV-113/114 Wearable + cross-device | E? Integrations | layer:feature-integration | component:integrations (new) | impact:component-local | post-mvp | P2-important |
-| WB-DEV-115 Health-adaptive UI | E? Frontend | layer:feature-frontend | component:adaptive-ui (new) | impact:self-contained | post-mvp | P3-backlog |
-| WB-DEV-116 FHIR patient-access | E? Integrations | layer:feature-integration | component:integrations (new) | impact:cross-cutting | deferred | P3-backlog |
-| WB-DEV-201–205 Infra/observability/security/safety-eval | E4 Safety and Privacy / Platform | layer:infra | component:safety-model | impact:cross-cutting | mvp | P1-critical |
-
-`E?` = Epic expected in the bootstrap set but not yet observed (Data Factory, Knowledge Graph, Intelligence Engines, Integrations, Frontend/UI, Investigation/Research). Confirm exact Epic keys before filing.
+| WB-DEV-001/002 | [WEL-72](https://belias.atlassian.net/browse/WEL-72) | WEL-15 E4 Safety & Privacy | layer:infra | component:safety-model | mvp | High (P1-critical) |
+| WB-DEV-003 | [WEL-73](https://belias.atlassian.net/browse/WEL-73) | WEL-15 E4 Safety & Privacy | layer:infra | component:safety-model | post-mvp | Medium (P2-important) |
+| WB-DEV-004 | [WEL-80](https://belias.atlassian.net/browse/WEL-80) | WEL-18 E7 Data Capture | layer:core | component:data-factory | mvp | High (P1-critical) |
+| WB-DEV-005/006 | [WEL-81](https://belias.atlassian.net/browse/WEL-81) | WEL-18 E7 Data Capture | layer:feature-backend | component:data-factory | mvp | High (P1-critical) |
+| WB-DEV-007 | [WEL-82](https://belias.atlassian.net/browse/WEL-82) | WEL-18 E7 Data Capture | layer:feature-backend | component:data-factory | mvp | Medium (P2-important) |
+| WB-DEV-008 | [WEL-83](https://belias.atlassian.net/browse/WEL-83) | WEL-18 E7 Data Capture | layer:core | component:data-factory | mvp | High (P1-critical) |
+| WB-DEV-009/010 | [WEL-77](https://belias.atlassian.net/browse/WEL-77) | WEL-16 E5 Knowledge Graph | layer:feature-backend | component:knowledge-graph | post-mvp | Medium (P2-important) |
+| WB-DEV-011 | [WEL-64](https://belias.atlassian.net/browse/WEL-64) | WEL-12 E1 Health Thread Core | layer:core | component:health-thread | mvp | High (P1-critical) |
+| WB-DEV-012 | [WEL-70](https://belias.atlassian.net/browse/WEL-70) | WEL-14 E3 Memory Layer | layer:feature-backend | component:story-memory | mvp | High (P1-critical) |
+| WB-DEV-013/014 | [WEL-67](https://belias.atlassian.net/browse/WEL-67) | WEL-13 E2 Care Continuity | layer:feature-backend | component:pending-tracker | mvp | High (P1-critical) |
+| WB-DEV-015 | [WEL-74](https://belias.atlassian.net/browse/WEL-74) | WEL-15 E4 Safety & Privacy | layer:infra | component:safety-model | mvp | High (P1-critical) |
+| WB-DEV-016 | [WEL-71](https://belias.atlassian.net/browse/WEL-71) | WEL-14 E3 Memory Layer | layer:feature-backend | component:story-memory | mvp | High (P1-critical) |
+| WB-DEV-017 | [WEL-75](https://belias.atlassian.net/browse/WEL-75) | WEL-15 E4 Safety & Privacy | layer:infra | component:safety-model | mvp | Medium (P2-important) |
+| WB-DEV-018 | [WEL-65](https://belias.atlassian.net/browse/WEL-65) | WEL-12 E1 Health Thread Core | layer:feature-api | component:health-thread | mvp | High (P1-critical) |
+| WB-DEV-019/020 | [WEL-84](https://belias.atlassian.net/browse/WEL-84) | WEL-18 E7 Data Capture | layer:infra | component:data-factory | mvp | High (P1-critical) |
+| WB-DEV-101 | [WEL-85](https://belias.atlassian.net/browse/WEL-85) | WEL-18 E7 Data Capture | layer:feature-frontend | component:mood-logging | mvp | Medium (P2-important) |
+| WB-DEV-102 | [WEL-68](https://belias.atlassian.net/browse/WEL-68) | WEL-13 E2 Care Continuity | layer:feature-frontend | component:visit-packet | mvp | High (P1-critical) |
+| WB-DEV-103 | [WEL-69](https://belias.atlassian.net/browse/WEL-69) | WEL-13 E2 Care Continuity | layer:feature-backend | component:pending-tracker | mvp | High (P1-critical) |
+| WB-DEV-104 | [WEL-78](https://belias.atlassian.net/browse/WEL-78) | WEL-16 E5 Knowledge Graph | layer:feature-frontend | component:knowledge-graph | post-mvp | Medium (P2-important) |
+| WB-DEV-105–109 | [WEL-79](https://belias.atlassian.net/browse/WEL-79) | WEL-17 E6 Intelligence Engines | layer:feature-backend | component:intelligence-engines | post-mvp | Medium (P2-important) |
+| WB-DEV-110 | [WEL-86](https://belias.atlassian.net/browse/WEL-86) | WEL-19 E8 External Intelligence | layer:feature-backend | component:research-agent | post-mvp | Medium (P2-important) |
+| WB-DEV-111 | [WEL-87](https://belias.atlassian.net/browse/WEL-87) | WEL-19 E8 External Intelligence | layer:feature-backend | component:research-agent | post-mvp | Medium (P2-important) |
+| WB-DEV-112 | [WEL-88](https://belias.atlassian.net/browse/WEL-88) | WEL-20 E9 Integrations | layer:feature-integration | component:environmental-context | post-mvp | Low (P3-backlog) |
+| WB-DEV-113/114 | [WEL-89](https://belias.atlassian.net/browse/WEL-89) | WEL-20 E9 Integrations | layer:feature-integration | component:wearable-integration | post-mvp | Medium (P2-important) |
+| WB-DEV-115 | [WEL-91](https://belias.atlassian.net/browse/WEL-91) | WEL-21 E10 UI Layer | layer:feature-frontend | component:health-adaptive-ui | post-mvp | Low (P3-backlog) |
+| WB-DEV-116 | [WEL-90](https://belias.atlassian.net/browse/WEL-90) | WEL-20 E9 Integrations | layer:feature-integration | component:medical-integration | deferred | Low (P3-backlog) |
+| WB-DEV-201–205 | [WEL-76](https://belias.atlassian.net/browse/WEL-76) | WEL-15 E4 Safety & Privacy | layer:infra | component:safety-model | mvp | High (P1-critical) |
+| WB-DEV-206 | [WEL-66](https://belias.atlassian.net/browse/WEL-66) | WEL-12 E1 Health Thread Core | layer:infra | component:data-factory | post-mvp | Low (P3-backlog) |
