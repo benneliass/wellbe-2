@@ -1,10 +1,10 @@
-# WellBe v2 — Personal Shared Health Memory OS
+# WellBe — Personal Shared Health Memory OS
 
 > WellBe helps you carry your health context forward until an issue is resolved, explained, monitored, or safely handed off.
 
 ## What this is
 
-WellBe v2 is a **Personal Shared Health Memory OS** — a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around **Health Threads**.
+WellBe is a **Personal Shared Health Memory OS** — a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around **Health Threads**.
 
 The system's job is to help a person remember, connect, clarify, close, and correct health context across time — not to diagnose, replace clinicians, or manage hospital workflows.
 
@@ -22,10 +22,10 @@ wellbe-2/
 ├── docs/                   ← single source of truth
 │   ├── system-design/      Core system design, architecture, data model, state machine
 │   ├── workflows/          Patient, pre-visit, post-visit, referral, handoff workflows
-│   ├── feature-backlog/    v2 feature backlog, prioritization, MVP plan, deferred items
+│   ├── feature-backlog/    Feature backlog, prioritization, MVP plan, deferred items
 │   ├── safety/             Safety model, do-not-diagnose rules, privacy, risk register
 │   ├── implementation/     Roadmap, API/event model, migration notes, success metrics
-│   └── evidence/           Evidence-to-decision cross-reference, v1 analysis, source index
+│   └── evidence/           Evidence-to-decision cross-reference, source index
 ├── archive/                Prior research and analysis (synthesized into docs/, read-only)
 │   ├── research/           Six raw evidence research packages
 │   └── analysis/           Pre-synthesis canvas artifact
