@@ -186,6 +186,16 @@ export default function WellBeSynthesis() {
         </Text>
       </Stack>
 
+      {/* ── Vision Guardrail ── */}
+      <Callout tone="info">
+        <Stack gap={6}>
+          <Text weight="semibold" style={{ fontSize: 13 }}>Vision guardrail — read before interpreting the analysis below</Text>
+          <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
+            WellBe is a <strong>personal</strong> health intelligence system. The primary user is always the individual. The research studied systemic clinical failures — that is context, not a product spec. When the research describes a gap in the clinical system (ownership vacuums, referral voids, handoff failures), WellBe's answer is to <strong>empower the patient within that system</strong>, not to become the system. Insights labelled "Opportunity" or "Vision Shift" that suggest clinician-facing tools or B2B2C pivots are hypothetical design spaces, not priorities. The comparison engine — cross-time, cross-source synthesis — is WellBe's moat, but it is a mechanism serving personal understanding, not the product identity.
+          </Text>
+        </Stack>
+      </Callout>
+
       {/* ── Summary Stats ── */}
       <Grid columns={4} gap={12}>
         <Card><CardBody>
@@ -495,21 +505,40 @@ export default function WellBeSynthesis() {
         </Grid>
 
         <Stack gap={10}>
-          <H3>The Vision Shifts Worth Arguing About</H3>
-          <Card collapsible defaultOpen>
-            <CardHeader trailing={<Pill tone="deleted" size="sm">Radical</Pill>}>From personal intelligence to continuity infrastructure</CardHeader>
+          <H3>Research-Suggested Directions — Scoped Against Vision Guardrail</H3>
+          <Callout tone="warning">
+            <Text style={{ fontSize: 13, lineHeight: 1.6 }}>
+              The two directions below surfaced strongly in the research but are <strong>outside the current personal vision</strong> unless explicitly decided otherwise. They are documented here for transparency — not as recommendations.
+            </Text>
+          </Callout>
+          <Card collapsible>
+            <CardHeader trailing={<Pill tone="deleted" size="sm">Out of scope</Pill>}>Clinician-as-second-user / continuity infrastructure</CardHeader>
             <CardBody>
-              <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
-                The research frames the problem not as 'patients lack data' but as 'nothing stays connected across actors, time, and system boundaries.' Research F's black zone map makes this concrete across 14 stages. The most powerful version of WellBe is the connective tissue ensuring nothing gets lost between encounters, providers, and system types. Clinicians become a second user class. Post-encounter is the core product surface. The "moat is synthesis" becomes "the moat is continuity."
-              </Text>
+              <Stack gap={10}>
+                <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
+                  Research A–E + Research F's 14-stage black zone map frame the clinical system's problem as "nothing stays connected across actors, time, and system boundaries." The research-implied response is: build the connective tissue — clinicians as a second user class, post-encounter as the primary surface, a B2B2C platform sold to practices. This is a coherent product, but it is not WellBe's vision.
+                </Text>
+                <Callout tone="success">
+                  <Text style={{ fontSize: 13, lineHeight: 1.6 }}>
+                    <strong>The personal-first reframe:</strong> Every black-zone failure point maps to something the <em>user</em> needs to track, remember, and advocate for. Post-encounter continuity is fully achievable as a personal tool — the user keeps the longitudinal thread, follows up on pending results, tracks referral status, owns what's unresolved. No clinician login required.
+                  </Text>
+                </Callout>
+              </Stack>
             </CardBody>
           </Card>
-          <Card collapsible defaultOpen>
-            <CardHeader trailing={<Pill tone="warning" size="sm">Significant</Pill>}>From B2C app to B2B2C pre-consultation intake</CardHeader>
+          <Card collapsible>
+            <CardHeader trailing={<Pill tone="deleted" size="sm">Out of scope</Pill>}>B2B2C pre-consultation intake sold to practices</CardHeader>
             <CardBody>
-              <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
-                Research D + Research F (LI-002) imply WellBe could be the structured pre-consultation intake layer sold to practices — a clinician-ordered context layer delivered before appointments, not patient-controlled. Research F's patient-facing workflow maps directly to this: symptom in own words → timeline + change-from-baseline → medications + prior tests → patient theory → summary correction. This makes WellBe mission-critical to practices.
-              </Text>
+              <Stack gap={10}>
+                <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
+                  Research D + Research F (LI-002) suggest WellBe could become a structured pre-consultation intake layer ordered by clinicians and delivered to patients before appointments — making WellBe mission-critical to practices rather than to individuals. This creates strong institutional lock-in and potential revenue moats.
+                </Text>
+                <Callout tone="success">
+                  <Text style={{ fontSize: 13, lineHeight: 1.6 }}>
+                    <strong>The personal-first reframe:</strong> The doctor-summary feature already covers this — the user generates a structured summary (symptom in own words → timeline → medications + prior tests → patient theory) and <em>chooses to share it</em> with their clinician. The value accrues to the individual first. If practices adopt it as intake, that's a distribution channel, not the product identity.
+                  </Text>
+                </Callout>
+              </Stack>
             </CardBody>
           </Card>
         </Stack>

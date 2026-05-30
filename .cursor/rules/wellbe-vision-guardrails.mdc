@@ -1,0 +1,40 @@
+# WellBe Vision Guardrails
+
+## The system is personal. Always.
+
+WellBe is a **personal health intelligence system**. The primary user is always the individual managing their own health. Every feature, every module, every design decision serves that individual — not a clinical institution, not a hospital, not a payer, not a practice.
+
+## What "personal" means in practice
+
+- The data belongs to the user. The intelligence is for the user. The outputs reach the user first.
+- Features that help the user prepare for, document, or follow up on clinical encounters are **within scope** — because they serve the individual.
+- Features that turn WellBe into a clinician-facing EHR tool, a hospital workflow system, or a practice management platform are **out of scope** — unless explicitly decided otherwise.
+
+## The comparison engine is a feature, not the identity
+
+Cross-device, cross-time, cross-source, cross-domain synthesis is WellBe's **moat and mechanism** — but it is a means, not an end. The end is: one person understanding their own health better than they could without WellBe. Comparison is the how, not the what.
+
+## Research context guardrail
+
+The research packages (A–F) studied systemic clinical failures — missed diagnoses, handoff gaps, referral voids. These are **context**, not a product spec. When research describes a problem that lives in the clinical system (e.g. "no named clinician owns this result"), WellBe's answer is to empower the patient within that system — not to replace the system or become the system.
+
+Concretely:
+- **doctor-summary** → a tool the user creates and chooses to share with their clinician. Not a clinician EHR module.
+- **repeat-visit tracking** → the user's longitudinal memory of what they've tried and what hasn't resolved. Not a hospital visit ledger.
+- **result ownership** → the user understanding what is still open and who they need to follow up with. Not an assignment system for clinical staff.
+- **referral tracking** → the user knowing where their referral stands and when to follow up. Not a referral management platform.
+
+## Scope boundary
+
+| In scope | Out of scope (unless explicitly decided) |
+|---|---|
+| User's personal health data | Clinician EHR/workflow tools |
+| Helping the user understand their health | Replacing clinical judgment |
+| Preparing the user for clinical conversations | Managing clinical staff or workflows |
+| Empowering patient self-advocacy | B2B2C clinical intake sold to practices |
+| User-controlled sharing of their data | Hospital/institutional system integration |
+| Cross-domain synthesis of the user's own data | Cross-user population analytics |
+
+## When in doubt
+
+Ask: **does this feature serve the individual user's understanding and agency over their own health?** If yes, it belongs. If it primarily serves a clinical institution or creates value only in a B2B context, it does not belong — at least not in the current vision.

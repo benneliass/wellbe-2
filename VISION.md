@@ -1,0 +1,65 @@
+# WellBe — Vision Guardrails
+
+> This document exists to keep the project grounded. It is a constraint on how research, features, and design decisions are interpreted — not a product spec.
+
+---
+
+## The system is personal. Always.
+
+WellBe is a **personal health intelligence system**. The primary user is the individual managing their own health. Every feature serves that individual — not a hospital, not a practice, not a payer.
+
+---
+
+## What the research revealed — and how to read it
+
+The research packages (A–F) studied real-world diagnostic failures: missed signals, clinical handoffs, referral voids, ownership vacuums. This is valuable context. It tells us **what the individual faces** when they navigate the health system.
+
+But the research describes failures that live in the clinical system. WellBe's response to those failures is to **empower the person**, not to become the system.
+
+### The reframe
+
+| Research finding | Clinical-system reading (not WellBe) | Personal-system reading (WellBe) |
+|---|---|---|
+| "No named owner for abnormal results" | Build a clinical result ownership ledger | Help the user know what's still open and who to follow up with |
+| "Repeat visits treated as separate encounters" | Build a hospital visit tracking system | Give the user longitudinal memory so they can advocate that this isn't a new problem |
+| "Referral placed but never completed" | Build a referral management platform | Help the user understand where their referral stands and when to push |
+| "Patient voice cut off during intake" | Build a pre-consultation intake tool for clinicians | Help the user articulate and document their full experience before any appointment |
+| "No one connected the dots" | Build cross-clinician diagnostic episode tracking | Synthesize the user's own data across time, sources, and domains so they can see the pattern themselves |
+
+---
+
+## The comparison engine is a feature, not the identity
+
+Cross-device, cross-time, cross-source, cross-domain synthesis is WellBe's **moat** — the mechanism that creates value. But it is a means, not an end.
+
+The end: one person understanding what is changing in their health, what might be connected, and what they should discuss or track next.
+
+Comparison enables that. It is not the product itself.
+
+---
+
+## Scope
+
+**In scope:**
+- The user's personal health data, across all domains and time
+- Helping the user understand patterns, gaps, and changes in their own health
+- Preparing the user for clinical conversations (doctor-summary, symptom articulation)
+- Empowering self-advocacy (longitudinal memory, concern tracking, timeline)
+- User-controlled sharing of their own data with clinicians or others they choose
+
+**Out of scope (unless explicitly decided):**
+- Clinician-facing EHR or workflow tools
+- Hospital/institutional system integration as a primary use case
+- B2B2C models where the primary customer is a practice or hospital
+- Population analytics or cross-user research
+- Replacing clinical judgment in any form
+
+---
+
+## The test for any feature
+
+> Does this feature serve the individual user's understanding of and agency over their own health?
+
+If yes: it belongs.
+
+If it primarily serves a clinical institution, or only creates value in a B2B context, or requires a clinician to be the primary user — it does not belong in the current vision.
