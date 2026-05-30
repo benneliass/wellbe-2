@@ -37,22 +37,24 @@ A reserved root Epic that defines all system components and their inter-Epic dep
 
 ### 2.2 Metadata Fields
 
-All six fields are required on every item. No partial items are written to Jira.
+The `WEL` project is team-managed (next-gen). Native Jira Components are not available in team-managed projects. All classification is carried via **Labels** on each issue. Versions are used for phase targeting.
 
-| Field | Type | Values |
+All fields are required on every item. No partial items are written to Jira.
+
+| Field | Jira mechanism | Values |
 |---|---|---|
-| `layer` | Label | `core` / `infra` / `feature-backend` / `feature-frontend` / `feature-api` / `feature-integration` |
-| `component` | Label | `health-thread` / `data-factory` / `state-machine` / `safety-model` / `share-export` / `story-memory` / `pending-tracker` / `referral-lifecycle` / `visit-packet` / `responsibility-memory` |
-| `impact-radius` | Custom field | `self-contained` / `component-local` / `cross-cutting` |
-| `priority-tier` | Priority | `P0-blocker` / `P1-critical` / `P2-important` / `P3-backlog` |
-| `phase` | Label | `mvp` / `post-mvp` / `deferred` |
-| `re-eval-flag` | Custom field | `clean` / `needs-review` / `blocked-by-change` |
+| `layer` | Label | `layer:core` / `layer:infra` / `layer:feature-backend` / `layer:feature-frontend` / `layer:feature-api` / `layer:feature-integration` |
+| `component` | Label | `component:health-thread` / `component:data-factory` / `component:state-machine` / `component:safety-model` / `component:share-export` / `component:story-memory` / `component:pending-tracker` / `component:referral-lifecycle` / `component:visit-packet` / `component:responsibility-memory` |
+| `impact-radius` | Label | `impact:self-contained` / `impact:component-local` / `impact:cross-cutting` |
+| `priority-tier` | Priority field | `P0-blocker` / `P1-critical` / `P2-important` / `P3-backlog` |
+| `phase` | Fix Version | `mvp` (id:10000) / `post-mvp` (id:10001) / `deferred` (id:10002) |
+| `re-eval-flag` | Label | `re-eval:clean` / `re-eval:needs-review` / `re-eval:blocked-by-change` |
 
 Additionally, every item created or updated during a triage run is stamped with:
 
-| Field | Type | Purpose |
+| Field | Jira mechanism | Purpose |
 |---|---|---|
-| `triage-session-id` | Custom field / label | Links the item to the triage run that created/updated it. Format: `triage-YYYY-MM-DD-NNN`. Used by the VERIFY step to audit execution completeness. |
+| `triage-session-id` | Label | Links the item to the triage run that created/updated it. Format: `triage-YYYY-MM-DD-NNN`. Used by the VERIFY step to audit execution completeness. |
 
 ### 2.3 Roadmap View
 

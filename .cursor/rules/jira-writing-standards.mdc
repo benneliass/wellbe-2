@@ -1,0 +1,87 @@
+---
+description: Required fields, label formats, link conventions, and writing standards for every Jira item created or updated in the WEL project.
+alwaysApply: true
+---
+
+# Jira Writing Standards
+
+## Project Reference
+- Project key: `WEL`
+- Jira instance: `belias.atlassian.net`
+- Fix Version IDs: `mvp`=10000 / `post-mvp`=10001 / `deferred`=10002
+
+---
+
+## Required Fields — Every Item
+
+No item may be written to Jira without all of the following fields populated:
+
+| Field | Jira mechanism | Required value |
+|---|---|---|
+| Summary | `summary` | Clear, specific title. No vague names like "Fix bug" or "New feature". |
+| Issue type | `issue_type` | `Feature` / `Story` / `Task` / `Bug` / `Spike` |
+| Layer | Label | Exactly one `layer:*` label |
+| Component | Label | Exactly one `component:*` label |
+| Impact radius | Label | Exactly one `impact:*` label |
+| Re-eval flag | Label | Exactly one `re-eval:*` label (default: `re-eval:clean`) |
+| Triage session | Label | `triage-YYYY-MM-DD-NNN` for the current session |
+| Phase | Fix Version | `mvp`, `post-mvp`, or `deferred` |
+| Priority | Priority field | `P0-blocker`, `P1-critical`, `P2-important`, or `P3-backlog` |
+| Description | `description` | At minimum: one sentence describing the work and its purpose. Stories and Features must reference the relevant `docs/` section. |
+
+---
+
+## Triage Session ID Format
+
+Format: `triage-YYYY-MM-DD-NNN`
+
+- `YYYY-MM-DD` is the date the triage run starts
+- `NNN` is a zero-padded sequence number starting at `001`, incremented per triage run per day
+- Example: `triage-2026-05-30-001`, `triage-2026-05-30-002`
+
+The session ID is a label applied to every item created or updated in that run. It must be consistent across all items in a single triage run.
+
+---
+
+## Issue Link Types
+
+Only three link types are used. No others.
+
+| Link type | When to use |
+|---|---|
+| `blocks` | This item must be completed before the linked item can start |
+| `is blocked by` | This item cannot start until the linked item is complete |
+| `relates to` | Architectural or conceptual relationship — no hard sequencing dependency |
+
+Every Feature must have at least one link to another Feature (`blocks`, `is blocked by`, or `relates to`). Isolated Features are not allowed — they are a signal that the component relationship is missing.
+
+---
+
+## Deferred Gap Format
+
+When VERIFY finds a gap and the user defers it, create the following item:
+
+- Issue type: `Story`
+- Summary: `[Deferred] <description of the gap>`
+- Fix Version: `deferred`
+- Priority: `P3-backlog`
+- Label: `re-eval:needs-review`
+- Label: `triage-YYYY-MM-DD-NNN` (current session)
+- Label: `layer:*` and `component:*` of the gap area
+- Description: "Deferred during triage session `triage-YYYY-MM-DD-NNN`. Gap: <what was missing and why it was deferred>."
+
+Nothing discovered during a triage run is allowed to disappear. If it's not handled now, it becomes a deferred item.
+
+---
+
+## Description Standards
+
+**Features:** Must include: (1) one-sentence purpose statement, (2) link to the relevant `docs/system-design/` or `docs/feature-backlog/` section, (3) which components it depends on.
+
+**Stories:** Must include: (1) user-facing or system outcome, (2) acceptance criteria as a bullet list, (3) which Feature it belongs to.
+
+**Tasks:** Must include: (1) specific technical action, (2) definition of done.
+
+**Bugs:** Must include: (1) observed behavior, (2) expected behavior, (3) steps to reproduce if known.
+
+**Spikes:** Must include: (1) the question being investigated, (2) time-box, (3) expected output (decision, doc, or prototype).

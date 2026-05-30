@@ -1,0 +1,101 @@
+---
+description: Defines what constitutes a meaningful change that triggers the Jira triage flow, and what does not. The agent uses this to decide whether to invoke the triage protocol without being explicitly told.
+alwaysApply: true
+---
+
+# Jira Trigger Detection
+
+## The Principle
+
+The agent is context-driven. It recognizes meaningful changes without being explicitly told to triage them. This rule defines what counts as a trigger and what does not.
+
+When in doubt: treat it as a trigger. A triage that concludes "no action needed" has no cost. A missed trigger can leave Jira out of sync.
+
+---
+
+## Trigger: Conversation
+
+The agent reads the conversation and detects one of the following signals:
+
+**Fire triage if the conversation contains:**
+- A new capability, feature, or behavior being proposed ("we should add...", "what if...", "I want...")
+- A change to how a core system object works (Health Thread, Data Factory, State Machine)
+- A reprioritization request ("push X back", "X is more important than Y", "we don't need X for MVP")
+- A question about system design that implies a decision is being made
+- A direct request ("triage this", "add this to Jira", "create a ticket for...")
+- An architectural concern being raised ("this could break...", "does this affect...")
+
+**Do NOT fire triage if the conversation contains:**
+- A question that is purely informational with no design implication
+- A request to read or explain existing docs or Jira items
+- Debugging or troubleshooting an existing implementation
+- Administrative tasks (renaming, formatting, moving files)
+- Casual discussion with no concrete decision
+
+---
+
+## Trigger: Doc Change
+
+The agent evaluates commits that touch specific paths.
+
+**Fire triage if a commit modifies:**
+- `docs/system-design/` — any file
+- `docs/feature-backlog/feature_backlog.md`
+- `docs/feature-backlog/prioritization.md`
+- `docs/feature-backlog/mvp_plan.md`
+- `docs/safety/` — any file
+
+**Do NOT fire triage for commits that only:**
+- Fix typos or spelling in any doc
+- Reformat markdown (headings, tables, lists) without changing content
+- Add examples or clarifying notes to existing content without changing decisions
+- Modify `archive/`, `README.md`, `VISION.md`, or `AGENTS.md`
+- Add new research evidence without a corresponding design decision
+
+**How to evaluate a doc diff:**
+- Read the diff
+- Ask: does this change a decision, a component definition, a priority, or a scope boundary?
+- If yes: trigger triage
+- If no: do not trigger
+
+---
+
+## Trigger: Explicit Request
+
+Any direct instruction from the user to triage, create, update, or re-evaluate Jira items is always a trigger. No ambiguity check needed.
+
+Examples: "triage this", "add to Jira", "create an epic for", "re-evaluate priorities", "update the roadmap", "what's the blast radius of..."
+
+---
+
+## Trigger: Orphan Detection
+
+During any triage run, the agent scans Jira items in the blast radius for items with no `triage-*` label. These are orphans — manually created items that bypassed the triage flow.
+
+Orphans are folded into the current triage as classification candidates. The agent:
+1. Reads the orphan item
+2. Proposes the correct `layer:*`, `component:*`, `impact:*`, `phase`, and priority based on its content
+3. Includes it in the PROPOSE step as "Orphan items to classify"
+4. Stamps it with the current `triage-YYYY-MM-DD-NNN` label after approval
+
+---
+
+## Non-Triggers (Explicit Exclusions)
+
+These are never triggers, even if they look like meaningful changes:
+
+| Action | Why it is not a trigger |
+|---|---|
+| Committing the design spec or rules files themselves | Meta — changes to the system's own rules do not re-triage the project |
+| Closing or transitioning a Jira item to Done | Completion is not a new requirement |
+| Adding a comment to an existing Jira item | Not a scope change |
+| Changing a Sprint assignment | Scheduling, not scope |
+| Updating the README or VISION.md | Vision-level text, not actionable design decisions |
+
+---
+
+## Trigger Response Time
+
+The agent should invoke triage detection at the start of every interaction where a trigger might be present. It does not need to wait until the end of the conversation.
+
+If a trigger is detected mid-conversation (e.g., a design decision is made after some discussion), the agent acknowledges it at the point of detection: "This looks like a triage-worthy change — I'll run the triage protocol when we're ready."

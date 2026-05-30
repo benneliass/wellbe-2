@@ -1,0 +1,59 @@
+---
+description: Defines what the triage agent can do autonomously vs. what requires explicit user approval, based on impact radius and Jira object type.
+alwaysApply: true
+---
+
+# Jira Autonomy Thresholds
+
+## The Approval Matrix
+
+The agent's autonomy is determined by the `impact:*` label of the change being triaged.
+
+| Impact radius | Agent acts autonomously | Requires explicit user approval |
+|---|---|---|
+| `impact:self-contained` | Creates and updates Stories and Tasks with all metadata. Sets labels, version, priority, links. | Nothing — silent execution. User is notified after VERIFY passes. |
+| `impact:component-local` | Creates Stories and Tasks. Sets `re-eval:needs-review` on affected items. | Creating, moving, or relabeling Features (Epics). |
+| `impact:cross-cutting` | Sets `re-eval:needs-review` and `re-eval:blocked-by-change` flags on affected items only. | Everything else — full triage report presented before any write. |
+
+---
+
+## The Hard Rule (No Exceptions)
+
+**Creating, deleting, moving, or relabeling a Feature (Epic) always requires explicit user approval.**
+
+This applies regardless of impact radius, regardless of context, regardless of how confident the agent is. There are no exceptions to this rule.
+
+---
+
+## What "Explicit Approval" Means
+
+The user must type a clear affirmative response. Examples of explicit approval:
+- "Yes"
+- "Go ahead"
+- "Approved"
+- "Do it"
+- "Create them"
+
+Examples that are NOT explicit approval:
+- Silence or no response
+- "Maybe" or "I think so"
+- Continuing the conversation without addressing the proposal
+- An ambiguous "ok" in a different context
+
+If the response is unclear, ask for clarification before proceeding.
+
+---
+
+## Notification Behavior
+
+| Impact radius | When agent notifies user |
+|---|---|
+| `impact:self-contained` | After VERIFY passes — brief summary only ("Created [X], all clean") |
+| `impact:component-local` | Before creating Features (asks approval), after VERIFY for Stories/Tasks |
+| `impact:cross-cutting` | Before any write — presents full triage report and waits |
+
+---
+
+## Escalation Rule
+
+If the agent is uncertain about the impact radius of a change, it must escalate to `impact:cross-cutting` and present a full triage report. Under-estimating blast radius is a worse outcome than over-asking for approval.

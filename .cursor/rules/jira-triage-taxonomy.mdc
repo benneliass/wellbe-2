@@ -1,0 +1,107 @@
+---
+description: Classification vocabulary for WellBe Jira triage. Defines all label values, component names, impact radius, priority tiers, and phases used to classify every Jira item.
+alwaysApply: true
+---
+
+# Jira Triage Taxonomy
+
+## Project
+- Project key: `WEL`
+- Project type: team-managed (next-gen)
+- All classification is done via Labels + Priority field + Fix Version
+- No native Jira Components — labels carry all structural metadata
+
+---
+
+## Layer Labels (`layer:*`)
+
+Every item must have exactly one `layer:` label.
+
+| Label | Meaning |
+|---|---|
+| `layer:core` | Foundational system objects. Everything else depends on these. Changes here have the widest blast radius. Includes: Health Thread, Data Factory, State Machine. |
+| `layer:infra` | Cross-cutting concerns that touch all layers. Safety model, privacy guardrails, auth. Changes here affect correctness and trust across the system. |
+| `layer:feature-backend` | Server-side feature work. Business logic, data processing, persistence. |
+| `layer:feature-frontend` | Client-side / UI work. Views, interactions, user-facing flows. |
+| `layer:feature-api` | API surface and contracts. Endpoints, schemas, versioning. |
+| `layer:feature-integration` | External integrations. Wearables, EHR import, third-party data sources. |
+
+---
+
+## Component Labels (`component:*`)
+
+Every item must have exactly one `component:` label. Components map directly to sections in `docs/system-design/`.
+
+| Label | System design reference |
+|---|---|
+| `component:health-thread` | `docs/system-design/core_objects.md` — primary product object |
+| `component:data-factory` | `docs/system-design/system_design.md` — ingestion, normalization, provenance |
+| `component:state-machine` | `docs/system-design/health_thread_state_machine.md` — lifecycle transitions |
+| `component:safety-model` | `docs/safety/` — do-not-diagnose rules, privacy, user control |
+| `component:story-memory` | `docs/system-design/system_design.md` — patient narrative capture |
+| `component:pending-tracker` | `docs/feature-backlog/feature_backlog.md` — pending result tracking |
+| `component:referral-lifecycle` | `docs/feature-backlog/feature_backlog.md` — referral tracking |
+| `component:visit-packet` | `docs/feature-backlog/feature_backlog.md` — pre/post visit packets |
+| `component:share-export` | `docs/feature-backlog/feature_backlog.md` — scoped share and export |
+| `component:responsibility-memory` | `docs/feature-backlog/feature_backlog.md` — responsibility ledger |
+
+---
+
+## Impact Radius Labels (`impact:*`)
+
+Every item must have exactly one `impact:` label. Assigned during CLASSIFY step, confirmed during WALK step.
+
+| Label | Meaning | Blast radius implication |
+|---|---|---|
+| `impact:self-contained` | Change lives entirely within one component. No downstream effects. | Agent acts autonomously. No approval needed. |
+| `impact:component-local` | Change affects 1–2 directly linked components. Contained spread. | Agent asks before creating or modifying Epics/Features. |
+| `impact:cross-cutting` | Change propagates across multiple layers or components. Wide spread. | Agent presents full triage report and waits for approval before any write. |
+
+**When in doubt, assign the higher impact radius.** It is always safer to over-estimate blast radius.
+
+---
+
+## Priority Tiers (Jira Priority field)
+
+| Value | Meaning |
+|---|---|
+| `P0-blocker` | Blocks everything else. Must be resolved before any other work proceeds. |
+| `P1-critical` | Must ship in the current phase. High risk if deferred. |
+| `P2-important` | Should ship in the current phase. Meaningful but not blocking. |
+| `P3-backlog` | Tracked, not scheduled. Will be picked up when capacity allows. |
+
+Priority is set on the Jira Priority field, not as a label.
+
+---
+
+## Phase (Fix Version)
+
+Every item targets exactly one Fix Version. Version IDs are fixed for the `WEL` project.
+
+| Version name | ID | Meaning |
+|---|---|---|
+| `mvp` | 10000 | Ships in the minimum viable product |
+| `post-mvp` | 10001 | Ships after initial launch |
+| `deferred` | 10002 | Explicitly deprioritised — tracked but not scheduled |
+
+---
+
+## Re-evaluation Flag Labels (`re-eval:*`)
+
+Set by the agent during WALK and EXECUTE steps. Never set manually unless explicitly needed.
+
+| Label | Meaning |
+|---|---|
+| `re-eval:clean` | Item has been reviewed and is consistent with the current system state. |
+| `re-eval:needs-review` | Item is in the blast radius of a recent change. Needs review before work starts. |
+| `re-eval:blocked-by-change` | Item cannot proceed until a blocking dependency is resolved. |
+
+---
+
+## Triage Session Label
+
+Format: `triage-YYYY-MM-DD-NNN` where NNN is a zero-padded sequence number for that day.
+
+Example: `triage-2026-05-30-001`
+
+Every item created or updated during a triage run must carry this label. The VERIFY step uses it to confirm execution completeness.

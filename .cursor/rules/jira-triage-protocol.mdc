@@ -1,0 +1,143 @@
+---
+description: The mandatory 8-step triage protocol for all Jira operations in WellBe. Every meaningful change must go through this flow in order. No steps may be skipped or combined.
+alwaysApply: true
+---
+
+# Jira Triage Protocol
+
+## The Rule
+
+Every meaningful change — whether from a conversation, a doc commit, an explicit request, or an orphan detection — must go through this exact 8-step flow in order.
+
+**Do not skip steps. Do not combine steps. VERIFY must pass before triage closes.**
+
+---
+
+## Step 1: DETECT
+
+Recognize that a meaningful change has occurred. Identify its nature:
+- Is this a **new feature** being introduced?
+- Is this a **core change** that modifies foundational system behavior?
+- Is this a **priority shift** — reprioritizing or deferring existing work?
+- Is this a **scope correction** — removing or narrowing something already planned?
+
+If the change is a minor doc edit, typo fix, formatting update, or example addition, this is NOT a trigger. Stop here.
+
+If uncertain, treat it as a trigger and proceed. It is better to run a triage that concludes "no action needed" than to miss a meaningful change.
+
+---
+
+## Step 2: FETCH
+
+Read the current Jira state via MCP before doing anything else.
+
+Fetch:
+- All open Features (Epics) in project `WEL`
+- Their labels, priority, fix version, and issue links
+- Any items flagged `re-eval:needs-review` or `re-eval:blocked-by-change`
+- Any items in the relevant area with no `triage-*` label (orphan candidates)
+
+Do not rely on memory of previous Jira state. Always fetch fresh.
+
+---
+
+## Step 3: CLASSIFY
+
+Assign all required metadata to the new item using the taxonomy in `jira-triage-taxonomy.mdc`:
+
+- `layer:*` — exactly one
+- `component:*` — exactly one
+- `impact:*` — exactly one (when in doubt, assign the higher radius)
+- Priority tier — P0 through P3
+- Fix Version — mvp / post-mvp / deferred
+- `re-eval:clean` (initial state)
+
+Classification must be grounded in `docs/system-design/` and `docs/feature-backlog/`. Do not invent architectural context. If the correct component or layer is ambiguous, surface the ambiguity to the user before continuing.
+
+---
+
+## Step 4: WALK
+
+Perform a forward and backward dependency walk to determine the blast radius.
+
+- Follow `blocks`, `is blocked by`, and `relates to` links on affected Features
+- For each affected component, check if it is already covered by existing open items
+- Note orphaned items (no `triage-*` label) encountered in the walk — fold them into this triage as classification candidates
+- The blast radius may expand during this step as new dependencies are discovered
+
+**At the end of WALK, lock the blast radius.** No further expansion happens during EXECUTE or VERIFY. If new dependencies are discovered at VERIFY time, flag them as a new triage candidate — do not expand mid-run.
+
+---
+
+## Step 5: PROPOSE
+
+Produce a triage report. The content and whether approval is required depends on `impact:*` — see `jira-autonomy-thresholds.mdc`.
+
+The report must include:
+- The new item (type, title, all metadata)
+- Affected items (list with proposed action per item)
+- Proposed priority changes (old → new with reasoning)
+- Reasoning grounded in system design docs and current Jira state — no unsupported claims
+
+Report format:
+```
+NEW ITEM
+  → [Feature/Story/Task] <Title>
+  → layer:<value> | component:<value> | impact:<value> | phase:<value>
+
+AFFECTED ITEMS (<N> found)
+  → [<priority>] <Item title>  — <proposed action>
+
+PROPOSED PRIORITY CHANGES
+  → <Item>: <old> → <new>  (<reason>)
+
+REASONING
+  <Grounded explanation citing docs/ and current Jira state>
+
+[Approve all]  [Edit]  [Reject]
+```
+
+---
+
+## Step 6: CONFIRM
+
+Wait for explicit user approval before writing anything to Jira (when approval is required per `jira-autonomy-thresholds.mdc`).
+
+Explicit approval means the user has typed a clear affirmative response. Silence, ambiguity, or a partial response is not approval. If the response is unclear, ask for clarification.
+
+The hard rule applies here: any Feature (Epic) create, delete, move, or relabel always requires explicit approval, regardless of impact radius.
+
+---
+
+## Step 7: EXECUTE
+
+Fire Jira MCP calls in this order:
+1. Create new items (Features first, then Stories, then Tasks)
+2. Set all required labels on every item: `layer:*`, `component:*`, `impact:*`, `re-eval:*`, `triage-YYYY-MM-DD-NNN`
+3. Set Fix Version to the correct phase
+4. Set Priority field
+5. Create issue links (`blocks`, `is blocked by`, `relates to`)
+6. Set `re-eval:needs-review` on items in the blast radius not already covered by this run
+
+Every item written to Jira must have all required fields populated. No partial items.
+
+---
+
+## Step 8: VERIFY
+
+After execution, re-read Jira and confirm the run is complete.
+
+Check for every component in the locked blast radius:
+- Does a Jira item exist covering the work?
+- Are all required labels present and correct?
+- Is the Fix Version set?
+- Is the Priority set?
+- Are the correct issue links in place?
+- Does the item carry the `triage-YYYY-MM-DD-NNN` label for this session?
+
+If a gap is found:
+- Surface it to the user: "This component was in the blast radius but has no coverage: [X]. Handle now or defer?"
+- If deferred: create a P3-backlog item with Fix Version `deferred` and label `re-eval:needs-review` so nothing disappears silently
+- If handled now: create the item and re-run VERIFY
+
+**Triage does not close until VERIFY passes cleanly.**
