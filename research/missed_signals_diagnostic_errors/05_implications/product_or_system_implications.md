@@ -1,0 +1,12 @@
+- **Longitudinal diagnostic signal accumulator**: Auto-cluster symptoms/labs/visits/referrals into unresolved diagnostic threads. Guardrail: Avoid over-alerting by requiring meaningful change, persistence, or multi-domain convergence.
+- **Repeat-visit diagnostic reset**: Require clinician to review prior diagnosis, what changed, and dangerous alternatives. Guardrail: Must not punish necessary return visits; frame as safety support.
+- **Closed-loop abnormal result ownership**: Assign owner + deadline + patient notification + acknowledgment + action status. Guardrail: Escalation should be calibrated by criticality and context.
+- **Normal-test trap explainer**: Show test age, scope, symptom status, and what it cannot rule out. Guardrail: Decision support should inform, not override, clinical judgment.
+- **Patient voice + severity capture**: Structured fields for patient concern, functional limits, photos, family history, and timeline. Guardrail: Protect against stigmatizing notes; keep patient language respectful and relevant.
+- **Bias/misattribution guardrail**: Prompt clinician to document physical red flags ruled out before psychiatric attribution. Guardrail: Do not imply mental health conditions are not real; focus on coexisting physical risk.
+- **Cross-specialty referral map**: Suggest adjacent specialties and shared handoff summary for unresolved patterns. Guardrail: Needs local referral availability and patient preference.
+- **Imaging finding lifecycle tracker**: Track from report to clinician acknowledgment, patient notification, referral, and closure. Guardrail: Separate emergent critical findings from non-urgent but serious findings.
+- **Emergency pathway timers**: Condition-specific timers/checklists for serial ECG/troponin, ultrasound, CXR, CTA/perfusion. Guardrail: Must permit clinician override with documented rationale.
+- **Low-resource diagnostic availability layer**: Capture test unavailability, alternate plan, referral, and supply-chain alert. Guardrail: Avoid penalizing clinics for stockouts; route data to system managers.
+- **Medication/access-as-diagnostic-clue**: Surface medication interruption as a risk factor for emergency differentials. Guardrail: Requires sensitive financial questions and privacy protections.
+- **Pending-test discharge contract**: Patient-facing and clinician-facing list of pending results, expected date, owner, and action plan. Guardrail: Must ensure patients are not alarmed without interpretation pathways.

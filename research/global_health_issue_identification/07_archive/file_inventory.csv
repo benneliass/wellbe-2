@@ -1,0 +1,77 @@
+file_path,file_type,description,row_count_if_csv,related_source_ids,notes
+00_readme/limitations.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+00_readme/packaging_notes.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+00_readme/readme.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+00_readme/research_scope.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/articles/s010_bedouin_healthcare_barriers.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/articles/s012_india_tb_referral.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/articles/s013_india_chw_cancer.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/articles/s020_tanzania_cancer_pathway.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/articles/s025_health_catchup.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/blogs/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+01_sources/raw_sources/case_reports/s028_queensland_tecs.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/forums_or_social/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+01_sources/raw_sources/guidelines/s023_nhs_interpreting_framework.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/guidelines/s024_govuk_language_interpretation.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/interviews_or_comments/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+01_sources/raw_sources/other/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s001_improving_diagnosis_in_health_care.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s002_oecd_diagnostic_safety.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s003_ahrq_diagnostic_safety.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s005_hssib_continuity_gp.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s006_phso_scan_failures.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s007_phso_sepsis.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s008_commonwealth_israel.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s009_israel_hsia.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s011_commonwealth_india.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s014_commonwealth_china.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s015_commonwealth_japan.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s016_commonwealth_taiwan.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s017_commonwealth_brazil.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s018_mexico_hsia.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s019_paho_lac_phc.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s021_who_race_iccm.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s022_who_europe_migrant_health.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s026_cpha_indigenous_racism.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s027_aihw_cultural_safety.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s029_ahrq_rural_diagnostic.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reports/s030_gao_rural_access.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/reviews/s004_ed_diagnostic_errors.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/raw_sources/screenshots_or_exports/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+01_sources/source_notes.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+01_sources/sources_master.csv,csv,CSV structured data,30,unknown,generated during packaging
+02_extracted_evidence/cases_or_examples.csv,csv,CSV structured data,10,unknown,generated during packaging
+02_extracted_evidence/evidence_items.csv,csv,CSV structured data,30,unknown,generated during packaging
+02_extracted_evidence/extracted_notes.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+02_extracted_evidence/facts.csv,csv,CSV structured data,20,unknown,generated during packaging
+02_extracted_evidence/quotes.csv,csv,CSV structured data,3,unknown,generated during packaging
+02_extracted_evidence/reviews_or_complaints.csv,csv,CSV structured data,0,unknown,generated during packaging
+02_extracted_evidence/statistics_or_metrics.csv,csv,CSV structured data,7,unknown,generated during packaging
+03_analysis/contradictions.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/evidence_gaps.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/high_confidence_findings.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/key_findings.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/low_confidence_findings.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/medium_confidence_findings.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+03_analysis/patterns.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/diagrams_or_flows/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+04_topic_outputs/main_report.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/maps_or_matrices/access_barrier_map.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/maps_or_matrices/cultural_black_zone_map.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/other_outputs/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+04_topic_outputs/tables/care_flow_comparison.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/tables/region_by_region_comparison.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+04_topic_outputs/taxonomies/tags_and_categories.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+05_implications/open_questions.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+05_implications/practical_implications.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+05_implications/product_or_system_implications.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+05_implications/risks_and_safety_notes.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+06_working_files/drafts/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+06_working_files/intermediate_files/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+06_working_files/scratchpads/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+06_working_files/working_notes/packaging_working_notes.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+07_archive/.keep,none,placeholder empty-folder file,unknown,unknown,generated during packaging
+07_archive/file_inventory.csv,csv,CSV structured data,unknown,unknown,generated during packaging
+07_archive/manifest.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+07_archive/packaging_log.md,md,Markdown notes or source summary,unknown,unknown,generated during packaging
+07_archive/research_evidence_package_global_health_issue_identification_2026-05-30.tar.gz,gz,Compressed archive,unknown,unknown,generated during packaging

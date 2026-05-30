@@ -1,0 +1,64 @@
+Patient stage tag,Data collected,Roles handling data,Tools/forms/scores used,Examples / source URLs,Common weak points / black zones,Product-design implication
+before visit,"symptoms, reason for contact, main concern, eligibility, prior visits, remote photos/vitals","patient, caregiver, online triage, care navigator, CHW","NHS 111, online consultation forms, screening invitations, HWC empanelment","https://111.nhs.uk/
+https://www.hssib.org.uk/patient-safety-investigations/workforce-and-patient-safety/second-investigation-report/
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf
+https://www.nhs.uk/tests-and-treatments/bowel-cancer-screening/",digital exclusion; one-symptom framing; patient may not know red flags,"Support free-text + structured symptom capture, accessibility, prior-visit import and escalation."
+arrival,"physical arrival time, mode of arrival, obvious distress, reason for visit","front desk, registration, streaming staff","ED/UTC registration, self-service kiosk","https://www.england.nhs.uk/guidance-for-emergency-departments-initial-assessment/
+https://rcem.ac.uk/wp-content/uploads/2025/04/Initial-Assessment.pdf
+https://digital.nhs.uk/services/urgent-care-self-service-product
+https://urgentcareassociation.org/wp-content/uploads/RED-FLAGS-04-2025_Revised.pdf",occult waits; distress visible before registration not captured,Record true arrival and pre-registration risk observations.
+registration,"demographics, ID/NHS number/insurance, contact info, reason for visit","registration staff, digital kiosk","urgent care self-service, hospital registration","https://digital.nhs.uk/services/urgent-care-self-service-product
+https://rcem.ac.uk/wp-content/uploads/2025/04/Initial-Assessment.pdf",administrative bottleneck before clinical review,Add red-flag prompt and escalation path at registration.
+intake form,"structured symptom answers, duration, severity, location, photos, patient concerns","patient, admin, care navigator","NHS 111, GP online consultation, UTC digital triage","https://111.nhs.uk/
+https://digital.nhs.uk/services/nhs-111-online
+https://www.hssib.org.uk/patient-safety-investigations/workforce-and-patient-safety/second-investigation-report/",form cannot capture nuance; capped requests; language/literacy gaps,"Allow 'not captured' signals, translator support and clinician escalation."
+nurse triage,"chief complaint, acuity, red flags, pain/distress, prior risk, resource prediction","triage RN, OPD nurse","ESI, IITT, streaming/triage","https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf
+https://link.springer.com/article/10.1186/s12245-025-01005-z
+https://www.england.nhs.uk/guidance-for-emergency-departments-initial-assessment/","triage is risk sorting, not diagnosis; training variability",Keep diagnostic uncertainty and repeated-visit flags separate from acuity.
+vitals,"BP, HR, RR, temperature, SpO2, weight, pain, mental status, early warning score",nurse/rooming staff/CHW/clinician,"urgent-care vital signs policy, early warning scores, HEARTS BP protocols","https://urgentcareassociation.org/wp-content/uploads/VITAL-SIGNS-IN-UC-CENTERS-04-2025_Revised.pdf
+https://www.paho.org/en/hearts-americas/hypertension-clinical-pathways
+https://rcem.ac.uk/wp-content/uploads/2025/04/Initial-Assessment.pdf",vitals delayed/incomplete; no trend comparison,Require repeat abnormal vitals and trend across encounters.
+first clinician assessment,"history, physical exam, differential, red flags, patient agenda","GP, ED clinician, UTC clinician, telehealth clinician","clinical assessment templates, NICE NG12","https://www.nice.org.uk/guidance/NG12/
+https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/1656540
+https://psnet.ahrq.gov/primer/telehealth-and-patient-safety",history/exam shortcuts; telehealth exam limits; symptoms dismissed,"Prompt history completeness, exam-needed flags and patient concern acknowledgement."
+medical history,"past diagnoses, meds, allergies, family history, prior cancer/rare disease, prior tests","clinician, patient, EHR/HIE","EHR/HIE, intake history forms","https://www.hssib.org.uk/patient-safety-investigations/continuity-of-care-delayed-diagnosis-in-gp-practices/investigation-report/pdf/
+https://www1.health.gov.il/en/landing-pages/healthcare-israel/healthcare-israel/",history exists but not surfaced; family history missing,Longitudinal risk summary and high-risk history banners.
+physical exam,"focused exam findings, mental status, pain site, visible signs, neurologic deficits",clinician,"exam template, remote visual exam if telehealth","https://psnet.ahrq.gov/primer/telehealth-and-patient-safety
+https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/1656540
+https://www.england.nhs.uk/long-read/jesss-rule-three-strikes-and-we-rethink/",remote exams omit auscultation/private areas; repeated remote visits,Remote-to-in-person conversion for unresolved or exam-dependent problems.
+labs ordered,"test order, indication, priority, patient attendance","clinician, lab, admin","EHR order, HWC/NCD screening, HEARTS protocols","https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf
+https://www.paho.org/en/hearts-americas/hypertension-clinical-pathways",patient does not attend; order/result mismatch; no owner,Closed-loop from order to attended to result reviewed.
+imaging ordered,"clinical question, modality, body site, urgency, prior imaging","clinician, radiology admin/technician/radiologist","CXR/CAP workflow, radiology alert systems","https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/quality-patient-safety/quality-resources/tools/cap-toolkit/ed-workflowdiagrams.pdf
+https://www.ombudsman.org.uk/news-and-blog/news/patients-being-harmed-due-repeated-mistakes-reading-scans
+https://www.hssib.org.uk/patient-safety-investigations/failures-in-communication-or-follow-up-of-unexpected-significant-radiological-findings/",wrong/unclear clinical question; scan delayed/not read,Structured clinical question and critical-finding workflow.
+lab interpretation,"normal/abnormal result, trend, critical value, reviewer, action",GP/nurse/lab/clinician,"practice results protocol, screening result systems","https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters
+https://www.sciencedirect.com/science/article/pii/S221133552300102X
+https://www.nhis.or.kr/english/wbhe/policies/NationalHealthScreeningProgram.html",normal-test trap; abnormal result filed without action; trend missed,Result-to-action field with owner and due date; trend visualization.
+diagnosis discussion,"diagnosis, uncertainty, differential, patient understanding, safety-net instructions","clinician, patient/caregiver","safety-net plans, discharge instructions","https://www.cancerresearchuk.org/health-professional/diagnosis/primary-care/safety-netting
+https://www.england.nhs.uk/long-read/jesss-rule-three-strikes-and-we-rethink/
+https://www.nhs.uk/tests-and-treatments/bowel-cancer-screening/",false reassurance; uncertainty not documented,Document 'working diagnosis' vs 'ruled out' and patient-facing uncertainty plan.
+referral,"reason, target service, priority, previous tests, referral status","GP/referrer, RAS/provider triage, patient","e-RS, RAS, direct-to-test, HWC referral","https://digital.nhs.uk/services/e-referral-service/document-library/referral-assessment-services
+https://digital.nhs.uk/services/e-referral-service/document-library/diagnostic-services
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf
+https://www.all-can.org/efficiency-hub/danish-cancer-patient-pathways-three-legged-strategy-for-faster-referral-and-diagnosis-of-cancer/",wrong specialty; more info request lost; referral assumed complete,Referral state machine visible to patient/referrer.
+discharge,"diagnosis, pending tests, red flags, follow-up plan, medications","ED/hospital clinician, nurse, patient, GP","discharge summary, pending-result registries","https://www.cdc.gov/patient-safety/hcp/hospital-dx-excellence/index.html
+https://bphc.hrsa.gov/compliance/compliance-manual/chapter7",pending results after discharge; GP not informed,Discharge checklist with unresolved diagnostics and destination owner.
+follow-up,"symptom status, test/referral completion, treatment response, barriers","GP, navigator, CHW, specialist, patient","safety-netting, PCMH, navigator logs","https://www.cancerresearchuk.org/health-professional/diagnosis/primary-care/safety-netting
+https://bphc.hrsa.gov/compliance/compliance-manual/chapter7
+https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0343659
+https://www.commonwealthfund.org/publications/case-study/2016/dec/brazils-family-health-strategy-using-community-health-care-workers",no one owns next step; patient must chase,Follow-up tasks assigned to named owner with escalation.
+repeat visit,"same symptom count, escalation/worsening, previous explanations, prior tests","care navigator, GP/ED/UTC clinician","Jess's Rule, EHR trigger tools","https://www.england.nhs.uk/long-read/jesss-rule-three-strikes-and-we-rethink/
+https://www.hssib.org.uk/patient-safety-investigations/continuity-of-care-delayed-diagnosis-in-gp-practices/investigation-report/pdf/
+https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/1656540",visits separated across channels/clinicians; pattern invisible,Automatic repeat-presentation detection and diagnostic review prompt.
+emergency escalation,"red flags, danger signs, unstable vitals, failed outpatient management","CHW, urgent-care staff, GP, ED","red-flag lists, IMCI/iCCM danger signs, ESI","https://urgentcareassociation.org/wp-content/uploads/RED-FLAGS-04-2025_Revised.pdf
+https://www.who.int/teams/maternal-newborn-child-adolescent-health-and-ageing/child-health/integrated-management-of-childhood-illness/
+https://www.childhealthtaskforce.org/hubs/iccm
+https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf",delayed transfer; transport barriers; non-clinical staff hesitation,One-click escalation with reason and receiving-service handoff.
+specialist review,"referral question, prior tests, specialist assessment, diagnostic plan","specialist consultant/team, diagnostic centre","RAS, NSSC-CPP, MDT","https://digital.nhs.uk/services/e-referral-service/document-library/referral-assessment-services
+https://www.nature.com/articles/s41416-024-02620-y
+https://www.gov.uk/government/publications/breast-screening-programme-pathway-requirements/breast-screening-programme-pathway-requirements",insufficient information; advice-only without follow-up,Structured pre-review data pack and safety-net output.
+long-term monitoring,"chronic disease metrics, screening recalls, adherence, trend data, patient-reported outcomes","primary-care team, CHW, insurer/screening programme","HEARTS, SHC/SHG, FHS, HWC registries","https://www.paho.org/en/hearts-americas/hypertension-clinical-pathways
+https://www.shoken-kenpo.or.jp/eng/member/checkup/measure.html
+https://www.commonwealthfund.org/publications/case-study/2016/dec/brazils-family-health-strategy-using-community-health-care-workers
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf",trend missed; patient drops out after screening; community notes not visible,Longitudinal dashboards with overdue recalls and worsening trends.

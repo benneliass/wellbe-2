@@ -1,0 +1,69 @@
+Black-zone tag,Where it appears,Documented examples,Signals lost,Likely mechanism,Design implication,Example source URLs,Evidence quality
+doctor did not listen / symptom dismissed,"primary care, A&E, specialist",Endometriosis UK survey; PHSO family quote in scan case; Healthwatch waiting reports,"pain severity, patient concern, duration","bias/minimization, time pressure, normal tests",Capture patient concern verbatim; repeat concerns prompt review.,"https://www.endometriosis-uk.org/diagnosis-report
+https://www.ombudsman.org.uk/news-and-blog/news/patients-being-harmed-due-repeated-mistakes-reading-scans
+https://www.healthwatch.co.uk/report/2023-10-03/impact-waiting-care",medium-high
+mental-health misattribution,"primary care, telehealth, ED",Jess's Rule origin story and many rare/chronic patient stories show unexplained symptoms attributed to benign causes,"progressive symptoms, objective change, patient baseline","anchoring, demographic assumptions",Require 'what else could this be?' differential when persistent symptoms recur.,"https://www.england.nhs.uk/long-read/jesss-rule-three-strikes-and-we-rethink/
+https://www.rarediseaseday.org/heroes/the-diagnosis-they-missed-a-journey-from-dismissal-to-advocacy/",medium-low
+normal-test trap,"primary care, screening, ED",Cancer safety-netting explicitly says monitor persistent symptoms after negative tests; NHS bowel screening says negative FIT does not rule out cancer if symptoms occur,ongoing symptoms despite normal lab/imaging/screen,test result treated as diagnosis closure,Negative result should trigger symptom-status check and follow-up plan.,"https://www.cancerresearchuk.org/health-professional/diagnosis/primary-care/safety-netting
+https://www.nhs.uk/tests-and-treatments/bowel-cancer-screening/",high
+abnormal result not followed up,"GP labs, radiology, screening, hospital discharge",CQC test result guidance; HSSIB radiology; PHSO scan failures; FQHC abnormal FIT navigation,"abnormal value/finding, critical imaging, positive FIT",no owner; inbox/worklist failure; patient not notified,"Closed-loop result action with owner, due date, patient notification and escalation.","https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters
+https://www.hssib.org.uk/patient-safety-investigations/failures-in-communication-or-follow-up-of-unexpected-significant-radiological-findings/
+https://www.ombudsman.org.uk/news-and-blog/news/patients-being-harmed-due-repeated-mistakes-reading-scans
+https://www.sciencedirect.com/science/article/pii/S221133552300102X",high
+referral delay,"primary care to specialist, HWC to referral facility, FQHC to colonoscopy",Healthwatch waits; e-RS RAS; PRECISE/FQHC navigation; India HWC referral,referral sent but not accepted/booked/completed,"waitlists, more-info loops, transport/cost barriers","Track referral state as steps, not binary referred/not referred.","https://www.healthwatch.co.uk/report/2023-10-03/impact-waiting-care
+https://digital.nhs.uk/services/e-referral-service/document-library/referral-assessment-services
+https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0343659
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf",medium-high
+wrong specialty / wrong service,"urgent care redirection, e-RS, NHS 111",NHS 111 Directory of Services; e-RS redirect/return; UTC redirection,clinical fit to service,service directory mismatch; insufficient triage context,Show confidence and alternatives; audit redirect failures and returns.,"https://digital.nhs.uk/services/nhs-111-online
+https://digital.nhs.uk/services/e-referral-service/document-library/referral-assessment-services
+https://www.england.nhs.uk/publication/urgent-treatment-centres-principles-and-standards/",medium
+fragmented care / no one connected the dots,"primary care repeat visits, ED returns, chronic disease",Brian HSSIB case; primary-care diagnostic error trigger studies; Israel/EMR caveat,"repeated presentations, prior cancer, outside visits",multiple clinicians and systems; history not surfaced,Episode-based timeline across channels and organizations.,"https://www.hssib.org.uk/patient-safety-investigations/continuity-of-care-delayed-diagnosis-in-gp-practices/investigation-report/pdf/
+https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/1656540
+https://www1.health.gov.il/en/landing-pages/healthcare-israel/healthcare-israel/",high
+incomplete history,"telehealth, care navigation, ED/UC intake, low-resource algorithms","AHRQ telehealth, BMA navigation, UCA red flags, IMCI","family history, prior results, duration, red flags","short forms, role boundaries, patient language/literacy",Progressive history capture: minimal fields + clinician review for uncertainty.,"https://psnet.ahrq.gov/primer/telehealth-and-patient-safety
+https://www.bma.org.uk/advice-and-support/gp-practices/gp-service-provision/care-navigation-and-triage-in-general-practice
+https://urgentcareassociation.org/wp-content/uploads/RED-FLAGS-04-2025_Revised.pdf
+https://www.who.int/teams/maternal-newborn-child-adolescent-health-and-ageing/child-health/integrated-management-of-childhood-illness/",medium-high
+missing family/history / prior-risk context,primary care and ED,Brian case: prior breast cancer not integrated with repeated back pain pattern,"prior cancer or high-risk condition, family history",record exists but not prominent in workflow,High-risk history cards tied to current symptom categories.,https://www.hssib.org.uk/patient-safety-investigations/continuity-of-care-delayed-diagnosis-in-gp-practices/investigation-report/pdf/,high
+lab/vital trend missed,"primary care, HEARTS, HWC, urgent care","BP protocols, HWC NCD screening, urgent care vitals, CKD stories",worsening BP/eGFR/labs/vitals over time,single-visit view; no trend alert,Trend graph + threshold crossing + overdue review.,"https://www.paho.org/en/hearts-americas/hypertension-clinical-pathways
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf
+https://urgentcareassociation.org/wp-content/uploads/VITAL-SIGNS-IN-UC-CENTERS-04-2025_Revised.pdf
+https://kidneycareuk.org/kidney-disease-information/your-stories/ckd-diagnosis-experiences/",medium
+red flag missed,"urgent care registration, ED triage, CHW/IMCI",UCA red flags; ESI high-risk; IMCI/iCCM danger signs,"chest pain, SOB, neurologic deficits, distress, danger signs",first handler non-clinical or undertrained; vague presentation,Plain-language red-flag checklist with immediate escalation.,"https://urgentcareassociation.org/wp-content/uploads/RED-FLAGS-04-2025_Revised.pdf
+https://media.emscimprovement.center/documents/Emergency_Severity_Index_Handbook.pdf
+https://www.who.int/teams/maternal-newborn-child-adolescent-health-and-ageing/child-health/integrated-management-of-childhood-illness/
+https://www.childhealthtaskforce.org/hubs/iccm",high
+repeated visits ignored,"GP, ED, urgent care",Jess's Rule; Brian HSSIB case; PHSO fifth A&E visit scan case,same symptom count and worsening,encounters treated as separate episodes,Global repeat-presentation counter across channels and clinicians.,"https://www.england.nhs.uk/long-read/jesss-rule-three-strikes-and-we-rethink/
+https://www.hssib.org.uk/patient-safety-investigations/continuity-of-care-delayed-diagnosis-in-gp-practices/investigation-report/pdf/
+https://www.ombudsman.org.uk/news-and-blog/news/patients-being-harmed-due-repeated-mistakes-reading-scans",medium-high
+patient self-advocacy required,"chronic/rare disease, referral waits, screening follow-up","NORD rare diagnosis, Endometriosis UK, Healthwatch, FQHC navigation","patient-chased results/referrals, symptom timeline",system lacks active owner or longitudinal synthesis,Give patients shared timeline + escalation rights + navigator support.,"https://rarediseases.org/undiagnosed-when-your-rare-diagnosis-comes-30-years-late/
+https://www.endometriosis-uk.org/diagnosis-report
+https://www.healthwatch.co.uk/report/2023-10-03/impact-waiting-care
+https://www.sciencedirect.com/science/article/pii/S221133552300102X",medium-low
+documentation error,"testing, referral, CHW/community notes",CQC test results; ECRI testing errors; Brazil CHW relay,"order reason, result action, CHW observation",free text lost; filing without action; specimen/order errors,"Structured fields for diagnostic intent, action and handoff.","https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters
+https://home.ecri.org/blogs/ecri-news/data-analysis-reveals-common-errors-that-prevent-patients-from-getting-timely-accurate-diagnoses
+https://www.commonwealthfund.org/publications/case-study/2016/dec/brazils-family-health-strategy-using-community-health-care-workers",medium-high
+poor handoff,"ED discharge, radiology, e-RS, CHW referral",CDC pending tests; HSSIB radiology; HRSA continuity; WHO referral/counter-referral,responsibility and next step,delivery without acknowledgement/action,Handoff = sender + receiver + action + deadline + closure.,"https://www.cdc.gov/patient-safety/hcp/hospital-dx-excellence/index.html
+https://www.hssib.org.uk/patient-safety-investigations/failures-in-communication-or-follow-up-of-unexpected-significant-radiological-findings/
+https://bphc.hrsa.gov/compliance/compliance-manual/chapter7
+https://www.who.int/teams/global-malaria-programme/case-management/community-based-case-management-race-programme",high
+no follow-up ownership,"primary care, discharge, screening, referrals","CQC results, Cancer Research UK safety netting, NHS screening, PRECISE",who must call/act/book/monitor,task not assigned or patient expected to chase,Every unresolved issue needs named owner and due date.,"https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters
+https://www.cancerresearchuk.org/health-professional/diagnosis/primary-care/safety-netting
+https://www.nhs.uk/tests-and-treatments/bowel-cancer-screening/
+https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0343659",high
+rare disease delay,primary care/specialist,NORD rare diagnosis after decades; Denmark NSSC model tries to route nonspecific serious symptoms,"non-specific clusters, unusual course",low prevalence; siloed specialists; anchoring,Escalation pathway for unexplained multi-system symptoms and patient timeline import.,"https://rarediseases.org/undiagnosed-when-your-rare-diagnosis-comes-30-years-late/
+https://www.nature.com/articles/s41416-024-02620-y",medium-low
+chronic illness invalidation,"primary care, specialty",Endometriosis UK and CKD patient stories,"pain/fatigue/symptom burden, functional impact","normal tests, stereotypes, communication failure","Track function, duration and impact, not only test abnormality.","https://www.endometriosis-uk.org/diagnosis-report
+https://kidneycareuk.org/kidney-disease-information/your-stories/ckd-diagnosis-experiences/",medium-low
+telehealth physical-exam gap,video/phone/online forms,AHRQ PSNet telehealth; HSSIB GP online consultation,"auscultation, palpation, neuro exam, private body area",remote modality limits,Telehealth appropriateness rules and automatic face-to-face conversion.,"https://psnet.ahrq.gov/primer/telehealth-and-patient-safety
+https://www.hssib.org.uk/patient-safety-investigations/workforce-and-patient-safety/second-investigation-report/",high
+digital access gap,"NHS 111, GP online, ED/UTC self-service",HSSIB online consultation; NHS urgent care self-service,patients unable to use forms/kiosks; language/literacy,digital front door excludes or distorts input,Maintain non-digital channels and assisted triage.,"https://www.hssib.org.uk/patient-safety-investigations/workforce-and-patient-safety/second-investigation-report/
+https://digital.nhs.uk/services/urgent-care-self-service-product",medium-high
+screening non-return / no-show,public health screening,NHS bowel/breast/cervical pathways; CDC navigation,"unreturned FIT, missed mammogram, missed colonoscopy",mail/outreach not enough; access barriers,Funnel monitoring from invitation to diagnostic completion; navigation for barriers.,"https://www.nhs.uk/tests-and-treatments/bowel-cancer-screening/
+https://www.gov.uk/government/publications/breast-screening-programme-pathway-requirements/breast-screening-programme-pathway-requirements
+https://www.cdc.gov/cancer/php/interventions/patient-navigation.html",high
+advice-only drift,specialist advice/e-RS,NHS outpatient advice/guidance and RAS,specialist advice but no appointment/test booked,advice substitutes for referral without safety net,Every advice response should include failure criteria and follow-up owner.,"https://digital.nhs.uk/services/e-referral-service/document-library/referral-assessment-services
+https://www.england.nhs.uk/long-read/outpatient-recovery-and-transformation-improvement-guide/",medium
+community signal lost,home visit / CHW programmes,"Brazil FHS, India HWC, iCCM","home-observed symptoms, living conditions, adherence, danger signs",paper notes and informal relay not integrated,Structured CHW-to-clinic handoff and shared registry.,"https://www.commonwealthfund.org/publications/case-study/2016/dec/brazils-family-health-strategy-using-community-health-care-workers
+https://aam.mohfw.gov.in/download/document/45a4ab64b74ab124cfd853ec9a0127e4.pdf
+https://www.childhealthtaskforce.org/hubs/iccm",medium

@@ -1,0 +1,69 @@
+file_path,file_type,description,row_count_if_csv,related_source_ids,notes
+00_readme/limitations.md,md,markdown notes,unknown,unknown,unknown
+00_readme/packaging_notes.md,md,markdown notes,unknown,unknown,unknown
+00_readme/readme.md,md,markdown notes,unknown,unknown,unknown
+00_readme/research_scope.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s005_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s006_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s007_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s008_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s013_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s014_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s015_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s016_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s017_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s018_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s019_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s020_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s021_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/articles/s022_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/blogs/s024_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/case_reports/.keep,no_extension,placeholder file,unknown,unknown,unknown
+01_sources/raw_sources/forums_or_social/.keep,no_extension,placeholder file,unknown,unknown,unknown
+01_sources/raw_sources/guidelines/s003_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/guidelines/s004_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/interviews_or_comments/.keep,no_extension,placeholder file,unknown,unknown,unknown
+01_sources/raw_sources/other/.keep,no_extension,placeholder file,unknown,unknown,unknown
+01_sources/raw_sources/reports/s001_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reports/s002_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reports/s009_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reports/s010_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reports/s011_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reviews/s012_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/reviews/s023_source_summary.md,md,markdown notes,unknown,unknown,unknown
+01_sources/raw_sources/screenshots_or_exports/.keep,no_extension,placeholder file,unknown,unknown,unknown
+01_sources/source_notes.md,md,markdown notes,unknown,unknown,unknown
+01_sources/sources_master.csv,csv,csv data table,24,unknown,unknown
+02_extracted_evidence/cases_or_examples.csv,csv,csv data table,4,unknown,unknown
+02_extracted_evidence/evidence_items.csv,csv,csv data table,21,unknown,unknown
+02_extracted_evidence/extracted_notes.md,md,markdown notes,unknown,unknown,unknown
+02_extracted_evidence/facts.csv,csv,csv data table,12,unknown,unknown
+02_extracted_evidence/quotes.csv,csv,csv data table,13,unknown,unknown
+02_extracted_evidence/reviews_or_complaints.csv,csv,csv data table,0,unknown,unknown
+02_extracted_evidence/statistics_or_metrics.csv,csv,csv data table,10,unknown,unknown
+03_analysis/contradictions.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/evidence_gaps.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/high_confidence_findings.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/key_findings.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/low_confidence_findings.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/medium_confidence_findings.md,md,markdown notes,unknown,unknown,unknown
+03_analysis/patterns.md,md,markdown notes,unknown,unknown,unknown
+04_topic_outputs/diagrams_or_flows/diagnostic_black_zone_flow.md,md,markdown notes,unknown,unknown,unknown
+04_topic_outputs/main_report.md,md,markdown notes,unknown,unknown,unknown
+04_topic_outputs/maps_or_matrices/pain_point_map.md,md,markdown notes,unknown,unknown,unknown
+04_topic_outputs/other_outputs/what_clinicians_need_earlier.md,md,markdown notes,unknown,unknown,unknown
+04_topic_outputs/tables/clinician_quote_bank.csv,csv,csv data table,13,unknown,unknown
+04_topic_outputs/tables/facts_table.csv,csv,csv data table,12,unknown,unknown
+04_topic_outputs/tables/workflow_obstacle_table.csv,csv,csv data table,21,unknown,unknown
+04_topic_outputs/taxonomies/black_zone_tags.md,md,markdown notes,unknown,unknown,unknown
+05_implications/open_questions.md,md,markdown notes,unknown,unknown,unknown
+05_implications/practical_implications.md,md,markdown notes,unknown,unknown,unknown
+05_implications/product_or_system_implications.md,md,markdown notes,unknown,unknown,unknown
+05_implications/risks_and_safety_notes.md,md,markdown notes,unknown,unknown,unknown
+06_working_files/drafts/main_report_draft.md,md,markdown notes,unknown,unknown,unknown
+06_working_files/intermediate_files/build_notes.md,md,markdown notes,unknown,unknown,unknown
+06_working_files/scratchpads/.keep,no_extension,placeholder file,unknown,unknown,unknown
+06_working_files/working_notes/research_d_prior_output_summary.md,md,markdown notes,unknown,unknown,unknown
+07_archive/manifest.md,md,markdown notes,unknown,unknown,unknown
+07_archive/packaging_log.md,md,markdown notes,unknown,unknown,unknown
+07_archive/research_evidence_package_clinician_side_diagnostic_pain_points_2026-05-30.tar.gz,tar.gz,nested archive copy of package before outer export,unknown,unknown,unknown
