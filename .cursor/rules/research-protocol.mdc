@@ -1,0 +1,181 @@
+---
+description: Research protocol — Spike-gated research for core component work. Agents raise the flag, users do the research, agents record and propose, users approve.
+alwaysApply: true
+---
+
+# Research Protocol
+
+## The Invariant
+
+**Agents raise the flag. Users do the research. Agents record and propose. Users approve.**
+
+This invariant is absolute. No step in this protocol may be reordered or skipped. An agent that conducts its own research, synthesizes a recommendation from existing docs alone, or proceeds past a Spike without explicit user approval is in violation.
+
+---
+
+## A. Core Component Detection — When a Spike Is REQUIRED
+
+A Spike must be created, and implementation must stop, before any Story is implemented that touches one of the following 13 core components. The canonical list lives in `docs/architecture/component-map.md`.
+
+| Component | ID | What counts as "touching" it |
+|---|---|---|
+| Trust & Consent Service | C1 | Any change to auth identity, consent scopes, share grants, revocation logic, or the cross-patient opt-in gate |
+| Raw Context Vault | C2 | Any change to immutability rules, append-only guarantees, provenance metadata schema, or retention logic |
+| Ingestion Layer | C3 | Any new source-type adapter that deviates from the existing adapter pattern, or any change to how adapters write into the Vault |
+| Processing Pipeline | C4 | Any change to processing order, entity extraction logic, classification rules, quality/confidence scoring, or entity resolution |
+| Evidence & Provenance Service | C5 | Any change to how evidence is scored, weighted, traced, or linked; any change to the "no orphan claims" enforcement |
+| Knowledge Graph Store | C6 | Any change to node or edge types, scoring algorithms, auto-linking logic, or causal edge semantics (e.g. `may_explain`) |
+| Health Thread Engine + State Machine | C7 | Any change to lifecycle transitions, status rules, linking logic, or the definition of an "unresolved concern" |
+| Six Memories Store | C8 | Any change to what each memory type stores, how it is structured, or its access patterns |
+| Continuity & Closure Engine | C9 | Any change to the pending item ledger logic, referral lifecycle rules, result tracker semantics, or closure conditions |
+| Safety & Governance Gate | C10 | Any change to any evaluation layer — rules engine, LLM gate, output routing, do-not-diagnose enforcement, bias controls |
+| Correction Service | C11 | Any change to how user corrections are captured, layered, or linked to source-linked layers |
+| Notification & Audit Service | C12 | Any change to the append-only audit trail schema, event semantics, or notification trigger logic |
+| API & Contract Layer | C13 | Any schema change or versioning decision that affects multiple components or external consumers |
+
+### Not required — agent may implement directly
+
+A Spike is NOT required for:
+- UI components that only render existing data (no new safety gate logic, no schema changes)
+- Infrastructure or deployment changes (hosting, CI, environment config)
+- Feature-layer work that consumes core services through existing stable contracts without modifying core logic
+- Bug fixes in non-core areas
+- Documentation updates
+- Adding a new data source that uses an existing ingestion adapter pattern without deviation
+- Purely cosmetic or copy changes
+
+**When in doubt, treat it as a core component touch.** Creating a Spike that turns out to be unnecessary has no cost. Proceeding without a Spike on a core component decision may introduce irrecoverable architectural debt.
+
+---
+
+## B. The "Raise Hand" Behavior — Exact Format
+
+When a Spike is required, the agent must **stop implementation immediately** and output EXACTLY this structure before taking any other action. No partial implementation, no exploratory code, no placeholder logic.
+
+```
+⚑ RESEARCH REQUIRED
+
+Story: <WEL-XXX — Story title>
+Core component touched: <component name and ID, e.g. "Health Thread Engine + State Machine (C7)">
+Question that must be answered before implementation:
+  <Specific, precise question — not vague. Not "how does X work" but a crisp decision question,
+   e.g. "How does the Pattern Detection engine determine temporal precedence between two co-occurring
+   events? Specifically: do we use timestamp order, user-reported order, or a confidence-weighted
+   combination?">
+
+I will now:
+1. Create a Jira Spike that blocks WEL-XXX
+2. Create a Decision Record stub at docs/decisions/<slug>.md
+
+I cannot proceed with implementation until you provide research results.
+```
+
+The agent must **not** propose its own answer to the question. The question is left open. The agent may read existing docs in `docs/` and `archive/` to formulate the question precisely — but reading existing docs does not constitute research and does not resolve the Spike.
+
+The slug for the Decision Record is derived from the question: kebab-case, max 6 words, no article words. Example: `health-thread-temporal-precedence`.
+
+---
+
+## C. What Agents CANNOT Do During Research
+
+While a Spike is open against a Story:
+
+- Agents may NOT conduct external research (web search, reading papers, fetching external URLs) on behalf of this Spike
+- Agents may NOT synthesize a recommendation from existing docs alone and label it "research" or "proposed decision"
+- Agents may NOT implement any part of the blocked Story — not even scaffolding, interfaces, or placeholder logic
+- Agents may NOT open a related Story that has the same unresolved question and implement that instead
+- Agents MAY read existing docs in `docs/` and `archive/` to formulate the question precisely, but this does not replace research and does not resolve the Spike
+- Agents MAY work on unrelated Stories that do not touch the same open question
+
+---
+
+## D. When Research Results Are Provided
+
+When the user provides research results (in any form — text, links, uploaded documents, verbal summary, paste of external content), the agent must:
+
+1. **Record** the results verbatim or as a faithful summary in the Decision Record under "Research provided" — do not paraphrase in a way that changes meaning. Record the date received.
+2. **Write** "Approaches considered" based ONLY on the provided research — not the agent's own knowledge or training data. Each approach must be traceable to something the user provided.
+3. **Write** a proposed "Decision" — one clear, concrete statement. The agent proposes; the user approves.
+4. **Present** the completed Decision Record and wait. Format exactly:
+
+```
+DECISION RECORD READY FOR APPROVAL
+
+File: docs/decisions/<slug>.md
+Decision: <one-sentence summary of the proposed decision>
+
+[Review file]  [Approve]  [Edit]  [Reject]
+```
+
+The agent does not close the Spike, unblock the Story, or proceed to implementation until the user provides explicit approval.
+
+---
+
+## E. On Approval
+
+When the user explicitly approves the Decision Record:
+
+1. Update the Decision Record: set `Status` to `Approved`, fill `Date approved` with today's date
+2. Update the Jira Spike: add a comment linking to `docs/decisions/<slug>.md`, then transition to Done
+3. Confirm the `blocks` link from the Spike to the Story is resolved (remove or mark resolved as Jira allows)
+4. Set `re-eval:clean` on the Story (removing any `re-eval:blocked-by-change` label)
+5. Commit the approved Decision Record with message: `"Approve decision: <slug>"`
+6. The Story is now unblocked — implementation may proceed
+
+If the user rejects or edits the proposed decision: update the record, re-present under "DECISION RECORD READY FOR APPROVAL", and wait again. Do not proceed until a clear approval is received.
+
+---
+
+## F. Spike Metadata Rules
+
+When creating the Jira Spike:
+
+| Field | Value |
+|---|---|
+| `issue_type` | `Story` (Jira Cloud next-gen uses Story for Spikes — verify available types if the project config has changed) |
+| Summary | `[Spike] <question in one sentence — specific, not vague>` |
+| Labels | `layer:<x>`, `component:<x>`, `impact:<x>`, `re-eval:clean`, `triage-YYYY-MM-DD-NNN` (current session) |
+| Priority | One tier below the blocked Story's priority. High Story → Medium Spike. Medium Story → Low Spike. A Spike is never P0. See `jira-prioritization-logic.mdc`. |
+| Fix Version | Same phase as the blocked Story |
+| Description | Must include: (1) the specific question, (2) why it matters — what breaks if we guess wrong, (3) what will be unblocked when resolved, (4) the line: "Research results must be provided by the user. Agents may not self-research." |
+| Issue link | `blocks` → the relevant Story key |
+
+The `triage-YYYY-MM-DD-NNN` label must be consistent with the current triage session. If this Spike is created outside a triage run, start a new session label for the current date.
+
+---
+
+## G. Decision Record File Rules
+
+Every Decision Record lives at `docs/decisions/<slug>.md`. The template is at `docs/decisions/_template.md`.
+
+- Slugs are kebab-case, max 6 words, derived from the question (not the component name)
+- Records are append-only once approved — never edit an approved record in place
+- To supersede an approved record: create a new record and link to the old one in the new record's "Context" section
+- Records are NOT bible files — they do not require governance approval to read or reference
+- Records do require the full approval flow before being set to `Approved` status
+
+---
+
+## H. Agent Behavior Summary
+
+| Situation | Agent action |
+|---|---|
+| Story touches a core component (C1–C13) | Stop. Output "⚑ RESEARCH REQUIRED" block. Create Jira Spike. Create Decision Record stub. Wait. |
+| Spike is open against a Story | Do not implement. Do not self-research. May work on unrelated Stories. |
+| User provides research results | Record faithfully → write Approaches + proposed Decision → present "DECISION RECORD READY FOR APPROVAL" → wait. |
+| User approves decision | Update record status → close Spike → unblock Story → commit record → begin implementation. |
+| User rejects or edits decision | Update record → re-present → wait for approval. |
+| User says "skip research" explicitly | Record the override in the Spike description and in the Decision Record stub under "Context". Close the Spike. Proceed to implementation. Add `[research-skipped]` to the commit message. |
+| Ambiguous whether a component is touched | Treat as a core component touch. Raise hand. Better to create an unnecessary Spike than to miss one. |
+| Multiple Stories touch the same open question | One Spike covers all. Add additional `blocks` links from the Spike to each Story. Do not create duplicate Spikes for the same question. |
+
+---
+
+## Cross-references
+
+- Core component canonical list: `docs/architecture/component-map.md`
+- Decision Record template: `docs/decisions/_template.md`
+- Decision Record index: `docs/decisions/README.md`
+- Spike priority rules: `jira-prioritization-logic.mdc` (Spike section)
+- Triage taxonomy: `jira-triage-taxonomy.mdc`
+- Autonomy thresholds: `jira-autonomy-thresholds.mdc`
