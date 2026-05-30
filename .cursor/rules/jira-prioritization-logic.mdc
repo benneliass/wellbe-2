@@ -1,0 +1,325 @@
+---
+description: Systematic priority assignment framework for every Jira issue type in the WEL project. Covers Stories, Tasks, Bugs, and Spikes — and references the canonical Epic priority table. Defines universal signals, phase-priority coherence constraints, and edge case handling.
+alwaysApply: true
+---
+
+# Jira Prioritization Logic
+
+## Quick-Reference Checklist (Run First)
+
+Before assigning any priority, check these signals in order. The first signal that fires sets the floor — subsequent signals can only raise priority, never lower it.
+
+1. **Safety gate?** — Does this item gate user-facing AI output, touch the Safety Engine, or implement a do-not-diagnose rule? → Floor: `P1-critical`, phase: `mvp`
+2. **Safety violation / privacy breach?** (Bug context) — Can a user receive a diagnosis, have data exposed, or have the Safety Engine bypassed? → `P0-blocker`
+3. **Phase = deferred?** — Fix Version = `deferred` → Ceiling: `P3-backlog`. No exceptions.
+4. **Phase = post-mvp?** — Fix Version = `post-mvp` → Ceiling: `P2-important`. No exceptions.
+5. **Unblocks a chain of P0/P1 work?** → Elevate by one tier (P2→P1, P3→P2).
+6. **Feature evidence = `needs more evidence`?** → Ceiling: `P2-important` (cannot be P1 without safety or blocker reason).
+7. **Cross-cutting impact?** (`impact:cross-cutting`) → Prefer P1–P2 over P3. Re-examine if P3 is assigned to a cross-cutting item.
+
+---
+
+## Epic Priority
+
+Epic priorities are **fixed and canonical**. Do not recompute them from this file.
+
+→ See `jira-epic-priorities.mdc` for the authoritative Epic priority and phase table.
+
+The full logic framework below applies to **Stories, Tasks, Bugs, and Spikes** within those Epics.
+
+---
+
+## Universal Signals
+
+These signals apply across all non-Epic issue types. Evaluate all of them before assigning priority.
+
+### Signal 1: Safety Gate
+
+Any item that **implements or enforces the safety boundary** before AI output reaches the user is a safety gate item.
+
+Safety gate items include:
+- Stories/Tasks implementing the Safety Engine evaluation step
+- Stories/Tasks enforcing do-not-diagnose language rules (see `docs/safety/do_not_diagnose_rules.md`)
+- Stories/Tasks implementing scope safety, language safety, urgency routing, or privacy safety layers (see `docs/safety/safety_model.md`)
+- Any item whose failure would allow unvalidated AI output to reach the user
+
+**Safety gate rule:** Safety gate items are always ≥ `P1-critical` and always `mvp` phase. This cannot be overridden by Epic priority or evidence strength. If the parent Epic is `post-mvp`, the safety gate Story must be flagged for phase reassignment — surface this to the user before writing.
+
+### Signal 2: Dependency Chain Unblocking
+
+An item that unblocks a chain of downstream `blocks` links inherits elevated priority.
+
+| Unblocks | Priority floor |
+|---|---|
+| One or more P0-blocker items | P1-critical |
+| One or more P1-critical items | P2-important |
+| One or more P2-important items | No elevation — standard assignment applies |
+
+"Unblocks" means the item carries a `blocks` link to the downstream item, or the downstream item carries an `is blocked by` link to this item.
+
+Do not elevate based on indirect dependency chains longer than two hops unless the intermediate item is also P0/P1. Cascading elevation across three or more hops requires explicit user review.
+
+### Signal 3: Phase-Priority Coherence
+
+Phase and priority must be coherent. This is a hard constraint, not a guideline.
+
+| Fix Version | Allowed priority range |
+|---|---|
+| `mvp` | P0-blocker, P1-critical, P2-important, P3-backlog |
+| `post-mvp` | P2-important, P3-backlog only |
+| `deferred` | P3-backlog only |
+
+**If a post-mvp or deferred item is computed to need P0/P1:** This is a phase misclassification signal. Surface to user: "This item's dependencies suggest it should be `mvp` phase, but it is currently `{current phase}`. Reassign phase or accept the priority ceiling?"
+
+### Signal 4: Evidence Strength (Feature Backlog Signal)
+
+When a Story or Task is traceable to a feature in `docs/feature-backlog/feature_backlog.md`, the feature's `evidence_strength` column constrains maximum priority for non-safety, non-blocker items.
+
+| Evidence strength | Priority ceiling (absent safety/blocker signal) |
+|---|---|
+| `strong` | P0 (rare — only with explicit blocker reason) |
+| `some/strong` or `strong/some` | P1-critical |
+| `some` | P2-important |
+| `needs more evidence` | P2-important (P1 only with documented safety reason) |
+| `regional` or `regional/strong` | P2-important for regional items; apply same table otherwise |
+
+Features with `risk_level` = `very high` or `status` = `defer until safety review` → Floor: must have explicit safety review before any Story can be P1 or higher.
+
+### Signal 5: Impact Radius Heuristic
+
+Impact radius (`impact:*`) correlates with — but does not directly set — priority.
+
+| Impact radius | Priority heuristic |
+|---|---|
+| `impact:cross-cutting` | Typically P1–P2. Flag if assigned P3 — re-examine dependency walk. |
+| `impact:component-local` | Typically P2. Can be P1 if safety gate or direct P0 dependency. |
+| `impact:self-contained` | Typically P2–P3. Rarely P1 unless safety gate. Never P0. |
+
+A `impact:self-contained` item assigned P0 is a classification error — surface it.
+
+---
+
+## Story Priority
+
+A Story's priority is bounded above by its parent Epic's priority and bounded below by the safety gate rule.
+
+### Step 1: Anchor to parent Epic
+
+Look up the parent Epic's priority from `jira-epic-priorities.mdc`.
+
+| Parent Epic priority | Story priority ceiling |
+|---|---|
+| P0-blocker | P1-critical (Stories under a P0 Epic cannot themselves be P0 — Epics are the P0 unit) |
+| P1-critical | P1-critical |
+| P2-important | P2-important |
+| P3-backlog | P3-backlog |
+
+**Exception:** A Story may exceed its parent Epic's priority ceiling only if it is a safety gate item. This requires a documented reason in the Story's description. See "Priority Coherence Checks" below.
+
+### Step 2: Apply universal signals
+
+Run all five universal signals. The highest computed priority from any signal becomes the assignment.
+
+### Step 3: Apply Story-specific heuristics
+
+Use these as the default starting point before signals are applied:
+
+| Story type | Default priority |
+|---|---|
+| Implements safety gate or infra safety layer | P1-critical |
+| Core workflow: creates, reads, or transitions a Health Thread | P1-critical |
+| User-facing output that surfaces Health Thread data | P2-important |
+| Internal data processing with no direct user surface | P2-important |
+| Enhancement to an existing completed capability | P3-backlog |
+| Story for a feature with evidence = `needs more evidence` | P3-backlog (unless safety/blocker reason) |
+
+### Story Priority Assignment Summary
+
+```
+story_priority =
+  MAX(
+    safety_gate_signal,         // P1 floor if applicable
+    dependency_unblocking,      // elevate if unblocking P0/P1
+    evidence_strength_ceiling,  // cap based on feature backlog
+    impact_radius_heuristic,    // heuristic floor
+    story_type_default          // starting point
+  )
+  CLAMPED BY phase_coherence_ceiling   // hard ceiling: post-mvp→P2, deferred→P3
+  CLAMPED BY parent_epic_ceiling       // soft ceiling: document exception if exceeded
+```
+
+---
+
+## Task Priority
+
+Tasks are implementation sub-items of a Story. Their priority is almost always inherited directly from their parent Story.
+
+### Default Rule
+Task priority = Parent Story's priority. Do not recompute independently unless a signal applies.
+
+### Override Conditions
+
+A Task may be assigned lower priority than its parent Story if:
+- It is one of several Tasks under a Story and is not on the critical path for the Story's acceptance criteria. In this case, downgrade by at most one tier.
+- It is a cleanup or documentation Task with no functional gate. → P3-backlog regardless of parent Story.
+
+A Task may NOT be assigned higher priority than its parent Story except under the safety gate rule.
+
+### Tasks in a Safety Gate Story
+
+Every Task under a safety gate Story is ≥ P2-important. If a specific Task is the one implementing the Safety Engine evaluation step itself (e.g., "Wire AI output through Safety Engine middleware"), it is P1-critical.
+
+### Phase Coherence
+
+Same constraint as Stories. Tasks inherit their parent Story's Fix Version. A Task cannot have a different Fix Version than its parent Story without explicit user approval.
+
+---
+
+## Bug Priority
+
+Bugs are severity-driven. Severity is assessed against the safety model and component criticality, not just user-visible impact.
+
+### Severity → Priority Mapping
+
+| Severity | Criteria | Priority |
+|---|---|---|
+| Critical | Safety Engine can be bypassed; user could receive a diagnosis or clinically dangerous statement; personal data exposed to unauthorized parties; Health Thread data loss or corruption | `P0-blocker` |
+| High | Core Health Thread workflow broken with no workaround; safety language rules violated but safety gate still active; authentication or access control failure | `P1-critical` |
+| Medium | Feature significantly degraded but workaround exists; incorrect data displayed but no safety risk; non-core component failure | `P2-important` |
+| Low | Minor UX issue; cosmetic defect; non-critical copy error; edge-case behavior | `P3-backlog` |
+
+### Bug Phase Assignment
+
+| Affected component phase | Bug priority | Bug Fix Version |
+|---|---|---|
+| `mvp` (core build) | Per severity table above | `mvp` |
+| `post-mvp` | P2-important max (unless safety-critical) | `post-mvp` |
+| `deferred` | P3-backlog always | `deferred` |
+
+**Bug in a deferred feature:** Always P3-backlog, Fix Version = deferred. Even if the severity table would suggest P1, the feature is deferred and no work proceeds on it. The bug is tracked but not elevated.
+
+**Safety-critical bug in a post-mvp or deferred component:** Escalate immediately — surface to user. A safety violation cannot be bounded by phase. The item moves to `mvp` phase and `P0-blocker` pending user decision.
+
+### Bug Escalation Triggers
+
+Automatically escalate to P0-blocker and surface to user if ANY of the following are true:
+- The bug allows the Safety Engine to be bypassed
+- The bug causes WellBe to output a diagnosis or clinical certainty statement
+- The bug exposes one user's data to another user
+- The bug causes Health Thread data to be silently deleted or corrupted
+- The bug causes urgency routing to fail (e.g., a dangerous symptom not routed to emergency guidance)
+
+---
+
+## Spike Priority
+
+A Spike (research/investigation item) is prioritized by the work it enables, not by its own content.
+
+### Step 1: Identify the unblocked work
+
+What Story or Stories cannot be meaningfully estimated or started until this Spike completes?
+
+### Step 2: Anchor to unblocked work's priority
+
+| Unblocked work priority | Spike priority |
+|---|---|
+| P0-blocker Story | P1-critical (a Spike itself is never P0 — it does not block shipping, it informs decisions) |
+| P1-critical Story | P1-critical |
+| P2-important Story | P2-important |
+| P3-backlog or no specific Story | P3-backlog |
+
+### Step 3: Apply phase coherence
+
+The Spike must be in the same phase as the work it unblocks, or an earlier phase. A Spike cannot be `post-mvp` if the Story it unblocks is `mvp`.
+
+### Spike-specific constraints
+
+- A Spike is never P0-blocker. If the answer to the Spike is truly P0-critical, the Spike should be converted to a Story or Task.
+- A Spike for a feature with `status = defer until safety review` in the backlog is P3-backlog until the safety review is explicitly opened.
+- Spike Fix Version = the same Fix Version as the Story it unblocks.
+
+---
+
+## Priority Coherence Checks
+
+These constraints must hold after any priority assignment. Run these as a validation pass.
+
+### Constraint 1: Story cannot exceed parent Epic ceiling without documented reason
+
+If `story.priority < parent_epic.priority` in priority order (i.e., Story is assigned a *higher* priority number = more urgent):
+- This is expected and valid — Stories are never P0.
+
+If `story.priority` is assigned MORE URGENT than the Epic's ceiling (e.g., a P1 Story under a P2 Epic):
+- Valid ONLY if: (a) the Story is a safety gate item, or (b) the Story directly unblocks a P0 Epic with a documented `blocks` link.
+- In all other cases: flag as coherence violation. Surface to user before writing.
+
+### Constraint 2: Phase and priority must be coherent
+
+| Violation | Action |
+|---|---|
+| deferred item with P0/P1/P2 priority | Downgrade to P3-backlog. Log correction. |
+| post-mvp item with P0/P1 priority (non-safety) | Downgrade to P2-important. Log correction. |
+| post-mvp item with P0/P1 due to safety signal | Surface to user — phase reassignment may be required. |
+
+### Constraint 3: Safety gate item must be ≥ P1
+
+If any item implements a safety gate function (as defined in Signal 1 above) and is assigned P2 or P3, this is a coherence violation. Elevate to P1-critical and document the reason.
+
+### Constraint 4: impact:self-contained item assigned P0 is a classification error
+
+Either the impact radius is wrong (re-examine the blast radius) or the priority is wrong. Surface to user — do not write either without resolution.
+
+### Constraint 5: Isolated Spike (no unblocked Story) cannot be P1
+
+A Spike with no `blocks` link to a specific Story is exploratory. It is P3-backlog until a concrete dependency is established.
+
+### Constraint 6: Every P0 item must have a `blocks` or `is blocked by` link
+
+A P0-blocker item with no issue links is a signal that either the blast radius walk was incomplete or the priority is wrong. Flag during VERIFY.
+
+---
+
+## Edge Cases
+
+### EC-1: A post-mvp Story is a dependency of an MVP Epic
+
+This is a structural mismatch — a post-mvp item should not be able to block an MVP item in steady state. When this is found:
+1. Check if the blocking relationship is real (architectural) or accidental (wrong link).
+2. If real: the post-mvp Story must be promoted to `mvp` phase and its priority reassigned. This requires explicit user approval since phase changes affect scope.
+3. If accidental: remove the link and document the correction.
+
+### EC-2: A Bug is found in a deferred feature
+
+Priority = P3-backlog. Fix Version = deferred. No exceptions unless a safety escalation trigger fires. If a safety trigger fires, surface immediately to user regardless of feature phase.
+
+### EC-3: A Spike is needed before a P0 Story can be estimated
+
+The Spike becomes P1-critical and `mvp` phase. It does not become P0 — a Spike's output is a decision or design document, not production code. If the Spike reveals that the P0 Story needs to be split or rewritten, that is handled after the Spike closes.
+
+### EC-4: A Story in a post-mvp Epic turns out to gate an MVP feature
+
+This is a scope boundary problem. The Story must either:
+- Be split: the MVP-required portion becomes a new `mvp` Story under the correct MVP Epic.
+- Or the dependency link is removed with a documented explanation of why the MVP feature can ship without it.
+
+Do not promote a post-mvp Story to mvp phase silently. Surface to user.
+
+### EC-5: Multiple Bugs found in a single session, all in the same component
+
+Triage as a batch. Assign severity to each individually. If three or more P1+ bugs appear in one component in a single session, add a `re-eval:needs-review` label to the parent Epic of that component — this is a signal of systemic instability.
+
+### EC-6: A feature with `needs more evidence` in the backlog is discovered to have a safety gate dependency
+
+The safety gate signal overrides the evidence ceiling. The safety gate Story is still P1-critical. The broader feature's other Stories remain capped at P2-important until evidence improves.
+
+---
+
+## Summary: Priority Assignment by Issue Type
+
+| Issue type | Primary anchor | Safety gate override | Phase ceiling |
+|---|---|---|---|
+| Epic | `jira-epic-priorities.mdc` (fixed) | N/A — Epic table is canonical | As per table |
+| Story | Parent Epic ceiling → universal signals | Yes — always ≥ P1 | post-mvp→P2, deferred→P3 |
+| Task | Parent Story (inherit) | Yes — safety gate Task ≥ P2 (or P1 if direct gate) | Same as parent Story |
+| Bug | Severity table | Yes — safety escalation triggers → P0 regardless of phase | deferred→P3 (unless safety trigger) |
+| Spike | Unblocked Story's priority | Yes — safety gate Spike ≥ P1 | Same as unblocked Story |

@@ -30,3 +30,9 @@ Every Epic (Feature) in the WEL project must match this table exactly. Priority 
 ## During VERIFY
 
 After any triage run that touches Epics, confirm that each Epic's Priority field and Fix Version match this table. If a mismatch is found, correct it and note the correction in the triage session.
+
+---
+
+## Full Prioritization Framework
+
+This table covers Epics only. For priority assignment logic covering Stories, Tasks, Bugs, and Spikes — including safety gate rules, phase-priority coherence constraints, evidence strength signals, and edge cases — see `jira-prioritization-logic.mdc`.
