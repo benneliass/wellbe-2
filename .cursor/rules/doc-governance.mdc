@@ -1,0 +1,154 @@
+---
+description: Doc governance protocol — bible file protection, doc trigger detection, and re-eval protocol for WellBe canonical documents
+alwaysApply: true
+---
+
+# Doc Governance
+
+## The Rule
+
+Bible files are canonical truth documents. Agents may NOT edit them without explicit user approval. This is a hard constraint — no exceptions.
+
+---
+
+## A. Bible File List
+
+The following files are bible files. No agent may modify, rename, move, or delete them without explicit user approval:
+
+| File | What it canonizes |
+|---|---|
+| `VISION.md` | Product vision and scope boundaries |
+| `docs/system-design/system_design.md` | Core system design and operating loop |
+| `docs/system-design/system_principles.md` | Non-negotiable design principles |
+| `docs/system-design/platform_identity.md` | Platform identity, audience model, and identity boundary |
+| `docs/safety/safety_model.md` | Safety posture and safety layers |
+| `docs/safety/do_not_diagnose_rules.md` | Diagnosis prohibition rules |
+| `.cursor/rules/wellbe-vision-guardrails.mdc` | Vision guardrails for agents |
+| `.cursor/rules/audience-guardrails.mdc` | Audience rules for agents |
+
+**Any text that appears in a bible file is the authoritative version.** If another document contradicts a bible file, the bible file wins until a formal doc re-eval approves the update.
+
+---
+
+## B. Doc Trigger Detection
+
+### What counts as a meaningful doc change requiring re-eval
+
+Fire the re-eval protocol when any of the following is true:
+
+**Triggers — run DETECT immediately:**
+- A new feature is added that serves an audience not described in `platform_identity.md`
+- A feature is added or removed that changes the platform's purpose or identity (e.g., adding a clinician workflow feature shifts the product identity)
+- The operating loop (Capture → Connect → Clarify → Close → Correct) is modified
+- The core object model changes (Health Thread definition is altered)
+- A safety rule in `safety_model.md` or `do_not_diagnose_rules.md` is relaxed, extended, or reinterpreted
+- The audience of the system is expanded or narrowed (e.g., adding "clinicians" as a primary audience)
+- A design principle in `system_principles.md` is contradicted by a new feature decision
+- A new doc or rule is added that would conflict with or supersede a bible file
+
+**Non-triggers — do NOT fire re-eval:**
+- Adding a Story or Task to an existing Epic with no identity implications
+- Doc typo fixes, reformatting, adding examples to existing content
+- Adding a new workflow that is fully consistent with existing platform identity
+- Updating a tech stack choice or implementation detail
+- Adding new research evidence without a corresponding design decision
+- Committing the governance rules themselves
+
+**When in doubt: treat it as a trigger.** A re-eval that concludes "no change needed" has no cost. A missed trigger can leave the bible inconsistent.
+
+---
+
+## C. Doc Re-Eval Protocol (5 steps — run in order, do not skip)
+
+### Step 1: DETECT
+
+Identify what changed and which bible file(s) it might affect. State:
+- The specific change (quote the feature, decision, or sentence that triggered this)
+- Which bible file(s) might require updating and why
+
+If the change is a non-trigger (see list above), stop here and proceed without re-eval.
+
+---
+
+### Step 2: ASSESS
+
+Read the affected bible files and the changed content. Produce a precise diff of what the bible currently says versus what the new reality implies.
+
+For each potential update:
+- Quote the exact sentence(s) in the bible file
+- Explain what would need to change and why — grounded in the triggering change
+- Note if two bible files would need to stay consistent with each other
+
+Do not propose anything yet. This step is analysis only.
+
+---
+
+### Step 3: PROPOSE
+
+Present the proposed bible update to the user. Format each proposed change as one block:
+
+```
+BIBLE DELTA DETECTED
+  → File: <path to bible file>
+  → Current text: "<exact quote from bible>"
+  → Proposed text: "<exact proposed replacement>"
+  → Reason: <why this change is needed, citing the triggering change>
+```
+
+Multiple changes go in one proposal — one block per change. End with:
+
+```
+[Approve all]  [Reject all]  [Edit]  [Approve individually]
+```
+
+If no bible change is needed after ASSESS, state explicitly: "ASSESS found no bible inconsistency — no changes proposed."
+
+---
+
+### Step 4: CONFIRM
+
+Wait for explicit user approval before writing anything to a bible file.
+
+**Explicit approval means:** "yes", "approve", "go ahead", "do it", "approved", or equivalent direct affirmative.
+
+**Not approval:** silence, "maybe", continuing the conversation without addressing the proposal, an ambiguous "ok" in another context.
+
+If the response is unclear, ask for clarification. Do not proceed.
+
+---
+
+### Step 5: EXECUTE + VERIFY
+
+1. Make only the approved changes — nothing beyond what was proposed and approved
+2. Re-read all modified bible files after writing
+3. Check for internal consistency: no contradiction between bible files, no orphaned references, no sentence left half-updated
+4. If a consistency issue is found: surface it immediately. Do not silently correct it — that is a new proposed change requiring approval.
+
+Re-eval does not close until VERIFY passes cleanly.
+
+---
+
+## D. Consistency Check Rule
+
+Any time a new feature is added to `docs/feature-backlog/feature_backlog.md` or a new design decision is recorded in `docs/system-design/`, an agent must run this lightweight consistency check against the bible before proceeding:
+
+1. **Audience check:** Does this feature imply a capability the bible says WellBe does not have? Does it serve an audience the bible does not acknowledge?
+2. **Principle check:** Does this feature contradict a design principle in `system_principles.md` or `platform_identity.md`?
+3. **Safety check:** Does this feature relax, extend, or reinterpret any rule in `safety_model.md` or `do_not_diagnose_rules.md`?
+4. **Identity check:** Does this feature primarily serve an institution or business without also serving the individual user directly?
+
+**If yes to any:** Trigger DETECT immediately before writing the feature to Jira or any doc.
+
+**If no to all:** Proceed without blocking.
+
+---
+
+## E. Agent Behavior Summary
+
+| Situation | Agent action |
+|---|---|
+| Instructed to edit a bible file | Refuse and explain: "This is a bible file. I need explicit user approval before editing it. Here is what I would propose changing and why." |
+| New feature added that might conflict with a bible file | Run consistency check (Section D). If a conflict is found, trigger DETECT. |
+| Triggering change detected mid-conversation | Acknowledge immediately: "This looks like a doc re-eval trigger — I'll run the re-eval protocol when we're ready." |
+| Bible files contradict each other | Surface to user. Do not silently resolve. |
+| User asks to "just update" a bible file informally | Propose the change via PROPOSE step. Do not bypass the approval gate. |
