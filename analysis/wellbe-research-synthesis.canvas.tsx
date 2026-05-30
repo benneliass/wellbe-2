@@ -158,6 +158,30 @@ const RECS_ADD = [
   "Patient/family deterioration escalation route — named response team, acknowledgment timestamp (LI-025, HIGH)",
 ];
 
+// ─── Data: Research G — Shared Health Memory (brainstorm) ────────────────────
+
+const SIX_MEMORIES = [
+  { id: "M001", name: "Story Memory", user: "Patient", what: "Patient words, main concern, fear, own theory, symptom timeline, daily-life impact, baseline change.", wellbeMap: "M22 Concern Tracker + doctor-summary", personalFirst: true },
+  { id: "M002", name: "Clinical Memory", user: "Care team", what: "Problems, medications, allergies, labs, imaging reports, notes, referrals, vitals, diagnoses.", wellbeMap: "M14 Missing Data Detection + compounding timeline", personalFirst: true },
+  { id: "M003", name: "Pattern Memory", user: "Care team / patient", what: "Repeat visits, persistent symptoms after normal tests, lab trends, worsening patterns, unresolved complaints.", wellbeMap: "M11 Pattern Detection", personalFirst: true },
+  { id: "M004", name: "Decision Memory", user: "Care team", what: "What was considered, ruled out, uncertain, or should trigger reassessment.", wellbeMap: "Not in current 33 modules — critical gap", personalFirst: false },
+  { id: "M005", name: "Responsibility Memory", user: "Patient / clinician / admin", what: "Owners and states for pending results, abnormal findings, referrals, repeat tests, and follow-up.", wellbeMap: "Closed-loop result ownership gap — confirmed critical", personalFirst: true },
+  { id: "M006", name: "Equity & Access Memory", user: "Patient / caregiver", what: "Language, access barriers, caregiver involvement, transport, digital access, disability, cultural safety.", wellbeMap: "User context layer — not yet explicit in WellBe modules", personalFirst: true },
+];
+
+const G_FEATURES = [
+  { id: "FEAT001", name: "Health Thread intake", phase: "MVP", risk: "low", value: "high", personal: true, note: "Capture unresolved concern, timeline, baseline change, daily impact, prior care, main fear. Directly maps to M22 Concern Tracker." },
+  { id: "FEAT002", name: "Clinician one-page summary", phase: "MVP", risk: "medium", value: "high", personal: true, note: "User-generated, source-linked summary of story, timeline, tests, referrals, pending items. This is doctor-summary. User shares it; clinician reads it." },
+  { id: "FEAT003", name: "Pending result & referral tracker", phase: "MVP", risk: "medium", value: "high", personal: true, note: "User tracks their own pending labs, imaging, referrals — not a clinical assignment system. Fills the closed-loop result ownership gap." },
+  { id: "FEAT004", name: "Patient correction loop", phase: "MVP", risk: "medium", value: "high", personal: true, note: "User marks missing/wrong/unaddressed information post-visit. Patient voice as safety infrastructure (I007)." },
+  { id: "FEAT005", name: "Evidence traceability layer", phase: "MVP", risk: "medium", value: "high", personal: true, note: "Every WellBe-generated insight links to its source: patient-reported, lab, referral, or note. Prevents hallucination and builds trust." },
+  { id: "FEAT006", name: "Trend over noise PGHD summarizer", phase: "Near-term", risk: "medium", value: "medium-high", personal: true, note: "Transforms patient logs into trends and baseline changes with monitoring disclaimers. Maps to WellBe Principle 3 (context) + M11." },
+  { id: "FEAT007", name: "Repeat-visit escalation view", phase: "Near-term", risk: "medium", value: "high", personal: true, note: "Shows the user their own recurring visits / unresolved symptoms across encounters. Personal longitudinal view, not a clinical triage tool." },
+  { id: "FEAT008", name: "Clinical decision memory module", phase: "Later", risk: "high", value: "high", personal: false, note: "Tracks what was considered, ruled out, uncertain. High value but high risk — requires clinician as primary user. Out of scope unless explicitly decided." },
+  { id: "FEAT009", name: "Cross-specialty pattern map", phase: "Later", risk: "high", value: "medium-high", personal: false, note: "Connects threads across specialties and institutions. If user-initiated and user-controlled, can be personal-first. Requires explicit opt-in." },
+  { id: "FEAT010", name: "Autonomous diagnosis / rare-disease prediction", phase: "Avoid", risk: "very high", value: "uncertain", personal: false, note: "System predicts hidden condition directly. Research rates this unsafe or requiring strict governance. Directly contradicts WellBe safety rules." },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function WellBeSynthesis() {
@@ -544,10 +568,151 @@ export default function WellBeSynthesis() {
         </Stack>
       </Stack>
 
+      <Divider />
+
+      {/* ── Research G: Shared Health Memory ── */}
+      <Stack gap={24}>
+        <Stack gap={6}>
+          <Row gap={12} align="center">
+            <H2>Research G — Shared Health Memory</H2>
+            <Pill tone="info" size="sm">Brainstorm</Pill>
+          </Row>
+          <Text tone="secondary" style={{ maxWidth: 720, lineHeight: 1.6 }}>
+            A brainstorm research package exploring the "medical second brain" concept. Core idea: every unresolved health concern becomes a <strong>Health Thread</strong> — a living container accumulating patient story, clinical signals, pending items, and follow-up obligations over time. The system's purpose is to help healthcare remember. The design loop is: Capture → Connect → Clarify → Close → Correct.
+          </Text>
+        </Stack>
+
+        <Callout tone="info">
+          <Stack gap={4}>
+            <Text weight="semibold" style={{ fontSize: 13 }}>Personal-first read of this brainstorm</Text>
+            <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
+              Research G frames Health Thread as a "patient-clinician shared object." Through the personal-first guardrail, the reframe is: the <strong>user owns the thread</strong>. They build it. They decide what to share with their clinician. The "clinician view" is the user's generated summary — doctor-summary. The "Responsibility Memory" (who owns pending items) is the user knowing what they need to follow up on. The word "shared" describes the user's choice to share, not a joint-access data structure the institution controls.
+            </Text>
+          </Stack>
+        </Callout>
+
+        {/* Health Thread concept */}
+        <Card>
+          <CardHeader trailing={<Pill tone="success" size="sm">Strong concept</Pill>}>The Health Thread — naming what WellBe's concern tracking should be</CardHeader>
+          <CardBody>
+            <Stack gap={12}>
+              <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.65 }}>
+                Research G names the core product object: a <strong>Health Thread</strong> is a living container for one unresolved or ongoing concern. It accumulates: patient story → timeline → baseline change → daily-life impact → related visits → tests and results → referrals → open questions → pending actions → owners → escalation criteria → source links. This is more specific than "concern" and more useful than "symptom" — it has a lifecycle, a resolution state, and a follow-up obligation attached.
+              </Text>
+              <Grid columns={3} gap={10}>
+                {[
+                  { label: "Named", body: "A Health Thread has an identity — 'the fatigue that started in March' is not the same as 'fatigue'." },
+                  { label: "Living", body: "It accumulates evidence across visits, tests, and time. It doesn't close until there's a resolution or explicit decision to close." },
+                  { label: "Owned", body: "The user owns the thread. It surfaces who — if anyone — owns the next clinical action." },
+                ].map((c) => (
+                  <Card key={c.label} style={{ background: theme.fill.tertiary }}>
+                    <CardBody>
+                      <Stack gap={6}>
+                        <Text weight="semibold" style={{ fontSize: 13 }}>{c.label}</Text>
+                        <Text tone="secondary" style={{ fontSize: 12, lineHeight: 1.5 }}>{c.body}</Text>
+                      </Stack>
+                    </CardBody>
+                  </Card>
+                ))}
+              </Grid>
+            </Stack>
+          </CardBody>
+        </Card>
+
+        {/* 5C loop */}
+        <Card>
+          <CardHeader trailing={<Pill tone="success" size="sm">Design loop</Pill>}>Capture → Connect → Clarify → Close → Correct</CardHeader>
+          <CardBody>
+            <Stack gap={8}>
+              <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.6 }}>
+                Research G proposes replacing the generic second-brain loop (capture/organize/retrieve) with a medical-specific loop. Each stage maps to a concrete WellBe surface:
+              </Text>
+              <Stack gap={6}>
+                {[
+                  { step: "Capture", desc: "Patient story, symptoms, baseline, daily impact, fear, prior care — in the user's own words. Maps to M22 intake + doctor-summary input." },
+                  { step: "Connect", desc: "Link scattered signals (labs, visits, referrals, symptoms) into Health Threads. Maps to M11 Pattern Detection." },
+                  { step: "Clarify", desc: "Surface what is known, unknown, missing, and unresolved. Maps to M14 Missing Data Detection + the 'normal-test trap' surface." },
+                  { step: "Close", desc: "Track pending results, referrals, follow-ups. Flag when they're overdue. Maps to the closed-loop result ownership gap." },
+                  { step: "Correct", desc: "User marks missing or wrong information post-visit. Correction is treated as safety infrastructure, not a complaint." },
+                ].map((s, i) => (
+                  <Row key={s.step} gap={14} align="start" style={{ padding: "8px 12px", borderRadius: 6, background: theme.fill.tertiary }}>
+                    <Text style={{ color: theme.accent.primary, fontWeight: 600, fontSize: 13, flexShrink: 0, minWidth: 72 }}>{i + 1}. {s.step}</Text>
+                    <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.5 }}>{s.desc}</Text>
+                  </Row>
+                ))}
+              </Stack>
+            </Stack>
+          </CardBody>
+        </Card>
+
+        {/* Six memories */}
+        <CollapsibleSection title="Six Memory Types" count={6} trailing={<Pill tone="info" size="sm">Taxonomy</Pill>} defaultOpen>
+          <Stack gap={6}>
+            {SIX_MEMORIES.map((m) => (
+              <Row key={m.id} gap={14} align="start" style={{ padding: "10px 12px", borderRadius: 6, background: theme.fill.tertiary }}>
+                <Stack gap={2} style={{ flex: "0 0 160px" }}>
+                  <Text weight="medium" style={{ fontSize: 13 }}>{m.name}</Text>
+                  <Pill size="sm" tone={m.personalFirst ? "success" : "warning"}>{m.personalFirst ? "Personal-first ✓" : "Needs reframe"}</Pill>
+                </Stack>
+                <Stack gap={4} style={{ flex: 1 }}>
+                  <Text tone="secondary" style={{ fontSize: 13 }}>{m.what}</Text>
+                  <Row gap={6} align="center">
+                    <Text style={{ fontSize: 11, color: theme.text.tertiary }}>WellBe map:</Text>
+                    <Text style={{ fontSize: 12, color: theme.accent.primary }}>{m.wellbeMap}</Text>
+                  </Row>
+                </Stack>
+              </Row>
+            ))}
+          </Stack>
+        </CollapsibleSection>
+
+        {/* Feature backlog */}
+        <CollapsibleSection title="Research G Feature Backlog" count={G_FEATURES.length} trailing={<Pill tone="info" size="sm">10 features · 5 MVP</Pill>} defaultOpen>
+          <Stack gap={6}>
+            {G_FEATURES.map((f) => (
+              <Row key={f.id} gap={14} align="start" style={{ padding: "10px 12px", borderRadius: 6, background: theme.fill.tertiary }}>
+                <Stack gap={2} style={{ flex: "0 0 200px" }}>
+                  <Text weight="medium" style={{ fontSize: 13 }}>{f.name}</Text>
+                  <Row gap={6}>
+                    <Pill size="sm" tone={f.phase === "MVP" ? "success" : f.phase === "Avoid" ? "deleted" : f.phase === "Later" ? "warning" : "info"}>{f.phase}</Pill>
+                    <Pill size="sm" tone={f.personal ? "success" : "deleted"}>{f.personal ? "Personal ✓" : "Out of scope"}</Pill>
+                  </Row>
+                </Stack>
+                <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.5, flex: 1 }}>{f.note}</Text>
+              </Row>
+            ))}
+          </Stack>
+        </CollapsibleSection>
+
+        {/* Cross-reference with A–F */}
+        <Card>
+          <CardHeader trailing={<Pill tone="success" size="sm">Convergence</Pill>}>How Research G sharpens the full synthesis</CardHeader>
+          <CardBody>
+            <Stack gap={10}>
+              {[
+                { label: "Names the core object", body: "Research A–F all identified the same vacuum — nothing persists across encounters. Research G names what should: the Health Thread. This gives WellBe's concern tracking a concrete, specific object with a lifecycle." },
+                { label: "Gives the 5C loop", body: "Research F's feature backlog listed what to build. Research G explains the design logic: Capture→Connect→Clarify→Close→Correct. This is the UX skeleton WellBe's personal intelligence layer should follow." },
+                { label: "Decision Memory is the one true gap", body: "Five of six memory types map cleanly to existing or planned WellBe modules. Decision Memory (what was considered and ruled out) does not. This is also the highest-risk memory type — it requires clinician authorship. Worth flagging as a deliberate out-of-scope decision, not an oversight." },
+                { label: "Correction as safety infrastructure", body: "Research G (I007) and Research C both independently conclude: patient correction is not a UX nicety, it is safety. WellBe's user correction flow should be treated with the same seriousness as the do-not-diagnose rules." },
+                { label: "Equity & Access Memory is new", body: "No prior research package explicitly named language, transport, digital access, and cultural safety as a distinct memory type. Research G surfaces it as M006. For a personal system, this is concrete: WellBe should be aware of and adapt to the user's actual access context." },
+              ].map((item) => (
+                <Row key={item.label} gap={14} align="start">
+                  <Text style={{ color: theme.accent.primary, flexShrink: 0, fontSize: 13 }}>→</Text>
+                  <Stack gap={3}>
+                    <Text weight="medium" style={{ fontSize: 13 }}>{item.label}</Text>
+                    <Text tone="secondary" style={{ fontSize: 13, lineHeight: 1.5 }}>{item.body}</Text>
+                  </Stack>
+                </Row>
+              ))}
+            </Stack>
+          </CardBody>
+        </Card>
+      </Stack>
+
       {/* ── Footer ── */}
       <Stack gap={4} style={{ borderTop: `1px solid ${theme.stroke.tertiary}`, paddingTop: 20 }}>
         <Text size="small" tone="tertiary">
-          Research A (Health System Patient Flows, 56 sources) · Research B (Missed Signals, 15 sources) · Research C (Patient Complaints, 39 sources) · Research D (Clinician Pain Points, 24 sources) · Research E (Global Health, 30 sources) · Research F (Product Design Synthesis, 26 living insights, 164+ consolidated sources)
+          Research A (Health System Patient Flows, 56 sources) · Research B (Missed Signals, 15 sources) · Research C (Patient Complaints, 39 sources) · Research D (Clinician Pain Points, 24 sources) · Research E (Global Health, 30 sources) · Research F (Product Design Synthesis, 26 living insights, 164+ consolidated sources) · Research G (Shared Health Memory brainstorm)
         </Text>
         <Text size="small" tone="tertiary">Synthesized 2026-05-30 · WellBe overview doc last synthesized 2026-05-30</Text>
       </Stack>
