@@ -19,15 +19,16 @@ The system's job is to help a person remember, connect, clarify, close, and corr
 
 ```
 wellbe-2/
-├── docs/
+├── docs/                   ← single source of truth
 │   ├── system-design/      Core system design, architecture, data model, state machine
 │   ├── workflows/          Patient, pre-visit, post-visit, referral, handoff workflows
 │   ├── feature-backlog/    v2 feature backlog, prioritization, MVP plan, deferred items
 │   ├── safety/             Safety model, do-not-diagnose rules, privacy, risk register
 │   ├── implementation/     Roadmap, API/event model, migration notes, success metrics
 │   └── evidence/           Evidence-to-decision cross-reference, v1 analysis, source index
-├── research/               Raw research packages (6 evidence streams)
-├── analysis/               Research synthesis canvas
+├── archive/                Prior research and analysis (synthesized into docs/, read-only)
+│   ├── research/           Six raw evidence research packages
+│   └── analysis/           Pre-synthesis canvas artifact
 ├── VISION.md               Original product vision
 └── AGENTS.md               Agent instructions
 ```
