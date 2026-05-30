@@ -1,0 +1,32 @@
+---
+description: Canonical priority and phase assignments for all WEL Epics. Used by agents to set Priority field and Fix Version when creating or updating Epics. Any deviation from this table requires explicit user approval.
+alwaysApply: true
+---
+
+# WEL Epic Priority & Phase Table
+
+Every Epic (Feature) in the WEL project must match this table exactly. Priority is set on the Jira Priority field (not a label). Fix Version must match the phase column.
+
+| Epic | Summary | Phase | Fix Version ID | Priority |
+|---|---|---|---|---|
+| E1 | Health Thread Core | mvp | 10000 | P0-blocker |
+| E4 | Safety & Privacy | mvp | 10000 | P0-blocker |
+| E2 | Care Continuity | mvp | 10000 | P1-critical |
+| E3 | Memory Layer | mvp | 10000 | P1-critical |
+| E7 | Data Capture | mvp | 10000 | P1-critical |
+| E5 | Knowledge Graph | post-mvp | 10001 | P2-important |
+| E6 | Intelligence Engines | post-mvp | 10001 | P2-important |
+| E10 | UI Layer | post-mvp | 10001 | P2-important |
+| E8 | External Intelligence | post-mvp | 10001 | P3-backlog |
+| E9 | Integrations | post-mvp | 10001 | P3-backlog |
+
+## Rationale
+
+- **P0-blocker (E1, E4):** Health Thread Core is the foundational object everything else depends on. Safety & Privacy is a gate for all AI output and is infra-wide — nothing user-facing ships without it.
+- **P1-critical (E2, E3, E7):** These deliver the core MVP value — care continuity workflows, memory capture, and data ingestion. They must ship in the MVP phase.
+- **P2-important (E5, E6, E10):** Knowledge Graph and Intelligence Engines require data volume to be meaningful and have structural dependencies on E1/E7. UI Layer depends on the graph and intelligence outputs.
+- **P3-backlog (E8, E9):** External Intelligence (Research Agent, Myth Buster) and Integrations (wearables, FHIR, cross-device) are valuable post-MVP expansions with higher complexity and external dependencies.
+
+## During VERIFY
+
+After any triage run that touches Epics, confirm that each Epic's Priority field and Fix Version match this table. If a mismatch is found, correct it and note the correction in the triage session.
