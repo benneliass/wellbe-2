@@ -1,0 +1,93 @@
+---
+description: Audience guardrails — defines WellBe's two audiences, what "business as distributor" means, and what agents may and may not write when designing or describing features
+alwaysApply: true
+---
+
+# Audience Guardrails
+
+> **This is a bible file.** See `doc-governance.mdc` — it may not be edited without explicit user approval.
+
+---
+
+## The Two Audiences
+
+### Primary audience: individuals
+
+Patients, caregivers, and family members managing their own or a dependent's health.
+
+The individual is **always** the end-user whose interests the product serves. Every product decision — features, language, defaults, data flows — must serve this person first.
+
+### Secondary audience: businesses as distribution channels
+
+Hospitals, clinics, employers, and health platforms that deploy WellBe to their users.
+
+The business deploys WellBe. The individual uses it.
+
+The business is a **channel** — not a customer, not a user, not a data controller. It brings WellBe to individuals. It does not direct what WellBe does for those individuals, and it does not own or access their data.
+
+---
+
+## What "Business as Distributor" Means — Precisely
+
+| Role | Relationship to WellBe |
+|---|---|
+| Individual (patient/caregiver) | Primary user. Product serves this person. Data belongs to this person. |
+| Business (hospital, employer, clinic) | Deployment channel. Licenses WellBe to reach individuals. No data access unless each individual explicitly grants it. |
+| Clinician | Third party the individual may choose to share context with — via user-controlled share features. Never a primary user. |
+
+A hospital deploying WellBe to its patients is using WellBe as a distribution channel. Each patient remains the user. The hospital does not gain access to patient data, cannot enable features on patients' behalf, and cannot aggregate patient data for its own purposes without each patient's explicit opt-in.
+
+---
+
+## Hard Prohibitions
+
+These are never allowed in any WellBe feature description, spec text, system design doc, or safety doc:
+
+1. **No feature scoped exclusively to businesses.** Every feature must make sense from the individual user's perspective. If a feature only delivers value to the deploying business and not to the individual — it does not belong in WellBe.
+
+2. **No "enterprise-only" framing.** Language like "enterprise-only", "clinician-facing by default", "institution-managed", or "hospital-controlled" is prohibited in system design, feature specs, and safety docs.
+
+3. **No institutional data access by default.** The business cannot access individual data, aggregate it, or share it without each individual's explicit opt-in — regardless of the deployment relationship.
+
+4. **No clinician as primary user.** Features may support a clinician as a recipient of user-shared context (e.g., the clinician visit packet) but the clinician is never the product's primary user or decision-maker for how the product behaves.
+
+---
+
+## What Is Allowed
+
+- Features that work better when deployed via a business (e.g., a company health program deploys WellBe to employees) — **allowed**, as long as the employee (individual) is the user and controls their own data.
+- B2B deployment language in business-context documents (sales materials, marketing, partnership agreements) — **allowed**. Not allowed in system design, feature specs, or safety docs.
+- Features that let an individual share context with their care team — **allowed**. This is user-controlled sharing, not institutional access.
+- Features that adapt to organizational context (e.g., different care pathways by geography or employer health plan) — **allowed**, as long as the individual's data control and product experience are not diminished.
+
+---
+
+## Privacy Rule (Applies in All Deployment Contexts)
+
+Even in a B2B deployment:
+- The individual's data belongs to the individual.
+- The deploying business cannot read, aggregate, or export individual data without each person's explicit opt-in.
+- Cross-patient or aggregate insights are never a business default. They are user-initiated features.
+- If the individual leaves the business (e.g., changes employer), their data follows them — it does not remain with the business.
+
+---
+
+## Language Audit Checklist
+
+Before any agent writes feature descriptions, spec text, or doc content, run this checklist:
+
+- [ ] Does this description imply the feature is only for businesses or clinicians? → Rewrite to be audience-neutral or explicitly inclusive of the individual user.
+- [ ] Does this description use words like "enterprise-only", "institution-managed", "clinician-facing by default", or "hospital-controlled"? → Remove or reframe.
+- [ ] Does this description describe a data flow where the business receives individual data without explicit individual opt-in? → Remove. This is a privacy violation by design.
+- [ ] Is the individual mentioned as the agent making decisions about their own data and experience? → If not, the framing is likely wrong.
+- [ ] Does the feature description make sense if a single individual with no organizational affiliation uses WellBe directly? → If no, the feature may not belong.
+
+All five checks must pass before the content is written.
+
+---
+
+## Escalation
+
+If a proposed feature fails the language audit checklist and cannot be reframed to serve the individual user — it is out of scope for WellBe. Surface this to the user: "This feature as described only serves [business/clinician/institution]. It does not appear to serve the individual user. It is out of scope unless the design is changed."
+
+Do not add out-of-scope features to Jira or docs without explicit user decision.
