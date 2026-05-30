@@ -38,6 +38,26 @@ Comparison enables that. It is not the product itself.
 
 ---
 
+## Cross-patient comparison is user-controlled, always
+
+This applies regardless of how WellBe is sold or deployed — direct to the individual, licensed to a hospital, embedded in a practice.
+
+**The default is always personal and isolated.** One user, their own data, their own intelligence.
+
+Cross-referencing against other patients — even anonymized — is a feature the user explicitly activates. The institution deploying WellBe cannot enable this on behalf of its users. The distribution channel (hospital, practice, employer) does not become the data controller.
+
+| Scenario | Allowed |
+|---|---|
+| User chooses "compare my recovery to similar cases" | ✅ User-initiated, explicit opt-in |
+| Hospital gets aggregate insights across all its WellBe patients by default | ❌ Not without individual user opt-in |
+| Clinician enables cross-patient view on their patient's account | ❌ Only the user can enable this for themselves |
+| User shares their data with their care team | ✅ User-controlled sharing |
+| Practice uses WellBe as a deployment channel | ✅ Distribution channel, not data controller |
+
+This is a privacy and product identity constraint, not just a legal one. WellBe's value proposition is that it works for you. The moment an institution can turn on data flows the individual didn't choose, that proposition breaks.
+
+---
+
 ## Scope
 
 **In scope:**

@@ -14,6 +14,20 @@ WellBe is a **personal health intelligence system**. The primary user is always 
 
 Cross-device, cross-time, cross-source, cross-domain synthesis is WellBe's **moat and mechanism** — but it is a means, not an end. The end is: one person understanding their own health better than they could without WellBe. Comparison is the how, not the what.
 
+## Cross-patient comparison requires explicit user opt-in
+
+This applies regardless of who buys or deploys WellBe — an individual, a hospital, a practice, or any institution.
+
+- The default mode is always: **one user, their own data, their own intelligence**.
+- Cross-referencing against other patients (anonymized or otherwise) is a **feature the user actively chooses to enable** — never a platform default, never something an institution can switch on for their users.
+- Even in a B2B deployment where a hospital licenses WellBe for its patients: each patient's data remains personal and isolated unless that patient explicitly opts in to any comparison or population layer.
+- The institution cannot see cross-patient patterns unless individual users have each opted in. The institution is a distribution channel, not a data controller.
+
+Concretely:
+- "Show me how my recovery compares to others with this condition" → valid feature, user-initiated, explicit consent.
+- "Hospital gets aggregate insights across all its WellBe patients by default" → not permitted without individual opt-in.
+- "Clinician enables cross-patient view on behalf of their patient" → not permitted; only the user can enable it for themselves.
+
 ## Research context guardrail
 
 The research packages (A–F) studied systemic clinical failures — missed diagnoses, handoff gaps, referral voids. These are **context**, not a product spec. When research describes a problem that lives in the clinical system (e.g. "no named clinician owns this result"), WellBe's answer is to empower the patient within that system — not to replace the system or become the system.
