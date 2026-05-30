@@ -1,0 +1,13 @@
+Research F synthesis dashboard
+
+Corpus metric,Formula-driven count,Notes,,Status,Count,Interpretation,Next action
+Packages,5,All five user-attached tarballs extracted.,,strongly supported,12,Build into core design after local workflow review.,See Living Insights and Feature Backlog.
+Sources,164,Consolidated from sources_master.csv.,,supported by some evidence,7,Prototype with validation and clinician input.,See Living Insights and Feature Backlog.
+Evidence items,154,Rows from evidence_items.csv only.,,region-specific,5,Enable only where workflow/resource model fits.,See Living Insights and Feature Backlog.
+Cases/examples,117,Rows from cases_or_examples.csv only.,,unsafe or needs caution,3,Requires safety evaluation before deployment.,See Living Insights and Feature Backlog.
+Quotes,48,Rows from quotes.csv only.,,early idea,1,Do not build as alerting until evidence strengthens.,See Living Insights and Feature Backlog.
+Reviews/complaints,38,Rows from reviews_or_complaints.csv only.,,contradicted by evidence,2,Avoid as product principle.,See Living Insights and Feature Backlog.
+Feature backlog items,26,Evidence-backed product backlog.
+Living insights,30,Includes contradicted/unsafe/early idea status.
+
+Highest-confidence product spine: intake timeline -> diagnostic episode -> clinician summary -> closed-loop results/referrals -> follow-up/reset.

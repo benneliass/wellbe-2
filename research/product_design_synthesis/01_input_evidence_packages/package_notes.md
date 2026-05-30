@@ -1,0 +1,41 @@
+# Input package notes
+
+## research_evidence_package_clinician_side_diagnostic_pain_points_2026-05-30.tar.gz
+
+- Topic: Research D / clinician-side diagnostic pain points
+- Readable status: readable; extracted successfully
+- Rows: 24 sources; 21 evidence items; 4 cases/examples; 13 quotes; 0 reviews/complaints.
+- Contribution: supplied primary evidence for product synthesis, especially workflow stages, missed signals, patient/clinician pain points, and setting differences.
+- Limitations: - Raw source webpages, PDFs, and screenshots were not downloaded during the completed research step. - Some authors were not captured in the prior report and are marked `unknown`. - Some publication dates are approximate or listed as current/access date where exact dates were not captured. - Quotes are intentionally short. A few quote-like entries came from completed research notes and should be verified against the original source before public use. - The package has no public reviews/complaints rows because the completed Research D output focused mainly on clinician literature, safety reports, and commentary. - This is a curated research archive, not a systematic review or prevalence estimate.
+
+## research_evidence_package_global_health_issue_identification_2026-05-30.tar.gz
+
+- Topic: Research E / global health issue identification
+- Readable status: readable; extracted successfully
+- Rows: 30 sources; 30 evidence items; 10 cases/examples; 3 quotes; 0 reviews/complaints.
+- Contribution: supplied primary evidence for product synthesis, especially workflow stages, missed signals, patient/clinician pain points, and setting differences.
+- Limitations: - This archive packages the research already completed; it does not add a new source search. - Full raw source pages/PDFs were not downloaded; raw source folders contain source-summary Markdown stubs with URLs and summaries. - Some publication dates were not available in the completed notes and are marked `unknown`. - Some source authors are listed as organization or `authors unknown` where individual authors were not captured. - Patient voice is limited because the completed research prioritized system reports and documented cases over direct forum/review mining. - Review/complaint structured rows are empty except for ombudsman-style complaint material captured under cases and sources. - Several broad regional categories, such as Europe and East Asia, are represented by selected country e
+
+## research_evidence_package_health_system_patient_flows_2026-05-30.tar.gz
+
+- Topic: Research A / health-system patient flows
+- Readable status: readable; extracted successfully
+- Rows: 56 sources; 53 evidence items; 53 cases/examples; 5 quotes; 10 reviews/complaints.
+- Contribution: supplied primary evidence for product synthesis, especially workflow stages, missed signals, patient/clinician pain points, and setting differences.
+- Limitations: - Some metadata remains incomplete, especially author/organization and exact publication dates. - Raw source files were not embedded; placeholder files preserve URLs and context. - Quantitative metrics should be verified against the original linked sources before publication or statistical use. - Evidence quality varies by source type; patient stories and complaints are valuable for workflow insight but are not population estimates. - The workbook prioritized breadth across settings and regions, not exhaustive coverage of any one country or condition.
+
+## research_evidence_package_missed_signals_diagnostic_errors_2026-05-30.tar.gz
+
+- Topic: Research B / missed signals and diagnostic errors
+- Readable status: readable; extracted successfully
+- Rows: 15 sources; 32 evidence items; 32 cases/examples; 7 quotes; 9 reviews/complaints.
+- Contribution: supplied primary evidence for product synthesis, especially workflow stages, missed signals, patient/clinician pain points, and setting differences.
+- Limitations: - Some metadata fields such as author, exact publication date, or outcome are unknown in the completed workbook and are marked `unknown`. - Raw source documents were not preserved except for the completed workbook and available preview image. - Patient quotes are intentionally short and contextual; this package does not include full patient stories. - Counts are based on curated case-library tags, not epidemiologic prevalence. - Some evidence comes from patient advocacy or experience sources and should be treated as lower-confidence for clinical generalization while still valuable for workflow discovery.
+
+## research_evidence_package_patient_complaints_identification_failures_2026-05-30.tar.gz
+
+- Topic: Research C / patient complaints and identification failures
+- Readable status: readable; extracted successfully
+- Rows: 39 sources; 18 evidence items; 18 cases/examples; 20 quotes; 19 reviews/complaints.
+- Contribution: supplied primary evidence for product synthesis, especially workflow stages, missed signals, patient/clinician pain points, and setting differences.
+- Limitations: - Raw webpages, PDFs, and screenshots were not downloaded during packaging; source-summary files and URLs were included instead. - Some publication dates were unknown in the completed research and are marked `unknown`. - Some countries, settings, and outcomes are based on the source description and may need verification from the original source. - Public reviews and advocacy stories are valuable patient-voice evidence but are usually not independently adjudicated. - Evidence is intentionally varied and not over-cleaned; it includes high-quality official cases and lower-confidence public accounts. - This package does not include a complete systematic search log.

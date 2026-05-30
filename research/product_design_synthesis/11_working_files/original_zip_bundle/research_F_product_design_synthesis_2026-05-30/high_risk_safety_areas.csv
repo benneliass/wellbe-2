@@ -1,0 +1,11 @@
+risk_area,why_it_matters,guardrail,affected_features,risk_level
+Autonomous diagnosis / false certainty,Product may be seen as final authority or rule-out tool,Use support-not-replace language; clinician-owned status; show uncertainty and source provenance,all features,high
+Alert fatigue,Closed-loop alerts and red flags can add noise,Risk-rank by actionability; local calibration; measure ignored alerts and missed cases,result ledger; worklists; red flags,high
+False reassurance from normal tests,Normal result may close unresolved symptoms,Normal-test explainer and symptom-still-present check-ins; do not mark resolved unless symptom status known,normal-test safety net,high
+Overtesting and over-referral,Repeat visits and patient fear could trigger excessive testing,"Prompts ask for review/safety net, not mandatory testing; audit utilization and harm",repeat reset; cross-specialty map,medium-high
+Bias amplification,Algorithms may reproduce age/gender/race/mental-health stigma,Equity audits; avoid inferred identity; guardrail focuses on physical red flags and coexisting risk,bias guardrail; cultural fields,high
+Privacy and sensitive social/cultural data,"Language, culture, financial barriers, family history, patient quotes are sensitive",Minimum necessary fields; consent; role-based access; patient visibility controls,global adaptations; intake,high
+Clinician burden,More fields/tasks could worsen burnout and documentation burden,Summarize; prefill; prioritize; reduce duplicated work; measure time burden,doctor summary; intake; worklists,high
+Patient anxiety and panic language,Flags may scare patients,"Calm patient-facing language, clear emergency instructions, avoid disease predictions",patient workflows,medium-high
+Low-resource responsibility shift,Tools may blame CHWs/clinics for unavailable tests/referrals,Non-punitive infrastructure reporting; manager escalation; scope-of-practice safeguards,low-resource layer; CHW capture,high
+Data quality and provenance,Patient uploads/OCR and outside records may be wrong,Mark unverified; retain original; clinician review; document source/date,patient-held record import,high

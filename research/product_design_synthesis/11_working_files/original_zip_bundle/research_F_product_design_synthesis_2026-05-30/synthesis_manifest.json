@@ -1,0 +1,37 @@
+{
+  "created": "2026-05-30",
+  "input_packages": [
+    "research_evidence_package_health_system_patient_flows_2026-05-30.tar.gz",
+    "research_evidence_package_missed_signals_diagnostic_errors_2026-05-30.tar.gz",
+    "research_evidence_package_patient_complaints_identification_failures_2026-05-30.tar.gz",
+    "research_evidence_package_clinician_side_diagnostic_pain_points_2026-05-30.tar.gz",
+    "research_evidence_package_global_health_issue_identification_2026-05-30.tar.gz"
+  ],
+  "combined_counts": {
+    "sources": 164,
+    "evidence_items": 154,
+    "cases": 117,
+    "quotes": 48,
+    "reviews_or_complaints": 38,
+    "facts": 107,
+    "metrics": 39
+  },
+  "outputs": [
+    "black_zone_prevention_map.csv",
+    "consolidated_cases.csv",
+    "consolidated_evidence_items.csv",
+    "consolidated_facts.csv",
+    "consolidated_metrics.csv",
+    "consolidated_quotes.csv",
+    "consolidated_reviews_or_complaints.csv",
+    "consolidated_sources.csv",
+    "data_schema.csv",
+    "evidence_backed_feature_backlog.csv",
+    "evidence_quality_and_gaps.md",
+    "feature_opportunity_table.csv",
+    "high_risk_safety_areas.csv",
+    "living_insights.csv",
+    "region_specific_adaptations.csv",
+    "research_F_product_design_report.md"
+  ]
+}
