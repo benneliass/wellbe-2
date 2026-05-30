@@ -1,5 +1,13 @@
 # WellBe Vision Guardrails
 
+> **This is a bible file.** It may not be edited without explicit user approval. See `.cursor/rules/doc-governance.mdc` for the full doc re-eval protocol.
+>
+> **Canonical identity reference:** `docs/system-design/platform_identity.md` — the single-page authoritative answer to "what is WellBe, who is it for, and what is it not."
+>
+> **Audience rules:** `.cursor/rules/audience-guardrails.mdc` — defines the two audiences (individual primary, business-as-distributor secondary), hard prohibitions, and the language audit checklist agents must run before writing any feature content.
+
+---
+
 ## The system is personal. Always.
 
 WellBe is a **personal health intelligence system**. The primary user is always the individual managing their own health. Every feature, every module, every design decision serves that individual — not a clinical institution, not a hospital, not a payer, not a practice.
@@ -51,4 +59,6 @@ Concretely:
 
 ## When in doubt
 
-Ask: **does this feature serve the individual user's understanding and agency over their own health?** If yes, it belongs. If it primarily serves a clinical institution or creates value only in a B2B context, it does not belong — at least not in the current vision.
+Ask: **does this feature serve the individual user's understanding and agency over their own health?** If yes, it belongs. If it primarily serves a clinical institution or creates value only in a B2B context without also serving the individual directly, it does not belong.
+
+For audience model details — including what "business as distributor" means and what is and isn't allowed — see `.cursor/rules/audience-guardrails.mdc`.

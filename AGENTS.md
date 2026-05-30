@@ -1,5 +1,20 @@
 # Agent Instructions
 
+## Bible Files — Require Explicit User Approval to Modify
+
+The following files are canonical truth documents. No agent may edit, rename, move, or delete them without explicit user approval. See `.cursor/rules/doc-governance.mdc` for the full doc re-eval protocol.
+
+- `VISION.md`
+- `docs/system-design/system_design.md`
+- `docs/system-design/system_principles.md`
+- `docs/system-design/platform_identity.md`
+- `docs/safety/safety_model.md`
+- `docs/safety/do_not_diagnose_rules.md`
+- `.cursor/rules/wellbe-vision-guardrails.mdc`
+- `.cursor/rules/audience-guardrails.mdc`
+
+---
+
 ## Always Commit Work
 
 After completing any meaningful change, always create a git commit. Never leave work uncommitted.
