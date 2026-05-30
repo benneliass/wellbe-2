@@ -2,7 +2,7 @@
 
 ## Health Thread
 
-The central v2 object. A Health Thread represents one unresolved or ongoing concern. It contains story, timeline, data, uncertainty, pending items, corrections, and shareable summaries.
+The central object. A Health Thread represents one unresolved or ongoing concern. It contains story, timeline, data, uncertainty, pending items, corrections, and shareable summaries.
 
 ## Health Signal
 

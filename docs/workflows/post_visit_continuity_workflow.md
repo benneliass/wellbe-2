@@ -1,6 +1,6 @@
 # Post-visit continuity workflow
 
-The post-visit workflow is the biggest v2 upgrade over the v1 investigation flow.
+The post-visit workflow is the biggest upgrade from the original investigation flow.
 
 ## Questions after a visit
 

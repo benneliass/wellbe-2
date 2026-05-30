@@ -1,4 +1,4 @@
-# WellBe v2 — Personal Shared Health Memory OS
+# WellBe — Personal Shared Health Memory OS
 
 ## 1. Design thesis
 
@@ -6,7 +6,7 @@ WellBe v1 is strong because it already has the right foundation: a personal data
 
 The research changes the product center of gravity. The platform should not be defined mainly as **a data factory** or as **a chatbot that investigates symptoms**. The stronger design is:
 
-> **WellBe v2 is a Personal Shared Health Memory OS: a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around Health Threads.**
+> **WellBe is a Personal Shared Health Memory OS: a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around Health Threads.**
 
 The system's job is to help a person remember, connect, clarify, close, and correct health context across time.
 
@@ -30,7 +30,7 @@ The following v1 ideas remain core:
 
 The product identity shifts:
 
-| V1 framing | V2 framing |
+| Original framing | New framing |
 |---|---|
 | Personal Data Factory first | Personal Shared Health Memory OS, powered by Data Factory |
 | Concern Tracker | Health Thread Engine |
@@ -68,7 +68,7 @@ Replace the generic second-brain loop with a medical loop:
 
 **Capture -> Connect -> Clarify -> Close -> Correct**
 
-| Step | Meaning in WellBe v2 | Example output |
+| Step | Meaning in WellBe | Example output |
 |---|---|---|
 | Capture | collect raw and structured context | symptom words, lab PDF, referral message, wearable trend |
 | Connect | link signals into Health Threads | recurring abdominal pain + ED visit + normal scan + referral |
@@ -78,7 +78,7 @@ Replace the generic second-brain loop with a medical loop:
 
 ## 6. Six memories adapted for WellBe
 
-| Memory | What it remembers | WellBe v2 role |
+| Memory | What it remembers | WellBe role |
 |---|---|---|
 | Story Memory | patient words, main fear, own theory, daily impact, timeline | protects patient voice and improves visit prep |
 | Clinical Memory | diagnoses, meds, labs, imaging, notes, referrals | imports and organizes formal record context |
@@ -126,7 +126,7 @@ The MVP should not start with autonomous diagnosis or cross-patient comparison. 
 
 When research identifies a clinical-system failure, WellBe should translate it into a personal continuity capability.
 
-| Research failure | Do not build first | Build for WellBe v2 |
+| Research failure | Do not build first | Build for WellBe |
 |---|---|---|
 | no named clinical owner | hospital task ledger | personal pending-item memory with official/user-entered/unknown owner labels |
 | referral vanished | enterprise referral management | referral lifecycle tracker and visit packet |

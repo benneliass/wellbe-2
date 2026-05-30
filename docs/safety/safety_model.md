@@ -2,7 +2,7 @@
 
 ## Core safety posture
 
-WellBe v2 is a memory and investigation support system, not a diagnostic authority.
+WellBe is a memory and investigation support system, not a diagnostic authority.
 
 ## Safety layers
 

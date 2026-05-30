@@ -1,4 +1,4 @@
-# WellBe v2 feature backlog
+# WellBe feature backlog
 
 |feature_id|feature_name|phase|primary_user|problem_solved|evidence_strength|risk_level|status|
 |---|---|---|---|---|---|---|---|

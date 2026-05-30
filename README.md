@@ -10,7 +10,7 @@ The system's job is to help a person remember, connect, clarify, close, and corr
 
 ## Start here
 
-1. **[System design](docs/system-design/wellbe_v2_system_design.md)** — design thesis, core object model, operating loop, six memories, and MVP shape
+1. **[System design](docs/system-design/system_design.md)** — design thesis, core object model, operating loop, six memories, and MVP shape
 2. **[Architecture](docs/system-design/architecture.md)** — layered system architecture and module map
 3. **[MVP plan](docs/feature-backlog/mvp_plan.md)** — what to build first and why
 4. **[Implementation roadmap](docs/implementation/implementation_roadmap.md)** — phased plan with milestones

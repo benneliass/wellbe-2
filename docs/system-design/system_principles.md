@@ -1,4 +1,4 @@
-# WellBe v2 system principles
+# WellBe system principles
 
 1. **Personal-first, always.** The individual remains the primary user and controller.
 2. **Data Factory underneath, Health Memory on top.** Data ingestion is foundation; the user value is memory and continuity.
