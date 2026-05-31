@@ -218,6 +218,244 @@ If `ManualTextAdapter` and `DocumentAdapter` already cover the MVP adapter surfa
 
 ---
 
+## C4 → C5 → C6: Component responsibilities and relationship
+
+This section exists to validate that the three components are coherent with each other — not just individually. Read it before starting any of WEL-81, WEL-83, or WEL-77.
+
+---
+
+### What each component is responsible for (and what it is NOT)
+
+| | C4 — Processing Pipeline | C5 — Evidence & Provenance | C6 — Knowledge Graph |
+|---|---|---|---|
+| **Core job** | Transform raw events into typed, structured facts and signals | Enforce that every derived object has a traceable raw source | Maintain a typed, evidence-weighted graph of health entities and relationships |
+| **Input** | `RawContextEvent` (via `raw_context.received` event from C2 outbox) | `ExtractedFact`, `HealthSignal` (via `fact.extracted`, `health_signal.created` events from C4) | `evidence.linked` events from C5 + `fact.extracted`, `health_signal.created` from C4 |
+| **Output** | `ExtractedFact` rows, `HealthSignal` rows, outbox events | `EvidenceLink` rows, `evidence.linked` events | `kg_nodes`, `kg_edges`, `potential_score` on edges, outbox events |
+| **What it does NOT do** | Does not write to C2. Does not call C3. Does not enforce provenance. | Does not extract facts. Does not score. Does not own PotentialScore computation. | Does not extract facts. Does not enforce provenance. Does not diagnose or assert causation. |
+| **Safety constraint** | Must emit `quality_flag` on every output — never silently suppress a fact | Must enforce "no orphan claims" — a derived object that has no traceable raw source is rejected, not silently stored | Must prohibit causal/diagnostic edge types (`causes`, `diagnoses`, `rules_out`, `proves`) — `may_explain` is the ceiling |
+| **Jira stories** | WEL-81 (extraction), WEL-82 (OCR) | WEL-83 | WEL-77 (post-mvp) |
+| **Decision record** | `processing-pipeline-extraction-orchestration.md` (WEL-96, Approved) | `evidence-provenance-no-orphan-enforcement.md` (WEL-97, Approved) | `knowledge-graph-node-edge-schema.md` (WEL-98, Approved) |
+
+---
+
+### Data contracts at each boundary
+
+#### Boundary 1: C4 → C5 (via event)
+
+C4 emits `fact.extracted` on the outbox. C5 consumes it. This is the only path through which C4 output enters C5.
+
+```
+C4 fact.extracted event payload (minimum required for C5):
+  fact_id           → source_id in EvidenceLink
+  patient_id
+  raw_context_event_id   → raw_context_event_id in EvidenceLink (the FK C5 validates)
+  fact_type
+  extraction_confidence  → used as confidence basis in EvidenceLink
+  quality_flag           → C5 stores it on the EvidenceLink; quality_flag = requires_review
+                           does not block evidence linking but is flagged
+  correlation_id, trace_id
+
+C4 health_signal.created event payload (minimum required for C5):
+  signal_id
+  patient_id
+  raw_context_event_ids  → one EvidenceLink row per event ID in this array
+  signal_type
+  extraction_confidence
+  quality_flag
+  correlation_id, trace_id
+```
+
+**C5's action on receiving these events:**
+1. Validate all `raw_context_event_id`(s) exist in C2's `raw_context_events` table
+2. If any are missing → reject with `provenance.orphan_rejected` event, do not write the fact
+3. If valid → write `EvidenceLink` row(s) atomically with the fact/signal in the same transaction
+4. Emit `evidence.linked` event for C6 to consume
+
+**Contract file location (to be populated before WEL-81 begins):**
+`backend/packages/contracts/wellbe_contracts/c4_processing/__init__.py`
+
+---
+
+#### Boundary 2: C5 → C6 (via event)
+
+C5 emits `evidence.linked` on the outbox. C6's scoring worker consumes it. C6 also independently consumes `fact.extracted` and `health_signal.created` from C4 — for node creation, not scoring.
+
+```
+C5 evidence.linked event payload (minimum required for C6 scoring):
+  source_type        → determines node type in C6 (extracted_fact → ExtractedFact node)
+  source_id          → id of the fact/signal node in C6
+  raw_context_event_id
+  link_type          → primary | corroborating | contradicting | contextual
+  confidence         → used as C5 evidence confidence input to PotentialScore formula
+  patient_id
+  correlation_id
+
+C6 uses these fields to:
+  1. Create or update the kg_node for source_id if it doesn't exist
+  2. Find candidate kg_edges where this node is involved
+  3. Set needs_rescore = true on affected edges
+  4. Scoring worker recomputes PotentialScore asynchronously using all scoring inputs
+```
+
+**C6 scoring inputs for PotentialScore (all sources):**
+
+| Input | Source |
+|---|---|
+| C5 evidence confidence | `evidence.linked` event |
+| Co-occurrence frequency | C6 internal graph query |
+| Temporal proximity | `ExtractedFact.captured_at` + `TimePoint` node |
+| Source quality | `RawContextEvent.source_type` (from C3/C2) |
+| Semantic similarity | pgvector cosine distance between node embeddings |
+| Same-thread boost | `kg_nodes.thread_ids` overlap |
+| Cross-thread recurrence | count of threads where both nodes appear |
+| User confirmation/correction weight | `correction.applied` event from C11 |
+| Contradiction penalty | `link_type = contradicting` in `evidence_links` (C5) |
+| Recency decay | `ExtractedFact.captured_at` relative to now |
+
+C6 scoring workers receive the C5 confidence in the event payload — they do **not** call C5 synchronously. C5 is not a dependency for C6 scoring latency.
+
+---
+
+#### Boundary 3: C4 → C6 (node creation, not scoring)
+
+C6 also consumes `fact.extracted` and `health_signal.created` directly for **node creation** — independently of C5. A `kg_node` can be created when a fact is extracted, before C5 has linked its evidence.
+
+```
+C6 node creation on fact.extracted:
+  kg_nodes row:
+    id                = ExtractedFact.id
+    patient_id        = ExtractedFact.patient_id
+    node_type         = derived from fact_type
+                        (symptom → Symptom, dx_mention → ConditionHypothesis,
+                         medication → Medication, lab_result → LabResult, ...)
+    label             = ExtractedFact.entity_label
+    normalized_key    = ExtractedFact.normalized_key
+    thread_ids        = [] (populated later when C7 links the thread)
+    evidence_refs     = [ExtractedFact.id]  ← provisional; C5 is authoritative
+    confidence        = ExtractedFact.extraction_confidence
+    status            = pending_evidence    ← becomes active once C5 links it
+    metadata          = { fact_type, code_system, code, quality_flag }
+```
+
+**Important:** C6 does not create edges until C5 has linked the evidence. Node creation is immediate on `fact.extracted`; edge creation and scoring require `evidence.linked`. This prevents the graph from showing connections with no provenance.
+
+---
+
+### Full end-to-end flow: raw text → graph edge
+
+```
+User inputs text (e.g., "I've had a headache for 3 days")
+         │
+         ▼
+[C3] ManualTextAdapter
+  → validates, normalizes → NormalizedPayload
+  → calls Vault Writer → C2 stores RawContextEvent
+  → C2 emits: raw_context.received
+         │
+         ▼
+[C4] extract_facts_worker (Dramatiq, consumes raw_context.received)
+  → dispatcher: source_type=manual_text → Dramatiq path
+  → NER/extraction model runs
+  → produces ExtractedFact:
+      fact_type = symptom
+      entity_label = "headache"
+      normalized_key = "headache"
+      extraction_confidence = 0.94
+      quality_flag = clean
+      raw_context_event_id = <C2 event id>
+  → writes ExtractedFact to processing.extracted_facts
+  → emits: fact.extracted (carries fact_id, raw_context_event_id, confidence)
+         │
+         ├──────────────────────────────────────────┐
+         ▼                                          ▼
+[C5] evidence_linker (consumes fact.extracted)    [C6] graph_node_creator (consumes fact.extracted)
+  → validates raw_context_event_id exists in C2     → creates kg_node (node_type=Symptom, status=pending_evidence)
+  → writes EvidenceLink:
+      source_type = extracted_fact
+      source_id = <fact_id>
+      raw_context_event_id = <C2 event id>
+      link_type = primary
+      confidence = 0.94
+      confidence_basis = extraction_model
+  → emits: evidence.linked (carries confidence, link_type, patient_id)
+         │
+         ▼
+[C6] graph_edge_scorer (consumes evidence.linked)
+  → updates kg_node status: pending_evidence → active
+  → finds candidate edges (e.g., headache co-occurs with Thread T1)
+  → sets needs_rescore = true on candidate edges
+  → scoring worker runs:
+      potential_score = f(confidence=0.94, co_occurrence, recency, thread_boost, ...)
+  → writes potential_score to kg_edges
+  → emits: graph.edge_scored
+         │
+         ▼
+[C7] Health Thread Engine (consumes graph.edge_scored + evidence.linked)
+  → links headache symptom to relevant open threads
+  → updates thread context window
+
+[C10] Safety Gate (before any user-visible output)
+  → reads provenance chain: kg_edge → kg_node → evidence_links → raw_context_events
+  → validates: no diagnostic certainty language
+  → validates: no prohibited edge types in reasoning path
+```
+
+---
+
+### Where shared responsibility is divided (edge cases)
+
+| Topic | Who owns it | Who does NOT own it |
+|---|---|---|
+| `ExtractedFact` schema | C4 defines and writes it | C5 reads it (via event), C6 reads it (via event) — neither may modify it |
+| `EvidenceLink` schema | C5 defines and writes it | C4 produces the inputs; C6 consumes the confidence value |
+| `PotentialScore` computation formula | C6 scoring worker | C5 provides one input (confidence); C4 provides another (co-occurrence via fact timestamps) |
+| "No orphan claims" enforcement | C5 (primary) + Postgres deferred trigger (defensive) | C4 must not emit `fact.extracted` with a null `raw_context_event_id`, but C4 is not the enforcer |
+| Edge type prohibition (`causes`, `diagnoses`) | C6 at schema + service + test layers | C5 does not police edge types; C4 does not know about edge types |
+| `quality_flag` propagation | C4 sets it on `ExtractedFact`; C5 stores it on `EvidenceLink`; C6 stores it in `kg_node.metadata` | Each component propagates it forward — it is never dropped |
+| `ConditionHypothesis` vs `Finding` vs `Condition` | C6 determines node type from `fact_type` | C4 emits `fact_type = dx_mention`; C6 maps `dx_mention → ConditionHypothesis` |
+| Correction of a fact | C11 (Correction Service) emits `correction.applied` | C5 creates a new `EvidenceLink` with `correction_id`; C6 recomputes `PotentialScore` |
+
+---
+
+### Event spine: what each component emits and consumes
+
+```
+                    EMITS                           CONSUMES
+C2 Vault        raw_context.received          ←  (from C3 Vault Writer)
+C4 Pipeline     fact.extracted                ←  raw_context.received (from C2)
+                health_signal.created
+                document.ocr_completed
+                document.ocr_failed
+C5 Evidence     evidence.linked               ←  fact.extracted (from C4)
+                evidence.corrected            ←  health_signal.created (from C4)
+                provenance.orphan_rejected
+C6 Graph        graph.node_created            ←  fact.extracted (node creation)
+                graph.edge_created            ←  health_signal.created (node creation)
+                graph.edge_scored             ←  evidence.linked (scoring trigger)
+                graph.edge_retracted          ←  correction.applied (from C11)
+                                              ←  thread.state_changed (from C7)
+C7 Thread       thread.state_changed          ←  graph.edge_scored (from C6)
+C11 Correction  correction.applied            ←  user action via C13
+```
+
+All events flow through the transactional outbox (`wellbe_contracts/events/outbox.py` — `OutboxEvent` model). No component calls another component's service synchronously during the fact → evidence → graph flow.
+
+---
+
+### Safety model checkpoint for C4-C6
+
+Before any implementation begins, confirm these invariants hold across the three components:
+
+| Invariant | Enforced by | Test coverage required |
+|---|---|---|
+| Every `ExtractedFact` has `raw_context_event_id` (non-null) | C4 at write time | Unit test: assert C4 never emits `fact.extracted` with null source ref |
+| Every derived object has at least one `EvidenceLink` before becoming visible | C5 write gate + Postgres deferred trigger | Integration test: attempt to query a fact before C5 links it → should not be visible |
+| No prohibited edge types in C6 | C6 service + DB lookup table + migration review gate | Test: insert `causes` edge → constraint violation; insert `may_explain` edge → success |
+| `ConditionHypothesis` is never surfaced as a `Condition` | C6 node type mapping + C13 API contract | Test: `dx_mention` fact → node_type = `ConditionHypothesis`, not `Condition` |
+| `quality_flag = requires_review` facts are not suppressed | C4 emits them, C5 links them, C6 creates nodes for them — all with the flag | End-to-end test: OCR failure → `quality_flag = requires_review` node appears in graph with flag visible |
+
+---
+
 ## Relationship to downstream stories
 
 Every story below depends on `contracts/c4_processing/__init__.py` being populated with `ExtractedFact` and `HealthSignal`:
