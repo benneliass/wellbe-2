@@ -4,10 +4,14 @@ version = "0.1.0"
 requires-python = ">=3.13"
 description = "C10 Safety & Governance Gate: isolated fail-closed service. Timeout = deny. Error = deny."
 dependencies = [
+    "fastapi>=0.115",
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-c10-safety",
+    "uvicorn[standard]>=0.32",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-c10-safety = { workspace = true }
