@@ -20,6 +20,8 @@ from wellbe_contracts.c5_evidence import (
     ConfidenceBasis,
     EvidenceLinkType,
     EvidenceRef,
+    EvidenceLinkedPayload,
+    EVIDENCE_LINKED,
 )
 
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
@@ -132,6 +134,121 @@ async def _extract_facts(event_json: str) -> None:
                 payload=payload.model_dump(mode="json"),
                 correlation_id=event.correlation_id,
                 trace_id=event.trace_id,
+            )
+
+        await session.commit()
+
+
+FACT_TYPE_TO_NODE_TYPE: dict[str, str] = {
+    "symptom": "Symptom",
+    "finding": "ConditionHypothesis",
+    "medication": "Medication",
+    "lab_result": "LabResult",
+    "allergy": "Allergy",
+    "procedure": "Procedure",
+    "dx_mention": "ConditionHypothesis",
+    "vital_sign": "VitalSign",
+    "immunization": "Immunization",
+    "family_history": "FamilyHistory",
+    "social_history": "SocialFactor",
+    "other": "Other",
+}
+
+
+@dramatiq.actor(max_retries=3, min_backoff=1000, max_backoff=30_000)
+def create_graph_node_task(fact_extracted_json: str) -> None:
+    """Create/upsert a KG node from a fact.extracted event."""
+    asyncio.run(_create_graph_node(fact_extracted_json))
+
+
+async def _create_graph_node(fact_extracted_json: str) -> None:
+    from wellbe_c6_graph import GraphRepository
+    from wellbe_events import emit_event
+    from wellbe_db import create_session_factory
+    from wellbe_processing_worker.config import ProcessingWorkerSettings
+
+    settings = ProcessingWorkerSettings()
+    session_factory = create_session_factory(settings.database_url)
+
+    data = json.loads(fact_extracted_json)
+    payload = FactExtractedPayload.model_validate(data)
+
+    node_type = FACT_TYPE_TO_NODE_TYPE.get(payload.fact_type.value, "Other")
+
+    async with session_factory() as session:
+        repo = GraphRepository(session)
+        node = await repo.upsert_node(
+            patient_id=payload.patient_id,
+            node_type=node_type,
+            normalized_key=payload.normalized_key,
+            display_label=payload.entity_label,
+        )
+
+        await emit_event(
+            session=session,
+            event_type="graph.node_created",
+            payload={
+                "node_id": str(node.id),
+                "patient_id": str(payload.patient_id),
+                "node_type": node_type,
+                "normalized_key": payload.normalized_key,
+                "fact_id": str(payload.fact_id),
+            },
+            correlation_id=payload.correlation_id,
+            trace_id=payload.trace_id,
+        )
+
+        await session.commit()
+
+
+@dramatiq.actor(max_retries=3, min_backoff=1000, max_backoff=30_000)
+def score_graph_edges_task(evidence_linked_json: str) -> None:
+    """Score/rescore edges when new evidence is linked."""
+    asyncio.run(_score_graph_edges(evidence_linked_json))
+
+
+async def _score_graph_edges(evidence_linked_json: str) -> None:
+    from wellbe_c6_graph import GraphRepository, PotentialScoreComputer, ScoreInput
+    from wellbe_events import emit_event
+    from wellbe_db import create_session_factory
+    from wellbe_processing_worker.config import ProcessingWorkerSettings
+
+    settings = ProcessingWorkerSettings()
+    session_factory = create_session_factory(settings.database_url)
+
+    data = json.loads(evidence_linked_json)
+    payload = EvidenceLinkedPayload.model_validate(data)
+
+    async with session_factory() as session:
+        repo = GraphRepository(session)
+        scorer = PotentialScoreComputer()
+
+        edges = await repo.get_edges_needing_rescore(limit=50)
+        for edge in edges:
+            score_input = ScoreInput(
+                link_type=payload.link_type,
+                confidence=payload.confidence,
+                edge_category=edge.edge_type,
+            )
+            result = scorer.compute([score_input])
+
+            edge.potential_score = result.potential_score
+            edge.score_version = result.score_version
+            edge.score_inputs = result.score_inputs
+            edge.needs_rescore = False
+            edge.updated_at = datetime.now(timezone.utc)
+
+            await emit_event(
+                session=session,
+                event_type="graph.edge_scored",
+                payload={
+                    "edge_id": str(edge.id),
+                    "patient_id": str(edge.patient_id),
+                    "potential_score": result.potential_score,
+                    "score_version": result.score_version,
+                },
+                correlation_id=payload.correlation_id,
+                trace_id=payload.trace_id,
             )
 
         await session.commit()
