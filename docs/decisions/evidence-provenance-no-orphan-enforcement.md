@@ -1,9 +1,9 @@
 # Decision: Evidence & Provenance link schema and no-orphan-claims enforcement
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** _(fill on approval)_  
-**Approved by:** _(fill on approval)_  
+**Date approved:** 2026-05-31  
+**Approved by:** User  
 **Jira Spike:** WEL-97  
 **Blocks:** WEL-83 — Build Evidence & Provenance linking layer (C5)
 
