@@ -1,8 +1,8 @@
 # Decision: External Evidence Graph separation and relevance-link semantics
 
-**Status:** Proposed — awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-130  
 **Blocks:** WEL-116 (External Evidence Graph), WEL-117 (Research Relevance engine), WEL-124 (C3 adapter), WEL-126 (C5 provenance), WEL-135 (C6 retrofit)

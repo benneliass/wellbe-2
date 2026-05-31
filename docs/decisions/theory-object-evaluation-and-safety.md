@@ -1,8 +1,8 @@
 # Decision: Theory object evaluation model and non-diagnostic safety routing
 
-**Status:** Proposed — awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-129  
 **Blocks:** WEL-114 (Theory object), WEL-115 (Theory Evaluator), WEL-125 (C4 extraction retrofit)

@@ -1,8 +1,8 @@
 # Decision: Investigation object model and coupling to the Health Thread state machine
 
-**Status:** Proposed — awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-128  
 **Blocks:** WEL-112 (Investigation object, C14); relates to WEL-64 (C7 build-forward)
