@@ -35,9 +35,10 @@ Every item must have exactly one `component:` label. Components map directly to 
 | Label | System design reference |
 |---|---|
 | `component:health-thread` | `docs/system-design/core_objects.md` — primary product object |
-| `component:data-factory` | `docs/system-design/system_design.md` — ingestion, normalization, provenance |
+| `component:trust-consent` | `docs/safety/privacy_and_consent_model.md` — C1: auth identity, consent scopes, share grants, revocation log, cross-patient opt-in gate. Root of trust; everything that reads or writes user data calls C1. Repo: `backend/packages/c1_consent/` |
+| `component:data-factory` | `docs/system-design/system_design.md` — C2 (Raw Context Vault) and C3 (Ingestion Layer) collectively. Immutable raw event store, provenance metadata, and all source-type ingestion adapters. Repo: `backend/packages/c2_vault/`, `backend/apps/vault-writer/`, `backend/packages/c3_ingestion/`, `backend/apps/ingestion-worker/` |
 | `component:state-machine` | `docs/system-design/health_thread_state_machine.md` — lifecycle transitions |
-| `component:safety-model` | `docs/safety/` — do-not-diagnose rules, privacy, user control |
+| `component:safety-model` | `docs/safety/` — C10: do-not-diagnose rules, panic language, provenance, bias controls. The mandatory gate before any user-facing AI output. Not to be confused with `component:trust-consent` (C1 consent infrastructure). |
 | `component:story-memory` | `docs/system-design/system_design.md` — patient narrative capture |
 | `component:pending-tracker` | `docs/feature-backlog/feature_backlog.md` — pending result tracking |
 | `component:referral-lifecycle` | `docs/feature-backlog/feature_backlog.md` — referral tracking |
