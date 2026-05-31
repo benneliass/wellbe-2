@@ -1,8 +1,8 @@
 # Decision: Per-engine safety risk tiers and Safety Gate routing
 
-**Status:** Proposed - awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-134  
 **Blocks:** WEL-74 (C10 Safety & Governance Gate risk-tier extension)

@@ -1,8 +1,8 @@
 # Decision: Safety Gate evaluation contract for AI output
 
-**Status:** Proposed - awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-06-01  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-134  
 **Blocks:** WEL-74 — Implement layered Safety Gate service with deterministic rules, NeMo Guardrails, and Llama Guard
