@@ -1,0 +1,10 @@
+FROM python:3.13-slim
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app/db
+
+RUN pip install alembic psycopg2-binary sqlalchemy
+
+COPY db/alembic.ini ./alembic.ini
+COPY db/migrations/ ./migrations/
+
+CMD ["alembic", "upgrade", "head"]

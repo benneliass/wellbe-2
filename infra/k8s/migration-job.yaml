@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: alembic-migrate
+  namespace: wellbe
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: wellbe-migrations:local
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://wellbe:wellbe_dev@postgres:5432/wellbe"
