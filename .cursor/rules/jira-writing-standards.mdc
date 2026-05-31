@@ -1,6 +1,6 @@
 ---
 description: Required fields, label formats, link conventions, and writing standards for every Jira item created or updated in the WEL project.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Writing Standards

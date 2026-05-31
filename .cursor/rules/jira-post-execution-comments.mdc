@@ -1,6 +1,6 @@
 ---
 description: After any Jira item is created or updated, add a comment capturing implementation details, decisions made, and test outcomes.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Post-Execution Comments

@@ -1,6 +1,6 @@
 ---
 description: Systematic priority assignment framework for every Jira issue type in the WEL project. Covers Stories, Tasks, Bugs, and Spikes — and references the canonical Epic priority table. Defines universal signals, phase-priority coherence constraints, and edge case handling.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Prioritization Logic

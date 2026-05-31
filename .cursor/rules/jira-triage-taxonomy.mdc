@@ -1,6 +1,6 @@
 ---
 description: Classification vocabulary for WellBe Jira triage. Defines all label values, component names, impact radius, priority tiers, and phases used to classify every Jira item.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Triage Taxonomy

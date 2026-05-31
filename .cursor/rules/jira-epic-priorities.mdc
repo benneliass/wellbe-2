@@ -1,6 +1,6 @@
 ---
 description: Canonical priority and phase assignments for all WEL Epics. Used by agents to set Priority field and Fix Version when creating or updating Epics. Any deviation from this table requires explicit user approval.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # WEL Epic Priority & Phase Table

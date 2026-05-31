@@ -1,3 +1,9 @@
+---
+description: Kubernetes-native + Helm-mandate infrastructure constraints for WellBe
+globs: infra/**,**/Dockerfile,**/*.yaml,**/*.yml,**/values.yaml
+alwaysApply: false
+---
+
 # Infrastructure Constraints
 
 > **This is a bible file.** See `doc-governance.mdc` — it may not be edited without explicit user approval.
