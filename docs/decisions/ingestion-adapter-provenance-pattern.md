@@ -1,9 +1,9 @@
 # Decision: Ingestion Layer adapter interface and provenance pattern
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** _(fill on approval)_  
-**Approved by:** _(fill on approval)_  
+**Date approved:** 2026-05-31  
+**Approved by:** User  
 **Jira Spike:** WEL-95  
 **Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol
 
