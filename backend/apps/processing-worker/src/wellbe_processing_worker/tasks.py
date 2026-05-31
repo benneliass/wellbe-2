@@ -137,6 +137,9 @@ async def _extract_facts(event_json: str) -> None:
                 trace_id=event.trace_id,
             )
 
+            # Inline dispatch to C6 graph worker (stop-gap until WEL-84 event backbone)
+            create_graph_node_task.send(payload.model_dump_json())
+
         await session.commit()
 
     # Wire graph node creation directly (no separate Dramatiq worker running)
