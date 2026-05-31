@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 description = "Trust & Consent Service (C1): auth identity, consent scopes, Share Grants, revocation."
 dependencies = [
+    "fastapi>=0.115",
     "wellbe-contracts",
     "wellbe-platform",
     "wellbe-db",
