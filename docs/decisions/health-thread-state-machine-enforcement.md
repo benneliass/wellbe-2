@@ -1,9 +1,9 @@
 # Decision: Health Thread state machine transition enforcement pattern
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** _(fill on approval)_  
-**Approved by:** _(fill on approval)_  
+**Date approved:** 2026-05-31  
+**Approved by:** User  
 **Jira Spike:** WEL-92  
 **Blocks:** WEL-64 — Implement Health Thread object, lifecycle state machine, and subgraph linking
 
