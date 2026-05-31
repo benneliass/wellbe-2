@@ -162,8 +162,8 @@ C6 depends on: C4, C5  (post-MVP minimal graph, post-MVP full)
 | CI/CD | GitHub Actions | — | Safety eval gate on C10-touching PRs |
 | Observability | OpenTelemetry + Grafana LGTM | — | PHI scrubbed at collector |
 | Secrets | OpenBao + KMS envelope encryption | — | Per-user data keys for crypto-shred |
-| Deployment (MVP) | Fly.io + managed Postgres + Redis | — | Profile A — lean |
-| Deployment (scale) | Kubernetes (EKS/GKE) + CloudNativePG | — | Profile B — when scale/compliance require |
+| Deployment (all envs) | Kubernetes (EKS/GKE/k3s) + CloudNativePG | — | K8s-native from day one; no Fly.io/PaaS |
+| Local dev (data services) | Docker Compose | — | Postgres + Redis + MinIO + Temporal + ZITADEL |
 
 ---
 
@@ -572,9 +572,9 @@ Stay in monorepo. Isolated by: package directory, runtime service, CODEOWNERS, d
 
 ### Q8 — Environment configuration
 
-- **Local:** Docker Compose for Postgres, Redis, MinIO, Temporal, ZITADEL, optional OpenBao. Python services run directly via `uv`.
+- **Local:** Docker Compose for data services only (Postgres, Redis, MinIO, Temporal dev server, ZITADEL). Python application services run directly via `uv` or against a local `k3d`/`KinD` cluster.
 - **CI:** ephemeral services, synthetic data only (`testkit` package), no production secrets
-- **Production:** OpenTofu provisions infra; OpenBao stores secrets; each service gets only its own secrets and its own Postgres role
+- **Staging / Production:** Kubernetes-native. CloudNativePG for Postgres HA. Cilium for mTLS + network policy. Flux for GitOps delivery. OpenTofu provisions the cluster; OpenBao stores secrets; each service gets only its own K8s ServiceAccount and Postgres role. No Fly.io or PaaS container platforms. See `docs/architecture/infra-stack.md`.
 
 ### MVP deployment shape (6 deployable processes + 2 frontends)
 

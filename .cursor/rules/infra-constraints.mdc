@@ -1,0 +1,51 @@
+# Infrastructure Constraints
+
+> **This is a bible file.** See `doc-governance.mdc` — it may not be edited without explicit user approval.
+
+---
+
+## The Hard Rule: Kubernetes-Native
+
+**WellBe workloads are Kubernetes-native. Fly.io, standalone Docker-run services, and PaaS container platforms are not valid deployment targets.**
+
+This applies to every environment except local developer workstations.
+
+---
+
+## What This Means in Practice
+
+| Context | Valid | Not valid |
+|---|---|---|
+| Local dev — data services (Postgres, Redis, MinIO, Temporal, ZITADEL) | Docker Compose | — |
+| Local dev — application services | `uv run` directly, OR `k3d`/`KinD` | Fly.io, `docker run`, `docker-compose up` for app workloads |
+| Staging | Kubernetes cluster | Fly.io, Render, Railway, managed container PaaS |
+| Production | Kubernetes cluster (EKS / GKE / self-hosted k3s) | Fly.io, Heroku, Render, standalone Docker |
+
+---
+
+## Required K8s Infrastructure
+
+All of the following are part of the standard deployment:
+
+- **CloudNativePG** — Postgres HA operator. Not managed cloud RDS/Cloud SQL.
+- **Cilium** — eBPF networking + network policies + mTLS between services
+- **Karpenter** — node autoscaling
+- **Flux** (or Argo CD) — GitOps delivery; no manual `kubectl apply` in staging or prod
+- **External Secrets Operator** — sync OpenBao secrets to K8s workloads
+- **OpenBao** — secrets store (dynamic DB creds, API keys, PKI)
+
+---
+
+## Agent Rules
+
+1. When proposing a deployment approach, always assume Kubernetes. Do not propose Fly.io, Render, Railway, Heroku, or other PaaS platforms.
+2. When proposing local development setup, Docker Compose is valid for **data services only** (Postgres, Redis, MinIO, Temporal server, ZITADEL). Application workloads run via `uv` or `k3d`.
+3. When writing `infra/` IaC, target Kubernetes manifests (Helm / Kustomize) and OpenTofu for cluster provisioning.
+4. When proposing CI/CD, target GitHub Actions + Flux (GitOps push to cluster), not PaaS deploy hooks.
+5. Do not suggest "start with Fly.io and migrate to K8s later." The workloads are K8s-native from day one.
+
+---
+
+## Rationale
+
+The system's workload profile (durable Temporal workflows, Cilium mTLS between PHI-handling services, per-service Postgres roles, CloudNativePG HA, C10 Safety Gate in an isolated namespace) is fundamentally Kubernetes-native. Deploying to a PaaS container platform would require re-architecting the networking, secrets, and database HA patterns at the time of migration — removing any short-term simplicity benefit.
