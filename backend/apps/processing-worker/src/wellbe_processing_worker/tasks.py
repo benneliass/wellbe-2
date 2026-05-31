@@ -65,13 +65,18 @@ async def _extract_facts(event_json: str) -> None:
 
     results = await extractor.extract(raw_text, event.patient_id)
 
+    # Payloads for facts that were newly persisted in this run. On at-least-once
+    # re-delivery, already-existing facts are skipped here so we do not re-link
+    # evidence, re-emit events, or re-create graph nodes.
+    new_fact_payloads: list[FactExtractedPayload] = []
+
     async with session_factory() as session:
         repo = ProcessingRepository(session)
         evidence_service = EvidenceService(session)
 
         for result in results:
-            fact_id = uuid.uuid4()
-            await repo.insert_fact(
+            fact_id = _deterministic_fact_id(event.id, result)
+            inserted_id = await repo.insert_fact(
                 id=fact_id,
                 patient_id=event.patient_id,
                 raw_context_event_id=event.id,
@@ -101,6 +106,10 @@ async def _extract_facts(event_json: str) -> None:
                 is_hypothetical=result.is_hypothetical,
                 subject=result.subject.value,
             )
+
+            # Fact already existed (redelivery): skip downstream work for it.
+            if inserted_id is None:
+                continue
 
             await evidence_service.link_fact(
                 fact_id=fact_id,
@@ -136,27 +145,41 @@ async def _extract_facts(event_json: str) -> None:
                 correlation_id=event.correlation_id,
                 trace_id=event.trace_id,
             )
-
-            # Inline dispatch to C6 graph worker (stop-gap until WEL-84 event backbone)
-            create_graph_node_task.send(payload.model_dump_json())
+            new_fact_payloads.append(payload)
 
         await session.commit()
 
-    # Wire graph node creation directly (no separate Dramatiq worker running)
-    for result in results:
-        fact_payload = FactExtractedPayload(
-            fact_id=uuid.uuid4(),  # approximate; node upsert is idempotent on normalized_key
-            patient_id=event.patient_id,
-            raw_context_event_id=event.id,
-            fact_type=result.fact_type,
-            entity_label=result.entity_label,
-            normalized_key=result.normalized_key,
-            extraction_confidence=result.extraction_confidence,
-            quality_flag=result.quality_flag,
-            correlation_id=event.correlation_id,
-            trace_id=event.trace_id,
-        )
+    # Canonical C6 dispatch: invoke graph-node creation inline using the real,
+    # deterministic fact_id. The processing-worker runs only the FastAPI app
+    # (no Dramatiq consumer), so .send() enqueues are never processed; the inline
+    # call is the single live path. Graph node upsert is idempotent on
+    # (patient_id, node_type, normalized_key), so this is safe under redelivery.
+    for fact_payload in new_fact_payloads:
         await _create_graph_node(fact_payload.model_dump_json())
+
+
+def _deterministic_fact_id(raw_event_id: uuid.UUID, result: object) -> uuid.UUID:
+    """Derive a stable fact id from the raw event and the fact's natural key.
+
+    Re-processing the same raw context event yields the same fact id, which makes
+    fact insertion (ON CONFLICT id DO NOTHING) and evidence linking idempotent
+    under at-least-once delivery.
+    """
+    natural_key = "|".join(
+        str(part)
+        for part in (
+            raw_event_id,
+            result.fact_type.value,
+            result.normalized_key,
+            result.text_span_start,
+            result.text_span_end,
+            result.subject.value,
+            result.is_negated,
+            result.is_historical,
+            result.is_hypothetical,
+        )
+    )
+    return uuid.uuid5(uuid.NAMESPACE_OID, natural_key)
 
 
 FACT_TYPE_TO_NODE_TYPE: dict[str, str] = {

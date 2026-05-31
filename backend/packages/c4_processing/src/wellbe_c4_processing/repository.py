@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wellbe_c4_processing.models import ExtractedFactRow, HealthSignalRow
@@ -39,40 +40,54 @@ class ProcessingRepository:
         is_historical: bool = False,
         is_hypothetical: bool = False,
         subject: str = "patient",
-    ) -> uuid.UUID:
+    ) -> uuid.UUID | None:
+        """Idempotently insert an extracted fact.
+
+        Callers pass a deterministic ``id`` derived from the fact's natural key
+        (raw event + normalized key + type + span), so re-processing the same
+        raw event maps to the same primary key. The insert is ON CONFLICT (id)
+        DO NOTHING and returns ``None`` when the fact already exists, allowing
+        callers to skip re-linking evidence and re-emitting events on redelivery.
+        """
         now = datetime.now(timezone.utc).replace(tzinfo=None)
-        row = ExtractedFactRow(
-            id=id,
-            patient_id=patient_id,
-            raw_context_event_id=raw_context_event_id,
-            fact_type=fact_type,
-            entity_label=entity_label,
-            normalized_key=normalized_key,
-            extraction_confidence=extraction_confidence,
-            extraction_model=extraction_model,
-            model_version=model_version,
-            pipeline_version=pipeline_version,
-            quality_flag=quality_flag,
-            quality_metadata=quality_metadata,
-            is_negated=is_negated,
-            is_historical=is_historical,
-            is_hypothetical=is_hypothetical,
-            subject=subject,
-            captured_at=captured_at,
-            extracted_at=now,
-            correlation_id=correlation_id,
-            trace_id=trace_id,
-            schema_version=1,
-            created_at=now,
-            code_system=code_system,
-            code=code,
-            text_span_start=text_span_start,
-            text_span_end=text_span_end,
-            source_text_excerpt_hash=source_text_excerpt_hash,
+        stmt = (
+            pg_insert(ExtractedFactRow)
+            .values(
+                id=id,
+                patient_id=patient_id,
+                raw_context_event_id=raw_context_event_id,
+                fact_type=fact_type,
+                entity_label=entity_label,
+                normalized_key=normalized_key,
+                extraction_confidence=extraction_confidence,
+                extraction_model=extraction_model,
+                model_version=model_version,
+                pipeline_version=pipeline_version,
+                quality_flag=quality_flag,
+                quality_metadata=quality_metadata,
+                is_negated=is_negated,
+                is_historical=is_historical,
+                is_hypothetical=is_hypothetical,
+                subject=subject,
+                captured_at=captured_at,
+                extracted_at=now,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+                schema_version=1,
+                created_at=now,
+                code_system=code_system,
+                code=code,
+                text_span_start=text_span_start,
+                text_span_end=text_span_end,
+                source_text_excerpt_hash=source_text_excerpt_hash,
+            )
+            .on_conflict_do_nothing(index_elements=["id"])
+            .returning(ExtractedFactRow.id)
         )
-        self._session.add(row)
+        result = await self._session.execute(stmt)
+        inserted_id = result.scalar_one_or_none()
         await self._session.flush()
-        return row.id
+        return inserted_id
 
     async def insert_signal(
         self,

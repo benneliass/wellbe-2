@@ -40,6 +40,10 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
                         .where(OutboxEventRow.event_type == "raw_context.received")
                         .order_by(OutboxEventRow.created_at)
                         .limit(20)
+                        # Claim rows so a second poller instance cannot pick up the
+                        # same undelivered events concurrently. Combined with the
+                        # idempotent C4/C5 writes, this prevents duplicate processing.
+                        .with_for_update(skip_locked=True)
                     )
                     result = await session.execute(stmt)
                     rows = result.scalars().all()
