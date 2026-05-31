@@ -113,6 +113,104 @@ _Research received: 2026-05-31_
 
 ---
 
+## Component Traceability Map
+
+Every term in this document traces to exactly one owning system component. This section is the authoritative cross-reference. When implementing any part of the graph UI, the relevant component owner must be consulted before that piece is built.
+
+### Graph nodes — where they come from
+
+| Term in report | C6 node type | Produced by | Evidence-linked by | Displayed by |
+|---|---|---|---|---|
+| "Recurring headaches" (the concern itself) | `Thread` | **C7** creates the HealthThread object; C6 stores the `Thread` node | — (C7 object, not an extracted claim) | C13 renders as expandable root |
+| "Headache" (the symptom entity) | `Symptom` | **C4** extracts from raw event | **C5** links to C2 source | C13 renders as Layer 2 node under Symptoms |
+| "Fatigue" | `Symptom` | **C4** | **C5** | C13 |
+| "CBC" (the test) | `LabTest` | **C4** extracts from document or FHIR | **C5** | C13 renders under Tests & labs |
+| "Haemoglobin 11.2" (the result) | `LabResult` or `Finding` | **C4** extracts from lab PDF/FHIR | **C5** | C13 renders as Layer 3 child of CBC |
+| "MRI planned" | `ProcedureOrTest` | **C4** extracts from clinical note or user message | **C5** | C13 renders under Tests & labs |
+| "MRI planned" (the pending part) | `PendingItem` | **C9** Continuity & Closure Engine creates a PendingItem when a procedure is ordered but no result exists | C5 links PendingItem to source event | C13 renders under Pending items category |
+| "Ibuprofen 400mg" | `Medication` | **C4** | **C5** | C13 |
+| "Referred to neurologist" | `Referral` | **C4** extracts from visit note or user message | **C5** | C13 renders under Visits & referrals |
+| "GP visit 2026-03-10" | `Visit` | **C4** extracts from document or user entry | **C5** | C13 |
+| "Tension-type headache (hypothesis)" | `ConditionHypothesis` | **C10** Intelligence Engines propose a hypothesis when pattern evidence is sufficient | **C5** links to supporting evidence | C13 renders with dashed border + hypothesis badge |
+| "Patient has a history of migraines" | `ConditionMention` | **C4** extracts from FHIR or clinical document | **C5** | C13 |
+| "Lab result expected, not yet in" | `PendingItem` | **C9** creates when result is expected but not received | **C5** | C13 renders under Pending items |
+| "Lab report PDF" | `Document` | **C3** ingests the file; **C2** stores the raw blob; C6 stores a `Document` node | **C5** | C13 renders as document reference |
+| "Average pain level 6.2/10" | `HealthSignal` | **C4** computes aggregate signal from multiple raw events | **C5** links to all contributing raw events | C13 |
+| "2026-04-12" (a specific date) | `TimePoint` | **C4** extracts temporal markers | **C5** | C13 |
+| "Past 6 weeks" (a period) | `TimeInterval` | **C4** | **C5** | C13 |
+
+### Category nodes — important: these are NOT stored in C6
+
+The expansion Layer 1 categories (Symptoms, Tests & labs, Medications, Visits & referrals, Documents, Pending items) are **virtual UI groupings** rendered by C13. They are not nodes in `kg_nodes`. C13 groups nodes by `node_type` under these category headers at render time.
+
+| Category label | C6 node types it groups | Count badge source |
+|---|---|---|
+| Symptoms | `Symptom` | C13 queries `COUNT(kg_nodes) WHERE node_type = 'Symptom' AND thread_id = ?` |
+| Tests & labs | `LabTest`, `LabResult`, `Finding` | Same pattern |
+| Medications | `Medication` | Same pattern |
+| Visits & referrals | `Visit`, `Referral` | Same pattern |
+| Documents | `Document` | Same pattern |
+| Pending items | `PendingItem` | **C9** manages the pending item ledger; C13 queries `PendingItem` nodes from C6 |
+
+### Health Thread root node — what the status badge reads from
+
+| UI element | Data source | Owner |
+|---|---|---|
+| Title ("Recurring headaches") | `HealthThread.title` | **C7** |
+| Status badge ("Active — Unresolved") | `HealthThread.status` — one of: `active_unresolved`, `explained`, `waiting_for_result`, `resolved`, `closed` | **C7** |
+| Last updated | `HealthThread.updated_at` | **C7** |
+| Summary counters (e.g. "4 symptoms") | C13 aggregates from C6 `kg_nodes` count per thread | **C6** data, **C13** computes |
+
+### Evidence drawer — where each field comes from
+
+| Drawer field | Data source | Owner |
+|---|---|---|
+| Label, node type | `kg_nodes.label`, `kg_nodes.node_type` | **C6** |
+| First reported / last reported | `ExtractedFact.captured_at` or `RawContextEvent.captured_at` | **C4** / **C2** |
+| Threads connected | `kg_nodes.thread_ids` | **C6** |
+| Confidence | `kg_nodes.confidence` (originally set by **C4** extraction_confidence, carried into C6) | **C4** → **C6** |
+| Evidence trail (raw messages, documents) | `evidence_links` join table → `raw_context_events` | **C5** → **C2** |
+| Connected items (other nodes) | `kg_edges` where `from_node_id` or `to_node_id` = this node | **C6** |
+
+### User actions in the evidence drawer — which component executes each
+
+| User action | What it does | Owning component |
+|---|---|---|
+| **Rename** | Updates `kg_nodes.label` for this node | **C6** (label update) |
+| **Hide** | Sets `kg_nodes.status = 'retracted'` or stores a user preference; node stays in graph but is not rendered | **C6** node status + **C13** render filter |
+| **Mark wrong** | Creates a correction record that adds a `link_type = 'contradicting'` evidence link and recalculates confidence | **C11** Correction Service — this is C11's primary function |
+| **Merge** | Creates a `same_as` edge between two nodes; one becomes canonical; entity resolution propagates | **C6** `same_as` edge + entity resolution worker |
+| **Add to another thread** | Adds the thread's UUID to `kg_nodes.thread_ids`; C7 may evaluate whether to link the threads | **C7** thread linking command + **C6** node update |
+
+### PotentialScore inputs — which component produces each signal
+
+| Score input | Produced by | How it reaches C6 |
+|---|---|---|
+| C5 evidence confidence | **C5** | Carried in `evidence.linked` event payload |
+| Co-occurrence frequency | **C6** scoring worker | Computed from `kg_edges` history |
+| Temporal proximity | **C6** scoring worker | Uses `TimePoint` nodes and `temporally_precedes` edges |
+| Source quality | **C4** quality_flag on ExtractedFact | Carried in `fact.extracted` event payload |
+| Semantic similarity | **C6** pgvector cosine distance on `embedding_id` | Computed during scoring |
+| Same-thread boost | **C6** scoring worker | Checks `thread_ids` overlap between two nodes |
+| Cross-thread recurrence | **C6** scoring worker | Counts how many threads share this edge pair |
+| User confirmation | **C11** `correction.applied` event (positive correction) | C11 emits event; C6 scoring worker raises weight |
+| Contradiction penalty | **C11** `correction.applied` event (negative correction / "mark wrong") | C11 emits event; C6 scoring worker applies penalty |
+| Recency decay | **C6** scoring worker | Uses `last_scored_at` and `captured_at` |
+
+### Events that drive C6 scoring — which component emits each
+
+| Event | Emitted by | Consumed by |
+|---|---|---|
+| `fact.extracted` | **C4** Processing Pipeline | C6 scoring worker |
+| `health_signal.created` | **C4** | C6 scoring worker |
+| `evidence.linked` | **C5** Evidence & Provenance | C6 scoring worker |
+| `correction.applied` | **C11** Correction Service | C6 scoring worker |
+| `thread.state_changed` | **C7** Health Thread Engine | C6 scoring worker |
+
+### Cross-patient gate
+
+The "Appears in N threads" badge uses only this patient's own data and does not require the cross-patient gate. Any query that would aggregate data across multiple patients (e.g. "other people with similar patterns") is governed by **C1** Trust & Consent — cross-patient access requires explicit individual opt-in and is off by default.
+
 ---
 
 ## 1. What the Knowledge Graph Is
