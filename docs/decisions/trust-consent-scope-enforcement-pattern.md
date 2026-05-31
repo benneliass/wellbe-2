@@ -1,9 +1,9 @@
 # Decision: Trust & Consent scope model and Share Grant schema
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** _(fill on approval)_  
-**Approved by:** _(fill on approval)_  
+**Date approved:** 2026-05-31  
+**Approved by:** User  
 **Jira Spike:** WEL-93  
 **Blocks:** WEL-72 — Implement OIDC/passkey authentication and scoped consent-share domain model
 
