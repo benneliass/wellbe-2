@@ -29,6 +29,11 @@ Deliver personal Health Threads that help users capture unresolved health concer
 - clinical decision memory without clinician governance
 - high-risk bias prompts without safety review
 - low-resource CHW mode unless piloted locally
+- Investigation Layer objects (Investigation, Theory) and the External Evidence Graph — Post-MVP
+- Clinician / Shared / Institution / Research workspaces — Post-MVP or Deferred, behind governance gates
+- Live Metrics Safety Monitor — Post-MVP
+
+> The expanded "Health Investigation OS" vision does not change the MVP. The personal Health Thread core (F001–F011) ships first; the Investigate loop step, new objects, and audience workspaces are layered on top afterward without altering the personal-first MVP.
 
 ## MVP success definition
 

@@ -35,6 +35,20 @@
 - care-team comment mode
 - doctor discovery as pathway support
 
+## Post-MVP investigation layer (expanded vision)
+
+- Investigation object + Self Ongoing Investigation (P2)
+- Theory Evaluator (P5, elevates Myth Buster)
+- External Evidence Watch + External Evidence Graph (P6, elevates Research Agent)
+- Live Metrics Safety Monitor (P7)
+- Clinician Case Investigation Workspace (P3) and Shared Health Thread (P4) — grant-gated
+- Full Health Context Summary (P10, expands Visit Packet)
+
+## Deferred — governance gated
+
+- Institution Continuity Intelligence (P8, aggregate-only, consented)
+- Research Sandbox / cohort comparison (P9, opt-in, protocol-governed)
+
 ## Avoid for MVP
 
 - autonomous diagnosis

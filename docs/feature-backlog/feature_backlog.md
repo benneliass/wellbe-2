@@ -44,3 +44,26 @@
 |WB2-F040|Health-adaptive UI|Post-MVP|patient|UI provides no ambient signal about current health state; triage level is buried in a list rather than reflected in the experience.|product supported|low|post-mvp build|
 |WB2-F041|Medical institution integration (user-pull FHIR)|Deferred|patient|Clinical records held by institutions are disconnected from the patient's personal health memory.|strong problem / complex solution|very high|deferred — compliance review required|
 |WB2-F042|Intelligence engines (pattern temporal confounder contradiction missing data)|Post-MVP|patient|Patterns in health data go undetected because no system connects signals across time domains and sources for the individual patient.|strong|high|post-mvp build|
+|WB2-F043|Live Metrics Safety Monitor|Post-MVP|patient|Wearable/device trends crossing personal baselines alongside concerning symptoms are not turned into safe, low-alarm escalation guidance.|product supported|high|post-mvp build (gated)|
+|WB2-F044|Clinician Case Investigation Workspace|Post-MVP|patient + clinician (grant-scoped)|Clinicians cannot efficiently investigate an unresolved case longitudinally; the individual benefits from a better-prepared, consent-scoped clinician view.|product supported|high|post-mvp build (gated)|
+|WB2-F045|Shared Health Thread workspace|Post-MVP|patient + caregiver/clinician (grant-scoped)|Patient and clinician views are stronger together; a patient-controlled collaboration space around one thread is missing.|product supported|high|post-mvp build (gated)|
+|WB2-F046|Institution Continuity Intelligence|Deferred|patient (aggregate, consented)|Care loops break at the system level; institutions need continuity intelligence without default access to individual data.|product supported|very high|deferred — governance review required|
+|WB2-F047|Research Sandbox / cohort comparison|Deferred|patient (opt-in) + researcher|Cross-patient/cohort comparison can help individuals but is high-risk; needs explicit opt-in and protocol governance.|needs more evidence|very high|deferred — supersedes F032 framing|
+|WB2-F048|Full Health Context Summary|Post-MVP|patient|A user-owned summary across all data (not only clinician notes) is missing; expands the visit packet into the complete personal story.|strong|medium-high|post-mvp build|
+
+## Product modules (P1–P10) → feature mapping
+
+The expanded vision groups capabilities into product modules. The personal core (P1) stays MVP and unchanged; all new workspaces/objects are Post-MVP or Deferred behind governance gates.
+
+| Module | Description | Maps to |
+|---|---|---|
+| P1 Individual Health Memory Workspace | Personal timeline, symptoms, documents, theories, visit prep | F001–F011 (MVP, unchanged) |
+| P2 Self Ongoing Investigation | Track one concern over time as an Investigation | NEW — Investigation object (C14) |
+| P3 Clinician Case Investigation Workspace | Consent-scoped longitudinal case view + evidence/theory board | F044 |
+| P4 Shared Patient–Clinician Thread | Patient-controlled shared investigation space | F045 (extends F024, F025) |
+| P5 Theory Evaluator | Evaluate a theory against own data + evidence | F035 + Theory object (C15) |
+| P6 External Evidence Watch | Monitor trusted external sources by relevance | F036 + External Evidence Graph (C16) |
+| P7 Live Metrics Safety Monitor | Safe escalation from baseline deviations | F043 (pulls F039/F038/F019) |
+| P8 Institution Continuity Intelligence | Aggregate, consented care-loop analytics | F046 (reframes F028) |
+| P9 Cohort / Research Sandbox | Opt-in cross-patient comparison under governance | F047 (supersedes F032 framing) |
+| P10 Visit Packet / Full Health Context Summary | Provenance-backed summary across all data | F048 (expands F011) |
