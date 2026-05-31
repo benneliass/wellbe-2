@@ -7,6 +7,8 @@ FROM timescale/timescaledb-ha:pg17
 USER root
 RUN apt-get update && apt-get install -y \
     build-essential \
+    flex \
+    bison \
     git \
     postgresql-server-dev-17 \
     libreadline-dev \

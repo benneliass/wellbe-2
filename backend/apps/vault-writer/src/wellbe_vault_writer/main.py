@@ -65,11 +65,14 @@ async def write_event(
         existing = await repo.get_event(dup_id)
         if existing is None:
             raise HTTPException(status_code=500, detail="Duplicate record vanished")
+        existing_ingested = existing.ingested_at
+        if existing_ingested.tzinfo is None:
+            existing_ingested = existing_ingested.replace(tzinfo=timezone.utc)
         return VaultWriteResponse(
             event_id=existing.id,
             content_hash=content_hash,
             duplicate_of_event_id=None,
-            ingested_at=existing.ingested_at,
+            ingested_at=existing_ingested,
         )
 
     event_id = uuid.uuid4()
@@ -78,8 +81,12 @@ async def write_event(
         blob_key, req.normalized_payload, content_hash
     )
 
-    now = datetime.now(timezone.utc)
+    now_aware = datetime.now(timezone.utc)
+    now = now_aware.replace(tzinfo=None)  # naive UTC for TIMESTAMP WITHOUT TIME ZONE columns
     prov = req.adapter_provenance
+    captured_at = prov.captured_at
+    if hasattr(captured_at, "tzinfo") and captured_at.tzinfo is not None:
+        captured_at = captured_at.replace(tzinfo=None)
 
     inserted_id = await repo.insert_event(
         id=event_id,
@@ -89,7 +96,7 @@ async def write_event(
         source_id=prov.source_id,
         external_source_id=prov.external_source_id,
         idempotency_key=req.idempotency_key,
-        captured_at=prov.captured_at,
+        captured_at=captured_at,
         received_at=now,
         ingested_at=now,
         content_hash=content_hash,
@@ -111,7 +118,7 @@ async def write_event(
         correlation_id=req.correlation_id,
         trace_id=req.trace_id,
         created_at=now,
-    )
+    )  # now is naive UTC — TIMESTAMP WITHOUT TIME ZONE
 
     await emit_event(
         session,
@@ -132,7 +139,7 @@ async def write_event(
         event_id=inserted_id,
         content_hash=content_hash,
         duplicate_of_event_id=None,
-        ingested_at=now,
+        ingested_at=now_aware,
     )
 
 

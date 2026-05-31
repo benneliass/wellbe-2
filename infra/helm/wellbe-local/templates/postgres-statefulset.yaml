@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
 spec:
-  serviceName: postgres
+  serviceName: wellbe-postgres
   replicas: 1
   selector:
     matchLabels:

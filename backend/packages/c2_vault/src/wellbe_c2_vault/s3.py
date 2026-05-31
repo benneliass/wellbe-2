@@ -31,7 +31,6 @@ class S3BlobStore:
                 Bucket=self._bucket,
                 Key=key,
                 Body=data,
-                ChecksumSHA256=content_hash,
             )
         )
         return resp.get("VersionId", "")

@@ -14,7 +14,7 @@ class Base(DeclarativeBase):
 class UUIDPrimaryKeyMixin:
     id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True,
-        default_factory=uuid.uuid4,
+        default=uuid.uuid4,
     )
 
 

@@ -3,14 +3,19 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import os
 from datetime import datetime, timezone
 from uuid import UUID
 
 import dramatiq
+from dramatiq.brokers.redis import RedisBroker
 
 from wellbe_contracts.c3_ingestion import AdapterInput
 
 from wellbe_c3_ingestion import AdapterRegistry, IngestionService, ManualTextAdapter, DocumentAdapter
+
+_redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
+dramatiq.set_broker(RedisBroker(url=_redis_url))
 
 
 def _build_registry() -> AdapterRegistry:

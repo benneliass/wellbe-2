@@ -36,12 +36,12 @@ vaultWriter:
   port: 8002
   replicas: 1
   config:
-    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@postgres:5432/wellbe"
+    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@wellbe-postgres:5432/wellbe"
     s3Endpoint: "http://minio:9000"
     s3AccessKey: "wellbe_minio"
     s3SecretKey: "wellbe_minio_dev"
     s3BucketRaw: "wellbe-raw-context"
-    redisUrl: "redis://redis:6379/0"
+    redisUrl: "redis://wellbe-redis:6379/0"
     logLevel: "INFO"
     environment: "dev"
 
@@ -52,6 +52,6 @@ ingestionWorker:
   replicas: 1
   config:
     vaultWriterUrl: "http://vault-writer:8002"
-    redisUrl: "redis://redis:6379/0"
+    redisUrl: "redis://wellbe-redis:6379/0"
     logLevel: "INFO"
     environment: "dev"

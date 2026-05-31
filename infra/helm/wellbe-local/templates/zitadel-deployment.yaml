@@ -14,10 +14,10 @@ spec:
       labels:
         app: zitadel
     spec:
+      enableServiceLinks: false
       containers:
         - name: zitadel
           image: {{ .Values.zitadel.image }}
-          command: ["zitadel"]
           args:
             - start-from-init
             - --masterkey
@@ -26,7 +26,7 @@ spec:
             - disabled
           env:
             - name: ZITADEL_DATABASE_POSTGRES_HOST
-              value: "postgres"
+              value: "wellbe-postgres"
             - name: ZITADEL_DATABASE_POSTGRES_PORT
               value: "5432"
             - name: ZITADEL_DATABASE_POSTGRES_DATABASE

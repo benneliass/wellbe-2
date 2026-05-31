@@ -11,5 +11,6 @@ COPY backend/apps/vault-writer/ ./apps/vault-writer/
 RUN uv sync --package wellbe-vault-writer --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/apps/vault-writer/src"
 EXPOSE 8002
 CMD ["uvicorn", "wellbe_vault_writer.main:app", "--host", "0.0.0.0", "--port", "8002"]

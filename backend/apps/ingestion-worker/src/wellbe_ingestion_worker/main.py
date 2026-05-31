@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 
+import dramatiq
+from dramatiq.brokers.redis import RedisBroker
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -50,6 +52,8 @@ _settings: IngestionWorkerSettings | None = None
 async def lifespan(app: FastAPI):
     global _service, _settings
     _settings = IngestionWorkerSettings()
+    broker = RedisBroker(url=_settings.redis_url)
+    dramatiq.set_broker(broker)
     registry = AdapterRegistry()
     registry.register(ManualTextAdapter())
     registry.register(DocumentAdapter())

@@ -11,5 +11,6 @@ COPY backend/apps/ingestion-worker/ ./apps/ingestion-worker/
 RUN uv sync --package wellbe-ingestion-worker --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/apps/ingestion-worker/src"
 EXPOSE 8003
 CMD ["uvicorn", "wellbe_ingestion_worker.main:app", "--host", "0.0.0.0", "--port", "8003"]
