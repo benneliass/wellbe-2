@@ -68,3 +68,12 @@ processingWorker:
     temporalHost: "temporal:7233"
     logLevel: "INFO"
     environment: "dev"
+
+safetyGate:
+  image: wellbe-safety-gate:local
+  imagePullPolicy: Never
+  port: 8005
+  replicas: 1
+  config:
+    logLevel: "INFO"
+    environment: "dev"

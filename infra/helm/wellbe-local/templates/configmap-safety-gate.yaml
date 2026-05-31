@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: safety-gate-config
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+data:
+  WELLBE_LOG_LEVEL: {{ .Values.safetyGate.config.logLevel | quote }}
+  WELLBE_ENVIRONMENT: {{ .Values.safetyGate.config.environment | quote }}

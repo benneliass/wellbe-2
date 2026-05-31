@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-gate
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.safetyGate.replicas }}
+  selector:
+    matchLabels:
+      app: safety-gate
+  template:
+    metadata:
+      labels:
+        app: safety-gate
+    spec:
+      containers:
+        - name: safety-gate
+          image: {{ .Values.safetyGate.image }}
+          imagePullPolicy: {{ .Values.safetyGate.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.safetyGate.port }}
+          envFrom:
+            - configMapRef:
+                name: safety-gate-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.safetyGate.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.safetyGate.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10

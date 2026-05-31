@@ -12,6 +12,7 @@ docker build -t wellbe-postgres:local -f "$REPO_ROOT/infra/local/Dockerfile.post
 docker build -t wellbe-vault-writer:local -f "$REPO_ROOT/backend/apps/vault-writer/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-ingestion-worker:local -f "$REPO_ROOT/backend/apps/ingestion-worker/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-processing-worker:local -f "$REPO_ROOT/backend/apps/processing-worker/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-safety-gate:local -f "$REPO_ROOT/backend/apps/safety-gate/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-migrations:local -f "$REPO_ROOT/db/Dockerfile.migrations" "$REPO_ROOT"
 
 echo "=== Loading images into Kind cluster ==="
@@ -27,6 +28,7 @@ LOCAL_IMAGES=(
   wellbe-vault-writer:local
   wellbe-ingestion-worker:local
   wellbe-processing-worker:local
+  wellbe-safety-gate:local
   wellbe-migrations:local
 )
 

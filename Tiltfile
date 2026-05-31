@@ -151,3 +151,48 @@ k8s_resource(
     port_forwards=['8004:8004'],
     labels=['app'],
 )
+
+# ---------------------------------------------------------------------------
+# safety-gate
+# ---------------------------------------------------------------------------
+
+docker_build(
+    'wellbe-safety-gate:local',
+    context='.',
+    dockerfile='backend/apps/safety-gate/Dockerfile',
+    build_args={'DEV': 'true'},
+    live_update=[
+        sync(
+            'backend/apps/safety-gate/src/',
+            '/app/apps/safety-gate/src/',
+        ),
+        sync(
+            'backend/packages/',
+            '/app/packages/',
+        ),
+        run(
+            'touch /tmp/reload-trigger',
+            trigger=[
+                'backend/apps/safety-gate/src/',
+                'backend/packages/',
+            ],
+        ),
+    ],
+    only=[
+        'backend/pyproject.toml',
+        'backend/apps/safety-gate/',
+        'backend/packages/',
+    ],
+    ignore=[
+        '**/__pycache__',
+        '**/*.pyc',
+        '**/*.pyo',
+        '**/*.egg-info',
+    ],
+)
+
+k8s_resource(
+    'safety-gate',
+    port_forwards=['8005:8005'],
+    labels=['app'],
+)
