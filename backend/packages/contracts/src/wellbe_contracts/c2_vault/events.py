@@ -20,6 +20,10 @@ from wellbe_contracts.primitives import (
 )
 
 
+# Event type constants — consumed by C4 dispatcher
+RAW_CONTEXT_RECEIVED = "raw_context.received"
+
+
 class RawContextEvent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
