@@ -398,7 +398,202 @@ With 10+ services, ZITADEL, Postgres, Redis, S3, Temporal — how should environ
 
 ---
 
-## 9. Constraints the Repo Structure Must Respect
+## 9. Research Results (received 2026-05-31)
+
+The following recommendations were provided by external consultation. Recorded verbatim.
+
+### Summary recommendation
+
+> Use a single monorepo, but structure the backend as separate component-owned Python packages plus thin deployable service apps.
+> Monorepo → Python workspace → component packages → service entrypoints → strict import and CI boundaries.
+
+### Q1 — Monorepo: Yes
+
+Single monorepo. Team is small; multi-repo coordination adds overhead before it adds value. Schema, API, safety, and frontend client changes can be committed atomically. C1–C13 remain visible and separately owned in code. Services can be split later without reorganizing domain code.
+
+### Q2 — Top-level structure
+
+```
+wellbe-2/
+├── docs/
+├── archive/
+├── .cursor/
+├── .github/
+│   ├── CODEOWNERS
+│   └── workflows/
+│       ├── ci.yml
+│       ├── backend.yml
+│       ├── frontend.yml
+│       ├── db-migrations.yml
+│       ├── api-contract.yml
+│       └── safety-gate.yml          ← required CI for any C10-touching PR
+├── apps/
+│   ├── web/                         ← Next.js
+│   └── mobile/                      ← Expo / React Native
+├── packages/
+│   ├── api-client/                  ← Generated TypeScript client (co-located)
+│   ├── ui/
+│   ├── eslint-config/
+│   └── tsconfig/
+├── backend/
+│   ├── pyproject.toml               ← Python workspace root
+│   ├── uv.lock
+│   ├── apps/                        ← Deployable Python processes
+│   └── packages/                   ← Importable Python packages
+├── db/
+│   └── migrations/                  ← Single central Alembic stream
+├── contracts/
+│   ├── openapi/                     ← Generated OpenAPI JSON
+│   └── events/
+├── evals/
+│   └── safety/                      ← Safety evaluation harness
+├── infra/
+│   ├── local/                       ← Docker Compose
+│   ├── opentofu/
+│   └── terramate/
+├── config/
+│   └── local/*.example.env
+└── scripts/
+```
+
+### Q2 — Backend structure (component packages + service apps)
+
+```
+backend/
+├── apps/
+│   ├── api/                         ← C13 FastAPI external boundary
+│   ├── vault-writer/                ← ONLY process with C2 INSERT role
+│   ├── ingestion-worker/            ← C3 lightweight workers (Dramatiq)
+│   ├── processing-worker/           ← C4 lightweight workers (Dramatiq)
+│   ├── temporal-worker/             ← Registers all Temporal workflows/activities
+│   ├── safety-gate/                 ← C10 isolated runtime service
+│   ├── continuity-worker/           ← C9 timers, referrals, results
+│   └── notification-worker/         ← C12 notifications + audit sinks
+└── packages/
+    ├── contracts/                   ← Shared Pydantic DTOs/events ONLY
+    ├── platform/                    ← Config, logging, tracing, PHI scrubbers
+    ├── db/                          ← DB sessions, roles, Alembic helpers
+    ├── events/                      ← Transactional outbox writer + types
+    ├── testkit/                     ← Synthetic fixtures only; NEVER real PHI
+    ├── c1_consent/
+    ├── c2_vault/
+    ├── c3_ingestion/
+    ├── c4_processing/
+    ├── c5_evidence/
+    ├── c6_graph/
+    ├── c7_thread/
+    ├── c8_memories/
+    ├── c9_continuity/
+    ├── c10_safety/
+    ├── c11_correction/
+    └── c12_audit/
+```
+
+### Import dependency rules (enforced by CI / linting)
+
+- `apps/*` may import `packages/*`
+- `packages/*` may NOT import `apps/*`
+- Component packages do not import other component internals — share through `contracts`, `events`, DB boundaries, or C13 APIs
+- `contracts`, `platform`, `db`, `events` must NEVER import component implementations
+- C13 (`api` app) may import component public interfaces (it is the single boundary)
+- C10 policy internals are not imported by other components; call through public gate interface only
+
+### Q3 — Database migrations
+
+Single central Alembic migration stream at MVP (all services share one Postgres instance).
+
+```
+db/migrations/versions/
+  20260601_0001_c1_consent_base.py
+  20260601_0002_c2_raw_context_events.py
+  20260601_0003_outbox_events.py
+  20260601_0004_c3_ingestion_jobs.py
+  20260601_0005_c4_extracted_facts.py
+  20260601_0006_c5_evidence_links.py
+  20260601_0007_c7_health_threads.py
+```
+
+Use Postgres schemas for ownership isolation: `consent.*`, `vault.*`, `ingestion.*`, `processing.*`, `evidence.*`, `graph.*`, `thread.*`, `memory.*`, `continuity.*`, `safety.*`, `audit.*`, `outbox.*`
+
+### Q4 — Temporal workflows
+
+Workflow and activity code lives in the **component package** that owns the business logic. A single `temporal-worker` app imports and registers all of them.
+
+```
+c3_ingestion/workflows.py     ← FHIRImportWorkflow
+c3_ingestion/activities.py
+c4_processing/workflows.py    ← DocumentOCRWorkflow, ExtractionWorkflow
+c4_processing/activities.py
+c9_continuity/workflows.py    ← PendingItemTimerWorkflow
+c9_continuity/activities.py
+c10_safety/workflows.py       ← SafetyReviewWorkflow (if needed)
+c10_safety/activities.py
+
+backend/apps/temporal-worker/registry.py  ← imports and registers all of the above
+```
+
+### Q5 — Shared Pydantic schemas
+
+Pure `contracts` package. No component package imports another component's implementation code just to get a DTO.
+
+```
+backend/packages/contracts/src/wellbe_contracts/
+  primitives/
+  c1_consent/
+  c2_vault/
+  c4_processing/
+    extracted_fact.py
+    health_signal.py
+  c5_evidence/
+  c7_thread/
+  c10_safety/
+  events/
+```
+
+### Q6 — OpenAPI / TypeScript client
+
+```
+C13 FastAPI app
+  → contracts/openapi/wellbe.openapi.json    (committed, generated in CI)
+  → packages/api-client/                    (generated TS client, used by web + mobile)
+```
+
+### Q7 — C10 Safety Gate isolation
+
+Stay in monorepo. Isolated by: package directory, runtime service, CODEOWNERS, dedicated CI workflow (`safety-gate.yml`), and separate production deployment.
+
+**Fail rules (all absolute — no exceptions):**
+- Timeout from C10 → deny
+- C10 error → deny
+- Missing provenance → deny
+- Diagnosis language detected → deny
+- Panic language detected → deny
+
+### Q8 — Environment configuration
+
+- **Local:** Docker Compose for Postgres, Redis, MinIO, Temporal, ZITADEL, optional OpenBao. Python services run directly via `uv`.
+- **CI:** ephemeral services, synthetic data only (`testkit` package), no production secrets
+- **Production:** OpenTofu provisions infra; OpenBao stores secrets; each service gets only its own secrets and its own Postgres role
+
+### MVP deployment shape (6 deployable processes + 2 frontends)
+
+| Deployable | Components served |
+|---|---|
+| `api` | C13 routes into component public interfaces |
+| `vault-writer` | C2/C3 immutable write boundary |
+| `worker` | C3/C4 Dramatiq lightweight jobs |
+| `temporal-worker` | C3/C4/C9/C10 durable workflows |
+| `safety-gate` | C10 isolated runtime |
+| `web` | Next.js patient dashboard |
+| `mobile` | Expo / React Native app |
+
+### Final principle from research
+
+> Organize the repo by ownership and dependency direction, not by today's deployment topology. Runtime services will change. C1–C13 ownership boundaries, C10 safety, C2 immutability, C13 API contracts, shared migrations, and the shared outbox should remain stable.
+
+---
+
+## 10. Constraints the Repo Structure Must Respect
 
 1. **C10 Safety Gate CI gate:** any PR touching C10 or any AI feature must pass the safety evaluation harness before merge. The repo structure must make it easy to identify C10-touching changes.
 
