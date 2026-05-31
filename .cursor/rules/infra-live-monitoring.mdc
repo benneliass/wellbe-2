@@ -1,0 +1,113 @@
+---
+description: Active monitoring protocol for long-running cluster operations — no passive timeout waits
+alwaysApply: true
+---
+
+# Infra Live Monitoring
+
+## The Rule
+
+**Never wait passively for a long-running cluster operation to time out or complete on its own.** Always monitor actively and detect issues as they happen.
+
+This applies to every operation that changes cluster state: `helm upgrade`, `helm install`, `helm rollback`, `kubectl apply`, `flux reconcile`, rolling restarts, node provisioning (Karpenter), and any command that causes Kubernetes workloads to transition.
+
+---
+
+## What "Active Monitoring" Means
+
+After firing any cluster-mutating command, immediately start watching the relevant workloads. Do not wait for the command's built-in timeout.
+
+### After `helm upgrade` / `helm install`
+
+Within 5 seconds of the command returning (or backgrounding it), run:
+
+```bash
+# Watch the rollout in the target namespace
+kubectl rollout status deployment/<name> -n <namespace> --timeout=0
+
+# Watch all pods in the namespace for status changes
+kubectl get pods -n <namespace> -w
+
+# Watch events for warnings (crash loops, image pull failures, OOM, probe failures)
+kubectl get events -n <namespace> --sort-by='.lastTimestamp' -w
+```
+
+Pick the most targeted watch that covers the changed workloads. All three is fine if the change is wide.
+
+### After any `kubectl apply` / `flux reconcile`
+
+```bash
+# Track the specific resource(s) changed
+kubectl rollout status <kind>/<name> -n <namespace>
+
+# Events stream for the namespace
+kubectl get events -n <namespace> -w --sort-by='.lastTimestamp'
+```
+
+### During node provisioning / Karpenter scale-out
+
+```bash
+# Watch node readiness
+kubectl get nodes -w
+
+# Watch pending pods to confirm they get scheduled
+kubectl get pods -A --field-selector=status.phase=Pending -w
+```
+
+---
+
+## Failure Signals — Intervene Immediately
+
+Stop and surface to the user **at the first sign** of any of these — do not wait for the full timeout:
+
+| Signal | What to look for |
+|---|---|
+| `CrashLoopBackOff` | Pod restarts accumulating — fetch logs immediately |
+| `ImagePullBackOff` / `ErrImagePull` | Image reference or registry credential issue |
+| `OOMKilled` | Pod killed by kernel — resource limits too tight |
+| `Pending` pods not scheduling after 60s | Node capacity, taints, PVC binding, or quota issue |
+| Readiness probe failures | Service not healthy — fetch logs and describe pod |
+| `Error` or `Failed` helm status | `helm status <release> -n <namespace>` to get detail |
+| Flux `HelmRelease` not ready | `kubectl describe helmrelease <name> -n <namespace>` |
+
+When a failure signal fires:
+
+1. Immediately fetch logs: `kubectl logs <pod> -n <namespace> --previous` (if restarted) or `kubectl logs <pod> -n <namespace>`
+2. Describe the failing resource: `kubectl describe pod <pod> -n <namespace>`
+3. Surface the diagnosis to the user — do not retry silently
+
+---
+
+## Hanging Run Detection
+
+A run is "hanging" if:
+- The helm command or `kubectl rollout status` has been waiting for more than **2 minutes** with no pod state change
+- Pods are stuck in `Pending` or `ContainerCreating` with no events in the last 60 seconds
+- A `helm upgrade --wait` has consumed more than half its timeout with no successful rollout
+
+When a hang is detected:
+1. Cancel or background the blocking command
+2. Immediately inspect: `kubectl describe pod -n <namespace>` on the stuck pod
+3. Check events: `kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20`
+4. Report finding to the user before taking any remediation action
+
+---
+
+## Do Not
+
+- ❌ Run `helm upgrade --wait --timeout 10m` and then do nothing for 10 minutes
+- ❌ Accept a `context deadline exceeded` error as the first signal something went wrong
+- ❌ Re-run the same helm command without diagnosing why the previous one failed
+- ❌ Wait for `kubectl rollout status` to exit before checking pod logs
+- ❌ Assume a successful helm exit code means the workload is healthy — verify pod status
+
+---
+
+## Shell Tool Usage for Monitoring
+
+When running monitoring commands in the Shell tool:
+
+- Use `block_until_ms: 0` to background long-running watches, then read the terminal file to observe output
+- Set `notify_on_output` with a regex that catches failure signals: `CrashLoop|OOMKilled|Error|Failed|ImagePull`
+- Poll the terminal file every ~30s for state changes rather than waiting for the full operation to complete
+- Kill a hanging watch and re-inspect if no output has appeared in 2 minutes
