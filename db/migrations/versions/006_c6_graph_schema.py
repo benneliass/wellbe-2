@@ -29,8 +29,18 @@ EDGE_TYPE_SEEDS = [
 
 
 def upgrade() -> None:
-    op.execute("CREATE EXTENSION IF NOT EXISTS age")
-    op.execute("SELECT create_graph('wellbe')")
+    # Apache AGE requires a custom Postgres build; skip if unavailable
+    op.execute("LOAD 'age'")
+    op.execute("""
+        DO $$ BEGIN
+          BEGIN
+            CREATE EXTENSION IF NOT EXISTS age;
+            PERFORM ag_catalog.create_graph('wellbe');
+          EXCEPTION WHEN undefined_file OR undefined_function THEN
+            RAISE NOTICE 'Apache AGE not available — skipping graph extension setup';
+          END;
+        END $$;
+    """)
 
     op.execute("CREATE SCHEMA IF NOT EXISTS graph")
 
@@ -246,7 +256,15 @@ def downgrade() -> None:
     op.drop_table("kg_nodes", schema="graph")
     op.drop_table("edge_types", schema="graph")
     op.execute("DROP SCHEMA IF EXISTS graph")
-    op.execute("SELECT drop_graph('wellbe', true)")
+    op.execute("""
+        DO $$ BEGIN
+          BEGIN
+            PERFORM drop_graph('wellbe', true);
+          EXCEPTION WHEN undefined_function THEN
+            NULL;
+          END;
+        END $$;
+    """)
     op.execute("DROP EXTENSION IF EXISTS age")
     op.execute("""
         REVOKE ALL ON SCHEMA graph FROM wellbe_graph;
