@@ -1,0 +1,32 @@
+{
+  "id": "a2e99da1-995e-503c-9593-199f7987d0a2",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 54,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "decisive",
+      "relative_time": "after_metabolic_testing",
+      "category": "treatment",
+      "name": "Parenteral hydroxycobalamin",
+      "result": "Started promptly.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

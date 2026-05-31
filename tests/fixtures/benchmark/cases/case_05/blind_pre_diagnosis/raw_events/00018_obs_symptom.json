@@ -1,0 +1,32 @@
+{
+  "id": "923950ce-af75-5e5d-9d07-073ad8b50a3a",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 18,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jul_2023",
+      "category": "symptom",
+      "name": "Presyncope, fatigue, exercise capacity",
+      "result": "Orthostatic presyncope, fatigue, markedly reduced exercise tolerance.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

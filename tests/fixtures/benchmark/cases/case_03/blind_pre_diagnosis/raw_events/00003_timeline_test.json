@@ -1,0 +1,27 @@
+{
+  "id": "4965fe4c-06d9-5067-8f5c-b65d51e188f7",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 3,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C03",
+      "relative_time": "hospital_workup",
+      "event_type": "test",
+      "event": "Cultures, broad infectious serologies, autoimmune serologies, complements, and CT imaging were unrevealing.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

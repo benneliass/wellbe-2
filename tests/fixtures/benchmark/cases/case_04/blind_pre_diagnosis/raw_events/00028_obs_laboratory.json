@@ -1,0 +1,32 @@
+{
+  "id": "9e21ea80-522c-559c-a6f4-fa42e1256f32",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 28,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "Hematinics, thyroid, HbA1c, ACE",
+      "result": "Normal.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "within_reference",
+      "notes": "Included B12, folate, iron, thyroid, HbA1c, and ACE."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

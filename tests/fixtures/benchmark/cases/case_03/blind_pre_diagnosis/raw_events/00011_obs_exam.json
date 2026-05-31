@@ -1,0 +1,32 @@
+{
+  "id": "2d1b864e-1f54-5c31-a93a-40d2021f71b3",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T11:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 11,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "presentation_exam",
+      "category": "exam",
+      "name": "Skin/lymph/organ exam",
+      "result": "No visible rash, no lymphadenopathy, no hepatosplenomegaly.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": "Cardiopulmonary and abdominal exams unremarkable."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

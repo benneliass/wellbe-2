@@ -1,0 +1,32 @@
+{
+  "id": "e3e984af-e0e7-5c5a-a1e8-878796ae7afb",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-03T02:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 50,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "late_deterioration",
+      "category": "laboratory",
+      "name": "ASCA IgA",
+      "result": "Positive",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "positive",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "309f9bf7-911a-559a-950b-2705af13d2dc",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T20:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 44,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "acute_deterioration",
+      "category": "laboratory",
+      "name": "MCV",
+      "result": "94",
+      "unit": "fL",
+      "reference_range": "80-100",
+      "source_flag": "within_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "c9556ce9-becf-5e68-80d5-03cf17d98cd3",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T12:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 36,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "progression",
+      "category": "exam",
+      "name": "Fundus examination",
+      "result": "Normal.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "within_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

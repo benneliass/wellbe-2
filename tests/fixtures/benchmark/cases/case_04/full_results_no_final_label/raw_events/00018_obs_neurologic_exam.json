@@ -1,0 +1,32 @@
+{
+  "id": "47d68366-dab3-54ff-8ec1-2bcaabd2a7da",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 18,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "next_24_hours",
+      "category": "neurologic_exam",
+      "name": "Progression to bilateral paresis",
+      "result": "Bilateral severe flaccid lower-limb paresis.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": "Right: hip flexion 2/5, extension 3/5, abduction/adduction 3/5, knee flexion/extension 2/5, ankle dorsiflexion 1/5, plantarflexion 2/5. Left: hip flexion 3/5, extension 4/5, abduction/adduction 3/5, knee flexion/extension 3/5, ankle dorsiflexion/plantarflexion 4/5."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

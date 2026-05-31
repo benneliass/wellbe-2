@@ -1,0 +1,32 @@
+{
+  "id": "33288975-f7a7-5b69-92c0-cfaee7df0829",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T20:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 44,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "post_decisive",
+      "relative_time": "family_screening",
+      "category": "genetic_family",
+      "name": "Family genetic result",
+      "result": "Both sons carried the same mutation and were asymptomatic at report.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

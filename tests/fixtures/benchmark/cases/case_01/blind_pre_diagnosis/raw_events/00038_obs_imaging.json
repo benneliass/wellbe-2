@@ -1,0 +1,32 @@
+{
+  "id": "fea0e205-19eb-5429-a4f1-7a741a22d34a",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T14:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 38,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "later_workup",
+      "category": "imaging",
+      "name": "Bone scan",
+      "result": "Increased isotope uptake in ribs and proximal femur.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

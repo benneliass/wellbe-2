@@ -1,0 +1,34 @@
+case_id: C02
+synthetic_user_id: 00697626-0025-5d87-9576-20367e50c0e1
+anchor_date: '2019-01-01T00:00:00Z'
+source_system: benchmark_corpus
+modes:
+  blind_pre_diagnosis:
+    event_count: 47
+    raw_events_dir: blind_pre_diagnosis/raw_events
+    description_md: '# Case C02: neutral patient-context dossier
+
+
+      A 45-year-old man developed psychiatric, cognitive, visual, renal, and later
+      severe neurologic and systemic deterioration. Early investigations were distributed
+      across psychiatry, nephrology, neurology, pathology, and intensive care. The
+      strict blind file ends before the metabolic and genetic tests that revealed
+      the final entity.'
+  full_results_no_final_label:
+    event_count: 59
+    raw_events_dir: full_results_no_final_label/raw_events
+    description_md: '# Case C02: full-results dossier without final diagnosis label
+
+
+      This version includes metabolic biochemistry, genetic testing, treatment response,
+      and discharge regimen while still omitting the final diagnostic label.'
+source_files:
+  blind_pre_diagnosis:
+  - _source/model_facing/case_02/blind_pre_diagnosis/observations.json
+  - _source/model_facing/case_02/blind_pre_diagnosis/timeline.json
+  - _source/model_facing/case_02/blind_pre_diagnosis/patient_context.md
+  full_results_no_final_label:
+  - _source/model_facing/case_02/full_results_no_final_label/observations_full.json
+  - _source/model_facing/case_02/full_results_no_final_label/timeline_full.json
+  - _source/model_facing/case_02/full_results_no_final_label/patient_context_full.md
+  redaction_manifest: _source/model_facing/case_02/redaction_manifest.md

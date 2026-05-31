@@ -1,0 +1,27 @@
+{
+  "id": "2115e93e-44c9-57ab-8a02-cce107f09ec5",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T01:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 1,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C05",
+      "relative_time": "jan_2022",
+      "event_type": "test",
+      "event": "CT/gastroscopy/EUS found a 15 mm submucosal distal oesophagus/cardia lesion; biopsy showed leiomyoma.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

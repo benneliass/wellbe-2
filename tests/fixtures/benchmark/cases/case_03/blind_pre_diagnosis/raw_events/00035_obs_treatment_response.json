@@ -1,0 +1,32 @@
+{
+  "id": "7bdc5105-56d2-5265-82ee-55481972fed4",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T11:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 35,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "after_antibiotics",
+      "category": "treatment_response",
+      "name": "Response to broad-spectrum antibiotics",
+      "result": "Fevers and inflammatory markers persisted.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "no_improvement",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

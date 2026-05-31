@@ -1,0 +1,32 @@
+{
+  "id": "9fcd4551-dbe8-5a9e-b331-e7ec2c8b7600",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T19:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 43,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "post_decisive",
+      "relative_time": "24_to_48_hours_after_steroids",
+      "category": "outcome",
+      "name": "Fever response",
+      "result": "Fever curve flattened within 24 hours; afebrile by 48 hours; clinical improvement.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "improved",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

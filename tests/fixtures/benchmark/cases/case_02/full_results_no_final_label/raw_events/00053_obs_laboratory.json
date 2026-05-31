@@ -1,0 +1,32 @@
+{
+  "id": "113f26b6-3d49-5826-b515-b22c1a614db4",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 53,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "decisive",
+      "relative_time": "icu_course",
+      "category": "laboratory",
+      "name": "Urinary methylmalonic acid",
+      "result": "310.5",
+      "unit": "umol/mmol",
+      "reference_range": null,
+      "source_flag": "above_expected",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

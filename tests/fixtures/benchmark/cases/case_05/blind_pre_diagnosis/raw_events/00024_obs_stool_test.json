@@ -1,0 +1,32 @@
+{
+  "id": "44fdcb39-93fb-5b02-89f4-a03d74eed529",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T00:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 24,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "oct_2023",
+      "category": "stool_test",
+      "name": "72-hour fecal collection: stool volume",
+      "result": "766",
+      "unit": "g",
+      "reference_range": "ULN 200",
+      "source_flag": "above_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

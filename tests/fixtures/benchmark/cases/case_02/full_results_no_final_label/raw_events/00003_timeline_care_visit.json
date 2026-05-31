@@ -1,0 +1,27 @@
+{
+  "id": "285b612f-713a-5c9a-95f1-07cbe38e74ce",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T03:00:00Z",
+  "privacy_class": "mental_health",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 3,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C02",
+      "relative_time": "initial_workup",
+      "event_type": "care_visit",
+      "event": "Brain CT/MRI and ophthalmology were not diagnostic; psychiatric hospitalization occurred.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "bc0f6bc5-65e4-522a-a4ce-2e1d95337ac9",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T17:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 41,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "later_course",
+      "category": "treatment",
+      "name": "Tofacitinib",
+      "result": "Trialed with no improvement.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

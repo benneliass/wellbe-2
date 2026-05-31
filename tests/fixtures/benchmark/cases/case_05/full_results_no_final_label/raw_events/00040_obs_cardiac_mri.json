@@ -1,0 +1,32 @@
+{
+  "id": "c14a7ec3-cbb7-5706-a3b5-bb6ebe5e9029",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T16:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 40,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "cardiac_workup",
+      "category": "cardiac_MRI",
+      "name": "Cardiac MRI tissue markers",
+      "result": "Diffuse nonischemic fibrosis; native T1 1160 ms; extracellular volume 47.6%.",
+      "unit": null,
+      "reference_range": "native T1 ULN 1025 ms; ECV ULN <29%",
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

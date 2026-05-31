@@ -1,0 +1,32 @@
+{
+  "id": "dcf6ed21-cba9-5538-b910-ca4f0b064e86",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 30,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "progression",
+      "category": "symptom",
+      "name": "Functional decline",
+      "result": "Social withdrawal and inability to work.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

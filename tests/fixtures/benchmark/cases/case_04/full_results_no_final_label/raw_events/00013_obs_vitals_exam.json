@@ -1,0 +1,32 @@
+{
+  "id": "73ffe536-99e2-57d3-93d4-33f0f876a1b9",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T13:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 13,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "admission_exam",
+      "category": "vitals_exam",
+      "name": "General status",
+      "result": "Afebrile and vitals stable. Cardiorespiratory and abdominal examinations unremarkable.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "ECG showed normal sinus rhythm with T-wave inversion in aVL and V1."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

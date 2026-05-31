@@ -1,0 +1,27 @@
+{
+  "id": "75563824-07c3-54e9-84b4-0018c3fea535",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 7,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C02",
+      "relative_time": "acute_deterioration",
+      "event_type": "treatment_response",
+      "event": "A complement-directed therapy was given during an acute thrombotic microangiopathy-like syndrome without improvement.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

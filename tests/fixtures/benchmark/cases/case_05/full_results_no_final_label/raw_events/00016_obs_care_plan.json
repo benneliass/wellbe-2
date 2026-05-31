@@ -1,0 +1,32 @@
+{
+  "id": "91e3e8e2-0a18-579b-b705-dac0dbf39be7",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T16:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 16,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jan_2022_plan",
+      "category": "care_plan",
+      "name": "Initial plan",
+      "result": "Watchful waiting and symptomatic treatment.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

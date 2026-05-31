@@ -1,0 +1,32 @@
+{
+  "id": "687b02e3-d48b-5471-916d-ce98de4f77df",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T19:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 19,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jul_2023",
+      "category": "imaging",
+      "name": "Repeat CT",
+      "result": "Third spacing with bilateral pleural effusions and subcutaneous edema.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": "No cardiac workup was performed at that time according to the source."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

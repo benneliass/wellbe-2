@@ -1,0 +1,27 @@
+{
+  "id": "1516136a-af8c-545b-84a2-b0408ce25979",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 7,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C01",
+      "relative_time": "after_targeted_therapy",
+      "event_type": "outcome",
+      "event": "Symptoms resolved after targeted antimicrobial treatment.",
+      "withheld_from_blind": true
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

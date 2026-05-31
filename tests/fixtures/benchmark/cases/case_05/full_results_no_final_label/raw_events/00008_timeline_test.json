@@ -1,0 +1,27 @@
+{
+  "id": "65abc486-ec80-5b94-9718-a332c40c26ca",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 8,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C05",
+      "relative_time": "after_tissue_result",
+      "event_type": "test",
+      "event": "Cardiac workup showed discordant nuclear scan but abnormal echo, ECG, and CMR markers; genetic test found pathogenic TTR variant.",
+      "withheld_from_blind": true
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

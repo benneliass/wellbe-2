@@ -1,0 +1,32 @@
+{
+  "id": "191749c0-41fb-5fc9-928e-a94757e52487",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T15:00:00Z",
+  "privacy_class": "mental_health",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 15,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "psychiatric_hospitalization",
+      "category": "care_visit",
+      "name": "Psychiatric hospitalization",
+      "result": "Hospitalized for two months; memory and attention decline noted.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Symptoms attributed to stress and difficulty coping with managerial demands."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

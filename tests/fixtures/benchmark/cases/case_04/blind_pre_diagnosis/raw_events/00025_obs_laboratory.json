@@ -1,0 +1,32 @@
+{
+  "id": "eaf3943e-d3ab-582f-a8c1-1c0568fe093f",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T01:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 25,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "Blood alcohol",
+      "result": "161",
+      "unit": "mg/dL",
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

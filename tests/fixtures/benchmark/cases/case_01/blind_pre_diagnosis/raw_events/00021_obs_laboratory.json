@@ -1,0 +1,32 @@
+{
+  "id": "8796d2ba-7de6-59fa-ac01-563b6c2453dd",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T21:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 21,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "initial_rheumatology_workup",
+      "category": "laboratory",
+      "name": "Lyme disease testing",
+      "result": "Negative",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": "Reported as negative during early workup."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

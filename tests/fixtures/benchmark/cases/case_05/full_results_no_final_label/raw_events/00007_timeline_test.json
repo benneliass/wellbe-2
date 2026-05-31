@@ -1,0 +1,27 @@
+{
+  "id": "c0be1a35-fed4-5c80-9f8d-b1a48f0c407b",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 7,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C05",
+      "relative_time": "oct_2023_after_biopsy",
+      "event_type": "test",
+      "event": "Deep intestinal/rectal biopsies and tissue typing yielded label-revealing deposits and target positivity.",
+      "withheld_from_blind": true
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "cfaccd32-4808-589b-b189-fe4b62fa3cd8",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 6,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "presentation",
+      "category": "symptom",
+      "name": "Fever duration and pattern",
+      "result": "Two weeks of high-grade evening fevers.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

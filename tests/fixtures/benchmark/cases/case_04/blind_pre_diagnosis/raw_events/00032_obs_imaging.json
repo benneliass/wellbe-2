@@ -1,0 +1,32 @@
+{
+  "id": "ef7b75d8-fe78-5032-bcd3-2ce4cf77110a",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 32,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_mri",
+      "category": "imaging",
+      "name": "MRI brain and whole spine with contrast",
+      "result": "Abnormal increased T2 signal in anterior spinal cord from T4 to conus; no cord edema or enhancement. Axial non-enhancing anterior/centromedullary T2 hyperintensity; DWI insufficient resolution.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,40 @@
+case_id: C01
+synthetic_user_id: 61b3a25e-867f-50f2-9e6f-0483ec54e245
+anchor_date: '2018-01-01T00:00:00Z'
+source_system: benchmark_corpus
+modes:
+  blind_pre_diagnosis:
+    event_count: 51
+    raw_events_dir: blind_pre_diagnosis/raw_events
+    description_md: '# Case C01: neutral patient-context dossier
+
+
+      A 40-year-old man had repeated episodes of fever and migratory, asymmetric joint
+      symptoms over several years. He also had a long history of loose stools, later
+      complicated by severe gastrointestinal symptoms, edema, iron-deficiency anemia,
+      hypoalbuminemia, and major unintentional weight loss.
+
+
+      The model-facing file intentionally avoids final diagnosis labels, source titles,
+      and label-revealing organism names. The strict blind set ends before the decisive
+      upper gastrointestinal biopsy result.'
+  full_results_no_final_label:
+    event_count: 56
+    raw_events_dir: full_results_no_final_label/raw_events
+    description_md: '# Case C01: full-results dossier without final diagnosis label
+
+
+      This version includes the decisive procedure and response to targeted therapy
+      but still omits the final diagnosis label from model-facing text. The organism
+      string in the biopsy/PCR result is retained only in the answer key because it
+      contains the disease eponym and would leak the answer as a label.'
+source_files:
+  blind_pre_diagnosis:
+  - _source/model_facing/case_01/blind_pre_diagnosis/observations.json
+  - _source/model_facing/case_01/blind_pre_diagnosis/timeline.json
+  - _source/model_facing/case_01/blind_pre_diagnosis/patient_context.md
+  full_results_no_final_label:
+  - _source/model_facing/case_01/full_results_no_final_label/observations_full.json
+  - _source/model_facing/case_01/full_results_no_final_label/timeline_full.json
+  - _source/model_facing/case_01/full_results_no_final_label/patient_context_full.md
+  redaction_manifest: _source/model_facing/case_01/redaction_manifest.md

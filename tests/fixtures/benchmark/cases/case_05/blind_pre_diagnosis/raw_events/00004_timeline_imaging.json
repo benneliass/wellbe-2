@@ -1,0 +1,27 @@
+{
+  "id": "b3a38168-ed7a-5e9a-9751-3d6813afdc3a",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 4,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C05",
+      "relative_time": "jul_2023",
+      "event_type": "imaging",
+      "event": "CT showed bilateral pleural effusions and subcutaneous edema; no cardiac workup performed at that time.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

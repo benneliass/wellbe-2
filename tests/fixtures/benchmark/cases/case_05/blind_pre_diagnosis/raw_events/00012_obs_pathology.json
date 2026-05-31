@@ -1,0 +1,32 @@
+{
+  "id": "6c2a615a-0efd-574f-88fb-af686a7b8f58",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T12:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 12,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jan_2022",
+      "category": "pathology",
+      "name": "Biopsies of submucosal lesion",
+      "result": "Leiomyoma.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "benign_label_reported",
+      "notes": "Did not explain symptoms in the source report."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

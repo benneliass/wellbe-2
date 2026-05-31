@@ -1,0 +1,32 @@
+{
+  "id": "a9a83c92-8bbb-566e-b099-f02a0f56d9ff",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 29,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "HDL cholesterol",
+      "result": "1.3",
+      "unit": "mmol/L",
+      "reference_range": null,
+      "source_flag": "low_relative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

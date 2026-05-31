@@ -1,0 +1,32 @@
+{
+  "id": "ab898ee6-15a4-5cd3-a306-ae558bdb3305",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T19:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 19,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "may_2022",
+      "category": "medication_change",
+      "name": "Antihypertensive change",
+      "result": "Olmesartan-related enteropathy was considered; medication changed from olmesartan/amlodipine to ramipril.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "This was a working consideration, not final diagnosis."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

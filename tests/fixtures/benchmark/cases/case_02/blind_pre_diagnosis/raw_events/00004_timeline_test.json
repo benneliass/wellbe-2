@@ -1,0 +1,27 @@
+{
+  "id": "ac18c0a5-29a5-5d19-ab61-3da35a4069c6",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 4,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C02",
+      "relative_time": "same_period",
+      "event_type": "test",
+      "event": "Renal function worsened and renal biopsy showed chronic thrombotic microangiopathy-like injury with immune deposits.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

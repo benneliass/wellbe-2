@@ -1,0 +1,27 @@
+{
+  "id": "5a627c70-fb0d-5d13-b131-9f1be9fdee5c",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 3,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C01",
+      "relative_time": "month_6_after_methotrexate",
+      "event_type": "treatment_response",
+      "event": "Inflammation and fever persisted despite prednisone and methotrexate.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

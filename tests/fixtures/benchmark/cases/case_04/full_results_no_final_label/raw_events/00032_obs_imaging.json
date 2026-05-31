@@ -1,0 +1,32 @@
+{
+  "id": "9fdfd41d-a325-52d8-bb1a-8a060bb6ea26",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 32,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_imaging",
+      "category": "imaging",
+      "name": "Chest X-ray",
+      "result": "No acute pathology.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,34 @@
+case_id: C03
+synthetic_user_id: cd2e1041-bc5b-5c4e-adae-1786c640079e
+anchor_date: '2020-01-01T00:00:00Z'
+source_system: benchmark_corpus
+modes:
+  blind_pre_diagnosis:
+    event_count: 36
+    raw_events_dir: blind_pre_diagnosis/raw_events
+    description_md: '# Case C03: neutral patient-context dossier
+
+
+      A previously healthy 34-year-old man presented with a two-week fever syndrome,
+      diffuse joint pain, fatigue, sore throat, high inflammatory markers, hyperferritinemia,
+      and liver enzyme abnormalities. Extensive infectious, autoimmune, malignant,
+      and imaging workup was unrevealing, and fevers persisted despite broad-spectrum
+      antibiotics.'
+  full_results_no_final_label:
+    event_count: 49
+    raw_events_dir: full_results_no_final_label/raw_events
+    description_md: '# Case C03: full-results dossier without final diagnosis label
+
+
+      This version includes the classification-data review and treatment response
+      but omits the final diagnosis label.'
+source_files:
+  blind_pre_diagnosis:
+  - _source/model_facing/case_03/blind_pre_diagnosis/observations.json
+  - _source/model_facing/case_03/blind_pre_diagnosis/timeline.json
+  - _source/model_facing/case_03/blind_pre_diagnosis/patient_context.md
+  full_results_no_final_label:
+  - _source/model_facing/case_03/full_results_no_final_label/observations_full.json
+  - _source/model_facing/case_03/full_results_no_final_label/timeline_full.json
+  - _source/model_facing/case_03/full_results_no_final_label/patient_context_full.md
+  redaction_manifest: _source/model_facing/case_03/redaction_manifest.md

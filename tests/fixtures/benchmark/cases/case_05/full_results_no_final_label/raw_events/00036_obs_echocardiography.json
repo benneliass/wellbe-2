@@ -1,0 +1,32 @@
+{
+  "id": "ed7152a7-0dc6-5e49-8d7f-5b2ea9c5de15",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T12:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 36,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "cardiac_workup",
+      "category": "echocardiography",
+      "name": "Posterior wall thickness",
+      "result": "15.9",
+      "unit": "mm",
+      "reference_range": null,
+      "source_flag": "above_expected",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

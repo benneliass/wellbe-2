@@ -1,0 +1,27 @@
+{
+  "id": "b64c4a9e-76e5-5670-a2e8-fd5934858cf2",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 6,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C01",
+      "relative_time": "late_course",
+      "event_type": "test",
+      "event": "Upper gastrointestinal endoscopy and biopsy yielded label-revealing organism-specific findings.",
+      "withheld_from_blind": true
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

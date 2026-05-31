@@ -1,0 +1,32 @@
+{
+  "id": "1e442be6-d335-5df3-a343-848191636ec8",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-03T01:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 49,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "late_deterioration",
+      "category": "procedure",
+      "name": "Colonoscopy",
+      "result": "Normal",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "within_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

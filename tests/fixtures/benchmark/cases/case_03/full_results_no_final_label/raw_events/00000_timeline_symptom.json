@@ -1,0 +1,27 @@
+{
+  "id": "45798949-333e-52e6-a186-3763e218df74",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T00:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 0,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_reported"
+    },
+    "original": {
+      "case_id": "C03",
+      "relative_time": "two_weeks_before_ED",
+      "event_type": "symptom",
+      "event": "High-grade evening fevers, diffuse arthralgia, fatigue, and sore throat.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

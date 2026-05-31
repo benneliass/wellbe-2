@@ -1,0 +1,32 @@
+{
+  "id": "96bc4de1-76bb-5f8b-9871-4e2b653a1466",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 27,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_followup",
+      "category": "laboratory",
+      "name": "Haptoglobin",
+      "result": "93",
+      "unit": "mg/dL",
+      "reference_range": "40-240",
+      "source_flag": "within_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

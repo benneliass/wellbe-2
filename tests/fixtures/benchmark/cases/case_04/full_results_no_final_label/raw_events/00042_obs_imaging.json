@@ -1,0 +1,32 @@
+{
+  "id": "5a8736c4-a5bb-5b27-80a0-e4160e113cad",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 42,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "decisive",
+      "relative_time": "malignancy_screen",
+      "category": "imaging",
+      "name": "CT thorax/abdomen/pelvis and PET-CT",
+      "result": "No occult malignancy detected.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

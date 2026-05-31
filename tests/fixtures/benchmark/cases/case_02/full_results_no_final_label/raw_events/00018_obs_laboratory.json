@@ -1,0 +1,32 @@
+{
+  "id": "9a1fd7a8-0c33-5d1e-9a98-aa48186d9b1a",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 18,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "first_confusion_episode",
+      "category": "laboratory",
+      "name": "Serum creatinine",
+      "result": "2.13",
+      "unit": "mg/dL",
+      "reference_range": "0.4-1.0",
+      "source_flag": "above_reference",
+      "notes": "Prior normal before age 44; one year earlier 1.12 mg/dL."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

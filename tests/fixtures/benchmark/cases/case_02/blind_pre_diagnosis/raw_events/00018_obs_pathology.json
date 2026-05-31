@@ -1,0 +1,32 @@
+{
+  "id": "3974d20b-da52-5bab-8044-18cf61dda3af",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 18,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_biopsy",
+      "category": "pathology",
+      "name": "Renal biopsy light microscopy",
+      "result": "Chronic thrombotic microangiopathy-like features, extensive double contours, focal mesangial cell interposition, and early intravascular thrombi.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

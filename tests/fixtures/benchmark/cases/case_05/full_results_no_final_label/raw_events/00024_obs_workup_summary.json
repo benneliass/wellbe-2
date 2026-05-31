@@ -1,0 +1,32 @@
+{
+  "id": "7b65cc0d-883a-5cb8-896f-b7e90f6b4814",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T00:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 24,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jul_2023",
+      "category": "workup_summary",
+      "name": "Extensive investigations",
+      "result": "Unrevealing.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative_or_unrevealing",
+      "notes": "A chronic functional diarrhea working label was used before later tertiary evaluation."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

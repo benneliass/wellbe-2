@@ -1,0 +1,32 @@
+{
+  "id": "58410507-0648-5120-8adb-95bc98937aab",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T17:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 17,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "next_24_hours",
+      "category": "neurologic_exam",
+      "name": "Reflexes after progression",
+      "result": "Bilateral absent knee and ankle reflexes; upgoing plantar responses.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

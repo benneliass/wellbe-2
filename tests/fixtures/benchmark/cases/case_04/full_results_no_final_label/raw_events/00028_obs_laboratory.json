@@ -1,0 +1,32 @@
+{
+  "id": "997c2dd9-2879-5aba-b2ef-f9e81d5f05a0",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 28,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "LDL cholesterol",
+      "result": "4.9",
+      "unit": "mmol/L",
+      "reference_range": null,
+      "source_flag": "above_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

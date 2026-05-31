@@ -1,0 +1,32 @@
+{
+  "id": "20f87939-e036-5342-a271-9054c532f781",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 28,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "oct_2023",
+      "category": "stool_test",
+      "name": "72-hour fecal collection: fecal bile acid loss",
+      "result": "4.26",
+      "unit": "mmol/day",
+      "reference_range": "ULN 1.11",
+      "source_flag": "above_reference",
+      "notes": "Suggestive of malabsorption in source narrative."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

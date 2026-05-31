@@ -1,0 +1,27 @@
+{
+  "id": "9096b946-d565-529a-a9dc-0af79f3fec50",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T02:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 2,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_reported"
+    },
+    "original": {
+      "case_id": "C04",
+      "relative_time": "ED_onset",
+      "event_type": "symptom",
+      "event": "Sudden resolving chest pain followed by progressive right lower limb weakness.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

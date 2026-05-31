@@ -1,0 +1,32 @@
+{
+  "id": "7d92447c-437c-5023-85b5-1d053e4b1831",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T02:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 26,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "oct_2023",
+      "category": "anthropometric",
+      "name": "Weight",
+      "result": "60",
+      "unit": "kg",
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "After approximately 50 kg total weight loss."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

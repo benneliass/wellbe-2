@@ -1,0 +1,32 @@
+{
+  "id": "2ad32847-df8a-5288-b3ab-b7e8eb8feb28",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T20:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 20,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "pre_decisive",
+      "relative_time": "jul_2023",
+      "category": "clinical_assessment",
+      "name": "Malnutrition and weight loss",
+      "result": "Severe malnutrition and profound weight loss.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Effusions were presumed non-cardiac due to hypoalbuminemia/protein-losing enteropathy in the source narrative."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

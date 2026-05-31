@@ -40,7 +40,7 @@ class ProcessingRepository:
         is_hypothetical: bool = False,
         subject: str = "patient",
     ) -> uuid.UUID:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         row = ExtractedFactRow(
             id=id,
             patient_id=patient_id,
@@ -97,7 +97,7 @@ class ProcessingRepository:
         observation_window: str | None = None,
         quality_metadata: dict | None = None,
     ) -> uuid.UUID:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         row = HealthSignalRow(
             id=id,
             patient_id=patient_id,

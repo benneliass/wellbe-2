@@ -1,0 +1,32 @@
+{
+  "id": "b4afa980-1aaf-5f71-bfaa-1da5a232d263",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T15:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 15,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "initial_neuropsych_workup",
+      "category": "imaging",
+      "name": "Brain CT and MRI with contrast",
+      "result": "No significant organic lesion reported.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

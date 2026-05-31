@@ -1,0 +1,32 @@
+{
+  "id": "57323708-a6c1-573c-9073-9ba196fc892d",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T12:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 36,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "progression",
+      "category": "laboratory",
+      "name": "CSF and autoimmune CNS screen",
+      "result": "Negative.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

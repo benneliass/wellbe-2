@@ -1,0 +1,35 @@
+case_id: C04
+synthetic_user_id: 23b1d00e-65db-530a-9d4b-5bde4dc39a3f
+anchor_date: '2021-01-01T00:00:00Z'
+source_system: benchmark_corpus
+modes:
+  blind_pre_diagnosis:
+    event_count: 36
+    raw_events_dir: blind_pre_diagnosis/raw_events
+    description_md: '# Case C04: neutral patient-context dossier
+
+
+      A 55-year-old man presented with an acute spinal cord syndrome after sudden
+      chest pain and evolving lower-limb weakness, with preceding bowel/urinary symptoms
+      and a remote insect bite with a bullseye-like rash. MRI showed a long anterior
+      spinal cord T2 signal abnormality. He improved after high-dose corticosteroids,
+      and repeat MRI improved.'
+  full_results_no_final_label:
+    event_count: 46
+    raw_events_dir: full_results_no_final_label/raw_events
+    description_md: '# Case C04: full-results dossier without final diagnosis label
+
+
+      This version includes CSF immunoblot, neuronal antibody screen, antimicrobial
+      treatment, malignancy imaging, and rehabilitation outcome, while omitting the
+      final published diagnostic synthesis label.'
+source_files:
+  blind_pre_diagnosis:
+  - _source/model_facing/case_04/blind_pre_diagnosis/observations.json
+  - _source/model_facing/case_04/blind_pre_diagnosis/timeline.json
+  - _source/model_facing/case_04/blind_pre_diagnosis/patient_context.md
+  full_results_no_final_label:
+  - _source/model_facing/case_04/full_results_no_final_label/observations_full.json
+  - _source/model_facing/case_04/full_results_no_final_label/timeline_full.json
+  - _source/model_facing/case_04/full_results_no_final_label/patient_context_full.md
+  redaction_manifest: _source/model_facing/case_04/redaction_manifest.md

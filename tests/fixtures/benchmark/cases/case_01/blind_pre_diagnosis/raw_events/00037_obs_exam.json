@@ -1,0 +1,32 @@
+{
+  "id": "bf790754-52af-5107-8900-7e75cbb87e6b",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T13:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 37,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "later_workup",
+      "category": "exam",
+      "name": "Pathergy testing",
+      "result": "Negative",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

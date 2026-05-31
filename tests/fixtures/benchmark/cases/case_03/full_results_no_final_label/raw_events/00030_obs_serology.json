@@ -1,0 +1,32 @@
+{
+  "id": "e9855e08-c43a-57ad-8252-261e7f2d58f7",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 30,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "infectious_workup",
+      "category": "serology",
+      "name": "Dengue, chikungunya, leptospirosis, brucellosis, typhoid",
+      "result": "Negative.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

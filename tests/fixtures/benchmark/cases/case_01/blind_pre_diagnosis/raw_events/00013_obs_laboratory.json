@@ -1,0 +1,32 @@
+{
+  "id": "5ad6b12f-4b1d-5e27-a87a-ad6c26d819be",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T13:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 13,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "initial_rheumatology_workup",
+      "category": "laboratory",
+      "name": "ASO",
+      "result": "689",
+      "unit": "IU/mL",
+      "reference_range": "<200",
+      "source_flag": "above_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

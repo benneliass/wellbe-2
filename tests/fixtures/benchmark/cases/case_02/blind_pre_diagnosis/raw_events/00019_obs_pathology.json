@@ -1,0 +1,32 @@
+{
+  "id": "74ab2563-2689-5019-8e4a-50430ce8b30c",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T19:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 19,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_biopsy",
+      "category": "pathology",
+      "name": "Renal biopsy immunofluorescence",
+      "result": "Strong IgG and C1q, moderate IgM and C4, and punctate deposits reported.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": "Initially interpreted in a different renal immune-pattern category."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

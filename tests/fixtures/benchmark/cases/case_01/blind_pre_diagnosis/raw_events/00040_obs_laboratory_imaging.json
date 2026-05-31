@@ -1,0 +1,32 @@
+{
+  "id": "f79e3f21-71ca-5935-9d18-69b4e9451c38",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T16:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 40,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "later_workup",
+      "category": "laboratory_imaging",
+      "name": "Malignancy screening",
+      "result": "No evidence of lymphoma, hypernephroma, or myeloma on labs/imaging and hematology assessment.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": "Testing included SPEP, UPEP, and CT studies."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

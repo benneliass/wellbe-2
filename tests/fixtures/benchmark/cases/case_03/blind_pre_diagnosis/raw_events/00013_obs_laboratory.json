@@ -1,0 +1,32 @@
+{
+  "id": "7c508917-7400-5028-b96d-7dbbe7eea8de",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T13:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 13,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "ESR",
+      "result": "24",
+      "unit": "mm/h",
+      "reference_range": "<20",
+      "source_flag": "above_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

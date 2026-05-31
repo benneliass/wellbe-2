@@ -1,0 +1,32 @@
+{
+  "id": "a6af8c91-096a-5cf7-8564-4fb82b46dd84",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 31,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "initial_imaging",
+      "category": "imaging",
+      "name": "CT brain",
+      "result": "Mild cerebral atrophy and periventricular low-density changes consistent with chronic microvascular disease.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal_chronic",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

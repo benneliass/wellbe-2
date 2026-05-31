@@ -1,0 +1,32 @@
+{
+  "id": "e4e8d582-5171-5365-9a9c-fcc23c10b231",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 6,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "baseline",
+      "category": "demographics",
+      "name": "Age and sex",
+      "result": "55-year-old right-handed man.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Delivery driver; hypertension on beta blocker; ex-smoker, 30 pack-year history."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

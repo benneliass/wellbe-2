@@ -1,0 +1,32 @@
+{
+  "id": "fb26983f-ebe2-5d06-a37f-e1a0b2e6115f",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 27,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "six_months_after_methotrexate",
+      "category": "symptom",
+      "name": "Fever",
+      "result": "38.9",
+      "unit": "C",
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "96dbdd01-ebbc-5835-9170-311dd80267d2",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 30,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "oct_2023_biopsy",
+      "category": "pathology",
+      "name": "Duodenal biopsy",
+      "result": "Deposits in submucosal blood vessels; Congo red-positive tissue signal reported in related rectal biopsy.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal_positive",
+      "notes": "The disease-family noun is omitted from this model-facing result to avoid direct label leakage; full unredacted pathology is in answer_key."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

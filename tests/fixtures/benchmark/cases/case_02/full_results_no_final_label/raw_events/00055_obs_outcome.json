@@ -1,0 +1,32 @@
+{
+  "id": "db4d8797-eca8-5ef8-8aed-f6eed2aa58d3",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 55,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "post_decisive",
+      "relative_time": "weeks_after_treatment",
+      "category": "outcome",
+      "name": "Neurologic and renal response",
+      "result": "Marked neurological improvement, partial imaging improvement, GFR partial improvement, serum creatinine 3.3 mg/dL, weaned from hemodialysis.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

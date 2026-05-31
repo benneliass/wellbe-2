@@ -1,0 +1,32 @@
+{
+  "id": "429b940b-a206-5a2e-91f9-aaea42d43940",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T01:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 49,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "decisive",
+      "relative_time": "after_eculizumab_nonresponse",
+      "category": "laboratory",
+      "name": "Plasma total homocysteine",
+      "result": ">130",
+      "unit": "umol/L",
+      "reference_range": null,
+      "source_flag": "above_reference",
+      "notes": "Prompted a metabolic diagnostic direction."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

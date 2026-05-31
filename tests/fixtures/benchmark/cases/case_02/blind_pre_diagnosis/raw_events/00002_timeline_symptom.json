@@ -1,0 +1,27 @@
+{
+  "id": "2f5648fa-6781-58d0-b268-8a7f1308f0b1",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T02:00:00Z",
+  "privacy_class": "mental_health",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 2,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_reported"
+    },
+    "original": {
+      "case_id": "C02",
+      "relative_time": "months_before_admission",
+      "event_type": "symptom",
+      "event": "Confusion, insomnia, visual hallucinations, visual impairment, and reasoning difficulty.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

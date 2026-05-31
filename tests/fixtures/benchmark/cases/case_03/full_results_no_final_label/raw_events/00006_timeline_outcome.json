@@ -1,0 +1,27 @@
+{
+  "id": "eb372470-f8a6-5ccd-a78c-b126f7da1eb9",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 6,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C03",
+      "relative_time": "after_systemic_steroids",
+      "event_type": "outcome",
+      "event": "Rapid fever, symptom, inflammatory marker, ferritin, and liver enzyme improvement after systemic corticosteroids.",
+      "withheld_from_blind": true
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

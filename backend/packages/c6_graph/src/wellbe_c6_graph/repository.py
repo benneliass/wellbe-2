@@ -24,7 +24,7 @@ class GraphRepository:
         node_metadata: dict | None = None,
     ) -> KgNodeRow:
         """Insert or update a knowledge graph node (upsert on patient_id + normalized_key)."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
         stmt = select(KgNodeRow).where(
             KgNodeRow.patient_id == patient_id,
@@ -76,7 +76,7 @@ class GraphRepository:
         score_inputs: dict | None = None,
         thread_ids: list[uuid.UUID] | None = None,
     ) -> KgEdgeRow:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         edge = KgEdgeRow(
             id=uuid.uuid4(),
             from_node_id=from_node_id,
@@ -98,7 +98,7 @@ class GraphRepository:
 
     async def mark_needs_rescore(self, node_id: uuid.UUID) -> int:
         """Mark all edges connected to a node as needing rescore."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         stmt = (
             update(KgEdgeRow)
             .where(

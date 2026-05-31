@@ -1,0 +1,33 @@
+case_id: C05
+synthetic_user_id: 8e2138f0-a50a-5f54-a42e-719254a5fafd
+anchor_date: '2022-01-01T00:00:00Z'
+source_system: benchmark_corpus
+modes:
+  blind_pre_diagnosis:
+    event_count: 27
+    raw_events_dir: blind_pre_diagnosis/raw_events
+    description_md: '# Case C05: neutral patient-context dossier
+
+
+      A 68-year-old man had a prolonged multi-center gastrointestinal and weight-loss
+      presentation with diarrhea, malnutrition, third spacing, presyncope, reduced
+      exercise tolerance, and unrevealing initial investigations. The strict blind
+      file ends before the decisive deep biopsy, cardiac workup, and genetic result.'
+  full_results_no_final_label:
+    event_count: 45
+    raw_events_dir: full_results_no_final_label/raw_events
+    description_md: '# Case C05: full-results dossier without final diagnosis label
+
+
+      This version includes biopsy findings, cardiac tests, genetic testing, treatment,
+      and family screening while omitting the final diagnostic label.'
+source_files:
+  blind_pre_diagnosis:
+  - _source/model_facing/case_05/blind_pre_diagnosis/observations.json
+  - _source/model_facing/case_05/blind_pre_diagnosis/timeline.json
+  - _source/model_facing/case_05/blind_pre_diagnosis/patient_context.md
+  full_results_no_final_label:
+  - _source/model_facing/case_05/full_results_no_final_label/observations_full.json
+  - _source/model_facing/case_05/full_results_no_final_label/timeline_full.json
+  - _source/model_facing/case_05/full_results_no_final_label/patient_context_full.md
+  redaction_manifest: _source/model_facing/case_05/redaction_manifest.md

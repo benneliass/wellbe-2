@@ -1,0 +1,32 @@
+{
+  "id": "d550c4d9-5590-5427-ba98-0618a0d4ec09",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 8,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "baseline/history",
+      "category": "demographics",
+      "name": "Age and sex",
+      "result": "40-year-old white male",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Polish descent; raised in New Jersey; network engineer."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

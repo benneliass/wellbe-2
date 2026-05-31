@@ -1,0 +1,53 @@
+corpus: wellbe-real-world-cases
+version: 1.0.0
+shape: wellbe-ingest
+source_system: benchmark_corpus
+user_id_namespace: wellbe-benchmark-corpus-v1
+# Runtime demo (KAN-193): single showcase user; per-case synthetic_user_id below is for offline eval only.
+demo_user_id: da5d5056-a263-5d8c-b8f8-6c925d2e5cab
+demo_user_email: demo@wellbe-demo.local
+demo_user_display_name: Demo
+modes:
+- blind_pre_diagnosis
+- full_results_no_final_label
+cases:
+- case_id: C01
+  synthetic_user_id: 61b3a25e-867f-50f2-9e6f-0483ec54e245
+  anchor_date: '2018-01-01T00:00:00Z'
+  case_dir: cases/case_01
+  answer_key_dir: answer_key/case_01
+  event_counts:
+    blind_pre_diagnosis: 51
+    full_results_no_final_label: 56
+- case_id: C02
+  synthetic_user_id: 00697626-0025-5d87-9576-20367e50c0e1
+  anchor_date: '2019-01-01T00:00:00Z'
+  case_dir: cases/case_02
+  answer_key_dir: answer_key/case_02
+  event_counts:
+    blind_pre_diagnosis: 47
+    full_results_no_final_label: 59
+- case_id: C03
+  synthetic_user_id: cd2e1041-bc5b-5c4e-adae-1786c640079e
+  anchor_date: '2020-01-01T00:00:00Z'
+  case_dir: cases/case_03
+  answer_key_dir: answer_key/case_03
+  event_counts:
+    blind_pre_diagnosis: 36
+    full_results_no_final_label: 49
+- case_id: C04
+  synthetic_user_id: 23b1d00e-65db-530a-9d4b-5bde4dc39a3f
+  anchor_date: '2021-01-01T00:00:00Z'
+  case_dir: cases/case_04
+  answer_key_dir: answer_key/case_04
+  event_counts:
+    blind_pre_diagnosis: 36
+    full_results_no_final_label: 46
+- case_id: C05
+  synthetic_user_id: 8e2138f0-a50a-5f54-a42e-719254a5fafd
+  anchor_date: '2022-01-01T00:00:00Z'
+  case_dir: cases/case_05
+  answer_key_dir: answer_key/case_05
+  event_counts:
+    blind_pre_diagnosis: 27
+    full_results_no_final_label: 45

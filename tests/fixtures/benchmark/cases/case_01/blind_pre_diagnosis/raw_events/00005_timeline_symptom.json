@@ -1,0 +1,27 @@
+{
+  "id": "e232b811-57cc-5eef-aeb6-a8d4b60445ae",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 5,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_reported"
+    },
+    "original": {
+      "case_id": "C01",
+      "relative_time": "late_course",
+      "event_type": "symptom",
+      "event": "Marked deterioration with edema, explosive diarrhea, and more than 45 kg unintentional weight loss.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

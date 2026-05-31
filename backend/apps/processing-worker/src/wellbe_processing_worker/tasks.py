@@ -11,6 +11,7 @@ import dramatiq
 from dramatiq.brokers.redis import RedisBroker
 
 from wellbe_contracts.c2_vault import RawContextEvent, RAW_CONTEXT_RECEIVED
+import wellbe_c2_vault.models  # noqa: F401 — ensure vault tables registered in Base.metadata
 from wellbe_contracts.c4_processing import (
     FACT_EXTRACTED,
     HEALTH_SIGNAL_CREATED,
@@ -43,11 +44,11 @@ async def _extract_facts(event_json: str) -> None:
     from wellbe_c4_processing.dispatcher import decide_route, DispatchRoute
     from wellbe_c5_evidence import EvidenceService
     from wellbe_events import emit_event
-    from wellbe_db import create_session_factory
+    from wellbe_db import create_engine, create_session_factory
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
-    session_factory = create_session_factory(settings.database_url)
+    session_factory = create_session_factory(create_engine(settings.database_url))
 
     data = json.loads(event_json)
     event = RawContextEvent.model_validate(data)
@@ -83,7 +84,7 @@ async def _extract_facts(event_json: str) -> None:
                 pipeline_version=PIPELINE_VERSION,
                 quality_flag=result.quality_flag.value,
                 quality_metadata=result.quality_metadata,
-                captured_at=event.captured_at,
+                captured_at=event.captured_at.replace(tzinfo=None) if event.captured_at.tzinfo else event.captured_at,
                 correlation_id=event.correlation_id,
                 trace_id=event.trace_id,
                 code_system=result.code_system,
@@ -138,6 +139,22 @@ async def _extract_facts(event_json: str) -> None:
 
         await session.commit()
 
+    # Wire graph node creation directly (no separate Dramatiq worker running)
+    for result in results:
+        fact_payload = FactExtractedPayload(
+            fact_id=uuid.uuid4(),  # approximate; node upsert is idempotent on normalized_key
+            patient_id=event.patient_id,
+            raw_context_event_id=event.id,
+            fact_type=result.fact_type,
+            entity_label=result.entity_label,
+            normalized_key=result.normalized_key,
+            extraction_confidence=result.extraction_confidence,
+            quality_flag=result.quality_flag,
+            correlation_id=event.correlation_id,
+            trace_id=event.trace_id,
+        )
+        await _create_graph_node(fact_payload.model_dump_json())
+
 
 FACT_TYPE_TO_NODE_TYPE: dict[str, str] = {
     "symptom": "Symptom",
@@ -164,11 +181,11 @@ def create_graph_node_task(fact_extracted_json: str) -> None:
 async def _create_graph_node(fact_extracted_json: str) -> None:
     from wellbe_c6_graph import GraphRepository
     from wellbe_events import emit_event
-    from wellbe_db import create_session_factory
+    from wellbe_db import create_engine, create_session_factory
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
-    session_factory = create_session_factory(settings.database_url)
+    session_factory = create_session_factory(create_engine(settings.database_url))
 
     data = json.loads(fact_extracted_json)
     payload = FactExtractedPayload.model_validate(data)
@@ -210,11 +227,11 @@ def score_graph_edges_task(evidence_linked_json: str) -> None:
 async def _score_graph_edges(evidence_linked_json: str) -> None:
     from wellbe_c6_graph import GraphRepository, PotentialScoreComputer, ScoreInput
     from wellbe_events import emit_event
-    from wellbe_db import create_session_factory
+    from wellbe_db import create_engine, create_session_factory
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
-    session_factory = create_session_factory(settings.database_url)
+    session_factory = create_session_factory(create_engine(settings.database_url))
 
     data = json.loads(evidence_linked_json)
     payload = EvidenceLinkedPayload.model_validate(data)

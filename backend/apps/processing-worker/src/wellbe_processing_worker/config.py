@@ -7,5 +7,6 @@ class ProcessingWorkerSettings(BaseServiceSettings):
     service_name: str = "processing-worker"
     redis_url: str = "redis://localhost:6379/0"
     database_url: str = "postgresql+asyncpg://wellbe:wellbe_dev@localhost:5432/wellbe"
+    vault_writer_url: str = "http://localhost:8002"
     temporal_host: str = "localhost:7233"
     extraction_model: str = "wellbe-text-extractor"

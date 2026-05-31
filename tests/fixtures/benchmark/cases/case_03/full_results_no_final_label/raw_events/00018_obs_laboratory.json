@@ -1,0 +1,32 @@
+{
+  "id": "d6fb087d-2546-5431-acf2-8b9e0342e4ff",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-01T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 18,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "initial_labs",
+      "category": "laboratory",
+      "name": "AST",
+      "result": "76",
+      "unit": "U/L",
+      "reference_range": "<40",
+      "source_flag": "above_reference",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

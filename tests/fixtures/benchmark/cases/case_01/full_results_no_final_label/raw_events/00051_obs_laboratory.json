@@ -1,0 +1,32 @@
+{
+  "id": "8f20f92d-b5f0-545d-8e3e-aad97bcd32f5",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-03T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 51,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "late_deterioration",
+      "category": "laboratory",
+      "name": "Albumin",
+      "result": "2.6",
+      "unit": "g/dL",
+      "reference_range": "3.4-5.4",
+      "source_flag": "below_reference",
+      "notes": "Reversed albumin/globulin ratio also reported."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

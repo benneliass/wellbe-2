@@ -1,0 +1,32 @@
+{
+  "id": "ae57de30-fae5-5770-a13b-92396469298e",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T11:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 35,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "hospital_day_10",
+      "category": "imaging",
+      "name": "Repeat MRI",
+      "result": "Interval resolution of lower cord/conus T2 signal.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "improved",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

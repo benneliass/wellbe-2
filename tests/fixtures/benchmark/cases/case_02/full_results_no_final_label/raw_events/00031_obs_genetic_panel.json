@@ -1,0 +1,32 @@
+{
+  "id": "22f3d612-5530-5938-b34d-f00a7a969715",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T07:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 31,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_followup",
+      "category": "genetic_panel",
+      "name": "Complement/TMA gene panel",
+      "result": "No pathogenic variants in CFH, CFI, CFB, C3, CD46, THBD, DGKE, CFHR1, CFHR3, CFHR5.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

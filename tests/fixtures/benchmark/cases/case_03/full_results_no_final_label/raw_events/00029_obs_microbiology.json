@@ -1,0 +1,32 @@
+{
+  "id": "59286ead-c254-529c-8355-3e5c29312e93",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 29,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "pre_decisive",
+      "relative_time": "infectious_workup",
+      "category": "microbiology",
+      "name": "Blood, urine, and sputum cultures",
+      "result": "Negative.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

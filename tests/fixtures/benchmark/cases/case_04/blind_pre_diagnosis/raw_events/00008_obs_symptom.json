@@ -1,0 +1,32 @@
+{
+  "id": "4e739242-3499-5691-817c-62d34f0032a1",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 8,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "pre_decisive",
+      "relative_time": "two_weeks_before_ED",
+      "category": "symptom",
+      "name": "Bowel and urinary symptoms",
+      "result": "Constipation and difficulty passing urine.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

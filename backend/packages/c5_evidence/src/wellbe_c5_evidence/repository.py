@@ -29,7 +29,7 @@ class EvidenceRepository:
         relevance_span_end: int | None = None,
         correction_id: uuid.UUID | None = None,
     ) -> uuid.UUID:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         row = EvidenceLinkRow(
             id=id,
             source_type=source_type,

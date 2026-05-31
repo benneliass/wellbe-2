@@ -1,0 +1,32 @@
+{
+  "id": "890f2b1f-b300-53b2-9e51-27b9ee69517c",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T14:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 38,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "cardiac_workup",
+      "category": "ECG",
+      "name": "ECG",
+      "result": "Low QRS voltages in peripheral leads; pseudo-infarction pattern with QS in V1-V2 and small R in V3.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

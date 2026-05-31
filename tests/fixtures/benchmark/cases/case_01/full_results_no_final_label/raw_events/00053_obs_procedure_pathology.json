@@ -1,0 +1,32 @@
+{
+  "id": "3138797e-bcd5-5a10-872e-8ecd61ec21ca",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-03T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 53,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "decisive",
+      "relative_time": "late_deterioration_after_upper_endoscopy",
+      "category": "procedure_pathology",
+      "name": "Upper gastrointestinal endoscopy with biopsy",
+      "result": "Small-bowel biopsy reported PAS-positive material/macrophage pattern and organism-targeted PCR positivity. Publication names the organism in the answer-key file.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "positive",
+      "notes": "The full organism string is kept in answer_key/decisive_reports_unredacted.md because it is effectively label-revealing."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

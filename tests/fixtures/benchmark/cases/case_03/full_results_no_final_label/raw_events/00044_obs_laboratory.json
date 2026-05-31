@@ -1,0 +1,32 @@
+{
+  "id": "ed77f84f-ac1d-5b50-b797-02edc52d0577",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T20:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 44,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "post_decisive",
+      "relative_time": "after_steroids",
+      "category": "laboratory",
+      "name": "CRP after response",
+      "result": "Approximately halved.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "improved",
+      "notes": "Exact value not published."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

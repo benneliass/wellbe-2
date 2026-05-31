@@ -1,0 +1,32 @@
+{
+  "id": "b51d51b4-78b6-5b94-b663-73ad6321f457",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T06:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 30,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_followup",
+      "category": "laboratory",
+      "name": "ADAMTS13 and complement factor H",
+      "result": "Normal",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "within_reference",
+      "notes": "No anti-factor H antibodies."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

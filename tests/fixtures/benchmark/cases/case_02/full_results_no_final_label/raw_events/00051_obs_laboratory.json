@@ -1,0 +1,32 @@
+{
+  "id": "897d9652-bbcf-540b-a7a0-90516a506000",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T03:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 51,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "decisive",
+      "relative_time": "icu_course",
+      "category": "laboratory",
+      "name": "Plasma methionine",
+      "result": "6.5",
+      "unit": "umol/L",
+      "reference_range": null,
+      "source_flag": "below_expected",
+      "notes": "Reference not published in source."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

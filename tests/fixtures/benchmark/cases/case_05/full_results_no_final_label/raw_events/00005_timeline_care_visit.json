@@ -1,0 +1,27 @@
+{
+  "id": "fcb6e037-e5d1-5ecd-acbb-9c02f04635fc",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-01T05:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 5,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinical_event"
+    },
+    "original": {
+      "case_id": "C05",
+      "relative_time": "oct_2023",
+      "event_type": "care_visit",
+      "event": "Tertiary referral for postprandial syncope and approximately 50 kg weight loss over two years; weight 60 kg.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

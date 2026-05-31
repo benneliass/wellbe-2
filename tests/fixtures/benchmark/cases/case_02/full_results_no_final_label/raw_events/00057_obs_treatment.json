@@ -1,0 +1,32 @@
+{
+  "id": "7b021cb9-bd43-54da-8237-47477429dbf0",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-03T09:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 57,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "post_decisive",
+      "relative_time": "discharge",
+      "category": "treatment",
+      "name": "Discharge regimen",
+      "result": "5 mg intramuscular hydroxycobalamin 5 days/week, betaine 9 g/day, folic acid 5 mg 3 days/week.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

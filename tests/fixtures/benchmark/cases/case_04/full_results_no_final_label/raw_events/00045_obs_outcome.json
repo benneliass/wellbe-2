@@ -1,0 +1,32 @@
+{
+  "id": "2c7c4055-b5cf-5d21-9ea0-8180e2059ba5",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-02T21:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 45,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C04",
+      "phase": "post_decisive",
+      "relative_time": "six_weeks_after_discharge",
+      "category": "outcome",
+      "name": "Mobility, bowel, bladder",
+      "result": "Walking unaided with a stick; bowel and bladder function recovered.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "improved",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

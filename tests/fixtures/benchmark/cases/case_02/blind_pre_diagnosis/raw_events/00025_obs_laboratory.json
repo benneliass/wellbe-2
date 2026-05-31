@@ -1,0 +1,32 @@
+{
+  "id": "bcf57bef-3729-5da4-9ac9-50d83cf323bb",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T01:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 25,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_followup",
+      "category": "laboratory",
+      "name": "Platelets",
+      "result": "156000",
+      "unit": "/uL",
+      "reference_range": "156000-405000",
+      "source_flag": "within_reference_low_end",
+      "notes": "No schistocytes reported at this stage."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

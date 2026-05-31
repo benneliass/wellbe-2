@@ -1,0 +1,32 @@
+{
+  "id": "abc52a1f-615c-5e5c-b2c3-177f671eb289",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T18:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 42,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "genetic_testing",
+      "category": "genetic",
+      "name": "TTR variant",
+      "result": "Pathogenic TTR c.250T>C, p.Phe84Leu.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "positive",
+      "notes": "Raw genetic result retained; final diagnostic label withheld."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

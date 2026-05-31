@@ -1,0 +1,32 @@
+{
+  "id": "8348c6b5-b6ae-5cdb-b0ce-99b7bc2623be",
+  "user_id": "cd2e1041-bc5b-5c4e-adae-1786c640079e",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2020-01-02T15:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C03",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 39,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C03",
+      "phase": "decisive",
+      "relative_time": "classification_review",
+      "category": "classification_data",
+      "name": "Arthralgia criterion",
+      "result": "Arthralgia longer than two weeks.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "met",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

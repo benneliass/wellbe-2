@@ -1,0 +1,27 @@
+{
+  "id": "40798878-0462-5276-afe1-41b6c1b3043c",
+  "user_id": "23b1d00e-65db-530a-9d4b-5bde4dc39a3f",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2021-01-01T00:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "timeline_event",
+    "benchmark": {
+      "case_id": "C04",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 0,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_reported"
+    },
+    "original": {
+      "case_id": "C04",
+      "relative_time": "six_months_before_event",
+      "event_type": "history",
+      "event": "Insect bite followed by bullseye-like rash.",
+      "withheld_from_blind": false
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

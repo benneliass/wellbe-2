@@ -1,0 +1,32 @@
+{
+  "id": "8e4a5163-3921-5bfb-bf74-650c39fa96cf",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "doctor_note",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T04:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 28,
+      "source_evidence_level_hint": "doctor_summary",
+      "source_mapping_rule": "clinician_assessment"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "subsequent_course",
+      "category": "treatment",
+      "name": "Empirical antimicrobial/anti-inflammatory treatment",
+      "result": "Treatment was given for two suspected named conditions.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Named suspected conditions withheld from blind file to avoid label leakage."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

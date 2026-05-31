@@ -1,0 +1,32 @@
+{
+  "id": "3f24e98b-a0e9-51fa-a71c-f46a07932ac7",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-01T22:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 22,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "renal_biopsy",
+      "category": "pathology",
+      "name": "Renal biopsy electron microscopy",
+      "result": "Electron-dense deposits reported.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "a2e6fb2f-52b2-5994-9b56-fbfccec976b6",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "manual_input",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-01T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 8,
+      "source_evidence_level_hint": "single_user_report",
+      "source_mapping_rule": "user_narrative"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "year_0_to_year_2",
+      "category": "symptom",
+      "name": "Joint episodes",
+      "result": "Recurrent migratory, asymmetrical polyarticular inflammatory pain involving ankles and wrists; episodes lasted hours to days.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "reported",
+      "notes": "Partially relieved by NSAIDs."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "fbfb94fb-906e-58cb-aeac-18fe02a1f66a",
+  "user_id": "61b3a25e-867f-50f2-9e6f-0483ec54e245",
+  "source_type": "lab_result",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2018-01-02T00:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C01",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 24,
+      "source_evidence_level_hint": "lab_confirmed",
+      "source_mapping_rule": "lab"
+    },
+    "original": {
+      "case_id": "C01",
+      "phase": "pre_decisive",
+      "relative_time": "initial_rheumatology_workup",
+      "category": "laboratory",
+      "name": "Uric acid",
+      "result": "Negative or not supportive",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "negative",
+      "notes": "Publication reports uric acid among negative/not supportive tests."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

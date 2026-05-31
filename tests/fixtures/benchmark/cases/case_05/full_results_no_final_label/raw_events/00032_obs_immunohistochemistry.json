@@ -1,0 +1,32 @@
+{
+  "id": "6bab9f56-e64f-58a9-9ab4-13faea8a57b2",
+  "user_id": "8e2138f0-a50a-5f54-a42e-719254a5fafd",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2022-01-02T08:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C05",
+      "mode": "full_results_no_final_label",
+      "sequence_index": 32,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C05",
+      "phase": "decisive",
+      "relative_time": "oct_2023_biopsy",
+      "category": "immunohistochemistry",
+      "name": "Tissue immunohistochemistry",
+      "result": "Positive for TTR.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "positive",
+      "notes": "Raw IHC target retained; final diagnostic label withheld."
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}

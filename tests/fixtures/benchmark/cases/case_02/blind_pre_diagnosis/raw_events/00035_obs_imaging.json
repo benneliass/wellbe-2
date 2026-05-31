@@ -1,0 +1,32 @@
+{
+  "id": "8f2df3da-d5f1-57b2-8656-9812c55568e8",
+  "user_id": "00697626-0025-5d87-9576-20367e50c0e1",
+  "source_type": "medical_document",
+  "source_system": "benchmark_corpus",
+  "captured_at": "2019-01-02T11:00:00Z",
+  "privacy_class": "medical",
+  "raw_payload": {
+    "kind": "observation",
+    "benchmark": {
+      "case_id": "C02",
+      "mode": "blind_pre_diagnosis",
+      "sequence_index": 35,
+      "source_evidence_level_hint": "institution_record",
+      "source_mapping_rule": "imaging"
+    },
+    "original": {
+      "case_id": "C02",
+      "phase": "pre_decisive",
+      "relative_time": "progression",
+      "category": "imaging",
+      "name": "Brain PET",
+      "result": "Suggested inflammatory process in bilateral occipital regions.",
+      "unit": null,
+      "reference_range": null,
+      "source_flag": "abnormal",
+      "notes": ""
+    }
+  },
+  "schema_version": "1.0.0",
+  "retention_policy": "benchmark_no_retention"
+}
