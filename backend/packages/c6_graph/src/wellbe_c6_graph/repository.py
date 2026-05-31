@@ -21,7 +21,7 @@ class GraphRepository:
         normalized_key: str,
         display_label: str,
         thread_ids: list[uuid.UUID] | None = None,
-        metadata: dict | None = None,
+        node_metadata: dict | None = None,
     ) -> KgNodeRow:
         """Insert or update a knowledge graph node (upsert on patient_id + normalized_key)."""
         now = datetime.now(timezone.utc)
@@ -39,10 +39,10 @@ class GraphRepository:
             if thread_ids:
                 existing_set = set(existing.thread_ids or [])
                 existing.thread_ids = list(existing_set | set(thread_ids))
-            if metadata:
-                merged = dict(existing.metadata or {})
-                merged.update(metadata)
-                existing.metadata = merged
+            if node_metadata:
+                merged = dict(existing.node_metadata or {})
+                merged.update(node_metadata)
+                existing.node_metadata = merged
             await self._session.flush()
             return existing
 
@@ -54,7 +54,7 @@ class GraphRepository:
             display_label=display_label,
             status="active",
             thread_ids=thread_ids or [],
-            metadata=metadata,
+            node_metadata=node_metadata,
             first_seen_at=now,
             last_seen_at=now,
             schema_version=1,

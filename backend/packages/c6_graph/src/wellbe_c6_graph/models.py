@@ -49,7 +49,7 @@ class KgNodeRow(Base):
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list
     )
     embedding_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    node_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB(), nullable=True)
     first_seen_at: Mapped[datetime] = mapped_column(nullable=False)
     last_seen_at: Mapped[datetime] = mapped_column(nullable=False)
     schema_version: Mapped[int] = mapped_column(Integer(), nullable=False, default=1)
