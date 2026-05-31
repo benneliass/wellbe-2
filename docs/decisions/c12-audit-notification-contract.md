@@ -1,8 +1,8 @@
 # Decision: C12 append-only audit and closure-oriented notifications
 
-**Status:** Proposed - awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-06-01  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Story:** WEL-75  
 **Blocks:** WEL-75 — Build append-only audit log and closure-oriented notification service

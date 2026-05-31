@@ -1,8 +1,8 @@
 # Decision: C13 versioned API and contract boundary
 
-**Status:** Proposed - awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-06-01  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Story:** WEL-127  
 **Blocks:** WEL-127 — Version API contract for Investigation, Theory, External Evidence, and Grant
