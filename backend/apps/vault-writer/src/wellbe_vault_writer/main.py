@@ -4,16 +4,17 @@ import hashlib
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from wellbe_c2_vault import S3BlobStore, VaultRepository
 from wellbe_contracts.c2_vault import RawContextEvent, VaultWriteRequest, VaultWriteResponse
 from wellbe_db import AsyncSessionFactory, create_engine, create_session_factory
 from wellbe_events import emit_event
 
+from wellbe_vault_writer.blob_keys import build_raw_blob_key
 from wellbe_vault_writer.config import VaultWriterSettings
 
 settings = VaultWriterSettings()
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         access_key=settings.s3_access_key,
         secret_key=settings.s3_secret_key,
         bucket=settings.s3_bucket_raw,
+        retention_days=settings.s3_object_lock_retention_days,
     )
     yield
     await engine.dispose()
@@ -41,7 +43,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 app = FastAPI(
     title="WellBe Vault Writer",
     version="0.1.0",
-    description="C2/C3 Vault Writer: the ONLY process with INSERT permission on raw_context_events.",
+    description=(
+        "C2/C3 Vault Writer: the ONLY process with INSERT permission on raw_context_events."
+    ),
     lifespan=lifespan,
 )
 
@@ -51,10 +55,13 @@ async def _get_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
+SessionDep = Annotated[AsyncSession, Depends(_get_session)]
+
+
 @app.post("/vault/events", response_model=VaultWriteResponse, status_code=201)
 async def write_event(
     req: VaultWriteRequest,
-    session: AsyncSession = Depends(_get_session),
+    session: SessionDep,
 ) -> VaultWriteResponse:
     content_hash = hashlib.sha256(req.normalized_payload).hexdigest()
 
@@ -67,7 +74,7 @@ async def write_event(
             raise HTTPException(status_code=500, detail="Duplicate record vanished")
         existing_ingested = existing.ingested_at
         if existing_ingested.tzinfo is None:
-            existing_ingested = existing_ingested.replace(tzinfo=timezone.utc)
+            existing_ingested = existing_ingested.replace(tzinfo=UTC)
         return VaultWriteResponse(
             event_id=existing.id,
             content_hash=content_hash,
@@ -76,12 +83,12 @@ async def write_event(
         )
 
     event_id = uuid.uuid4()
-    blob_key = f"raw/patient/{req.patient_id}/event/{event_id}/blob"
+    blob_key = build_raw_blob_key(req.patient_id, event_id)
     blob_version_id = await _blob_store.upload_blob(
         blob_key, req.normalized_payload, content_hash
     )
 
-    now_aware = datetime.now(timezone.utc)
+    now_aware = datetime.now(UTC)
     now = now_aware.replace(tzinfo=None)  # naive UTC for TIMESTAMP WITHOUT TIME ZONE columns
     prov = req.adapter_provenance
     captured_at = prov.captured_at
@@ -146,7 +153,7 @@ async def write_event(
 @app.get("/vault/events/{event_id}", response_model=RawContextEvent)
 async def get_event(
     event_id: uuid.UUID,
-    session: AsyncSession = Depends(_get_session),
+    session: SessionDep,
 ) -> RawContextEvent:
     repo = VaultRepository(session)
     row = await repo.get_event(event_id)

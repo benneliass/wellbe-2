@@ -17,4 +17,5 @@ class VaultWriterSettings(BaseSettings):
     s3_access_key: str = "minioadmin"
     s3_secret_key: str = "minioadmin"
     s3_bucket_raw: str = "wellbe-raw"
+    s3_object_lock_retention_days: int = 365
     redis_url: str = "redis://localhost:6379/0"

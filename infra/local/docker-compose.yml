@@ -70,8 +70,8 @@ services:
     entrypoint: >
       /bin/sh -c "
       mc alias set local http://minio:9000 wellbe_minio wellbe_minio_dev &&
-      mc mb --ignore-existing local/wellbe-raw-context &&
-      mc mb --ignore-existing local/wellbe-documents &&
+      mc mb --ignore-existing --with-lock local/wellbe-raw-context-locked &&
+      mc mb --ignore-existing --with-lock local/wellbe-documents &&
       echo 'MinIO buckets ready'
       "
 

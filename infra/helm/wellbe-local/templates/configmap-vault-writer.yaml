@@ -10,6 +10,7 @@ data:
   WELLBE_S3_ACCESS_KEY: {{ .Values.vaultWriter.config.s3AccessKey | quote }}
   WELLBE_S3_SECRET_KEY: {{ .Values.vaultWriter.config.s3SecretKey | quote }}
   WELLBE_S3_BUCKET_RAW: {{ .Values.vaultWriter.config.s3BucketRaw | quote }}
+  WELLBE_S3_OBJECT_LOCK_RETENTION_DAYS: {{ .Values.vaultWriter.config.s3ObjectLockRetentionDays | quote }}
   WELLBE_REDIS_URL: {{ .Values.vaultWriter.config.redisUrl | quote }}
   WELLBE_LOG_LEVEL: {{ .Values.vaultWriter.config.logLevel | quote }}
   WELLBE_ENVIRONMENT: {{ .Values.vaultWriter.config.environment | quote }}

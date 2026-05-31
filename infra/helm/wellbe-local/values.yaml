@@ -17,7 +17,7 @@ minio:
   rootUser: wellbe_minio
   rootPassword: wellbe_minio_dev
   buckets:
-    - wellbe-raw-context
+    - wellbe-raw-context-locked
     - wellbe-documents
 
 zitadel:
@@ -40,7 +40,8 @@ vaultWriter:
     s3Endpoint: "http://minio:9000"
     s3AccessKey: "wellbe_minio"
     s3SecretKey: "wellbe_minio_dev"
-    s3BucketRaw: "wellbe-raw-context"
+    s3BucketRaw: "wellbe-raw-context-locked"
+    s3ObjectLockRetentionDays: "365"
     redisUrl: "redis://wellbe-redis:6379/0"
     logLevel: "INFO"
     environment: "dev"
