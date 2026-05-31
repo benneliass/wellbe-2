@@ -14,7 +14,7 @@ WellBe is a **Personal Shared Health Memory OS** — a user-controlled memory la
 
 The system's core value is longitudinal memory: helping one person understand what is changing in their health, what might be connected, what is still unresolved, and what they should discuss or track next. WellBe achieves this through cross-time, cross-source, and cross-domain synthesis of the individual's own data — never by diagnosing, never by replacing clinical judgment, and never by giving institutions default access to personal health data.
 
-The product operates through a five-step loop — **Capture → Connect → Clarify → Close → Correct** — implemented by 13 core components (C1–C13) and 13 feature components. As of this writing, the foundational data pipeline (vault, ingestion, processing, graph store) is implemented at a placeholder level with a rule-based extractor. The full design pipeline, intelligence engines, Health Thread state machine, and user-facing surfaces remain to be built. All 80 Jira tickets are in "To Do" status.
+The product operates through a six-step loop — **Capture → Connect → Investigate → Clarify → Close → Correct** — implemented by core components (C1–C17) and feature components. As of this writing, the foundational data pipeline (vault, ingestion, processing, graph store) is implemented at a placeholder level with a rule-based extractor. The full design pipeline, intelligence engines, Health Thread state machine, and user-facing surfaces remain to be built. All 80 Jira tickets are in "To Do" status.
 
 ---
 
@@ -69,12 +69,13 @@ The default mode is always personal and isolated — one user, their own data, t
 
 ## 4. Core Architecture — The Operating Loop
 
-### Capture → Connect → Clarify → Close → Correct
+### Capture → Connect → Investigate → Clarify → Close → Correct
 
 | Step | What it does | Components | Example |
 |---|---|---|---|
 | **Capture** | Collect raw and structured health context | C2 Raw Context Vault, C3 Ingestion Layer | Symptom words, lab PDF, referral message, wearable trend |
 | **Connect** | Link signals into Health Threads via the Knowledge Graph | C4 Processing Pipeline, C5 Evidence & Provenance, C6 Knowledge Graph, C7 Health Thread Engine | Recurring pain + ED visit + normal scan + pending referral |
+| **Investigate** | Run a structured research process over a thread: open an Investigation, evaluate Theories, pull personal + external evidence, detect what changed | C14 Investigation Engine, C15 Theory Service, C16 External Evidence Graph, Intelligence Engines (F-ENGINES) | "Investigation: fatigue vs. med change — evidence for/against, missing data flagged" |
 | **Clarify** | Surface what is known, unknown, missing, pending, or worsening | C8 Six Memories, Intelligence Engines (F-ENGINES) | "Symptoms persist after normal ultrasound; referral not yet scheduled." |
 | **Close** | Track open loops until resolved, explained, monitored, or handed off | C9 Continuity & Closure Engine | Pending test due; referral booked; follow-up complete |
 | **Correct** | Let the user repair inaccurate or incomplete memory | C11 Correction Service | "This started before the medication change, not after." |

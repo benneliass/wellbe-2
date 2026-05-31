@@ -6,7 +6,7 @@ WellBe v1 is strong because it already has the right foundation: a personal data
 
 The research changes the product center of gravity. The platform should not be defined mainly as **a data factory** or as **a chatbot that investigates symptoms**. The stronger design is:
 
-> **WellBe is a Personal Shared Health Memory OS: a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around Health Threads.**
+> **WellBe is a Patient-Centered Health Investigation OS. Its core is a Personal Shared Health Memory OS — a user-controlled memory layer for unresolved health concerns, built on a traceable data factory and organized around Health Threads — surrounded by role-specific, grant-scoped workspaces for individuals, clinicians, care teams, institutions, and researchers.**
 
 The system's job is to help a person remember, connect, clarify, close, and correct health context across time.
 
@@ -39,10 +39,16 @@ The product identity shifts:
 | Investigation triage | Pre-visit + post-visit continuity loop |
 | Missing data detection | Missing context + normal-test safety-net layer |
 | Medical integration | User-controlled import/share, not institutional default access |
+| External medical knowledge | Separate External Evidence Graph linked to personal facts by relevance only — context, never fact about the user |
+| Audience model | Personal core plus grant-scoped clinician / institution / researcher workspaces |
 
-## 4. New core object: Health Thread
+## 4. Core objects: Health Thread, Investigation, Theory
 
 A **Health Thread** is a living container for one unresolved or ongoing health concern.
+
+An **Investigation** is the active research process around one or more threads (primary question, scope, participants under grant, linked theories, evidence bundle, missing context, pending items, safety flags, review cadence). A single thread may have multiple investigations (personal, clinician, external-evidence watch, theory evaluation, post-visit follow-up, device-trend).
+
+A **Theory** is a user- or clinician-proposed explanation evaluated against evidence — never a diagnosis or ranked differential — carrying evidence-for, evidence-against, missing-data, external sources, status, and safety level.
 
 It combines:
 
@@ -66,12 +72,13 @@ The product should organize around threads rather than documents, metrics, visit
 
 Replace the generic second-brain loop with a medical loop:
 
-**Capture -> Connect -> Clarify -> Close -> Correct**
+**Capture -> Connect -> Investigate -> Clarify -> Close -> Correct**
 
 | Step | Meaning in WellBe | Example output |
 |---|---|---|
 | Capture | collect raw and structured context | symptom words, lab PDF, referral message, wearable trend |
 | Connect | link signals into Health Threads | recurring abdominal pain + ED visit + normal scan + referral |
+| Investigate | run a structured research process: open an Investigation, evaluate Theories, pull personal + external evidence, detect what changed | “Investigation: fatigue vs. med change — evidence for/against, missing dose dates flagged” |
 | Clarify | show known, unknown, missing, pending, and worsening | “Symptoms persist after normal ultrasound; referral not scheduled.” |
 | Close | track open loops until resolved, explained, monitored, or safely handed off | pending test due Friday; referral booked; follow-up check-in complete |
 | Correct | let user repair the memory | “This symptom started before the medication change, not after.” |

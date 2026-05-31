@@ -6,7 +6,7 @@
 
 ## The system is personal. Always.
 
-WellBe is a **personal health intelligence system**. The primary user is the individual managing their own health. Every feature serves that individual — not a hospital, not a practice, not a payer.
+WellBe is a **patient-centered health investigation platform** whose sovereign core is a personal health intelligence system. The primary user and sole data controller is the individual managing their own health. Clinicians, care teams, institutions, and researchers may use their own workspaces, but only under the individual's explicit, scoped grant — and every feature must still serve and benefit that individual.
 
 ---
 
@@ -14,7 +14,7 @@ WellBe is a **personal health intelligence system**. The primary user is the ind
 
 The research packages (A–F) studied real-world diagnostic failures: missed signals, clinical handoffs, referral voids, ownership vacuums. This is valuable context. It tells us **what the individual faces** when they navigate the health system.
 
-But the research describes failures that live in the clinical system. WellBe's response to those failures is to **empower the person**, not to become the system.
+The research describes failures that live in the clinical system. WellBe's first response is to **empower the person**. Where a consented, scoped workspace lets a clinician or institution help close those same loops for the individual's benefit, WellBe may provide it — but it never becomes the system of record or gains default control over the person's data.
 
 ### The reframe
 
@@ -67,11 +67,15 @@ This is a privacy and product identity constraint, not just a legal one. WellBe'
 - Empowering self-advocacy (longitudinal memory, concern tracking, timeline)
 - User-controlled sharing of their own data with clinicians or others they choose
 
-**Out of scope (unless explicitly decided):**
-- Clinician-facing EHR or workflow tools
-- Hospital/institutional system integration as a primary use case
-- B2B2C models where the primary customer is a practice or hospital
-- Population analytics or cross-user research
+**In scope under explicit grant and governance (added by the expanded vision):**
+- Consent-scoped clinician case-investigation workspaces (not an EHR/system-of-record)
+- Privacy-preserving, aggregate-only institution continuity intelligence (no default individual access)
+- Opt-in cross-patient/cohort research sandbox under protocol governance
+
+**Out of scope (still prohibited):**
+- A clinician-facing EHR, system-of-record, or workflow replacement
+- Default institutional access to or control over individual data
+- Population analytics or cross-user research enabled without individual opt-in
 - Replacing clinical judgment in any form
 
 ---
@@ -82,4 +86,4 @@ This is a privacy and product identity constraint, not just a legal one. WellBe'
 
 If yes: it belongs.
 
-If it primarily serves a clinical institution, or only creates value in a B2B context, or requires a clinician to be the primary user — it does not belong in the current vision.
+If it requires default institutional access, replaces clinical judgment, or creates value only for a business/clinician without also benefiting the individual — it does not belong. Features that serve clinicians or institutions are welcome only when the individual remains the controller and beneficiary and access is grant-based.

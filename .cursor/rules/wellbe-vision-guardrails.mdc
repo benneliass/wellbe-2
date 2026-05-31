@@ -13,9 +13,9 @@ alwaysApply: true
 
 ---
 
-## The system is personal. Always.
+## The core is personal. The controller is always the individual.
 
-WellBe is a **personal health intelligence system**. The primary user is always the individual managing their own health. Every feature, every module, every design decision serves that individual — not a clinical institution, not a hospital, not a payer, not a practice.
+WellBe is a **patient-centered Health Investigation OS** built on a sovereign personal core. The individual managing their own health is always the data controller and the audience every feature must benefit. Clinicians, care teams, institutions, and researchers may use role-specific workspaces, but only under the individual's explicit, scoped, revocable grant — never by default, never as controller.
 
 ## What "personal" means in practice
 
@@ -55,12 +55,12 @@ Concretely:
 
 | In scope | Out of scope (unless explicitly decided) |
 |---|---|
-| User's personal health data | Clinician EHR/workflow tools |
+| User's personal health data (individual is controller) | Clinician EHR / system-of-record / workflow replacement |
 | Helping the user understand their health | Replacing clinical judgment |
-| Preparing the user for clinical conversations | Managing clinical staff or workflows |
-| Empowering patient self-advocacy | B2B2C clinical intake sold to practices |
-| User-controlled sharing of their data | Hospital/institutional system integration |
-| Cross-domain synthesis of the user's own data | Cross-user population analytics |
+| Consent-scoped clinician case-investigation workspace | Managing clinical staff or running a practice |
+| Aggregate-only, consented institution continuity intelligence | Default institutional access to individual data |
+| Opt-in cross-patient/cohort research sandbox (governed) | Cross-user population analytics enabled by default |
+| User-controlled sharing and grant-based workspaces | Any access without grant, care relationship, legal basis, or research consent |
 
 ## When in doubt
 

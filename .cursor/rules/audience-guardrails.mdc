@@ -17,13 +17,11 @@ Patients, caregivers, and family members managing their own or a dependent's hea
 
 The individual is **always** the end-user whose interests the product serves. Every product decision — features, language, defaults, data flows — must serve this person first.
 
-### Secondary audience: businesses as distribution channels
+### Additional audiences: clinicians, care teams, institutions, researchers — and businesses as distribution channels
 
-Hospitals, clinics, employers, and health platforms that deploy WellBe to their users.
+Clinicians, care teams, institutions, and researchers may be **active workspace users** under the individual's explicit, scoped, revocable grant (or a care relationship / legal basis / research consent). Hospitals, clinics, and employers may additionally deploy WellBe as a **distribution channel**.
 
-The business deploys WellBe. The individual uses it.
-
-The business is a **channel** — not a customer, not a user, not a data controller. It brings WellBe to individuals. It does not direct what WellBe does for those individuals, and it does not own or access their data.
+In every case the individual remains the **data controller**. Using a workspace or deploying the product never confers control over, or default access to, an individual's data. It brings WellBe to individuals. It does not direct what WellBe does for those individuals, and it does not own or access their data.
 
 ---
 
@@ -43,13 +41,13 @@ A hospital deploying WellBe to its patients is using WellBe as a distribution ch
 
 These are never allowed in any WellBe feature description, spec text, system design doc, or safety doc:
 
-1. **No feature scoped exclusively to businesses.** Every feature must make sense from the individual user's perspective. If a feature only delivers value to the deploying business and not to the individual — it does not belong in WellBe.
+1. **Every feature must benefit the individual.** A feature may serve a clinician, institution, or researcher, but it must also make sense from, and benefit, the individual user. A feature that delivers value only to a business/clinician and not the individual does not belong.
 
-2. **No "enterprise-only" framing.** Language like "enterprise-only", "clinician-facing by default", "institution-managed", or "hospital-controlled" is prohibited in system design, feature specs, and safety docs.
+2. **No default or institution-controlled framing.** Language like "institution-managed", "hospital-controlled", or any capability an institution can switch on for users by default is prohibited. Clinician/institution/researcher workspaces are allowed, but always grant-gated and individual-controlled.
 
-3. **No institutional data access by default.** The business cannot access individual data, aggregate it, or share it without each individual's explicit opt-in — regardless of the deployment relationship.
+3. **No institutional data access by default.** No audience may access, aggregate, or share individual data without that individual's explicit, scoped grant — regardless of deployment relationship. Institutions receive only aggregate, consented, privacy-preserving intelligence.
 
-4. **No clinician as primary user.** Features may support a clinician as a recipient of user-shared context (e.g., the clinician visit packet) but the clinician is never the product's primary user or decision-maker for how the product behaves.
+4. **Clinician/institution/researcher may be active workspace users, never controllers.** They act only within the scope the individual granted; the individual always controls how the product behaves on their data and what is shared.
 
 ---
 
@@ -76,11 +74,12 @@ Even in a B2B deployment:
 
 Before any agent writes feature descriptions, spec text, or doc content, run this checklist:
 
-- [ ] Does this description imply the feature is only for businesses or clinicians? → Rewrite to be audience-neutral or explicitly inclusive of the individual user.
-- [ ] Does this description use words like "enterprise-only", "institution-managed", "clinician-facing by default", or "hospital-controlled"? → Remove or reframe.
-- [ ] Does this description describe a data flow where the business receives individual data without explicit individual opt-in? → Remove. This is a privacy violation by design.
-- [ ] Is the individual mentioned as the agent making decisions about their own data and experience? → If not, the framing is likely wrong.
-- [ ] Does the feature description make sense if a single individual with no organizational affiliation uses WellBe directly? → If no, the feature may not belong.
+- [ ] Does this feature also benefit the individual user (not only a clinician/institution)? → If not, it does not belong.
+- [ ] Is every non-individual access grant-based, scoped, purpose-bound, and revocable (no default or institution-enabled access)? → If not, remove or reframe.
+- [ ] Does it use "institution-managed", "hospital-controlled", or imply any access an institution can switch on by default? → Remove or reframe.
+- [ ] For institution surfaces: is access aggregate-only and consented, with no default individual-level access? → If not, remove.
+- [ ] Is the individual the controller making decisions about their own data and experience? → If not, the framing is wrong.
+- [ ] Does the feature still make sense for a single individual with no organizational affiliation? → The personal core must always stand alone.
 
 All five checks must pass before the content is written.
 

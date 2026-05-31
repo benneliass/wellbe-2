@@ -35,6 +35,9 @@ WellBe must never output:
 | Ownership claim | "This item appears pending based on the information you uploaded." |
 | Clinical certainty | "The source of this claim is [patient-reported / lab report / imported note]." |
 | Urgency without path | "Based on what you've logged, this may need urgent attention — [local emergency / urgent care] is one option." |
+| Theory result | "Your data partially supports this theory; X and Y remain unknown. Worth discussing with a clinician." (never "this theory is true/false" or a diagnosis) |
+| External evidence | "This source discusses a similar pattern, but it is low-certainty and not specific to you." (never "this source says your symptoms mean X") |
+| Live-metric signal | "This is outside your usual range and paired with a symptom you marked concerning — consider contacting a clinician or urgent care depending on severity." (never "your heart data suggests [disease]") |
 
 ---
 
@@ -56,10 +59,10 @@ WellBe must never output:
 
 ## 5. Audience design rules
 
-No feature, document, description, or design in WellBe may be scoped exclusively to a single audience.
+Every feature must serve and benefit the individual, even when clinicians, care teams, institutions, or researchers use it through their own grant-scoped workspaces.
 
 **The rule:**
-> At no point should any feature or document state or imply "only for businesses", "only for clinicians", "only for patients", or design a capability that makes sense exclusively for one audience type.
+> No feature may grant any audience default or institution-controlled access to individual data, and no feature may deliver value only to a business/clinician without also benefiting the individual. Clinician/institution/researcher workspaces are permitted only when access is grant-based, scoped, purpose-bound, and revocable, and the individual remains the controller.
 
 **Why this is here:**
 WellBe is personal-first but can be deployed through businesses as a distribution channel. The individual is always the end-user. A feature that only serves a business, a clinic, or an institution — without also serving the individual user directly — does not belong in WellBe.
@@ -79,10 +82,12 @@ The Safety Engine must evaluate every user-facing AI output before it reaches th
 
 This applies to:
 - The Professor / explanation mode
-- Myth Buster outputs
-- Research Agent results
+- Myth Buster / Theory Evaluator outputs
+- Research Agent / External Evidence Watch results
 - Pattern detection insights
-- Clinician visit packet generation
+- Live-metric escalation guidance
+- Clinician, institution, and research workspace outputs
+- Clinician visit packet / Full Health Context Summary generation
 - Any summarization or synthesis output
 
 ---

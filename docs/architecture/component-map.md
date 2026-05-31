@@ -5,7 +5,7 @@ This document is the canonical list of WellBe components, split into two tiers:
 - **CORE components** — the spine of the product. They are foundational, everything else depends on them, and they map to the lower architectural layers (L0–L5, L7) in `../system-design/architecture.md`. Changes here have the widest blast radius.
 - **FEATURE components** — capabilities layered on top of the core. Each is individually shippable, phaseable, and (mostly) removable without breaking the spine. They consume core services through stable contracts.
 
-The rule that separates the tiers: **a component is CORE if removing it would break the Capture → Connect → Clarify → Close → Correct loop or violate a system principle. Otherwise it is a FEATURE.** See `../system-design/system_principles.md`.
+The rule that separates the tiers: **a component is CORE if removing it would break the Capture → Connect → Investigate → Clarify → Close → Correct loop or violate a system principle. Otherwise it is a FEATURE.** See `../system-design/system_principles.md`.
 
 Layer references (`L0`–`L8`) map to `../system-design/architecture.md`. Feature IDs (`WB2-Fxxx`) map to `../feature-backlog/feature_backlog.md`.
 
