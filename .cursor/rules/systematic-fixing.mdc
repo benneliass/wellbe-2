@@ -1,0 +1,51 @@
+---
+description: Enforce systematic, root-cause-first approach to every bug fix, issue fix, or refactor
+alwaysApply: true
+---
+
+# Systematic Fixing Protocol
+
+Every bug fix, issue fix, or refactor must be treated as a systemic improvement — never a point patch.
+
+## The Rule
+
+Before writing a single line of fix code, you MUST answer three questions:
+
+1. **What is the root cause?** — Not the symptom. Not "this SQL query failed." The structural reason it could fail (missing constraint, wrong abstraction, at-least-once without idempotency, etc.).
+2. **What is the correct general solution?** — A fix that makes the entire class of problem impossible, not just the one instance that surfaced.
+3. **Where else does this pattern exist?** — Grep the codebase. If the same structural weakness appears elsewhere, fix it everywhere in the same commit, or explicitly defer and create a follow-up item.
+
+## What This Looks Like in Practice
+
+**❌ BAD — point patch:**
+- Adding an `if already_processed: return` guard for one specific task
+- Deleting one bad row by its primary key
+- Hardcoding a retry limit to stop one loop
+
+**✅ GOOD — systemic fix:**
+- Adding a UNIQUE constraint + `ON CONFLICT DO NOTHING` so the entire class of duplicate-write is structurally impossible
+- Making the fact id deterministic (uuid5 from natural key) so re-delivery is idempotent by design
+- Adding `FOR UPDATE SKIP LOCKED` to the outbox poller so concurrent consumers are safe across the board
+
+## Required Steps for Every Fix
+
+1. **INVESTIGATE** — Read the code, read the data, confirm the root cause. Do not assume.
+2. **GENERALIZE** — Design a fix that addresses the root cause, not the symptom.
+3. **SCAN** — Search for the same weakness pattern elsewhere in the codebase before committing.
+4. **FIX** — Implement the systemic solution. If you are touching a migration, make it idempotent. If you are touching a repository write, make it safe under at-least-once redelivery.
+5. **VERIFY** — Confirm with the live system (queries, re-delivery test, or equivalent) that the fix holds. Show before/after evidence.
+6. **DOCUMENT** — Commit message and Jira comment explain the root cause and the systemic reasoning, not just what changed.
+
+## Scope of "Fix"
+
+A fix is ONLY complete when:
+- The root cause is eliminated (not just the symptom suppressed)
+- Re-delivery / retry / re-run of the same event/operation is safe
+- The same structural weakness does not exist elsewhere, or the elsewhere instances are tracked
+
+## Hard Stops
+
+Do NOT proceed with a point patch if:
+- You cannot explain the root cause in one sentence
+- The fix only works for the specific input that surfaced the bug
+- The fix requires knowledge of a specific row ID, timestamp, or value that will differ next time
