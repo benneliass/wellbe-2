@@ -64,12 +64,12 @@ Structured dev work items for **everything referenced across the design that sti
 
 | ID | Area | What to build | Phase |
 |---|---|---|---|
-| WB-DEV-201 | Infra | Profile A deployment (Fly.io/managed Postgres + Redis + Temporal + MinIO) per `infra-stack.md`. | mvp |
+| WB-DEV-201 | Infra | Kubernetes-native deployment (CloudNativePG + Cilium + Karpenter) per `infra-stack.md`. No Fly.io or PaaS. | mvp |
 | WB-DEV-202 | Infra | OpenTofu IaC with state encryption; GitHub Actions CI (build/test/scan/sign + safety-eval gate). | mvp |
 | WB-DEV-203 | Observability | OpenTelemetry instrumentation + Grafana LGTM dashboards; PHI scrubbing at collector. | mvp |
 | WB-DEV-204 | Security | OpenBao secrets + KMS envelope encryption + per-user data keys (crypto-shred deletion). | mvp |
 | WB-DEV-205 | Safety | Safety evaluation harness (regression suite for do-not-diagnose / panic / provenance), gating CI for C10 + AI features. | mvp |
-| WB-DEV-206 | Platform | Profile B migration (Kubernetes + CloudNativePG + Flux + Cilium) when scale/compliance require it. | post-mvp |
+| WB-DEV-206 | Platform | ~~Profile B migration~~ — **obsolete**. System is Kubernetes-native from day one (see `infra-stack.md`). No migration needed. | cancelled |
 
 ---
 
