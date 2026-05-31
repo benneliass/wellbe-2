@@ -1,0 +1,6 @@
+apiVersion: v2
+name: wellbe-local
+description: WellBe local development stack (C1-C3) for Kind/docker-desktop
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

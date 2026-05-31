@@ -1,21 +1,9 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: wellbe
-spec:
-  type: ClusterIP
-  selector:
-    app: postgres
-  ports:
-    - port: 5432
-      targetPort: 5432
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: wellbe
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
 spec:
   serviceName: postgres
   replicas: 1
@@ -29,25 +17,25 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: wellbe-postgres:local
-          imagePullPolicy: Never
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
           ports:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: "wellbe"
+              value: {{ .Values.postgres.user | quote }}
             - name: POSTGRES_PASSWORD
-              value: "wellbe_dev"
+              value: {{ .Values.postgres.password | quote }}
             - name: POSTGRES_DB
-              value: "wellbe"
+              value: {{ .Values.postgres.database | quote }}
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "wellbe", "-d", "wellbe"]
+              command: ["pg_isready", "-U", {{ .Values.postgres.user | quote }}, "-d", {{ .Values.postgres.database | quote }}]
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             exec:
-              command: ["pg_isready", "-U", "wellbe", "-d", "wellbe"]
+              command: ["pg_isready", "-U", {{ .Values.postgres.user | quote }}, "-d", {{ .Values.postgres.database | quote }}]
             initialDelaySeconds: 30
             periodSeconds: 10
           volumeMounts:
@@ -66,4 +54,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 1Gi
+            storage: {{ .Values.postgres.storage }}

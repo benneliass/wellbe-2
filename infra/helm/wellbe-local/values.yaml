@@ -1,0 +1,57 @@
+namespace: wellbe
+
+postgres:
+  image: wellbe-postgres:local
+  imagePullPolicy: Never
+  user: wellbe
+  password: wellbe_dev
+  database: wellbe
+  storage: 1Gi
+
+redis:
+  image: redis:7-alpine
+  port: 6379
+
+minio:
+  image: minio/minio:latest
+  rootUser: wellbe_minio
+  rootPassword: wellbe_minio_dev
+  buckets:
+    - wellbe-raw-context
+    - wellbe-documents
+
+zitadel:
+  image: ghcr.io/zitadel/zitadel:latest
+  masterkey: "MasterkeyNeedsToHave32Characters"
+  externalPort: 8090
+  externalDomain: localhost
+
+migration:
+  image: wellbe-migrations:local
+  imagePullPolicy: Never
+
+vaultWriter:
+  image: wellbe-vault-writer:local
+  imagePullPolicy: Never
+  port: 8002
+  replicas: 1
+  config:
+    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@postgres:5432/wellbe"
+    s3Endpoint: "http://minio:9000"
+    s3AccessKey: "wellbe_minio"
+    s3SecretKey: "wellbe_minio_dev"
+    s3BucketRaw: "wellbe-raw-context"
+    redisUrl: "redis://redis:6379/0"
+    logLevel: "INFO"
+    environment: "dev"
+
+ingestionWorker:
+  image: wellbe-ingestion-worker:local
+  imagePullPolicy: Never
+  port: 8003
+  replicas: 1
+  config:
+    vaultWriterUrl: "http://vault-writer:8002"
+    redisUrl: "redis://redis:6379/0"
+    logLevel: "INFO"
+    environment: "dev"

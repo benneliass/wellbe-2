@@ -1,23 +1,11 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: ingestion-worker
-  namespace: wellbe
-spec:
-  type: ClusterIP
-  selector:
-    app: ingestion-worker
-  ports:
-    - port: 8003
-      targetPort: 8003
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ingestion-worker
-  namespace: wellbe
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.ingestionWorker.replicas }}
   selector:
     matchLabels:
       app: ingestion-worker
@@ -28,22 +16,22 @@ spec:
     spec:
       containers:
         - name: ingestion-worker
-          image: wellbe-ingestion-worker:local
-          imagePullPolicy: Never
+          image: {{ .Values.ingestionWorker.image }}
+          imagePullPolicy: {{ .Values.ingestionWorker.imagePullPolicy }}
           ports:
-            - containerPort: 8003
+            - containerPort: {{ .Values.ingestionWorker.port }}
           envFrom:
             - configMapRef:
                 name: ingestion-worker-config
           readinessProbe:
             httpGet:
               path: /health
-              port: 8003
+              port: {{ .Values.ingestionWorker.port }}
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
-              port: 8003
+              port: {{ .Values.ingestionWorker.port }}
             initialDelaySeconds: 15
             periodSeconds: 10

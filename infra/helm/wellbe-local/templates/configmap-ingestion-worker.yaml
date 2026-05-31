@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingestion-worker-config
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+data:
+  WELLBE_VAULT_WRITER_URL: {{ .Values.ingestionWorker.config.vaultWriterUrl | quote }}
+  WELLBE_REDIS_URL: {{ .Values.ingestionWorker.config.redisUrl | quote }}
+  WELLBE_LOG_LEVEL: {{ .Values.ingestionWorker.config.logLevel | quote }}
+  WELLBE_ENVIRONMENT: {{ .Values.ingestionWorker.config.environment | quote }}
