@@ -39,6 +39,7 @@ echo "=== Deploying via Helm ==="
 helm upgrade --install $RELEASE_NAME "$CHART_DIR" \
   --namespace $NAMESPACE \
   --create-namespace \
+  --server-side=false \
   --wait \
   --timeout 5m
 

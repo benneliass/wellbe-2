@@ -75,5 +75,6 @@ This is intentional — dependency changes require a proper rebuild to update th
 
 - Images use `imagePullPolicy: Never` in the Helm chart — Tilt loads images directly into Kind's image store, so no registry is needed.
 - `postgres`, `redis`, `minio`, and `zitadel` are not managed by live_update. They start from their Helm chart values and are not reloaded on source changes.
-- The production/CI deploy path (`infra/k8s/deploy.sh`) is not affected by any of these changes.
+- If you re-run the Helm release manually while Tilt has managed the same chart, pass `--server-side=false`. Helm v4's server-side apply can otherwise conflict with fields owned by Tilt's Kubernetes client.
+- `infra/k8s/deploy.sh` also uses `--server-side=false` so rerunning Helm from the script keeps working after Tilt has touched the release.
 - `DEV=true` is only passed by the Tiltfile. Production builds use the default `DEV=false`, which runs uvicorn without `--reload`.
