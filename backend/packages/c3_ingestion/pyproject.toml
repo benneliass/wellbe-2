@@ -6,12 +6,9 @@ description = "Ingestion Layer (C3): source-type adapters writing into the Vault
 dependencies = [
     "wellbe-contracts",
     "wellbe-platform",
-    "wellbe-db",
-    "wellbe-events",
+    "httpx>=0.28",
 ]
 
 [tool.uv.sources]
 wellbe-contracts = { workspace = true }
 wellbe-platform = { workspace = true }
-wellbe-db = { workspace = true }
-wellbe-events = { workspace = true }

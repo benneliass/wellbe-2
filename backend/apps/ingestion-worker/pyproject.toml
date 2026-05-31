@@ -4,10 +4,15 @@ version = "0.1.0"
 requires-python = ">=3.13"
 description = "C3 Ingestion Worker: Dramatiq lightweight adapter jobs."
 dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "dramatiq[redis]>=1.17",
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-c3-ingestion",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-c3-ingestion = { workspace = true }
