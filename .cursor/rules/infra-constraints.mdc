@@ -36,11 +36,29 @@ All of the following are part of the standard deployment:
 
 ---
 
+## Helm Mandate
+
+**Every Kubernetes object in every environment (local k3d/KinD, staging, production) must be managed through a Helm chart.**
+
+| Approach | Valid |
+|---|---|
+| Helm chart (local, published, or OCI) | ✅ |
+| Helm + Helmfile for multi-chart orchestration | ✅ |
+| Kustomize patches on top of a Helm-rendered base | ✅ (as post-render only) |
+| Raw YAML applied with `kubectl apply` | ❌ |
+| Kustomize-only (no Helm base) | ❌ |
+| OpenTofu `kubernetes_manifest` resource | ❌ |
+| Flux `HelmRelease` CRD (Helm under GitOps) | ✅ |
+
+This applies to application workloads, operators, CRDs, namespaces, RBAC objects, NetworkPolicies, and any other K8s resource. No exceptions without explicit user approval.
+
+---
+
 ## Agent Rules
 
 1. When proposing a deployment approach, always assume Kubernetes. Do not propose Fly.io, Render, Railway, Heroku, or other PaaS platforms.
 2. When proposing local development setup, Docker Compose is valid for **data services only** (Postgres, Redis, MinIO, Temporal server, ZITADEL). Application workloads run via `uv` or `k3d`.
-3. When writing `infra/` IaC, target Kubernetes manifests (Helm / Kustomize) and OpenTofu for cluster provisioning.
+3. When writing `infra/` IaC, all Kubernetes objects MUST be defined and deployed via Helm charts. Raw `kubectl apply` of standalone YAML manifests, Kustomize-only deployments, and ad-hoc object creation are not valid in any environment. OpenTofu is used for cluster provisioning only — not for applying K8s objects directly.
 4. When proposing CI/CD, target GitHub Actions + Flux (GitOps push to cluster), not PaaS deploy hooks.
 5. Do not suggest "start with Fly.io and migrate to K8s later." The workloads are K8s-native from day one.
 
