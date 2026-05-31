@@ -16,6 +16,11 @@ from wellbe_contracts.c4_processing import (
     HEALTH_SIGNAL_CREATED,
     FactExtractedPayload,
 )
+from wellbe_contracts.c5_evidence import (
+    ConfidenceBasis,
+    EvidenceLinkType,
+    EvidenceRef,
+)
 
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
 dramatiq.set_broker(RedisBroker(url=_redis_url))
@@ -34,6 +39,7 @@ async def _extract_facts(event_json: str) -> None:
         PIPELINE_VERSION,
     )
     from wellbe_c4_processing.dispatcher import decide_route, DispatchRoute
+    from wellbe_c5_evidence import EvidenceService
     from wellbe_events import emit_event
     from wellbe_db import create_session_factory
     from wellbe_processing_worker.config import ProcessingWorkerSettings
@@ -58,6 +64,7 @@ async def _extract_facts(event_json: str) -> None:
 
     async with session_factory() as session:
         repo = ProcessingRepository(session)
+        evidence_service = EvidenceService(session)
 
         for result in results:
             fact_id = uuid.uuid4()
@@ -90,6 +97,21 @@ async def _extract_facts(event_json: str) -> None:
                 is_historical=result.is_historical,
                 is_hypothetical=result.is_hypothetical,
                 subject=result.subject.value,
+            )
+
+            await evidence_service.link_fact(
+                fact_id=fact_id,
+                patient_id=event.patient_id,
+                evidence_refs=[EvidenceRef(
+                    raw_context_event_id=event.id,
+                    link_type=EvidenceLinkType.PRIMARY,
+                    confidence=result.extraction_confidence,
+                    confidence_basis=ConfidenceBasis.EXTRACTION_MODEL,
+                    relevance_span_start=result.text_span_start,
+                    relevance_span_end=result.text_span_end,
+                )],
+                correlation_id=event.correlation_id,
+                trace_id=event.trace_id,
             )
 
             payload = FactExtractedPayload(

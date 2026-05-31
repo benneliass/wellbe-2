@@ -7,8 +7,10 @@ dependencies = [
     "wellbe-platform",
     "wellbe-contracts",
     "wellbe-c4-processing",
+    "wellbe-c5-evidence",
     "wellbe-events",
     "wellbe-db",
+    "wellbe-c2-vault",
     "fastapi>=0.115",
     "uvicorn>=0.34",
     "dramatiq[redis]>=1.17",
@@ -18,5 +20,7 @@ dependencies = [
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
 wellbe-c4-processing = { workspace = true }
+wellbe-c5-evidence = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-db = { workspace = true }
+wellbe-c2-vault = { workspace = true }
