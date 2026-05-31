@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from wellbe_contracts.c5_evidence import (
     EVIDENCE_LINKED,
     PROVENANCE_ORPHAN_REJECTED,
-    ConfidenceBasis,
     EvidenceLinkedPayload,
-    EvidenceLinkType,
     EvidenceRef,
     EvidenceSourceType,
     ProvenanceOrphanRejectedPayload,
@@ -32,6 +28,40 @@ class MissingRawEventError(Exception):
     def __init__(self, missing_ids: list[uuid.UUID]) -> None:
         self.missing_ids = missing_ids
         super().__init__(f"Missing raw_context_event_ids: {missing_ids}")
+
+
+class ExternalEvidenceCannotSupportPersonalFactError(ValueError):
+    """Raised when external evidence is treated as direct personal evidence."""
+
+
+class ExternalEvidencePolicy:
+    """Policy guard for C16 external evidence use in C5.
+
+    External sources can create context-only relevance links, but they must never
+    satisfy the no-orphan-claims rule for a personal fact or signal.
+    """
+
+    @staticmethod
+    def validate_relevance_link(
+        *,
+        source_quality_tier: int,
+        context_only: bool,
+        edge_type: str,
+    ) -> None:
+        if source_quality_tier < 1 or source_quality_tier > 5:
+            raise ExternalEvidenceCannotSupportPersonalFactError(
+                "source_quality_tier must be between 1 and 5"
+            )
+        if not context_only or edge_type != "relevance_link":
+            raise ExternalEvidenceCannotSupportPersonalFactError(
+                "external evidence may only be linked as context-only relevance"
+            )
+
+    @staticmethod
+    def reject_as_personal_evidence(*, external_source_id: uuid.UUID) -> None:
+        raise ExternalEvidenceCannotSupportPersonalFactError(
+            f"external source {external_source_id} cannot support a personal fact"
+        )
 
 
 class EvidenceService:
