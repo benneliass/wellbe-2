@@ -29,7 +29,7 @@ class KgNodeRow(Base):
     __tablename__ = "kg_nodes"
     __table_args__ = (
         CheckConstraint(
-            "node_type IN ('ConditionHypothesis', 'Symptom', 'Medication', 'LabResult', 'Procedure', 'VitalSign', 'Allergy', 'Immunization', 'SocialFactor', 'FamilyHistory', 'Other')",
+            "node_type IN ('ConditionHypothesis', 'Symptom', 'Medication', 'LabResult', 'Procedure', 'VitalSign', 'Allergy', 'Immunization', 'SocialFactor', 'FamilyHistory', 'Other', 'Investigation', 'Theory')",
             name="ck_node_type",
         ),
         CheckConstraint(
@@ -67,6 +67,12 @@ class KgEdgeRow(Base):
         CheckConstraint(
             "from_node_id != to_node_id",
             name="ck_no_self_edges",
+        ),
+        # relevance_link is registered in the vocabulary but lives only in
+        # external_bridge.relevance_links — never in the personal graph.
+        CheckConstraint(
+            "edge_type <> 'relevance_link'",
+            name="ck_no_relevance_link_in_personal_graph",
         ),
         {"schema": "graph"},
     )

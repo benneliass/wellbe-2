@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wellbe_c6_graph.constants import validate_personal_edge_type
 from wellbe_c6_graph.models import KgNodeRow, KgEdgeRow
 
 
@@ -76,6 +77,9 @@ class GraphRepository:
         score_inputs: dict | None = None,
         thread_ids: list[uuid.UUID] | None = None,
     ) -> KgEdgeRow:
+        # Defense in depth: reject diagnostic verbs and external-only edge types
+        # before they can reach the personal graph (mirrors the DB CHECK constraints).
+        validate_personal_edge_type(edge_type)
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         edge = KgEdgeRow(
             id=uuid.uuid4(),
