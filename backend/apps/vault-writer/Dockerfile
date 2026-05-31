@@ -13,4 +13,11 @@ RUN uv sync --package wellbe-vault-writer --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/apps/vault-writer/src"
 EXPOSE 8002
-CMD ["uvicorn", "wellbe_vault_writer.main:app", "--host", "0.0.0.0", "--port", "8002"]
+
+ARG DEV=false
+ENV DEV=${DEV}
+CMD if [ "$DEV" = "true" ]; then \
+      exec uvicorn wellbe_vault_writer.main:app --host 0.0.0.0 --port 8002 --reload --reload-dir /app/apps/vault-writer/src --reload-dir /app/packages; \
+    else \
+      exec uvicorn wellbe_vault_writer.main:app --host 0.0.0.0 --port 8002; \
+    fi
