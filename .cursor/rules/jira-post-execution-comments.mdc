@@ -1,0 +1,69 @@
+---
+description: After any Jira item is created or updated, add a comment capturing implementation details, decisions made, and test outcomes.
+alwaysApply: true
+---
+
+# Jira Post-Execution Comments
+
+## The Rule
+
+After every Jira write operation (create, edit, transition, label update, link), call `addCommentToJiraIssue` on each affected item to leave a timestamped comment summarising what was done and why.
+
+This runs as the final step of EXECUTE, before VERIFY.
+
+---
+
+## What to Include in the Comment
+
+Include every section that is relevant to the action taken. Omit sections that don't apply.
+
+```
+## Agent action — <YYYY-MM-DD>
+
+**Triage session:** `triage-YYYY-MM-DD-NNN`
+
+### What was done
+- <Concise bullet list of every change made to this item: fields set, labels applied, links created, status transitioned, etc.>
+
+### Why
+- <Reasoning grounded in system design docs and/or current Jira state. No unsupported claims.>
+
+### Implementation details (if work was implemented)
+- Files changed: <list of files modified or created, with one-line description of each change>
+- Key decisions: <any architectural or design choices made during implementation, with brief rationale>
+- Known limitations / TODOs: <anything deferred or left incomplete, with a reference to the tracking item if one exists>
+
+### Tests (if tests were written or run)
+- Test files: <paths to new or modified test files>
+- Coverage: <what scenarios are covered>
+- Result: <pass / fail / skipped — with brief note if not all green>
+
+### Commit(s)
+- <git commit hash and message for any commits that relate to this item>
+
+### Linked decisions
+- <Path to any `docs/decisions/<slug>.md` file that was created or approved as part of this work, if applicable>
+```
+
+---
+
+## When to Add the Comment
+
+| Trigger | Comment required? |
+|---|---|
+| New item created via triage | Yes — on the newly created item |
+| Existing item labels/priority updated | Yes — on the updated item |
+| Story or Task implemented (code written) | Yes — on the Story/Task, include implementation details and tests sections |
+| Spike closed / Decision Record approved | Yes — on the Spike, link to the decision doc |
+| Item transition (e.g. In Progress → Done) | Yes — brief comment noting the transition and what was completed |
+| VERIFY finds a gap and deferred item created | Yes — on the deferred item, quote the gap that was found |
+
+---
+
+## Format Rules
+
+- Use the exact template above. Omit sections that have no content — do not leave empty section headers.
+- Dates use `YYYY-MM-DD` format.
+- Commit hashes should be the short form (7 chars).
+- If multiple items are affected in one run, each gets its own comment. Do not write one combined comment across items.
+- Comments are append-only. Do not edit previous agent comments.
