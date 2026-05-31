@@ -1,8 +1,21 @@
 # Intelligence Engines
 
-Five background engines transform raw Health Thread data into insight. They run on the Knowledge Graph and feed results into the Clarify step of the operating loop (Capture → Connect → **Clarify** → Close → Correct).
+Eight engines transform raw Health Thread data into insight. They run on the Knowledge Graph and power the **Investigate** step of the operating loop (Capture → Connect → **Investigate** → Clarify → Close → Correct), feeding the Clarify step.
 
-They operate silently. Their outputs surface as thread annotations, investigation prompts, and missing-context checklists — not as proactive alerts that could cause alert fatigue.
+They operate silently (except the Live-Metric Safety Monitor, which may surface low-alarm escalation guidance). Their outputs surface as thread annotations, investigation prompts, and missing-context checklists — not as proactive alerts that could cause alert fatigue.
+
+## Engine risk tiers
+
+Every engine carries a safety risk tier; higher tiers get stronger controls and always pass the Safety & Governance Gate (C10) before any user-facing output.
+
+| Engine | Risk tier |
+|---|---|
+| Pattern Detection, Temporal Analysis, Missing Data | Lower |
+| Confounder Detection, Contradiction Resolution | Medium |
+| Theory Evaluator | Medium-high |
+| External Research Relevance | High |
+| Live-Metric Escalation | High |
+| Cross-patient comparison (Research Sandbox) | Very high |
 
 ---
 
@@ -96,6 +109,51 @@ They operate silently. Their outputs surface as thread annotations, investigatio
 **Resolution rule:** User-authored accounts of subjective symptoms rank higher than institutional summaries. Clinical objective findings rank higher than inferred system outputs. Contradictions are never auto-resolved — they require user action or new evidence.
 
 **Safety:** Contradictions are presented neutrally. The engine does not determine which side is "true" — it preserves both until the user or new evidence resolves them.
+
+---
+
+## 6. Theory Evaluator (C15)
+
+**Purpose:** Evaluate a user- or clinician-proposed Theory against the user's own data and external evidence — without diagnosing.
+
+**Inputs:** Theory text + type, linked Investigation, personal evidence, External Evidence Graph relevance links.
+
+**Outputs:** Theory status (unreviewed / needs_more_data / partially_supported / not_supported_by_current_data / contradicted_by_current_data / discuss_with_clinician), with evidence-for, evidence-against, missing-data, and what to discuss with a clinician.
+
+**Trigger:** On-demand when a user or clinician enters a theory.
+
+**Examples:**
+- "Your data shows fatigue increased after the medication change, but sleep disruption also increased in the same period — the medication theory is possible but not isolated. Useful next context: exact dose dates and whether symptoms improve on non-work days."
+
+**Safety (medium-high tier):** Never outputs true/false diagnosis or a ranked differential. Risky claims route to "discuss with clinician". Blocked if it would assert a diagnostic conclusion. See `../safety/do_not_diagnose_rules.md`.
+
+---
+
+## 7. External Research Relevance Engine (C16)
+
+**Purpose:** Match curated external evidence (guidelines, papers, sources) to a thread by relevance, graded by source-quality tier — context, never a fact about the user.
+
+**Inputs:** Thread summary, symptom clusters, labs, medications, search scope; External Evidence Graph.
+
+**Outputs:** Relevance links: "this source discusses a similar pattern" with tier, confidence, and a possible question to ask; "new relevant source found"; "guideline changed".
+
+**Trigger:** On-demand (Research/Theory) and via Research Watch on a user-defined schedule.
+
+**Safety (high tier):** Source-quality tier shown on every result. No direct medical conclusion. External claims never enter the personal graph. Phrasing: "low-certainty and not specific to you".
+
+---
+
+## 8. Live-Metric Escalation Engine (F-LIVE)
+
+**Purpose:** Watch wearable/device trends against personal baselines and suggest safe escalation when thresholds are crossed alongside concerning symptoms.
+
+**Inputs:** Heart rate, HRV, sleep, SpO2, steps/activity, CGM, temperature, blood pressure, menstrual data, user-reported symptoms, medication changes; user-configured safety rules.
+
+**Outputs:** "This changed from your baseline"; "this pattern persisted N days"; "this happened near a medication/sleep/activity change"; "based on your configured safety rules, consider seeking care".
+
+**Trigger:** Continuous baseline-deviation evaluation; surfaces only when deviation persists and pairs with a concerning symptom.
+
+**Safety (high tier):** No disease prediction as final output. No panic language. No silent urgent-risk handling. No over-alerting. Always distinguishes device data from clinical data and shows confidence + source. See `../safety/do_not_diagnose_rules.md` (Live-metric signal).
 
 ---
 

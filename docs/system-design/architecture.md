@@ -6,15 +6,20 @@ flowchart TD
     B --> C[Processing Pipeline]
     C --> D[Multi-index + Health Graph]
     D --> E[Health Thread Engine]
-    E --> F[Six Memories]
+    E --> INV[Investigation Layer: Investigation, Theory, External Evidence]
+    INV --> F[Six Memories]
     F --> G[Continuity + Closure Engine]
     F --> H[Investigation + Explanation Engine]
     G --> I[Safety + Governance Gate]
     H --> I
-    I --> J[Patient Dashboard]
-    I --> K[Visit Packet / Scoped Share]
-    I --> L[Mobile / Bot / Timeline]
+    INV --> I
+    I --> WS[Audience Workspaces: Individual, Clinician, Shared, Institution, Research]
+    WS --> J[Patient Dashboard]
+    WS --> K[Visit Packet / Scoped Share]
+    WS --> L[Mobile / Bot / Timeline]
 ```
+
+The operating loop is **Capture → Connect → Investigate → Clarify → Close → Correct**. The Investigation Layer (L6) implements the Investigate step; Audience Workspaces (L9) present every output through grant-scoped, role-specific surfaces.
 
 ## Layer summary
 
@@ -26,9 +31,10 @@ flowchart TD
 |L3|Health Thread Memory|Represent unresolved or ongoing health concerns as longitudinal threads across symptoms, tests, visits, referrals, and patient story.|M22 Concern Tracker; M10/M11/M12; timeline; graph-explorer|Health Thread Engine; Thread State Machine; Unresolved Status; Thread Similarity/Linking|High|
 |L4|Six memories|Maintain story, clinical, pattern, decision, responsibility, and equity/access memories around each Health Thread.|M05-M08; M10-M16; M22|Story Memory; Clinical Memory; Pattern Memory; Decision Memory; Responsibility Memory; Equity & Access Memory|High|
 |L5|Continuity and closure engine|Track open loops after visits: pending results, referrals, unresolved symptoms, post-discharge instructions, deterioration, and repeat visits.|M22; doctor-summary; investigation-triage|Pending Item Ledger; Referral Lifecycle; Result Tracker; Post-Visit Plan Checker; Repeat-Visit View|High|
-|L6|Investigation and explanation|Help users ask better questions, see what changed, identify missing context, and prepare safe clinician conversations.|M13-M20; M23; M25; C8/C9|Normal-Test Explainer; Missing Data Checklist; Thread Questions; Myth/Personal Theory Checker|Medium-high|
-|L7|Safety, privacy, and governance|Prevent diagnosis claims, panic language, unsafe instructions, bias amplification, alert overload, and privacy violations.|M21 Safety & Triage; M02; M26|Clinical Safety Case Log; Feature Risk Register; False Positive/Negative Review; Bias Controls|Very high|
-|L8|User surfaces and shareable outputs|Present memory as simple, layered interfaces: dashboard, Health Thread, visit prep, doctor packet, post-visit checks, mobile/bot logging.|M29/M30/M32/M33; frontend-core; timeline; doctor-summary|Health Thread Dashboard; Visit Packet; Pending Loop Inbox; Correction Review; Share Link/Export|Medium|
+|L6|Investigation layer (Investigate step)|Run structured research over threads: Investigations, Theories, External Evidence Graph + Research Watch, Live Metrics monitor; help users ask better questions and see what changed.|M13-M20; M23; M25; C8/C9|C14 Investigation Engine; C15 Theory Service; C16 External Evidence Graph + Research Watch; Normal-Test Explainer; Missing Data Checklist; Theory Evaluator|Medium-high (engine risk-tiered)|
+|L7|Safety, privacy, and governance|Prevent diagnosis claims, panic language, unsafe instructions, bias amplification, alert overload, and privacy violations.|M21 Safety & Triage; M02; M26|Clinical Safety Case Log; Feature Risk Register; False Positive/Negative Review; Bias Controls; per-engine safety tiers; source-quality + clinical-review markers|Very high|
+|L8|User surfaces and shareable outputs|Present memory as simple, layered interfaces: dashboard, Health Thread, visit prep, doctor packet, post-visit checks, mobile/bot logging.|M29/M30/M32/M33; frontend-core; timeline; doctor-summary|Health Thread Dashboard; Visit Packet; Full Health Context Summary; Pending Loop Inbox; Correction Review; Share Link/Export|Medium|
+|L9|Audience workspaces|Role-specific, grant-scoped surfaces over the shared primitives; the individual is always the data controller.|new|C17 Workspace/Role/Grant; Individual; Clinician Case Investigation; Shared Health Thread; Institution Continuity (aggregate-only); Research Sandbox (opt-in)|Very high|
 
 ## New components (integrated)
 

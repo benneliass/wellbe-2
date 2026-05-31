@@ -14,6 +14,7 @@ Every processed entity (symptom, lab result, medication, visit, referral, hypoth
 | Care pathway | `visit`, `referral`, `referral_appointment`, `pending_item`, `practitioner`, `care_setting` |
 | Personal context | `body_region`, `mood_state`, `baseline_deviation`, `wearable_metric`, `document` |
 | External context | `environmental_event`, `public_health_signal` |
+| Investigation | `investigation`, `theory` |
 | Meta | `health_thread`, `story_memory_entry`, `patient_correction` |
 
 Each node carries: `privacy_class`, `confidence`, `evidence_level`, `source_context_ids[]`, `created_at`, `last_updated_at`.
@@ -32,8 +33,26 @@ Each node carries: `privacy_class`, `confidence`, `evidence_level`, `source_cont
 | `part_of` | Entity A is a component or manifestation of entity B |
 | `derived_from` | Derived fact linked back to its raw source event |
 | `belongs_to_thread` | Entity is a member of a specific Health Thread |
+| `evidence_for` | A fact or source supports a `theory` |
+| `evidence_against` | A fact or source weakens a `theory` |
+| `investigates` | An `investigation` is examining an entity or thread |
+| `relevance_link` | A personal fact relates to an External Evidence Graph claim (context only — see below) |
 
 Edges carry: `PotentialScore` (0–100), `score_level` (7 levels), `source_context_ids[]`, `confidence`, `is_user_corrected`.
+
+## External Evidence Graph (separate graph)
+
+External medical knowledge lives in a **separate graph**, never blended into the personal graph. It contains `external_evidence_source` nodes (papers, guidelines, medical sources, explainers, anecdotes) each carrying a `source_quality_tier`:
+
+| Tier | Source type | How it may be used |
+|---|---|---|
+| Tier 1 | Clinical guidelines, official medical bodies | Strongest external reference |
+| Tier 2 | Peer-reviewed papers, systematic reviews | Useful, still contextual |
+| Tier 3 | Case reports, early research | Signal only; not general proof |
+| Tier 4 | Medical blogs, expert explainers | Educational context only |
+| Tier 5 | Forums, anecdotes, social posts | Anecdotal; never treated as evidence about the user |
+
+Personal facts connect to external sources **only** through `relevance_link` edges. The system never asserts that an external claim is a fact about the user, and external claims never enter the personal subgraph.
 
 ## Evidence weighting
 

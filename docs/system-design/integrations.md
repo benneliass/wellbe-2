@@ -106,6 +106,36 @@ External integrations extend the Personal Data Factory with data from devices, i
 
 ---
 
+## 5. External Evidence Source Ingestion
+
+**Purpose:** Bring external medical knowledge (guidelines, papers, sources) into the **External Evidence Graph** so it can be linked to a thread by relevance — never treated as a fact about the user.
+
+**Source-quality tiers:**
+
+| Tier | Source type | How it may be used |
+|---|---|---|
+| Tier 1 | Clinical guidelines, official medical bodies | Strongest external reference |
+| Tier 2 | Peer-reviewed papers, systematic reviews | Useful, still contextual |
+| Tier 3 | Case reports, early research | Signal only; not general proof |
+| Tier 4 | Medical blogs, expert explainers | Educational context only |
+| Tier 5 | Forums, anecdotes, social posts | Anecdotal; never treated as evidence about the user |
+
+**How it works:**
+1. A thread summary, symptom cluster, labs, or medications define a search scope
+2. Curated retrieval fetches candidate sources; each is graded into a tier
+3. Claim extraction pulls discrete claims with their source citation
+4. Relevance matching creates `relevance_link` edges between personal facts and external claims
+5. The Safety Gate evaluates every user-facing result (source tier shown, no medical conclusion)
+
+**Hard rules:**
+- External claims are stored in the External Evidence Graph, **never** the personal Raw Context Vault.
+- Output is always source-labeled and uncertainty-preserving (see `../safety/do_not_diagnose_rules.md`).
+- No external source is ever presented as a diagnosis or a fact about the user.
+
+**Phase:** Post-MVP. Highest engine risk tier; see `intelligence_engines.md`.
+
+---
+
 ## Integration architecture
 
 All integrations write through the same ingestion path:

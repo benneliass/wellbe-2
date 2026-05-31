@@ -32,3 +32,24 @@ A thread should not simply disappear. It can be closed only when one of these is
 - If symptoms persist after a normal test, the thread remains active or watchful-waiting with explicit follow-up criteria.
 - High-risk safety flags override convenience states.
 - User correction can reopen or relabel a thread.
+
+## Investigation status lifecycle
+
+An **Investigation** (the Investigate loop step) runs over one or more threads and has its own status, distinct from but coupled to thread state:
+
+| Investigation status | Meaning | Allowed next states |
+|---|---|---|
+| open | investigation active, gathering/evaluating | monitoring, waiting_for_data, ready_for_visit, handed_off, closed |
+| monitoring | watching over time with criteria | open, waiting_for_data, ready_for_visit, closed |
+| waiting_for_data | blocked on missing context/results | open, monitoring, ready_for_visit |
+| ready_for_visit | outputs prepared for a clinician conversation | handed_off, open, closed |
+| handed_off | shared with a clinician under grant | open, closed |
+| closed | concern understood/explained/monitored or no longer active | open (reopen) |
+
+### Coupling to thread state
+
+- An Investigation may only `close` if its linked thread(s) satisfy thread closure criteria; closing an investigation never force-closes a thread.
+- `waiting_for_data` aligns with thread `waiting_for_result`; `ready_for_visit`/`handed_off` align with `referred` or visit-packet generation.
+- An open investigation on a thread keeps the thread out of `closed` unless closure criteria are explicitly met.
+- High-risk safety flags on an investigation propagate to the thread and can force `escalated`.
+- An Investigation never asserts a diagnosis; Theory status (see `core_objects.md`) is the safe vehicle for hypotheses.

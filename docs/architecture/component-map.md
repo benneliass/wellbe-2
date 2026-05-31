@@ -2,12 +2,12 @@
 
 This document is the canonical list of WellBe components, split into two tiers:
 
-- **CORE components** — the spine of the product. They are foundational, everything else depends on them, and they map to the lower architectural layers (L0–L5, L7) in `../system-design/architecture.md`. Changes here have the widest blast radius.
+- **CORE components** — the spine of the product. They are foundational, everything else depends on them, and they map to the architectural layers (L0–L7) in `../system-design/architecture.md`. Changes here have the widest blast radius.
 - **FEATURE components** — capabilities layered on top of the core. Each is individually shippable, phaseable, and (mostly) removable without breaking the spine. They consume core services through stable contracts.
 
 The rule that separates the tiers: **a component is CORE if removing it would break the Capture → Connect → Investigate → Clarify → Close → Correct loop or violate a system principle. Otherwise it is a FEATURE.** See `../system-design/system_principles.md`.
 
-Layer references (`L0`–`L8`) map to `../system-design/architecture.md`. Feature IDs (`WB2-Fxxx`) map to `../feature-backlog/feature_backlog.md`.
+Layer references (`L0`–`L9`) map to `../system-design/architecture.md`. Feature IDs (`WB2-Fxxx`) map to `../feature-backlog/feature_backlog.md`.
 
 ---
 
@@ -28,12 +28,18 @@ Layer references (`L0`–`L8`) map to `../system-design/architecture.md`. Featur
 | C11 | Correction Service | L0/L4 | Captures user repairs as new source-linked layers; never overwrites raw or derived data. | C2, C5, C8 |
 | C12 | Notification & Audit Service | L7 | Append-only audit trail of every event; user-facing notifications (closure-oriented, low-alarm). | C1 |
 | C13 | API & Contract Layer | L8 (edge) | REST/OpenAPI surface + webhooks; the single contract boundary all surfaces and features call. | C1, C7, C9, C10 |
+| C14 | Investigation Engine | L6 | Owns the Investigation object: lifecycle/status, scope, participants (under grant), evidence bundles, review cadence — the "Investigate" loop step. | C7, C5, C6, C10 |
+| C15 | Theory Service | L6 | Owns the Theory object: evidence-for/against, missing-data, status, safety level; never diagnosis. | C6, C8, C10 |
+| C16 | External Evidence Graph + Research Watch | L6 | Separate graph of external sources with source-quality tiers; relevance links to personal facts; curated retrieval and watch. | C5, C6, C10 |
+| C17 | Workspace, Role & Grant Layer | L0/L9 | Role-specific workspaces and the deep grant model (purpose, duration, comment/export/invite, workspace scope); individual stays controller. | C1, C12 |
 
 ### Why these are core
 - **C1–C5** implement the Data Factory and provenance principles (raw immutability, every output traceable, correction as safety infrastructure).
 - **C6–C9** implement Threads-not-files, uncertainty-as-object, and closure-beats-visibility.
 - **C10** implements investigate-never-diagnose and "safety gate before any AI output reaches the user" — the single hardest architectural rule.
 - **C11–C13** implement correction, audit, and the contract boundary every other tier depends on.
+- **C14–C16** implement the Investigate loop step: Investigation as the research process, Theory as the safe hypothesis object, and External Evidence as context-not-fact (separate graph, relevance links only).
+- **C17** implements the multi-audience model: grant-scoped workspaces with the individual always the controller (extends C1).
 
 ---
 
@@ -56,6 +62,12 @@ Each feature consumes core services and can be phased independently. "Phase" fol
 | F-XDEV | Cross-Device Intelligence | WB2-F038 | L2 | Baseline/drift/asymmetry across paired devices. | C6, F-WEAR | Post-MVP |
 | F-AUI | Health-Adaptive UI | WB2-F040 | L8 | Ambient UI signal driven by triage state + baseline deviation. | C7, C10, C13 | Post-MVP |
 | F-FHIR | Medical Institution Integration (user-pull FHIR) | WB2-F041 | L1 | User-initiated SMART-on-FHIR import of own records. | C1, C3, C4 | Deferred |
+| F-LIVE | Live Metrics Safety Monitor | WB2-F043 | L6 | Baseline-deviation + symptom-paired safe escalation guidance over wearable/device trends. | C9, C10, C14, F-WEAR | Post-MVP |
+| F-CLINWS | Clinician Case Investigation Workspace | WB2-F044 | L9 | Consent-scoped longitudinal case view, evidence board, open-loop + theory tracker. | C13, C14, C15, C17 | Post-MVP |
+| F-SHAREDWS | Shared Health Thread Workspace | WB2-F045 | L9 | Patient-controlled collaboration space around one thread under scoped grants. | C13, C17 | Post-MVP |
+| F-INSTWS | Institution Continuity Intelligence | WB2-F046 | L9 | Aggregate-only, consented continuity/open-loop intelligence (no default individual access). | C13, C17 | Deferred |
+| F-RESWS | Research Sandbox / Cohort | WB2-F047 | L9 | Opt-in, governed cross-patient/cohort comparison sandbox. | C1, C10, C17 | Deferred |
+| F-FULLSUM | Full Health Context Summary | WB2-F048 | L8 | User-owned summary across all data, beyond clinician notes; source-linked. | C7, C8, C10, C14 | Post-MVP |
 
 ### Feature → core dependency rules
 - Every integration feature (`F-ENV`, `F-WEAR`, `F-FHIR`) writes **only** through the Ingestion Layer (C3) into the Raw Context Vault (C2). No feature bypasses the Data Factory. See `../system-design/integrations.md`.

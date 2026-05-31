@@ -15,7 +15,7 @@ This invariant is absolute. No step in this protocol may be reordered or skipped
 
 ## A. Core Component Detection — When a Spike Is REQUIRED
 
-A Spike must be created, and implementation must stop, before any Story is implemented that touches one of the following 13 core components. The canonical list lives in `docs/architecture/component-map.md`.
+A Spike must be created, and implementation must stop, before any Story is implemented that touches one of the following 17 core components. The canonical list lives in `docs/architecture/component-map.md`.
 
 | Component | ID | What counts as "touching" it |
 |---|---|---|
@@ -32,6 +32,10 @@ A Spike must be created, and implementation must stop, before any Story is imple
 | Correction Service | C11 | Any change to how user corrections are captured, layered, or linked to source-linked layers |
 | Notification & Audit Service | C12 | Any change to the append-only audit trail schema, event semantics, or notification trigger logic |
 | API & Contract Layer | C13 | Any schema change or versioning decision that affects multiple components or external consumers |
+| Investigation Engine | C14 | Any change to the Investigation object, its lifecycle/status, scope flags, participant model, or the Investigate loop-step semantics |
+| Theory Service | C15 | Any change to the Theory object, its status/safety levels, evidence-for/against linking, or theory-type classification |
+| External Evidence Graph + Research Watch | C16 | Any change to the separate external-evidence store, source-quality tiers, relevance-link semantics, or curated retrieval/watch |
+| Workspace, Role & Grant Layer | C17 | Any change to the role/grant model, workspace scoping, grant fields (purpose/duration/comment/export/invite), or institution/researcher access governance |
 
 ### Not required — agent may implement directly
 

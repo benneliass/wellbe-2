@@ -17,6 +17,35 @@ WellBe is a memory and investigation support system, not a diagnostic authority.
 9. **Engine risk-tier safety** — Is the feature's engine assigned a risk tier (lower: timeline/missing-context; higher: theory evaluation, external research relevance, live-metric escalation, cross-patient comparison) with tier-appropriate controls?
 10. **Clinical-review marker safety** — Is every output labeled with its review state (patient-entered / AI-summarized / not-clinician-reviewed / clinician-reviewed / clinician-annotated / ready-for-visit / needs-urgent-care-consideration)?
 
+## Source-quality tiers
+
+External evidence is labeled by tier; tier is shown on every user-facing result and never upgraded into a fact about the user:
+
+| Tier | Source type | Use |
+|---|---|---|
+| Tier 1 | Clinical guidelines, official medical bodies | Strongest external reference |
+| Tier 2 | Peer-reviewed papers, systematic reviews | Useful, still contextual |
+| Tier 3 | Case reports, early research | Signal only |
+| Tier 4 | Medical blogs, expert explainers | Educational context only |
+| Tier 5 | Forums, anecdotes, social posts | Anecdotal; never evidence about the user |
+
+## Clinical-review markers
+
+Every output carries a review-state marker: `patient-entered`, `AI-summarized`, `not-clinician-reviewed`, `clinician-reviewed`, `clinician-annotated`, `ready-for-visit`, `needs-urgent-care-consideration`.
+
+## Per-engine safety tiers
+
+Intelligence engines are risk-tiered (see `../system-design/intelligence_engines.md`): lower (timeline, missing-context), medium (confounder, contradiction), medium-high (theory evaluation), high (external research relevance, live-metric escalation), very high (cross-patient comparison). Higher tiers receive stronger controls; all pass the Safety Engine before reaching the user.
+
+## Live Metrics Safety Monitor guardrails
+
+- No disease prediction as a final output.
+- No panic language.
+- No silent urgent-risk handling.
+- No over-alerting.
+- Always distinguish device data from clinical data.
+- Always show confidence and source.
+
 ## Non-bypass rule
 
-The Safety Engine must evaluate every user-facing AI output. No assistant, agent, summary generator, or research mode can bypass it.
+The Safety Engine must evaluate every user-facing AI output. No assistant, agent, summary generator, research mode, or workspace (individual, clinician, institution, research) can bypass it.
