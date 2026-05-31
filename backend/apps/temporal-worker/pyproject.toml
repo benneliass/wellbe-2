@@ -6,8 +6,19 @@ description = "Temporal Worker: registers and runs all durable workflow activiti
 dependencies = [
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-c4-processing",
+    "wellbe-c5-evidence",
+    "wellbe-events",
+    "wellbe-db",
+    "wellbe-c2-vault",
+    "temporalio>=1.9",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-c4-processing = { workspace = true }
+wellbe-c5-evidence = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-c2-vault = { workspace = true }
