@@ -6,8 +6,17 @@ description = "C4 Processing Worker: Dramatiq lightweight extraction jobs."
 dependencies = [
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-c4-processing",
+    "wellbe-events",
+    "wellbe-db",
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "dramatiq[redis]>=1.17",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-c4-processing = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-db = { workspace = true }
