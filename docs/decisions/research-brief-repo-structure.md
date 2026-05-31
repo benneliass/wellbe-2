@@ -44,7 +44,7 @@ wellbe-2/                          ← root of the design repo (currently docs-o
 │   ├── architecture/
 │   │   ├── component-map.md       ← Canonical list of C1-C13 core + F-* feature components
 │   │   ├── tech-stack.md          ← All technology choices with versions and rationale
-│   │   ├── infra-stack.md         ← Deployment (Fly.io Profile A → K8s Profile B)
+│   │   ├── infra-stack.md         ← Deployment (Kubernetes-native; CloudNativePG + Cilium + Karpenter)
 │   │   ├── core-stack-relations.md← Data flow and dependency direction between components
 │   │   └── development-backlog.md ← WB-DEV-NNN items → maps to Jira Stories
 │   │
@@ -214,10 +214,11 @@ C6 depends on: C4, C5  (post-MVP minimal graph, post-MVP full)
 
 | Key | Summary | Component |
 |---|---|---|
+| **WEL-99** | **Scaffold monorepo repository structure: component packages, service apps, local Docker Compose, Alembic setup ← DO THIS FIRST** | Infra |
 | WEL-73 | Event backbone: transactional outbox + Redis Streams (WB-DEV-019) | Platform |
 | WEL-74 | Temporal deployment + base workflow library (WB-DEV-020) | Platform |
-| WEL-75 | Profile A infra (Fly.io + managed Postgres + Redis + MinIO) (WB-DEV-201) | Infra |
-| WEL-76 | OpenTofu IaC + GitHub Actions CI (WB-DEV-202) | Infra |
+| WEL-75 | Build append-only audit log and closure-oriented notification service (WB-DEV-017) | C12 |
+| WEL-76 | Kubernetes platform + OpenTofu IaC + observability + secrets + safety eval harness (WB-DEV-201–205) | Infra |
 
 ### 5.5 Spikes (all resolved)
 
