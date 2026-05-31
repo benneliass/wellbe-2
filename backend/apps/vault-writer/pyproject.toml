@@ -4,10 +4,18 @@ version = "0.1.0"
 requires-python = ">=3.13"
 description = "C2/C3 Vault Writer: the ONLY process with INSERT permission on raw_context_events."
 dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-db",
+    "wellbe-events",
+    "wellbe-c2-vault",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-c2-vault = { workspace = true }

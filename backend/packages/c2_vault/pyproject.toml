@@ -8,6 +8,7 @@ dependencies = [
     "wellbe-platform",
     "wellbe-db",
     "wellbe-events",
+    "boto3>=1.35",
 ]
 
 [tool.uv.sources]
