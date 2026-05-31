@@ -13,6 +13,8 @@ docker build -t wellbe-vault-writer:local -f "$REPO_ROOT/backend/apps/vault-writ
 docker build -t wellbe-ingestion-worker:local -f "$REPO_ROOT/backend/apps/ingestion-worker/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-processing-worker:local -f "$REPO_ROOT/backend/apps/processing-worker/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-safety-gate:local -f "$REPO_ROOT/backend/apps/safety-gate/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-api:local -f "$REPO_ROOT/backend/apps/api/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-audit-service:local -f "$REPO_ROOT/backend/apps/audit-service/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-migrations:local -f "$REPO_ROOT/db/Dockerfile.migrations" "$REPO_ROOT"
 
 echo "=== Loading images into Kind cluster ==="
@@ -29,6 +31,8 @@ LOCAL_IMAGES=(
   wellbe-ingestion-worker:local
   wellbe-processing-worker:local
   wellbe-safety-gate:local
+  wellbe-api:local
+  wellbe-audit-service:local
   wellbe-migrations:local
 )
 

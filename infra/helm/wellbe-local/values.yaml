@@ -77,3 +77,21 @@ safetyGate:
   config:
     logLevel: "INFO"
     environment: "dev"
+
+api:
+  image: wellbe-api:local
+  imagePullPolicy: Never
+  port: 8001
+  replicas: 1
+  config:
+    logLevel: "INFO"
+    environment: "dev"
+
+auditService:
+  image: wellbe-audit-service:local
+  imagePullPolicy: Never
+  port: 8006
+  replicas: 1
+  config:
+    logLevel: "INFO"
+    environment: "dev"

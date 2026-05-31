@@ -196,3 +196,93 @@ k8s_resource(
     port_forwards=['8005:8005'],
     labels=['app'],
 )
+
+# ---------------------------------------------------------------------------
+# api (C13)
+# ---------------------------------------------------------------------------
+
+docker_build(
+    'wellbe-api:local',
+    context='.',
+    dockerfile='backend/apps/api/Dockerfile',
+    build_args={'DEV': 'true'},
+    live_update=[
+        sync(
+            'backend/apps/api/src/',
+            '/app/apps/api/src/',
+        ),
+        sync(
+            'backend/packages/',
+            '/app/packages/',
+        ),
+        run(
+            'touch /tmp/reload-trigger',
+            trigger=[
+                'backend/apps/api/src/',
+                'backend/packages/',
+            ],
+        ),
+    ],
+    only=[
+        'backend/pyproject.toml',
+        'backend/apps/api/',
+        'backend/packages/',
+    ],
+    ignore=[
+        '**/__pycache__',
+        '**/*.pyc',
+        '**/*.pyo',
+        '**/*.egg-info',
+    ],
+)
+
+k8s_resource(
+    'api',
+    port_forwards=['8001:8001'],
+    labels=['app'],
+)
+
+# ---------------------------------------------------------------------------
+# audit-service (C12)
+# ---------------------------------------------------------------------------
+
+docker_build(
+    'wellbe-audit-service:local',
+    context='.',
+    dockerfile='backend/apps/audit-service/Dockerfile',
+    build_args={'DEV': 'true'},
+    live_update=[
+        sync(
+            'backend/apps/audit-service/src/',
+            '/app/apps/audit-service/src/',
+        ),
+        sync(
+            'backend/packages/',
+            '/app/packages/',
+        ),
+        run(
+            'touch /tmp/reload-trigger',
+            trigger=[
+                'backend/apps/audit-service/src/',
+                'backend/packages/',
+            ],
+        ),
+    ],
+    only=[
+        'backend/pyproject.toml',
+        'backend/apps/audit-service/',
+        'backend/packages/',
+    ],
+    ignore=[
+        '**/__pycache__',
+        '**/*.pyc',
+        '**/*.pyo',
+        '**/*.egg-info',
+    ],
+)
+
+k8s_resource(
+    'audit-service',
+    port_forwards=['8006:8006'],
+    labels=['app'],
+)
