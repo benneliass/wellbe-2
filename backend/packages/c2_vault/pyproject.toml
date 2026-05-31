@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c2-vault"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Raw Context Vault (C2): immutable append-only raw event store."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

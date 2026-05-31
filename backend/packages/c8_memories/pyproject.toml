@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c8-memories"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Six Memories Store (C8): Story/Clinical/Pattern/Decision/Responsibility/Equity memories."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

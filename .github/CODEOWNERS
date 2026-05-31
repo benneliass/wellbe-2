@@ -1,0 +1,28 @@
+# WellBe CODEOWNERS
+# See docs/decisions/research-brief-repo-structure.md for ownership model.
+
+# C10 Safety Gate — requires explicit owner review on every PR touching safety logic.
+# Any change to safety gate code or evals must pass safety-gate.yml CI before merge.
+/backend/packages/c10_safety/    @ben7423
+/backend/apps/safety-gate/       @ben7423
+/evals/safety/                   @ben7423
+/docs/safety/                    @ben7423
+
+# Bible files — require explicit owner review
+/AGENTS.md                                          @ben7423
+/VISION.md                                          @ben7423
+/docs/system-design/system_design.md                @ben7423
+/docs/system-design/system_principles.md            @ben7423
+/docs/system-design/platform_identity.md            @ben7423
+/docs/safety/safety_model.md                        @ben7423
+/docs/safety/do_not_diagnose_rules.md               @ben7423
+/.cursor/rules/wellbe-vision-guardrails.mdc         @ben7423
+/.cursor/rules/audience-guardrails.mdc              @ben7423
+/.cursor/rules/infra-constraints.mdc                @ben7423
+
+# Database migrations — all schema changes need review
+/db/migrations/                  @ben7423
+
+# API contract — changes affect all surfaces
+/contracts/                      @ben7423
+/backend/apps/api/               @ben7423

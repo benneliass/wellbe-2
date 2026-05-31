@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-continuity-worker"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C9 Continuity Worker: pending item ledger, referral tracker, Temporal timer callbacks."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

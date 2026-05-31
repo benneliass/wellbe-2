@@ -1,0 +1,22 @@
+# Postgres 17 with TimescaleDB + pgvector (bundled) + Apache AGE
+# Base: timescale/timescaledb-ha includes TimescaleDB 2.x and pgvector 0.8+
+FROM timescale/timescaledb-ha:pg17
+
+# Install Apache AGE from source
+# AGE 1.6+ supports Postgres 17 — verify latest release at https://github.com/apache/age
+USER root
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    postgresql-server-dev-17 \
+    libreadline-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 --branch PG17 https://github.com/apache/age.git /tmp/age \
+    && cd /tmp/age \
+    && make \
+    && make install \
+    && rm -rf /tmp/age
+
+USER postgres

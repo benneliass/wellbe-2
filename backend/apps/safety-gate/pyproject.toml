@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-safety-gate"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C10 Safety & Governance Gate: isolated fail-closed service. Timeout = deny. Error = deny."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

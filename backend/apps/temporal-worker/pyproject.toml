@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-temporal-worker"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Temporal Worker: registers and runs all durable workflow activities."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c11-correction"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Correction Service (C11): user corrections as source-linked layers."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

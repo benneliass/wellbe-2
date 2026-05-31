@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-vault-writer"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C2/C3 Vault Writer: the ONLY process with INSERT permission on raw_context_events."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

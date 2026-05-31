@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-ingestion-worker"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C3 Ingestion Worker: Dramatiq lightweight adapter jobs."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

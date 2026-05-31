@@ -1,0 +1,13 @@
+[project]
+name = "wellbe-notification-worker"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C12 Notification/Audit Worker: append-only audit trail sink and notification dispatcher."
+dependencies = [
+    "wellbe-platform",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }

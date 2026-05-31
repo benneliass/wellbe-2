@@ -1,0 +1,15 @@
+[project]
+name = "wellbe-events"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Transactional outbox writer and Redis Streams publisher. All event emission goes through here."
+dependencies = [
+    "sqlalchemy>=2.0",
+    "redis>=5.2",
+    "wellbe-contracts",
+    "wellbe-db",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-db = { workspace = true }

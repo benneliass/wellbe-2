@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c5-evidence"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Evidence & Provenance Service (C5): evidence links, no-orphan-claims enforcement."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

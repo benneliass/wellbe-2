@@ -1,0 +1,134 @@
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 17 — primary datastore
+  # Extensions required: pgvector, TimescaleDB, Apache AGE
+  #
+  # Uses timescale/timescaledb-ha:pg17 which bundles TimescaleDB + pgvector.
+  # Apache AGE must be added via the custom Dockerfile.postgres in this dir.
+  # ---------------------------------------------------------------------------
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    environment:
+      POSTGRES_USER: wellbe
+      POSTGRES_PASSWORD: wellbe_dev
+      POSTGRES_DB: wellbe
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wellbe -d wellbe"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # Redis — Dramatiq broker + Redis Streams event bus + revocation cache
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # MinIO — S3-compatible object storage for Raw Context Vault (C2)
+  # Object-lock and versioning enforced via init script.
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: wellbe_minio
+      MINIO_ROOT_PASSWORD: wellbe_minio_dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO bucket setup (runs once, then exits)
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 wellbe_minio wellbe_minio_dev &&
+      mc mb --ignore-existing local/wellbe-raw-context &&
+      mc mb --ignore-existing local/wellbe-documents &&
+      echo 'MinIO buckets ready'
+      "
+
+  # ---------------------------------------------------------------------------
+  # Temporal — durable workflow engine (dev server, single-node)
+  # Used by C3 (FHIR/OCR), C4 (extraction), C9 (timers), C10 (safety agent)
+  # ---------------------------------------------------------------------------
+  temporal:
+    image: temporalio/auto-setup:latest
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=wellbe
+      - POSTGRES_PWD=wellbe_dev
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "7233:7233"
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "8080:8080"
+    depends_on:
+      - temporal
+
+  # ---------------------------------------------------------------------------
+  # ZITADEL — OIDC/OAuth2 identity provider (C1 IdP)
+  # WellBe owns consent and Share Grant semantics in Postgres (not ZITADEL).
+  # ---------------------------------------------------------------------------
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:latest
+    command: start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled
+    environment:
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: wellbe
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: wellbe_dev
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: wellbe
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: wellbe_dev
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALSECURE: "false"
+      ZITADEL_EXTERNALPORT: 8090
+      ZITADEL_EXTERNALDOMAIN: localhost
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

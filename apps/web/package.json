@@ -1,0 +1,28 @@
+{
+  "name": "@wellbe/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.x",
+    "react": "19.x",
+    "react-dom": "19.x",
+    "@wellbe/api-client": "workspace:*",
+    "@wellbe/ui": "workspace:*",
+    "@tanstack/react-query": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.0.0",
+    "@wellbe/tsconfig": "workspace:*",
+    "@wellbe/eslint-config": "workspace:*"
+  }
+}

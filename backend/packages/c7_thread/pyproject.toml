@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c7-thread"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Health Thread Engine + State Machine (C7): central product object and lifecycle."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

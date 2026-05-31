@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c12-audit"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Notification & Audit Service (C12): append-only audit trail and notifications."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

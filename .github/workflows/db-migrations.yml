@@ -1,0 +1,44 @@
+name: DB Migrations Check
+
+on:
+  pull_request:
+    paths:
+      - "db/migrations/**"
+
+jobs:
+  migrations:
+    name: Validate Alembic migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: wellbe
+          POSTGRES_PASSWORD: wellbe_test
+          POSTGRES_DB: wellbe_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --package wellbe-db
+
+      - name: Run migrations
+        run: uv run alembic upgrade head
+        working-directory: db
+        env:
+          DATABASE_URL: postgresql+asyncpg://wellbe:wellbe_test@localhost:5432/wellbe_test
+
+      - name: Check for autogenerate drift
+        run: uv run alembic check
+        working-directory: db
+        env:
+          DATABASE_URL: postgresql+asyncpg://wellbe:wellbe_test@localhost:5432/wellbe_test

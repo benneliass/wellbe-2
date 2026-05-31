@@ -1,0 +1,17 @@
+{
+  "name": "@wellbe/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generated TypeScript client for the WellBe API. Auto-generated from contracts/openapi/wellbe.openapi.json in CI. Do not edit manually.",
+  "main": "./src/index.ts",
+  "scripts": {
+    "generate": "openapi-typescript ../../contracts/openapi/wellbe.openapi.json -o src/generated.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "openapi-typescript": "^7.0.0",
+    "typescript": "^5.0.0",
+    "@wellbe/tsconfig": "workspace:*"
+  }
+}

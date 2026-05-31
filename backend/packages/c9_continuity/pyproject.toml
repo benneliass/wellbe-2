@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c9-continuity"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Continuity & Closure Engine (C9): pending item ledger, referral tracker, Temporal timers."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

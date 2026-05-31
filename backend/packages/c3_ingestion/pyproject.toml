@@ -1,0 +1,17 @@
+[project]
+name = "wellbe-c3-ingestion"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Ingestion Layer (C3): source-type adapters writing into the Vault."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }

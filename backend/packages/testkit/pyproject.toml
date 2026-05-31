@@ -1,0 +1,12 @@
+[project]
+name = "wellbe-testkit"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Synthetic test fixtures only. NEVER import real PHI. Never used in production code."
+dependencies = [
+    "faker>=33.0",
+    "wellbe-contracts",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }

@@ -1,0 +1,21 @@
+[project]
+name = "wellbe-api"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "C13 API & Contract Layer: FastAPI REST external boundary."
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "wellbe-platform",
+    "wellbe-contracts",
+    "wellbe-c1-consent",
+    "wellbe-c7-thread",
+    "wellbe-c10-safety",
+]
+
+[tool.uv.sources]
+wellbe-platform = { workspace = true }
+wellbe-contracts = { workspace = true }
+wellbe-c1-consent = { workspace = true }
+wellbe-c7-thread = { workspace = true }
+wellbe-c10-safety = { workspace = true }
