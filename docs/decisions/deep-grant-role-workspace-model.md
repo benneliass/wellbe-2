@@ -1,8 +1,8 @@
 # Decision: Deep Grant/Role model and multi-audience workspace access
 
-**Status:** Proposed - awaiting user approval  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-01  
 **Approved by:** User  
 **Jira Spike:** WEL-131  
 **Blocks:** WEL-118 (deep Grant/Role), WEL-119 (Clinician workspace), WEL-120 (Shared workspace), WEL-127 (C13 contract)
