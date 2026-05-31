@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Live Metrics Safety Monitor (F-LIVE / WB2-F043) story
+**Jira Spike:** WEL-132  
+**Blocks:** WEL-121 (Live Metrics Safety Monitor)
 
 ---
 

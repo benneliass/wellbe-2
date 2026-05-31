@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Research Sandbox / cohort comparison (F-RESWS / WB2-F047) story
+**Jira Spike:** WEL-133  
+**Blocks:** WEL-123 (Research Sandbox / cohort comparison)
 
 ---
 

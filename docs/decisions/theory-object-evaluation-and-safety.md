@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Theory Service (C15) story; Theory Evaluator engine story
+**Jira Spike:** WEL-129  
+**Blocks:** WEL-114 (Theory object), WEL-115 (Theory Evaluator), WEL-125 (C4 extraction retrofit)
 
 ---
 

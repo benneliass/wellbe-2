@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** External Evidence Graph + Research Watch (C16) story; External Research Relevance engine story
+**Jira Spike:** WEL-130  
+**Blocks:** WEL-116 (External Evidence Graph), WEL-117 (Research Relevance engine), WEL-124 (C3 adapter), WEL-126 (C5 provenance)
 
 ---
 

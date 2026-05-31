@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Workspace/Role/Grant Layer (C17) story; Clinician + Shared workspace stories
+**Jira Spike:** WEL-131  
+**Blocks:** WEL-118 (deep Grant/Role), WEL-119 (Clinician workspace), WEL-120 (Shared workspace), WEL-127 (C13 contract)
 
 ---
 

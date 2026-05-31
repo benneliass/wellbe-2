@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Safety & Governance Gate (C10 / WEL-74) risk-tier extension story
+**Jira Spike:** WEL-134  
+**Blocks:** WEL-74 (C10 Safety & Governance Gate risk-tier extension)
 
 ---
 

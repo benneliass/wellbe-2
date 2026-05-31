@@ -4,8 +4,8 @@
 **Date opened:** 2026-05-31  
 **Date approved:** YYYY-MM-DD (fill on approval)  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (pending creation)  
-**Blocks:** Investigation Engine (C14) story; build-forward on WEL-64 (C7 Health Thread Engine)
+**Jira Spike:** WEL-128  
+**Blocks:** WEL-112 (Investigation object, C14); relates to WEL-64 (C7 build-forward)
 
 ---
 
