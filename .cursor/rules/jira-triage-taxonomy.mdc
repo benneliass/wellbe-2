@@ -25,6 +25,7 @@ Every item must have exactly one `layer:` label.
 | `layer:feature-frontend` | Client-side / UI work. Views, interactions, user-facing flows. |
 | `layer:feature-api` | API surface and contracts. Endpoints, schemas, versioning. |
 | `layer:feature-integration` | External integrations. Wearables, EHR import, third-party data sources. |
+| `layer:feature-workspace` | Audience workspace surfaces (L9). Clinician, shared, institution, and research workspaces over the shared primitives, always grant-scoped. |
 
 ---
 
@@ -54,6 +55,11 @@ Every item must have exactly one `component:` label. Components map directly to 
 | `component:research-agent` | `docs/feature-backlog/feature_backlog.md` — WB2-F035, WB2-F036 |
 | `component:mood-logging` | `docs/system-design/system_design.md` — Data Capture / WB2-F034 |
 | `component:health-adaptive-ui` | `docs/feature-backlog/feature_backlog.md` — WB2-F040 |
+| `component:investigation` | `docs/system-design/core_objects.md` — C14: Investigation object + engine (the Investigate loop step) |
+| `component:theory` | `docs/system-design/core_objects.md` — C15: Theory object + Theory Evaluator; non-diagnostic hypothesis evaluation |
+| `component:external-evidence` | `docs/system-design/knowledge_graph.md` — C16: External Evidence Graph + Research Watch, source-quality tiers, relevance links |
+| `component:workspace-grant` | `docs/safety/privacy_and_consent_model.md` — C17: deep Grant/Role model + role-specific workspaces (clinician, shared, institution, research) |
+| `component:live-metrics` | `docs/system-design/integrations.md` — F-LIVE: Live Metrics Safety Monitor (baseline-deviation safe escalation) |
 
 ---
 

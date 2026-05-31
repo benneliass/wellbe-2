@@ -19,6 +19,15 @@ Every Epic (Feature) in the WEL project must match this table exactly. Priority 
 | E10 | UI Layer | post-mvp | 10001 | P2-important |
 | E8 | External Intelligence | post-mvp | 10001 | P3-backlog |
 | E9 | Integrations | post-mvp | 10001 | P3-backlog |
+| E11 | Investigation Layer (C14) | post-mvp | 10001 | P2-important |
+| E12 | Theory & Evidence Evaluation (C15) | post-mvp | 10001 | P2-important |
+| E13 | External Evidence Graph (C16) | post-mvp | 10001 | P3-backlog |
+| E14 | Audience Workspaces & Grants (C17) | post-mvp | 10001 | P3-backlog |
+| E15 | Live Metrics Safety Monitor | post-mvp | 10001 | P3-backlog |
+| E16 | Institution Continuity Intelligence | deferred | 10002 | P3-backlog |
+| E17 | Research Sandbox / Cohort | deferred | 10002 | P3-backlog |
+
+> E11–E17 are the Health Investigation OS expansion Epics. They are pending creation in Jira and require explicit user approval per the hard rule in `jira-autonomy-thresholds.mdc` before they are created. Phases keep MVP unchanged.
 
 ## Rationale
 
@@ -26,6 +35,7 @@ Every Epic (Feature) in the WEL project must match this table exactly. Priority 
 - **P1-critical (E2, E3, E7):** These deliver the core MVP value — care continuity workflows, memory capture, and data ingestion. They must ship in the MVP phase.
 - **P2-important (E5, E6, E10):** Knowledge Graph and Intelligence Engines require data volume to be meaningful and have structural dependencies on E1/E7. UI Layer depends on the graph and intelligence outputs.
 - **P3-backlog (E8, E9):** External Intelligence (Research Agent, Myth Buster) and Integrations (wearables, FHIR, cross-device) are valuable post-MVP expansions with higher complexity and external dependencies.
+- **Investigation OS expansion (E11–E17):** E11 Investigation Layer and E12 Theory & Evidence are P2 because they implement the new "Investigate" loop step on top of the Health Thread core. E13 External Evidence, E14 Workspaces, and E15 Live Metrics are P3 post-MVP (higher safety/complexity). E16 Institution Continuity and E17 Research Sandbox are deferred and governance-gated (aggregate-only / opt-in cross-patient).
 
 ## During VERIFY
 
