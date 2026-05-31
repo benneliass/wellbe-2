@@ -1,9 +1,9 @@
 # Decision: Processing Pipeline entity extraction orchestration
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** _(fill on approval)_  
-**Approved by:** _(fill on approval)_  
+**Date approved:** 2026-05-31  
+**Approved by:** User  
 **Jira Spike:** WEL-96  
 **Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol  
 **Also blocks:** WEL-82 — Build Processing Pipeline (entity/fact extraction, confidence scoring, quality metadata)
