@@ -1,9 +1,117 @@
 # C6 Knowledge Graph — Visualization & Presentation Consultation Brief
 
 **Prepared:** 2026-05-31  
+**Research received:** 2026-05-31  
 **Component:** C6 — Knowledge Graph Store  
 **Purpose:** External consultation on how the knowledge graph should be presented to end users.  
 **Context:** WellBe is a personal health intelligence platform. The individual user (patient or caregiver) is always the primary audience. WellBe does not diagnose. It investigates, connects, and surfaces patterns from data the user has submitted.
+
+---
+
+## Research Results (received 2026-05-31)
+
+### Core decision
+C6 should be presented as a **guided, expandable Health Thread graph**. The default view starts with one main concern (a C7 HealthThread object) as the root. The first click reveals category branches. Each subsequent click expands only one more layer of directly connected nodes. Evidence is always available through a side drawer. The graph never implies diagnosis; it shows user-controlled, source-backed relationships in the patient's own data.
+
+This is an **expandable radial / mind-map layout** — not a force-directed graph. The layout is stable; nodes do not jump as branches open.
+
+### Answers to the open questions
+
+**Q1 — Layout algorithm:** Expandable radial / mind-map layout. Not force-directed. Stability is a requirement — the user's spatial memory of what is where must not be reset on every interaction.
+
+**Q2 — Temporal ordering:** Temporal ordering is handled at the edge level (edge labels, `temporally_precedes` edges) and in the evidence drawer timeline — not via a timeline-axis layout. The radial layout is spatial, not temporal.
+
+**Q3 — PotentialScore encoding:** Line thickness + opacity + readable text labels (`strong`, `medium`, `weak`). Not colour alone — accessibility requirement. Example: a strong edge is thick, fully opaque, labelled "strong"; a weak edge is thin, faded, labelled "weak".
+
+**Q4 — ConditionHypothesis visual treatment:** Dashed border + hypothesis badge + muted/lighter background + explicit text label reading "Hypothesis — not diagnosis". This makes the investigative status unambiguous to a non-technical user.
+
+**Q5 — Cross-thread shared nodes:** Badge on the node reading "Appears in N threads" or "Shared with [Thread name]". Cross-thread expansion is an optional action, not the default view.
+
+**Q6 — Sparse/empty state:** The Health Map (top-level view of all Health Thread cards) handles this gracefully — a new user sees empty thread cards prompting data entry. The Thread Graph only appears once a thread has at least some nodes to show.
+
+**Q7 — Contradiction display:** `contradicted_by` edge uses warning visual treatment (distinct edge style). The conflicted node gets a warning badge. The resolution action ("mark wrong", "merge", "hide") lives in the evidence drawer, not as a floating UI element on the graph itself.
+
+**Q8 — Progressive reveal:** Staged, click-driven expansion — not animation for its own sake. Each click reveals exactly one more layer. Existing open branches stay open. The user is always in control of what is visible.
+
+### The expansion model (four layers)
+
+| State | User action | What appears |
+|---|---|---|
+| Layer 0 | Open thread | Only the Health Thread root node (e.g. "Recurring headaches") |
+| Layer 1 | Click root | Category nodes: Symptoms, Tests & labs, Medications, Visits & referrals, Documents, Pending items |
+| Layer 2 | Click a category | Actual entity nodes inside that category (e.g. Headache, Fatigue, CBC, MRI planned) |
+| Layer 3 | Click an entity node | Directly connected details (e.g. CBC → Haemoglobin 11.2, WBC normal, Platelets normal, Lab PDF) |
+| Layer 4+ | Continue clicking | Only direct neighbours of the clicked node appear. Existing branches stay open unless collapsed. |
+
+**Hard rule: one click = one layer only. One click must never reveal the entire graph.**
+
+### Visual node hierarchy
+
+| Node tier | Size | Visual treatment |
+|---|---|---|
+| Health Thread root | Largest | Central, solid border, status badge (e.g. "Active — Unresolved"), title + last updated + summary counters |
+| Category nodes | Medium | Count badge ("Symptoms — 4 items"), expand/collapse affordance |
+| Health entity nodes | Smaller | Type-specific icon, label |
+| ConditionHypothesis nodes | Smaller | Dashed border, hypothesis badge, muted background, text: "Hypothesis — not diagnosis" |
+
+### Health Map (top-level view)
+
+The top-level experience is a **Health Map** — all active Health Threads shown as separate cards or root nodes. The user clicks one card to enter its expandable Thread Graph. The full patient graph is never shown as a single network.
+
+```
+Health Map
+  [Recurring headaches]   [Post-viral fatigue]   [Stomach pain]   [Back pain]
+
+Click one → opens its Thread Graph
+```
+
+Cross-thread connections surface as badges or optional expansions inside the Thread Graph, not as cross-graph edges in the Health Map.
+
+### Naming conventions (product language)
+
+Do not use "master node" anywhere in backend, API, or product language. Use:
+- `Health Thread` (the C7 object and the graph root)
+- `Main concern` or `Thread root` (in UI copy)
+- `Concern node` (in technical discussion)
+
+### Edge language (confirmed)
+
+| Allowed | Prohibited |
+|---|---|
+| co-occurs with | causes |
+| part of | diagnoses |
+| mentioned in | proves |
+| treated with | rules out |
+| may help explain | confirms diagnosis |
+| supported by | |
+| contradicted by | |
+
+### Component ownership (clarified)
+
+```
+C4 extracts "headache" as ExtractedFact
+  → C5 verifies evidence link (source-backed)
+  → C7 decides whether to create/update a HealthThread
+  → C6 stores the Thread root node + entity nodes + edges
+  → C13 renders the expandable graph and evidence drawer
+```
+
+The "Health Thread root" node in C6 represents a **C7 HealthThread object**, not a symptom. This is a distinct node type — `Thread` — separate from `Symptom`. C13 renders the Thread as the expandable root; it does not treat the thread and the symptom as the same object.
+
+### Evidence and correction drawer (node detail panel)
+
+Clicking any node opens a side drawer containing:
+- Label and node type
+- First reported / last reported dates
+- Health Threads this node belongs to
+- Confidence score
+- Evidence trail (traceable back to raw submissions)
+- Connected items (other nodes linked to this one)
+- User actions: rename, hide, mark wrong, merge, add to another thread
+
+_Research received: 2026-05-31_
+
+---
 
 ---
 
