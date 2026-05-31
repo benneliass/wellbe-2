@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Float, Integer, Text, CheckConstraint, ForeignKey
+from sqlalchemy import Float, Integer, Text, CheckConstraint, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -32,6 +32,13 @@ class EvidenceLinkRow(Base):
         CheckConstraint(
             "linked_by IN ('user', 'system', 'pipeline', 'correction_service')",
             name="ck_evidence_linked_by",
+        ),
+        UniqueConstraint(
+            "source_type",
+            "source_id",
+            "raw_context_event_id",
+            "link_type",
+            name="uq_evidence_link_dedup",
         ),
         {"schema": "evidence"},
     )

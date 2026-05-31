@@ -89,9 +89,8 @@ class EvidenceService:
 
         link_ids: list[uuid.UUID] = []
         for ref in evidence_refs:
-            link_id = uuid.uuid4()
-            await self._repo.insert_link(
-                id=link_id,
+            inserted_id = await self._repo.insert_link(
+                id=uuid.uuid4(),
                 source_type=EvidenceSourceType.EXTRACTED_FACT.value,
                 source_id=fact_id,
                 raw_context_event_id=ref.raw_context_event_id,
@@ -103,10 +102,14 @@ class EvidenceService:
                 relevance_span_start=ref.relevance_span_start,
                 relevance_span_end=ref.relevance_span_end,
             )
-            link_ids.append(link_id)
+            # Re-delivery of an already-linked (fact, raw event, link_type):
+            # the insert was a no-op, so do not re-emit evidence.linked.
+            if inserted_id is None:
+                continue
+            link_ids.append(inserted_id)
 
             payload = EvidenceLinkedPayload(
-                evidence_link_id=link_id,
+                evidence_link_id=inserted_id,
                 source_type=EvidenceSourceType.EXTRACTED_FACT,
                 source_id=fact_id,
                 raw_context_event_id=ref.raw_context_event_id,
@@ -168,9 +171,8 @@ class EvidenceService:
 
         link_ids: list[uuid.UUID] = []
         for ref in evidence_refs:
-            link_id = uuid.uuid4()
-            await self._repo.insert_link(
-                id=link_id,
+            inserted_id = await self._repo.insert_link(
+                id=uuid.uuid4(),
                 source_type=EvidenceSourceType.HEALTH_SIGNAL.value,
                 source_id=signal_id,
                 raw_context_event_id=ref.raw_context_event_id,
@@ -182,10 +184,14 @@ class EvidenceService:
                 relevance_span_start=ref.relevance_span_start,
                 relevance_span_end=ref.relevance_span_end,
             )
-            link_ids.append(link_id)
+            # Re-delivery of an already-linked (signal, raw event, link_type):
+            # the insert was a no-op, so do not re-emit evidence.linked.
+            if inserted_id is None:
+                continue
+            link_ids.append(inserted_id)
 
             payload = EvidenceLinkedPayload(
-                evidence_link_id=link_id,
+                evidence_link_id=inserted_id,
                 source_type=EvidenceSourceType.HEALTH_SIGNAL,
                 source_id=signal_id,
                 raw_context_event_id=ref.raw_context_event_id,
