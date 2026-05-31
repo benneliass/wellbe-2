@@ -1,0 +1,40 @@
+---
+description: Enforces use of the personal Jira MCP (user-mcp-jira-personal) and prohibits the work MCP (user-mcp-jira-work) in this repository.
+alwaysApply: true
+---
+
+# Jira MCP Selection — Personal Repo Only
+
+## ⚠️ Hard Rule — No Exceptions
+
+This repository (`wellbe-2`) is a **personal project**. You MUST ALWAYS use the **`user-mcp-jira-personal`** MCP server for all Jira operations.
+
+**NEVER use `user-mcp-jira-work`** in this repository. Not for reads. Not for writes. Not for lookups. Not under any circumstance.
+
+---
+
+## Correct vs. Incorrect
+
+| Action | ✅ CORRECT | ❌ WRONG — DO NOT DO |
+|---|---|---|
+| Search for issues | `user-mcp-jira-personal` | `user-mcp-jira-work` |
+| Create an issue | `user-mcp-jira-personal` | `user-mcp-jira-work` |
+| Update an issue | `user-mcp-jira-personal` | `user-mcp-jira-work` |
+| Add a comment | `user-mcp-jira-personal` | `user-mcp-jira-work` |
+| Fetch a sprint or board | `user-mcp-jira-personal` | `user-mcp-jira-work` |
+
+---
+
+## Why This Matters
+
+Using `user-mcp-jira-work` in this repo would pollute a separate professional Jira workspace with personal project data. This is irreversible and cannot be undone by the agent. The blast radius is high: wrong project, wrong team, wrong context.
+
+---
+
+## Self-Check Before Every Jira Call
+
+Before calling **any** Jira MCP tool, verify:
+
+> "Which server am I about to call?"
+
+If the answer is anything other than `user-mcp-jira-personal`, **stop and correct it.**

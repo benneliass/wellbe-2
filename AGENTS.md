@@ -28,6 +28,15 @@ Full list:
 
 ---
 
+## Jira MCP — Personal Only
+
+**This is a personal repository. ALWAYS use `user-mcp-jira-personal` for all Jira operations.**
+**NEVER use `user-mcp-jira-work`.** Not for reads, writes, searches, or any operation.
+
+Full enforcement rule: `.cursor/rules/jira-mcp-selection.mdc`
+
+---
+
 ## Always Commit Work
 
 After completing any meaningful change, always create a git commit. Never leave work uncommitted.
