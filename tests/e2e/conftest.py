@@ -10,6 +10,7 @@ import pytest_asyncio
 
 VAULT_WRITER_URL = os.environ.get("VAULT_WRITER_URL", "http://localhost:8002")
 INGESTION_WORKER_URL = os.environ.get("INGESTION_WORKER_URL", "http://localhost:8003")
+PROCESSING_WORKER_URL = os.environ.get("PROCESSING_WORKER_URL", "http://localhost:8004")
 
 
 @pytest_asyncio.fixture
@@ -21,6 +22,12 @@ async def vault_client():
 @pytest_asyncio.fixture
 async def ingestion_client():
     async with httpx.AsyncClient(base_url=INGESTION_WORKER_URL, timeout=30.0) as client:
+        yield client
+
+
+@pytest_asyncio.fixture
+async def processing_client():
+    async with httpx.AsyncClient(base_url=PROCESSING_WORKER_URL, timeout=30.0) as client:
         yield client
 
 

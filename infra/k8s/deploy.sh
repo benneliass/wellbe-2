@@ -11,6 +11,7 @@ echo "=== Building Docker images ==="
 docker build -t wellbe-postgres:local -f "$REPO_ROOT/infra/local/Dockerfile.postgres" "$REPO_ROOT/infra/local"
 docker build -t wellbe-vault-writer:local -f "$REPO_ROOT/backend/apps/vault-writer/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-ingestion-worker:local -f "$REPO_ROOT/backend/apps/ingestion-worker/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-processing-worker:local -f "$REPO_ROOT/backend/apps/processing-worker/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-migrations:local -f "$REPO_ROOT/db/Dockerfile.migrations" "$REPO_ROOT"
 
 echo "=== Deploying via Helm ==="

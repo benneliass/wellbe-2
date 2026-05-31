@@ -55,3 +55,15 @@ ingestionWorker:
     redisUrl: "redis://wellbe-redis:6379/0"
     logLevel: "INFO"
     environment: "dev"
+
+processingWorker:
+  image: wellbe-processing-worker:local
+  imagePullPolicy: Never
+  port: 8004
+  replicas: 1
+  config:
+    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@wellbe-postgres:5432/wellbe"
+    redisUrl: "redis://wellbe-redis:6379/0"
+    temporalHost: "temporal:7233"
+    logLevel: "INFO"
+    environment: "dev"
