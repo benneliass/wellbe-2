@@ -1,6 +1,7 @@
 # WellBe Repository Structure — Consultation Brief
 
 **Prepared:** 2026-05-31  
+**Status:** **APPROVED** — 2026-05-31  
 **Purpose:** Full project context for external consultation on how to structure the implementation repository.  
 **Current state:** Design-complete, no implementation code exists yet. All architecture is in docs and Jira.
 
@@ -629,3 +630,13 @@ Stay in monorepo. Isolated by: package directory, runtime service, CODEOWNERS, d
 | Python version | 3.13 |
 | TypeScript version | 5.x |
 | Postgres version | 17 |
+
+---
+
+## 12. Approval
+
+**Status:** APPROVED  
+**Date approved:** 2026-05-31  
+**Approved by:** Ben Elias
+
+All 8 structural decisions above are locked and may be used as the basis for scaffolding the implementation repository.
