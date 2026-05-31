@@ -6,7 +6,8 @@
 **Approved by:** User  
 **Jira Spike:** WEL-96  
 **Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol  
-**Also blocks:** WEL-82 — Implement hybrid OCR pipeline with PaddleOCR/Tesseract and vision-LLM fallback
+**Also blocks:** WEL-82 — Implement hybrid OCR pipeline with PaddleOCR/Tesseract and vision-LLM fallback  
+**Extended by (Health Investigation OS):** [docs/decisions/theory-object-evaluation-and-safety.md](theory-object-evaluation-and-safety.md) and [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — the pipeline adds theory/claim extraction and external-claim extraction. The personal-fact extraction orchestration below is unchanged.
 
 ---
 

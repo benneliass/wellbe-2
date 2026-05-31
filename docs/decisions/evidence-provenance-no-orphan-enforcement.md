@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-97  
-**Blocks:** WEL-83 — Build Evidence & Provenance linking layer (C5)
+**Blocks:** WEL-83 — Build Evidence & Provenance linking layer (C5)  
+**Extended by (Health Investigation OS):** [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — external sources get source-quality tiers and are never counted as evidence about the user. The no-orphan-claims rule below is unchanged for personal facts.
 
 ---
 

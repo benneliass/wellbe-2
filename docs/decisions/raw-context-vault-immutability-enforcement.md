@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-94  
-**Blocks:** WEL-80 — Build immutable append-only Raw Context Event store with full provenance
+**Blocks:** WEL-80 — Build immutable append-only Raw Context Event store with full provenance  
+**Extended by (Health Investigation OS):** [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — external evidence is stored in a separate store, never the personal Vault. The Vault immutability decisions below are unchanged.
 
 ---
 

@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-98  
-**Blocks:** WEL-77 — Build Knowledge Graph Store with typed nodes, evidence-weighted edges, and graph traversal API
+**Blocks:** WEL-77 — Build Knowledge Graph Store with typed nodes, evidence-weighted edges, and graph traversal API  
+**Extended by (Health Investigation OS):** [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — adds `investigation`/`theory` nodes, `evidence_for`/`evidence_against`/`relevance_link` edges, and a separate External Evidence Graph. The personal-graph schema decisions below are unchanged.
 
 ---
 

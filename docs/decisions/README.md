@@ -22,7 +22,7 @@ Records are not speculation documents. They do not capture what might be decided
 
 Decision Records are always created by an agent as part of the research protocol in `.cursor/rules/research-protocol.mdc`. The lifecycle is:
 
-1. An agent detects that a Story touches a core component (C1–C13 in `docs/architecture/component-map.md`)
+1. An agent detects that a Story touches a core component (C1–C17 in `docs/architecture/component-map.md`)
 2. The agent raises its hand, creates a Jira Spike, and creates a Decision Record stub here
 3. The user provides research results
 4. The agent records the research, writes approaches and a proposed decision, and presents the record for approval

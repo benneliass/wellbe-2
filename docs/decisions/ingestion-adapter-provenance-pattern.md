@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-95  
-**Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol
+**Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol  
+**Extended by (Health Investigation OS):** [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — a new external-evidence-source adapter follows this same provenance pattern but writes to the External Evidence Graph, not the Vault.
 
 ---
 

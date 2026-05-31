@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** n/a — this is a scope/structure decision, not an external research question. All architecture is already resolved by WEL-96 / `processing-pipeline-extraction-orchestration.md`.  
-**Blocks:** WEL-81, WEL-82 — implementation cannot start until scope boundaries are confirmed.
+**Blocks:** WEL-81, WEL-82 — implementation cannot start until scope boundaries are confirmed.  
+**Extended by (Health Investigation OS):** [docs/decisions/theory-object-evaluation-and-safety.md](theory-object-evaluation-and-safety.md) and [docs/decisions/external-evidence-graph-separation.md](external-evidence-graph-separation.md) — theory/claim and external-claim extraction are added as new C4 extraction scopes.
 
 ---
 

@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-93  
-**Blocks:** WEL-72 — Implement OIDC/passkey authentication and scoped consent-share domain model
+**Blocks:** WEL-72 — Implement OIDC/passkey authentication and scoped consent-share domain model  
+**Extended by (Health Investigation OS):** [docs/decisions/deep-grant-role-workspace-model.md](deep-grant-role-workspace-model.md) — the consent/share-grant model is extended to the deep multi-audience Grant/Role/Workspace model (C17). The personal-first decisions below remain in force; the new record only adds grant-scoped non-individual access.
 
 ---
 

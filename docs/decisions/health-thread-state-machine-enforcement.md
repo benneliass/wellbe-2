@@ -5,7 +5,8 @@
 **Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** WEL-92  
-**Blocks:** WEL-64 — Implement Health Thread object, lifecycle state machine, and subgraph linking
+**Blocks:** WEL-64 — Implement Health Thread object, lifecycle state machine, and subgraph linking  
+**Extended by (Health Investigation OS):** [docs/decisions/investigation-object-and-thread-coupling.md](investigation-object-and-thread-coupling.md) — adds the Investigation status lifecycle (C14) and its coupling to thread state. The thread state machine and closure-safety rules below are unchanged; investigations may not bypass them.
 
 ---
 
