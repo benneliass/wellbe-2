@@ -6,7 +6,7 @@
 **Approved by:** User  
 **Jira Spike:** WEL-96  
 **Blocks:** WEL-81 — Build pluggable Ingestion Layer with unified adapter protocol  
-**Also blocks:** WEL-82 — Build Processing Pipeline (entity/fact extraction, confidence scoring, quality metadata)
+**Also blocks:** WEL-82 — Implement hybrid OCR pipeline with PaddleOCR/Tesseract and vision-LLM fallback
 
 ---
 

@@ -1,8 +1,8 @@
 # Decision: C4 Processing Pipeline scope split between WEL-81 and WEL-82
 
-**Status:** Open  
+**Status:** Approved  
 **Date opened:** 2026-05-31  
-**Date approved:** (fill on approval)  
+**Date approved:** 2026-05-31  
 **Approved by:** User  
 **Jira Spike:** n/a — this is a scope/structure decision, not an external research question. All architecture is already resolved by WEL-96 / `processing-pipeline-extraction-orchestration.md`.  
 **Blocks:** WEL-81, WEL-82 — implementation cannot start until scope boundaries are confirmed.
@@ -123,9 +123,76 @@ This means the **current Jira structure already has WEL-81 covering both C3 (WB-
 
 ---
 
+## Approved decision
+
+**Option A** — keep the current Jira structure.
+
+- **WEL-81** owns the remaining C3 adapter tail **plus the core C4 extraction pipeline**.
+- **WEL-82** remains scoped to the **OCR pipeline only**.
+- The mismatch in `processing-pipeline-extraction-orchestration.md` is a **documentation/title error**, not evidence that WEL-82 owns all of C4.
+
+### WEL-81 delivers
+
+- `contracts/c4_processing/__init__.py` — `ExtractedFact` and `HealthSignal` Pydantic models
+- `processing.extracted_facts` and `processing.health_signals` tables + migrations
+- Dramatiq `extract_facts_worker` (subscribes to `raw_context.received`)
+- C4 dispatcher routing by `source_type` / `mime_type` (non-OCR paths)
+- `fact.extracted` and `health_signal.created` outbox events
+- Extraction confidence scoring and `quality_flag` / `quality_metadata`
+- Tests proving every emitted fact/signal carries provenance back to `RawContextEvent`
+
+Internal staging for WEL-81 (Jira scope unchanged, commit sequence):
+
+```
+WEL-81.1 — C4 contracts: ExtractedFact + HealthSignal  ← unblocks WEL-83 immediately
+WEL-81.2 — processing tables + migrations
+WEL-81.3 — extract_facts_worker + dispatcher
+WEL-81.4 — confidence scoring + quality flags
+WEL-81.5 — fact.extracted / health_signal.created outbox events
+WEL-81.6 — tests and C4→C5 contract fixtures
+```
+
+### WEL-82 delivers
+
+- Temporal `DocumentOCRWorkflow` (PaddleOCR primary, Tesseract fallback, vision-LLM final fallback)
+- OCR document cache keyed by `content_hash`
+- `document.ocr_completed` and `document.ocr_failed` outbox events
+- `quality_flag = requires_review` path for failed OCR
+
+WEL-82 may produce `ExtractedFact` rows after OCR succeeds, but it does **not** own the `ExtractedFact` / `HealthSignal` schema contract.
+
+### Approved C3/C4 boundary
+
+```
+C3 responsibility:
+  Normalize incoming source payloads and persist RawContextEvent to C2.
+  C3 ends when raw_context.received is emitted.
+
+C4 responsibility:
+  Consume raw_context.received and produce ExtractedFact / HealthSignal outputs.
+  C4 does not call C3 or write to C2.
+
+WEL-81: C3 adapter tail + core C4 extraction pipeline.
+WEL-82: OCR-specific C4 workflow only.
+Critical-path owner: WEL-81 owns contracts/c4_processing and unblocks WEL-83.
+```
+
+### Corrective action required (from this approval)
+
+Fix `processing-pipeline-extraction-orchestration.md` line 9:
+
+```
+Before: Also blocks: WEL-82 — Build Processing Pipeline (entity/fact extraction, confidence scoring, quality metadata)
+After:  Also blocks: WEL-82 — Implement hybrid OCR pipeline with PaddleOCR/Tesseract and vision-LLM fallback
+```
+
+First implementation commit of WEL-81 must populate `backend/packages/contracts/wellbe_contracts/c4_processing/__init__.py` with `ExtractedFact` and `HealthSignal` before any deeper extraction work, so WEL-83 can build against stable contracts immediately.
+
+---
+
 ## The decision to make
 
-Choose one of the two options below.
+~~Choose one of the two options below.~~ Decision above is approved. Options A and B are preserved below for record.
 
 ---
 
