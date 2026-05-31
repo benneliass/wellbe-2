@@ -8,6 +8,7 @@ dependencies = [
     "asyncpg>=0.30",
     "alembic>=1.14",
     "wellbe-platform",
+    "psycopg[binary]>=3.3.4",
 ]
 
 [tool.uv.sources]

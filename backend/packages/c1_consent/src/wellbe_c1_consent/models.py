@@ -6,7 +6,6 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
@@ -61,7 +60,7 @@ class ShareGrantRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     policy_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_by: Mapped[uuid.UUID] = mapped_column(nullable=False)
     last_accessed_at: Mapped[datetime | None] = mapped_column()
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    grant_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
 
 class RevocationLogRow(UUIDPrimaryKeyMixin, Base):

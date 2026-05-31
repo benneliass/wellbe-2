@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 import redis.asyncio as aioredis
 from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from wellbe_events import emit_event
 from wellbe_platform import get_trace_id
 
@@ -33,12 +32,13 @@ class ConsentService:
         resource_id: UUID | None,
         action: str,
     ) -> bool:
-        cache_key = f"{_SCOPE_CACHE_PREFIX}:{actor_id}:{resource_type}:{action}:{resource_id or '*'}"
+        resource_key = resource_id or "*"
+        cache_key = f"{_SCOPE_CACHE_PREFIX}:{actor_id}:{resource_type}:{action}:{resource_key}"
         cached = await self._redis.get(cache_key)
         if cached is not None:
             return cached == b"1"
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = select(ConsentScopeRow.id).where(
             and_(
                 ConsentScopeRow.subject_id == actor_id,
@@ -95,7 +95,7 @@ class ConsentService:
             grant_token_hash=grant_token_hash,
             policy_version=policy_version,
             created_by=created_by,
-            metadata=metadata or {},
+            grant_metadata=metadata or {},
         )
         self._session.add(row)
         await self._session.flush()
@@ -119,7 +119,7 @@ class ConsentService:
         revoked_by: UUID,
         reason: str,
     ) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         await self._session.execute(
             update(ShareGrantRow)
