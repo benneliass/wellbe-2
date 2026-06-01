@@ -1,9 +1,9 @@
 # Decision: Six Memories store structure and authored-vs-derived population model
 
-**Status:** Proposed
+**Status:** Approved
 **Date opened:** 2026-06-01
 **Research received:** 2026-06-01
-**Date approved:** (fill on approval)
+**Date approved:** 2026-06-01
 **Approved by:** User
 **Jira Spike:** WEL-136
 **Blocks:** WEL-70 — Build Story, Clinical, Pattern, Decision, Responsibility, and Equity memory models
