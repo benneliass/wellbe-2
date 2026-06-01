@@ -16,9 +16,11 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_contracts.c7_thread import (
+    RESOLVED_THREAD_STATUSES,
     THREAD_STATE_CHANGED,
     HealthThreadStatus,
     ThreadActor,
+    ThreadClosureSnapshot,
     ThreadEvidenceRef,
     ThreadStateChangedPayload,
     ThreadTransitionResult,
@@ -51,6 +53,25 @@ class ThreadService:
         tid = thread_id or uuid.uuid4()
         await self._repo.create_thread(thread_id=tid, patient_id=patient_id, title=title)
         return tid
+
+    async def get_closure_snapshot(
+        self, thread_id: uuid.UUID
+    ) -> ThreadClosureSnapshot:
+        """Authoritative closure judgement for a thread (consumed by C14).
+
+        C7 owns this: ``is_resolved`` is true only for statuses representing a
+        resolved/explained/monitored concern.
+        """
+        row = await self._repo.get(thread_id)
+        if row is None:
+            raise ThreadNotFoundError(thread_id)
+        status = HealthThreadStatus(row.status)
+        return ThreadClosureSnapshot(
+            thread_id=thread_id,
+            status=status,
+            status_version=row.status_version,
+            is_resolved=status in RESOLVED_THREAD_STATUSES,
+        )
 
     async def transition_thread(
         self,

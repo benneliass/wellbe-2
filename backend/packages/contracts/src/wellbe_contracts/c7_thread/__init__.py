@@ -186,6 +186,32 @@ class HealthThread(BaseModel):
     created_at: AwareDatetime
 
 
+# Statuses from which a thread is considered "resolved enough" that a linked
+# investigation may be closed. A thread in any other status means the concern is
+# still open, so the investigation must use handed_off / monitoring instead.
+RESOLVED_THREAD_STATUSES: frozenset[HealthThreadStatus] = frozenset(
+    {
+        HealthThreadStatus.EXPLAINED,
+        HealthThreadStatus.CHRONIC_MONITORING,
+        HealthThreadStatus.CLOSED,
+        HealthThreadStatus.ARCHIVED,
+    }
+)
+
+
+class ThreadClosureSnapshot(BaseModel):
+    """Authoritative C7 view of whether a thread permits closure.
+
+    C7 is the sole owner of this judgement. C14 consumes it and never recomputes
+    symptom-resolution or single-normal-test sufficiency itself.
+    """
+
+    thread_id: UUID
+    status: HealthThreadStatus
+    status_version: int
+    is_resolved: bool
+
+
 class ThreadTransitionResult(BaseModel):
     """Result of a ``transition_thread`` command."""
 
@@ -242,6 +268,8 @@ __all__ = [
     "TransitionGuardContext",
     "HealthThread",
     "ThreadTransitionResult",
+    "ThreadClosureSnapshot",
+    "RESOLVED_THREAD_STATUSES",
     # Event payloads
     "ThreadStateChangedPayload",
 ]

@@ -53,6 +53,11 @@ class ThreadRepository:
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get(self, thread_id: uuid.UUID) -> HealthThreadRow | None:
+        stmt = select(HealthThreadRow).where(HealthThreadRow.id == thread_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def find_transition_by_idempotency(
         self, thread_id: uuid.UUID, idempotency_key: str
     ) -> ThreadStateTransitionRow | None:

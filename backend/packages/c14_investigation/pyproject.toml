@@ -1,0 +1,21 @@
+[project]
+name = "wellbe-c14-investigation"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Investigation Layer (C14): investigation aggregate, lifecycle, and Health Thread coupling."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+    "wellbe-c7-thread",
+    "wellbe-c6-graph",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-c7-thread = { workspace = true }
+wellbe-c6-graph = { workspace = true }
