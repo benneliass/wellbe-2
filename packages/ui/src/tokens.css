@@ -1,0 +1,79 @@
+/*
+ * WellBe design tokens.
+ * Calm, never-alarm palette per docs/implementation/ui/health-adaptive-safety-language.md.
+ * State is carried by subtle tints on small elements only, never full-surface recolor.
+ * Color is never the sole carrier of meaning (always paired with label + icon in components).
+ */
+
+:root {
+  /* surfaces + text */
+  --wb-bg: #f7f8f8;
+  --wb-surface: #ffffff;
+  --wb-surface-muted: #eef1f1;
+  --wb-border: #d9dfdf;
+  --wb-text: #18211f;
+  --wb-text-muted: #5a6663;
+  --wb-accent: #2f7d72;
+  --wb-accent-contrast: #ffffff;
+
+  /* typography */
+  --wb-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --wb-font-serif: ui-serif, Georgia, "Times New Roman", serif; /* patient voice / quotes */
+  --wb-text-xs: 0.75rem;
+  --wb-text-sm: 0.875rem;
+  --wb-text-base: 1rem;
+  --wb-text-lg: 1.125rem;
+  --wb-text-xl: 1.375rem;
+
+  /* spacing */
+  --wb-space-1: 0.25rem;
+  --wb-space-2: 0.5rem;
+  --wb-space-3: 0.75rem;
+  --wb-space-4: 1rem;
+  --wb-space-6: 1.5rem;
+  --wb-space-8: 2rem;
+  --wb-radius: 0.625rem;
+  --wb-radius-sm: 0.375rem;
+
+  /* motion */
+  --wb-motion-fast: 150ms;
+  --wb-motion-base: 240ms;
+  --wb-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* state tokens — subtle tint + readable on-color, AA contrast */
+  --wb-state-stable-tint: #e6f1ee;
+  --wb-state-stable-fg: #1f5a50;
+  --wb-state-watch-tint: #eef0e2;
+  --wb-state-watch-fg: #5a5a20;
+  --wb-state-attention-tint: #fbeede;
+  --wb-state-attention-fg: #8a4b16;
+  --wb-state-urgent-tint: #fbe3e0;
+  --wb-state-urgent-fg: #9b2820;
+}
+
+[data-theme="dark"] {
+  --wb-bg: #101413;
+  --wb-surface: #171d1c;
+  --wb-surface-muted: #1f2625;
+  --wb-border: #2c3433;
+  --wb-text: #e7eceb;
+  --wb-text-muted: #9aa6a3;
+  --wb-accent: #5bb9aa;
+  --wb-accent-contrast: #08110f;
+
+  --wb-state-stable-tint: #16302b;
+  --wb-state-stable-fg: #8fd6c6;
+  --wb-state-watch-tint: #2a2c18;
+  --wb-state-watch-fg: #d2d28a;
+  --wb-state-attention-tint: #3a2914;
+  --wb-state-attention-fg: #f0b478;
+  --wb-state-urgent-tint: #3a1c19;
+  --wb-state-urgent-fg: #f0a59c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --wb-motion-fast: 0ms;
+    --wb-motion-base: 0ms;
+  }
+}

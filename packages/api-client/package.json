@@ -2,16 +2,29 @@
   "name": "@wellbe/api-client",
   "version": "0.1.0",
   "private": true,
-  "description": "Generated TypeScript client for the WellBe API. Auto-generated from contracts/openapi/wellbe.openapi.json in CI. Do not edit manually.",
+  "description": "Generated TypeScript types + runtime client for the WellBe API. Types are auto-generated from contracts/openapi/wellbe.openapi.json in CI. Do not edit generated.ts manually.",
+  "type": "module",
   "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react-query": "./src/react-query.ts"
+  },
   "scripts": {
     "generate": "openapi-typescript ../../contracts/openapi/wellbe.openapi.json -o src/generated.ts",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "openapi-fetch": "^0.13.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": { "optional": true }
+  },
   "devDependencies": {
     "openapi-typescript": "^7.0.0",
     "typescript": "^5.0.0",
-    "@wellbe/tsconfig": "workspace:*"
+    "@wellbe/tsconfig": "*"
   }
 }

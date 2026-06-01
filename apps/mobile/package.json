@@ -14,12 +14,12 @@
     "expo-status-bar": "~2.0.0",
     "react": "18.3.x",
     "react-native": "0.76.x",
-    "@wellbe/api-client": "workspace:*",
-    "expo-health-connect": "~3.0.0"
+    "@wellbe/api-client": "*",
+    "react-native-health-connect": "^3.5.3"
   },
   "devDependencies": {
     "@types/react": "~18.3.0",
     "typescript": "^5.0.0",
-    "@wellbe/tsconfig": "workspace:*"
+    "@wellbe/tsconfig": "*"
   }
 }

@@ -3,3 +3,8 @@ __pycache__/
 *.egg-info/
 uv.lock
 .worktrees/
+
+# Node / JS workspace
+node_modules/
+.next/
+*.tsbuildinfo
