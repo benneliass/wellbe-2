@@ -23,6 +23,8 @@ Primary inputs:
 - Legacy `wellbe` docs: `docs/01-company/product-principles.md`, `docs/02-product/user-journeys.md`, `docs/05-mechanisms/active-cross-reference.md`, and `docs/05-mechanisms/adaptive-explanation.md`.
 - Code inventory: backend package and contract scaffolds for C1-C17, C13 render validation, and worker/service apps; current `apps/web` and `apps/mobile` are package shells, so screen sketches below are product/UI intent rather than existing frontend implementation.
 
+Implementation-ready foundation specs derived from this vision live in `docs/implementation/ui/` (progressive disclosure contract, health-adaptive safety language, Story Memory display lanes, evidence UI primitives, Progress Over Pages / Journey Rail, and Home continuity). The paste-ready build brief is `docs/implementation/ui_vision_implementation_prompt.md`.
+
 The strongest recurring product idea is that WellBe is not a generic health dashboard. It is a personal continuity surface for unresolved concerns: capture what happened, connect it into a Health Thread, clarify what is known or missing, close open loops, and let the user correct the memory.
 
 The older `wellbe` repo had three useful product principles that should be adapted into this UI vision:

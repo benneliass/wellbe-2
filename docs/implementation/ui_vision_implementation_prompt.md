@@ -8,6 +8,8 @@ You are designing and implementing the WellBe product UI.
 
 Read `docs/implementation/ui_vision.md` first. Treat it as the product-facing UI source of truth. Your job is to translate that vision into usable screens, flows, components, interaction states, and implementation-ready UI details.
 
+Then read the foundation specs in `docs/implementation/ui/` — they are the binding implementation contracts behind this brief: progressive disclosure levels, health-adaptive safety language (never-alarm), Story Memory display lanes, evidence UI primitives, the Progress Over Pages Journey Rail, and Home continuity. Where this brief and a foundation spec describe the same behavior, the foundation spec is authoritative.
+
 WellBe is not a generic health dashboard, medical portal, EHR, or clinician command center. It is a calm personal health memory workspace for an individual managing unresolved health concerns over time. The individual is always the primary user and data controller.
 
 ## Core Product Feeling
