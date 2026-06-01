@@ -1,0 +1,21 @@
+[project]
+name = "wellbe-c15-theory"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "Theory Service (C15): non-diagnostic hypothesis aggregate, evaluator, and C10 routing."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+    "wellbe-c6-graph",
+    "wellbe-c10-safety",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-c6-graph = { workspace = true }
+wellbe-c10-safety = { workspace = true }
