@@ -1,9 +1,9 @@
 # Decision: Continuity Pending Item Ledger, durable timers, and closure safety net
 
-**Status:** Proposed
+**Status:** Approved
 **Date opened:** 2026-06-01
 **Research received:** 2026-06-01
-**Date approved:** (fill on approval)
+**Date approved:** 2026-06-01
 **Approved by:** User
 **Jira Spike:** WEL-137
 **Blocks:** WEL-67 — Build Pending Item Ledger with durable timers and referral/visit lifecycle trackers
