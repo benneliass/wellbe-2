@@ -107,6 +107,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Corrections */
+        get: operations["list_corrections_v2_corrections_get"];
+        put?: never;
+        /** Request Correction */
+        post: operations["request_correction_v2_corrections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/grants": {
         parameters: {
             query?: never;
@@ -247,6 +265,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/pending-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Pending Items */
+        get: operations["list_pending_items_v2_pending_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/render/validate": {
         parameters: {
             query?: never;
@@ -273,6 +308,23 @@ export interface paths {
         };
         /** V2 Schema */
         get: operations["v2_schema_v2_schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/threads/{thread_id}/memories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Thread Memories */
+        get: operations["thread_memories_v2_threads__thread_id__memories_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -438,6 +490,81 @@ export interface components {
              * @default user_closed
              */
             reason_code: string;
+        };
+        /**
+         * CorrectionTargetKind
+         * @enum {string}
+         */
+        CorrectionTargetKind: "c2_raw_event" | "c4_extracted_fact" | "c5_evidence_link" | "c6_kg_node" | "c6_kg_edge" | "c7_thread_label" | "c8_memory_entry" | "c9_pending_item" | "c14_investigation" | "c15_theory";
+        /** CorrectionTargetRequest */
+        CorrectionTargetRequest: {
+            /** Base Value Hash */
+            base_value_hash?: string | null;
+            /** Field Path */
+            field_path?: string | null;
+            /** Proposed Value Hash */
+            proposed_value_hash?: string | null;
+            /**
+             * Semantic Rank
+             * @default 50
+             */
+            semantic_rank: number;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            target_kind: components["schemas"]["CorrectionTargetKind"];
+            /** Target Version */
+            target_version?: string | null;
+        };
+        /** CorrectionTargetV2 */
+        CorrectionTargetV2: {
+            /** Field Path */
+            field_path?: string | null;
+            /** Semantic Rank */
+            semantic_rank?: number | null;
+            /** Target Id */
+            target_id: string;
+            /** Target Kind */
+            target_kind: string;
+        };
+        /**
+         * CorrectionType
+         * @enum {string}
+         */
+        CorrectionType: "replace_value" | "mark_incorrect" | "add_missing_context" | "mark_stale" | "withdraw_from_current_view" | "relabel_thread" | "merge_duplicate" | "split_context" | "change_evidence_weight";
+        /** CorrectionV2 */
+        CorrectionV2: {
+            /** Actor Authority */
+            actor_authority: string;
+            /** Applied At */
+            applied_at?: string | null;
+            /** Audit Refs */
+            audit_refs?: components["schemas"]["AuditRefV2"][];
+            /** Correction Id */
+            correction_id: string;
+            /** Correction Type */
+            correction_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Effective At */
+            effective_at?: string | null;
+            /** Rationale */
+            rationale?: string | null;
+            /**
+             * Schema Version
+             * @default c13.correction.v2
+             * @constant
+             */
+            schema_version: "c13.correction.v2";
+            /** Status */
+            status: string;
+            /** Targets */
+            targets?: components["schemas"]["CorrectionTargetV2"][];
         };
         /** CreateGrantRequest */
         CreateGrantRequest: {
@@ -676,6 +803,87 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** MemoryEntryV2 */
+        MemoryEntryV2: {
+            /** Audit Refs */
+            audit_refs?: components["schemas"]["AuditRefV2"][];
+            /** Lifecycle State */
+            lifecycle_state: string;
+            /** Memory Entry Id */
+            memory_entry_id: string;
+            /** Memory Type */
+            memory_type: string;
+            /**
+             * Projection Stale
+             * @default false
+             */
+            projection_stale: boolean;
+            /** Resolved Overlays */
+            resolved_overlays?: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Schema Version
+             * @default c13.memory_entry.v2
+             * @constant
+             */
+            schema_version: "c13.memory_entry.v2";
+            /** Source Refs */
+            source_refs?: {
+                [key: string]: unknown;
+            }[];
+            /** Thread Id */
+            thread_id: string;
+            /** Title */
+            title: string;
+        };
+        /** PendingItemV2 */
+        PendingItemV2: {
+            /** Audit Refs */
+            audit_refs?: components["schemas"]["AuditRefV2"][];
+            /**
+             * Blocks Closure
+             * @default false
+             */
+            blocks_closure: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Due At */
+            due_at?: string | null;
+            /**
+             * Due Precision
+             * @default unknown
+             */
+            due_precision: string;
+            /** Investigation Ids */
+            investigation_ids?: string[];
+            /** Item Type */
+            item_type: string;
+            /** Next Action Code */
+            next_action_code?: string | null;
+            /** Pending Item Id */
+            pending_item_id: string;
+            /** Primary Thread Id */
+            primary_thread_id: string;
+            /**
+             * Schema Version
+             * @default c13.pending_item.v2
+             * @constant
+             */
+            schema_version: "c13.pending_item.v2";
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** RelevanceLinkV2 */
         RelevanceLinkV2: {
             /** Audit Refs */
@@ -776,6 +984,22 @@ export interface components {
             surface_capabilities?: string[];
             /** Text */
             text: string;
+        };
+        /** RequestCorrectionRequest */
+        RequestCorrectionRequest: {
+            correction_type: components["schemas"]["CorrectionType"];
+            /** Proposed Payload */
+            proposed_payload?: {
+                [key: string]: unknown;
+            } | null;
+            /** Rationale */
+            rationale?: string | null;
+            /**
+             * Raw Correction Event Id
+             * Format: uuid
+             */
+            raw_correction_event_id: string;
+            target: components["schemas"]["CorrectionTargetRequest"];
         };
         /** RevokeGrantRequest */
         RevokeGrantRequest: {
@@ -1211,6 +1435,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditRefV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_corrections_v2_corrections_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_correction_v2_corrections_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionV2"];
                 };
             };
             /** @description Validation Error */
@@ -1688,6 +1986,41 @@ export interface operations {
             };
         };
     };
+    list_pending_items_v2_pending_items_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingItemV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     v2_render_validate_v2_render_validate_post: {
         parameters: {
             query?: never;
@@ -1743,6 +2076,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SupportedSchemaVersionsV2"];
+                };
+            };
+        };
+    };
+    thread_memories_v2_threads__thread_id__memories_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryEntryV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

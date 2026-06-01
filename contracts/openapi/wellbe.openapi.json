@@ -274,6 +274,235 @@
         "title": "CloseInvestigationRequest",
         "type": "object"
       },
+      "CorrectionTargetKind": {
+        "enum": [
+          "c2_raw_event",
+          "c4_extracted_fact",
+          "c5_evidence_link",
+          "c6_kg_node",
+          "c6_kg_edge",
+          "c7_thread_label",
+          "c8_memory_entry",
+          "c9_pending_item",
+          "c14_investigation",
+          "c15_theory"
+        ],
+        "title": "CorrectionTargetKind",
+        "type": "string"
+      },
+      "CorrectionTargetRequest": {
+        "properties": {
+          "base_value_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Value Hash"
+          },
+          "field_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Path"
+          },
+          "proposed_value_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Value Hash"
+          },
+          "semantic_rank": {
+            "default": 50,
+            "title": "Semantic Rank",
+            "type": "integer"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_kind": {
+            "$ref": "#/components/schemas/CorrectionTargetKind"
+          },
+          "target_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Version"
+          }
+        },
+        "required": [
+          "target_kind",
+          "target_id"
+        ],
+        "title": "CorrectionTargetRequest",
+        "type": "object"
+      },
+      "CorrectionTargetV2": {
+        "additionalProperties": false,
+        "properties": {
+          "field_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Path"
+          },
+          "semantic_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semantic Rank"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_kind": {
+            "title": "Target Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_kind",
+          "target_id"
+        ],
+        "title": "CorrectionTargetV2",
+        "type": "object"
+      },
+      "CorrectionType": {
+        "enum": [
+          "replace_value",
+          "mark_incorrect",
+          "add_missing_context",
+          "mark_stale",
+          "withdraw_from_current_view",
+          "relabel_thread",
+          "merge_duplicate",
+          "split_context",
+          "change_evidence_weight"
+        ],
+        "title": "CorrectionType",
+        "type": "string"
+      },
+      "CorrectionV2": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_authority": {
+            "title": "Actor Authority",
+            "type": "string"
+          },
+          "applied_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied At"
+          },
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "correction_id": {
+            "title": "Correction Id",
+            "type": "string"
+          },
+          "correction_type": {
+            "title": "Correction Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "effective_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective At"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "schema_version": {
+            "const": "c13.correction.v2",
+            "default": "c13.correction.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/CorrectionTargetV2"
+            },
+            "title": "Targets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "correction_id",
+          "status",
+          "correction_type",
+          "actor_authority",
+          "created_at"
+        ],
+        "title": "CorrectionV2",
+        "type": "object"
+      },
       "CreateGrantRequest": {
         "properties": {
           "actions": {
@@ -780,6 +1009,173 @@
         "title": "InvestigationV2",
         "type": "object"
       },
+      "MemoryEntryV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "lifecycle_state": {
+            "title": "Lifecycle State",
+            "type": "string"
+          },
+          "memory_entry_id": {
+            "title": "Memory Entry Id",
+            "type": "string"
+          },
+          "memory_type": {
+            "title": "Memory Type",
+            "type": "string"
+          },
+          "projection_stale": {
+            "default": false,
+            "title": "Projection Stale",
+            "type": "boolean"
+          },
+          "resolved_overlays": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Resolved Overlays",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "c13.memory_entry.v2",
+            "default": "c13.memory_entry.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "memory_entry_id",
+          "memory_type",
+          "lifecycle_state",
+          "title",
+          "thread_id"
+        ],
+        "title": "MemoryEntryV2",
+        "type": "object"
+      },
+      "PendingItemV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "blocks_closure": {
+            "default": false,
+            "title": "Blocks Closure",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "due_precision": {
+            "default": "unknown",
+            "title": "Due Precision",
+            "type": "string"
+          },
+          "investigation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Investigation Ids",
+            "type": "array"
+          },
+          "item_type": {
+            "title": "Item Type",
+            "type": "string"
+          },
+          "next_action_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action Code"
+          },
+          "pending_item_id": {
+            "title": "Pending Item Id",
+            "type": "string"
+          },
+          "primary_thread_id": {
+            "title": "Primary Thread Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.pending_item.v2",
+            "default": "c13.pending_item.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pending_item_id",
+          "primary_thread_id",
+          "item_type",
+          "status",
+          "title",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PendingItemV2",
+        "type": "object"
+      },
       "RelevanceLinkV2": {
         "additionalProperties": false,
         "properties": {
@@ -997,6 +1393,51 @@
           "text"
         ],
         "title": "RenderValidateRequestV2",
+        "type": "object"
+      },
+      "RequestCorrectionRequest": {
+        "properties": {
+          "correction_type": {
+            "$ref": "#/components/schemas/CorrectionType"
+          },
+          "proposed_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Payload"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "raw_correction_event_id": {
+            "format": "uuid",
+            "title": "Raw Correction Event Id",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/CorrectionTargetRequest"
+          }
+        },
+        "required": [
+          "correction_type",
+          "target",
+          "raw_correction_event_id"
+        ],
+        "title": "RequestCorrectionRequest",
         "type": "object"
       },
       "RevokeGrantRequest": {
@@ -2135,6 +2576,232 @@
         "summary": "My Audit Events",
         "tags": [
           "v2-access"
+        ]
+      }
+    },
+    "/v2/corrections": {
+      "get": {
+        "operationId": "list_corrections_v2_corrections_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CorrectionV2"
+                  },
+                  "title": "Response List Corrections V2 Corrections Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Corrections",
+        "tags": [
+          "v2-continuity-memory-correction"
+        ]
+      },
+      "post": {
+        "operationId": "request_correction_v2_corrections_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Correction",
+        "tags": [
+          "v2-continuity-memory-correction"
         ]
       }
     },
@@ -3580,6 +4247,117 @@
         ]
       }
     },
+    "/v2/pending-items": {
+      "get": {
+        "operationId": "list_pending_items_v2_pending_items_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PendingItemV2"
+                  },
+                  "title": "Response List Pending Items V2 Pending Items Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Pending Items",
+        "tags": [
+          "v2-continuity-memory-correction"
+        ]
+      }
+    },
     "/v2/render/validate": {
       "post": {
         "operationId": "v2_render_validate_v2_render_validate_post",
@@ -3713,6 +4491,127 @@
         "summary": "V2 Schema",
         "tags": [
           "v2-render"
+        ]
+      }
+    },
+    "/v2/threads/{thread_id}/memories": {
+      "get": {
+        "operationId": "thread_memories_v2_threads__thread_id__memories_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MemoryEntryV2"
+                  },
+                  "title": "Response Thread Memories V2 Threads  Thread Id  Memories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Thread Memories",
+        "tags": [
+          "v2-continuity-memory-correction"
         ]
       }
     },

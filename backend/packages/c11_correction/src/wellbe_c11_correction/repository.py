@@ -102,6 +102,17 @@ class CorrectionRepository:
     async def get(self, correction_id: uuid.UUID) -> CorrectionRow | None:
         return await self._session.get(CorrectionRow, correction_id)
 
+    async def list_for_patient(
+        self, patient_id: uuid.UUID, *, limit: int = 200
+    ) -> list[CorrectionRow]:
+        stmt = (
+            select(CorrectionRow)
+            .where(CorrectionRow.patient_id == patient_id)
+            .order_by(CorrectionRow.created_at.desc())
+            .limit(limit)
+        )
+        return list((await self._session.execute(stmt)).scalars().all())
+
     async def mark_applied(
         self,
         *,

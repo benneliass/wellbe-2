@@ -273,13 +273,68 @@ class RenderValidateResponseV2(StrictBaseModel):
     audit_ref: AuditRefV2
 
 
+class PendingItemV2(StrictBaseModel):
+    schema_version: Literal["c13.pending_item.v2"] = "c13.pending_item.v2"
+    pending_item_id: str
+    primary_thread_id: str
+    item_type: str
+    status: str
+    title: str
+    next_action_code: str | None = None
+    due_at: datetime | None = None
+    due_precision: str = "unknown"
+    investigation_ids: list[str] = Field(default_factory=list)
+    blocks_closure: bool = False
+    created_at: datetime
+    updated_at: datetime
+    audit_refs: list[AuditRefV2] = Field(default_factory=list)
+
+
+class MemoryEntryV2(StrictBaseModel):
+    schema_version: Literal["c13.memory_entry.v2"] = "c13.memory_entry.v2"
+    memory_entry_id: str
+    memory_type: str
+    lifecycle_state: str
+    title: str
+    thread_id: str
+    # Pointers only — C8 never exposes displayed clinical values from its own payload.
+    source_refs: list[dict[str, Any]] = Field(default_factory=list)
+    resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
+    projection_stale: bool = False
+    audit_refs: list[AuditRefV2] = Field(default_factory=list)
+
+
+class CorrectionTargetV2(StrictBaseModel):
+    target_kind: str
+    target_id: str
+    field_path: str | None = None
+    semantic_rank: int | None = None
+
+
+class CorrectionV2(StrictBaseModel):
+    schema_version: Literal["c13.correction.v2"] = "c13.correction.v2"
+    correction_id: str
+    status: str
+    correction_type: str
+    actor_authority: str
+    rationale: str | None = None
+    targets: list[CorrectionTargetV2] = Field(default_factory=list)
+    applied_at: datetime | None = None
+    effective_at: datetime | None = None
+    created_at: datetime
+    audit_refs: list[AuditRefV2] = Field(default_factory=list)
+
+
 SUPPORTED_SCHEMA_VERSIONS = [
     "c13.access_predicate.v2",
     "c13.audit_ref.v2",
     "c13.c10_obligation.v2",
+    "c13.correction.v2",
     "c13.external_source_ref.v2",
     "c13.grant.v2",
     "c13.investigation.v2",
+    "c13.memory_entry.v2",
+    "c13.pending_item.v2",
     "c13.relevance_link.v2",
     "c13.render_approval.v2",
     "c13.render_validate.request.v2",
@@ -300,10 +355,14 @@ __all__ = [
     "AccessPredicateV2",
     "AuditRefV2",
     "C10ObligationV2",
+    "CorrectionTargetV2",
+    "CorrectionV2",
     "ExternalSourceRefV2",
     "GrantCapabilitiesV2",
     "GrantV2",
     "InvestigationV2",
+    "MemoryEntryV2",
+    "PendingItemV2",
     "ProblemCode",
     "ProblemDetailsV2",
     "RelevanceLinkV2",

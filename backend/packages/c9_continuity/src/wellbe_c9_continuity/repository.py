@@ -112,6 +112,18 @@ class ContinuityRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def list_for_patient(
+        self, patient_id: uuid.UUID, *, limit: int = 200
+    ) -> list[PendingItemRow]:
+        stmt = (
+            select(PendingItemRow)
+            .where(PendingItemRow.patient_id == patient_id)
+            .order_by(PendingItemRow.created_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def bump_timer_epoch(self, *, row: PendingItemRow) -> int:
         row.timer_epoch += 1
         row.version += 1
