@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WellBe</title>
+<style>
+  :root{
+    --bg-1:#e8eef0;
+    --bg-2:#dfe7e9;
+    --bg-3:#eef3f4;
+    --ink:#26333a;
+    --ink-soft:#5d6b71;
+    --ink-mute:#8a979d;
+    --teal:#1f7a72;
+    --teal-deep:#0f5d57;
+    --teal-bright:#2aa39a;
+    --coral:#e8654b;
+    --card:#eef3f5;
+    --card-hi:#ffffff;
+    --card-lo:#c8d3d7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #f3f7f8 0%, rgba(243,247,248,0) 60%),
+      radial-gradient(900px 900px at 50% 38%, #eaf1f2 0%, rgba(234,241,242,0) 55%),
+      linear-gradient(160deg, #e9eff1 0%, #dde6e8 55%, #e4ebec 100%);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .stage{
+    position:relative;
+    width:100%;
+    min-height:100vh;
+    padding:34px 56px 26px;
+  }
+  /* faint concentric guide arc behind everything on the left */
+  .guide-arc{
+    position:absolute;
+    left:-340px;top:120px;
+    width:1100px;height:1100px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.55);
+    box-shadow:inset 0 0 0 1px rgba(160,178,182,.08);
+    pointer-events:none;
+  }
+
+  /* ---------- header ---------- */
+  header.top{
+    position:relative;z-index:5;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .logo{
+    width:46px;height:46px;border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 32%, #cfe3df 0%, #8fc3bb 38%, #2f8d83 75%, #15625b 100%);
+    box-shadow:0 6px 14px rgba(31,122,114,.28), inset 0 2px 4px rgba(255,255,255,.5);
+    position:relative;overflow:hidden;
+  }
+  .brand .logo::after{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(closed,transparent),
+      radial-gradient(circle at 62% 60%, rgba(255,255,255,.45) 0 18%, transparent 40%),
+      radial-gradient(circle at 40% 70%, rgba(13,84,77,.5) 0 16%, transparent 38%);
+    mix-blend-mode:screen;
+  }
+  .brand .name{font-size:26px;font-weight:600;letter-spacing:.2px;color:#2c3a40}
+  .top-right{display:flex;align-items:center;gap:18px}
+  .full-view{
+    display:flex;align-items:center;gap:12px;
+    background:linear-gradient(180deg,#1c6f68,#0f5650);
+    color:#eafaf7;border:none;cursor:pointer;
+    padding:14px 26px;border-radius:30px;font-size:16px;font-weight:500;
+    box-shadow:0 8px 18px rgba(15,86,80,.32), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .full-view .arrow{font-size:17px;transform:translateY(.5px)}
+  .avatar{
+    width:48px;height:48px;border-radius:50%;
+    background:#f4f8f9;color:#36474d;font-weight:600;font-size:18px;
+    display:grid;place-items:center;position:relative;
+    box-shadow:0 4px 10px rgba(120,140,145,.25), inset 0 1px 2px rgba(255,255,255,.8);
+  }
+  .avatar .dot{
+    position:absolute;right:2px;bottom:3px;width:11px;height:11px;border-radius:50%;
+    background:#19a08f;border:2px solid #f4f8f9;
+  }
+
+  /* ---------- synced indicator ---------- */
+  .synced{
+    position:absolute;left:56px;top:150px;z-index:4;
+    display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink-soft);
+  }
+  .synced .pulse{width:9px;height:9px;border-radius:50%;background:#2f9a8e;
+    box-shadow:0 0 0 4px rgba(47,154,142,.18)}
+  .synced .ago{color:var(--ink-mute)}
+
+  /* ---------- signals pill (right) ---------- */
+  .signals{
+    position:absolute;right:56px;top:262px;z-index:4;
+    display:flex;align-items:center;gap:16px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(8px);
+    padding:16px 26px 16px 22px;border-radius:22px;min-width:300px;
+    box-shadow:0 14px 34px rgba(120,140,145,.20), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  .signals .wave{color:var(--teal);font-size:24px}
+  .signals .txt{flex:1}
+  .signals .t1{font-size:16px;color:#2f3d43;font-weight:500}
+  .signals .t2{font-size:13.5px;color:var(--ink-mute);margin-top:2px}
+  .signals .chev{color:var(--ink-mute);font-size:14px}
+
+  /* ---------- center blob ---------- */
+  .center{
+    position:relative;z-index:3;
+    display:flex;flex-direction:column;align-items:center;
+    text-align:center;margin-top:70px;
+  }
+  .blob-wrap{position:relative;width:340px;height:300px;display:grid;place-items:center}
+  .blob-halo{
+    position:absolute;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.9) 0%, rgba(255,255,255,.35) 42%, rgba(255,255,255,0) 70%);
+    box-shadow:0 30px 70px rgba(120,150,150,.18);
+  }
+  .blob-ring{
+    position:absolute;width:250px;height:250px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.6);
+  }
+  .blob-ring.r2{width:320px;height:320px;border-color:rgba(255,255,255,.35)}
+  .petals{position:relative;width:185px;height:185px}
+  .petal{
+    position:absolute;left:50%;top:50%;width:104px;height:104px;border-radius:50%;
+    transform-origin:50% 50%;
+    background:radial-gradient(circle at 38% 35%, rgba(190,225,220,.55), rgba(70,160,150,.42) 60%, rgba(30,110,102,.5));
+    mix-blend-mode:multiply;
+    opacity:.78;
+    filter:blur(.3px);
+  }
+  /* arrange 6 petals around center */
+  .petal:nth-child(1){transform:translate(-50%,-86%)}
+  .petal:nth-child(2){transform:translate(-6%,-66%)}
+  .petal:nth-child(3){transform:translate(-6%,-14%)}
+  .petal:nth-child(4){transform:translate(-50%,4%)}
+  .petal:nth-child(5){transform:translate(-94%,-14%)}
+  .petal:nth-child(6){transform:translate(-94%,-66%)}
+  .petal.core{
+    width:120px;height:120px;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 42% 40%, rgba(150,205,198,.6), rgba(40,130,122,.55) 70%);
+    opacity:.6;
+  }
+  .blob-sparkles{position:absolute;inset:0}
+  .spk{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.9);
+    box-shadow:0 0 6px rgba(255,255,255,.8)}
+
+  .hero-q{
+    font-size:62px;font-weight:600;letter-spacing:-1px;margin-top:34px;color:#2b3940;
+    line-height:1.05;
+  }
+  .hero-q em{font-style:normal;color:var(--teal);}
+  .hero-sub{font-size:19px;color:var(--ink-soft);margin-top:12px;font-weight:400}
+
+  /* ---------- recommended label ---------- */
+  .rec{
+    display:flex;align-items:center;gap:9px;
+    margin:34px auto 0;width:1180px;max-width:92vw;
+    color:var(--teal);font-size:13px;font-weight:600;letter-spacing:1.4px;
+  }
+  .rec .star{font-size:15px}
+
+  /* ---------- cards row ---------- */
+  .cards{
+    display:flex;gap:22px;justify-content:center;align-items:stretch;
+    margin:14px auto 0;width:1180px;max-width:92vw;
+  }
+  .card{
+    position:relative;flex:1;
+    background:linear-gradient(160deg,#f4f8f9,#e3ebed);
+    border-radius:90px;
+    padding:34px 16px 26px;
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;
+    box-shadow:8px 10px 22px rgba(160,178,182,.45), -8px -8px 18px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.5);
+    cursor:pointer;transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);
+    box-shadow:10px 14px 28px rgba(160,178,182,.5), -8px -8px 18px rgba(255,255,255,.95)}
+  .card.active{
+    box-shadow:0 0 0 1.5px rgba(232,101,75,.5), 0 18px 40px rgba(232,101,75,.18), -8px -8px 18px rgba(255,255,255,.9);
+  }
+  .card.active::before{
+    content:"";position:absolute;inset:-2px;border-radius:90px;
+    box-shadow:0 24px 40px -12px rgba(232,101,75,.45);
+    pointer-events:none;
+  }
+  .card .badge{
+    position:absolute;top:30px;right:34px;width:11px;height:11px;border-radius:50%;
+    background:#ec5b3e;box-shadow:0 0 0 4px rgba(236,91,62,.16);
+  }
+  .card .ico{
+    width:64px;height:64px;border-radius:50%;
+    background:linear-gradient(160deg,#eef3f5,#dde6e8);
+    display:grid;place-items:center;color:var(--teal);
+    box-shadow:inset 2px 2px 5px rgba(160,178,182,.5), inset -2px -2px 5px rgba(255,255,255,.9);
+    margin-bottom:20px;
+  }
+  .card .ico svg{width:30px;height:30px}
+  .card .label{font-size:19px;font-weight:600;color:#2d3b41;line-height:1.2}
+  .card .tag{font-size:14px;color:var(--teal);margin-top:14px;font-weight:500}
+  .card.active .tag{color:var(--coral)}
+
+  /* ---------- OR divider ---------- */
+  .or{
+    display:flex;align-items:center;gap:18px;justify-content:center;
+    margin:26px auto 0;width:760px;max-width:80vw;color:var(--ink-mute);font-size:14px;letter-spacing:1px;
+  }
+  .or::before,.or::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(150,168,172,.5),transparent)}
+
+  /* ---------- search ---------- */
+  .search{
+    display:flex;align-items:center;gap:14px;
+    margin:18px auto 0;width:760px;max-width:80vw;
+    background:linear-gradient(180deg,#ffffff,#eef3f4);
+    border-radius:40px;padding:12px 12px 12px 26px;
+    box-shadow:6px 8px 22px rgba(160,178,182,.4), -6px -6px 16px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  .search .wave{color:var(--teal);font-size:22px}
+  .search input{
+    flex:1;border:none;background:transparent;outline:none;
+    font-size:18px;color:var(--ink);font-family:inherit;
+  }
+  .search input::placeholder{color:#9aa6ab}
+  .search .go{
+    width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(180deg,#1c6f68,#0f5650);color:#eafaf7;font-size:20px;
+    display:grid;place-items:center;
+    box-shadow:0 8px 16px rgba(15,86,80,.35), inset 0 1px 0 rgba(255,255,255,.2);
+  }
+
+  /* ---------- footer ---------- */
+  .foot{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    margin:30px auto 0;color:var(--ink-mute);font-size:14.5px;
+  }
+  .foot .lock{font-size:14px}
+
+  /* ---------- bottom-left settings fab ---------- */
+  .fab{
+    position:fixed;left:34px;bottom:30px;width:50px;height:50px;border-radius:50%;
+    background:linear-gradient(160deg,#f1f6f7,#dde6e8);color:#46555b;
+    display:grid;place-items:center;cursor:pointer;
+    box-shadow:5px 6px 14px rgba(160,178,182,.45), -5px -5px 12px rgba(255,255,255,.9);
+  }
+
+  @media (max-width:1100px){
+    .hero-q{font-size:46px}
+    .signals,.synced{position:static;margin:10px 0}
+    .card{border-radius:60px}
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="guide-arc"></div>
+
+    <header class="top">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="name">WellBe</div>
+      </div>
+      <div class="top-right">
+        <button class="full-view">Full View <span class="arrow">&rarr;</span></button>
+        <div class="avatar">A<span class="dot"></span></div>
+      </div>
+    </header>
+
+    <div class="synced">
+      <span class="pulse"></span><span>Data synced</span><span class="ago">4 min ago</span>
+    </div>
+
+    <div class="signals">
+      <span class="wave">&#8767;</span>
+      <div class="txt">
+        <div class="t1">Your signals look steady</div>
+        <div class="t2">6 of 6 systems in range</div>
+      </div>
+      <span class="chev">&#9662;</span>
+    </div>
+
+    <section class="center">
+      <div class="blob-wrap">
+        <div class="blob-halo"></div>
+        <div class="blob-ring r2"></div>
+        <div class="blob-ring"></div>
+        <div class="petals">
+          <div class="petal"></div><div class="petal"></div><div class="petal"></div>
+          <div class="petal"></div><div class="petal"></div><div class="petal"></div>
+          <div class="petal core"></div>
+        </div>
+        <div class="blob-sparkles">
+          <span class="spk" style="left:18%;top:30%"></span>
+          <span class="spk" style="left:78%;top:22%"></span>
+          <span class="spk" style="left:40%;top:8%"></span>
+          <span class="spk" style="left:88%;top:60%"></span>
+        </div>
+      </div>
+
+      <h1 class="hero-q">What do you need <em>today?</em></h1>
+      <p class="hero-sub">We&rsquo;ll guide you to the right things.</p>
+
+      <div class="rec"><span class="star">&#10022;</span> RECOMMENDED FOR YOU</div>
+
+      <div class="cards">
+        <!-- 1 Triage (active) -->
+        <div class="card active">
+          <span class="badge"></span>
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.8 7.6a4.6 4.6 0 0 0-7.8-2.5L12 6l-1-0.9A4.6 4.6 0 0 0 3.2 7.6c0 4.5 6.4 8.4 8.8 10.8 2.4-2.4 8.8-6.3 8.8-10.8Z"/>
+              <path d="M3.5 12.5h4l1.5-3 2.5 6 1.7-4 1.3 2h5"/>
+            </svg>
+          </div>
+          <div class="label">Something<br>feels off</div>
+          <div class="tag">Triage</div>
+        </div>
+        <!-- 2 Quick Log -->
+        <div class="card">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/><path d="M14 6l3 3"/>
+            </svg>
+          </div>
+          <div class="label">Log<br>something</div>
+          <div class="tag">Quick Log</div>
+        </div>
+        <!-- 3 Delta Digest -->
+        <div class="card">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12h4l2.5-7 4 14 2.5-7H22"/>
+            </svg>
+          </div>
+          <div class="label">What<br>changed?</div>
+          <div class="tag">Delta Digest</div>
+        </div>
+        <!-- 4 Pattern Check -->
+        <div class="card">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="21" x2="5" y2="11"/><line x1="10" y1="21" x2="10" y2="6"/>
+              <line x1="15" y1="21" x2="15" y2="13"/><line x1="20" y1="21" x2="20" y2="3"/>
+            </svg>
+          </div>
+          <div class="label">Check my<br>patterns</div>
+          <div class="tag">Pattern Check</div>
+        </div>
+        <!-- 5 Doctor Prep -->
+        <div class="card">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+            </svg>
+          </div>
+          <div class="label">Prepare for<br>appointment</div>
+          <div class="tag">Doctor Prep</div>
+        </div>
+        <!-- 6 Deep Dive -->
+        <div class="card">
+          <div class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="6" cy="7" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="16" cy="18" r="2.4"/>
+              <path d="M8 8l8-1M8.3 8.6l7 8.2"/>
+            </svg>
+          </div>
+          <div class="label">Open the<br>graph</div>
+          <div class="tag">Deep Dive</div>
+        </div>
+      </div>
+
+      <div class="or">OR</div>
+
+      <div class="search">
+        <span class="wave">&#8767;</span>
+        <input type="text" placeholder="Type what you need..." />
+        <button class="go">&rarr;</button>
+      </div>
+
+      <div class="foot"><span class="lock">&#128274;</span> Your data is private and secure. We never sell your data.</div>
+    </section>
+  </div>
+
+  <div class="fab">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="#dde6e8"/>
+      <line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="#dde6e8"/>
+    </svg>
+  </div>
+</body>
+</html>
