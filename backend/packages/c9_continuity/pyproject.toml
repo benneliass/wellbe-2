@@ -8,6 +8,8 @@ dependencies = [
     "wellbe-platform",
     "wellbe-db",
     "wellbe-events",
+    "wellbe-c7-thread",
+    "temporalio>=1.27",
 ]
 
 [tool.uv.sources]
@@ -15,3 +17,4 @@ wellbe-contracts = { workspace = true }
 wellbe-platform = { workspace = true }
 wellbe-db = { workspace = true }
 wellbe-events = { workspace = true }
+wellbe-c7-thread = { workspace = true }

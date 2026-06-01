@@ -6,8 +6,13 @@ description = "C9 Continuity Worker: pending item ledger, referral tracker, Temp
 dependencies = [
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-db",
+    "wellbe-c9-continuity",
+    "temporalio>=1.27",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-c9-continuity = { workspace = true }

@@ -30,13 +30,36 @@ migration:
   image: wellbe-migrations:local
   imagePullPolicy: Never
 
+# Temporal server (all-in-one auto-setup) for C9 durable timers. Persistence is
+# backed by the existing Postgres in SEPARATE databases (temporal /
+# temporal_visibility) so Temporal state never mixes with WellBe app schemas.
+# Internal-only: ClusterIP service on 7233, no ingress / public exposure.
+temporal:
+  image: temporalio/auto-setup:1.25.1
+  imagePullPolicy: IfNotPresent
+  frontendPort: 7233
+  namespace: default
+  db: temporal
+  visibilityDb: temporal_visibility
+
+continuityWorker:
+  image: wellbe-continuity-worker:local
+  imagePullPolicy: Never
+  replicas: 1
+  config:
+    temporalHost: "temporal:7233"
+    temporalNamespace: "default"
+    logLevel: "INFO"
+    environment: "dev"
+
 vaultWriter:
   image: wellbe-vault-writer:local
   imagePullPolicy: Never
   port: 8002
   replicas: 1
   config:
-    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@wellbe-postgres:5432/wellbe"
+    # DB URL is rendered from the canonical postgres.* values via the
+    # "wellbe-local.databaseUrlAsync" helper — do not duplicate the credential here.
     s3Endpoint: "http://minio:9000"
     s3AccessKey: "wellbe_minio"
     s3SecretKey: "wellbe_minio_dev"
@@ -63,7 +86,8 @@ processingWorker:
   port: 8004
   replicas: 1
   config:
-    databaseUrl: "postgresql+asyncpg://wellbe:wellbe_dev@wellbe-postgres:5432/wellbe"
+    # DB URL is rendered from the canonical postgres.* values via the
+    # "wellbe-local.databaseUrlAsync" helper — do not duplicate the credential here.
     redisUrl: "redis://wellbe-redis:6379/0"
     temporalHost: "temporal:7233"
     logLevel: "INFO"

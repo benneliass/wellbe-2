@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+    app: temporal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal
+  template:
+    metadata:
+      labels:
+        app: temporal
+    spec:
+      containers:
+        - name: temporal
+          image: {{ .Values.temporal.image }}
+          imagePullPolicy: {{ .Values.temporal.imagePullPolicy }}
+          env:
+            # Postgres-backed persistence. Credentials come from the SAME canonical
+            # postgres.* values as every other consumer (single source of truth),
+            # but Temporal lives in its own databases.
+            - name: DB
+              value: "postgres12"
+            - name: DB_PORT
+              value: "5432"
+            - name: POSTGRES_SEEDS
+              value: {{ include "wellbe-local.pgHost" . | trimSuffix ":5432" | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PWD
+              value: {{ .Values.postgres.password | quote }}
+            - name: DBNAME
+              value: {{ .Values.temporal.db | quote }}
+            - name: VISIBILITY_DBNAME
+              value: {{ .Values.temporal.visibilityDb | quote }}
+            - name: ENABLE_ES
+              value: "false"
+            - name: SKIP_DEFAULT_NAMESPACE_CREATION
+              value: "false"
+          ports:
+            - containerPort: {{ .Values.temporal.frontendPort }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.temporal.frontendPort }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.temporal.frontendPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 20

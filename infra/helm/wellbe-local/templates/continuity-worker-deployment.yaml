@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: continuity-worker
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+    app: continuity-worker
+spec:
+  replicas: {{ .Values.continuityWorker.replicas }}
+  selector:
+    matchLabels:
+      app: continuity-worker
+  template:
+    metadata:
+      labels:
+        app: continuity-worker
+    spec:
+      # Give the worker time to drain in-flight activities on rollout.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: continuity-worker
+          image: {{ .Values.continuityWorker.image }}
+          imagePullPolicy: {{ .Values.continuityWorker.imagePullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: continuity-worker-config
+          # No HTTP port: this is a Temporal worker process. Liveness verifies the
+          # worker process (PID 1) is still the continuity worker.
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - grep -q wellbe_continuity_worker /proc/1/cmdline
+            initialDelaySeconds: 20
+            periodSeconds: 20

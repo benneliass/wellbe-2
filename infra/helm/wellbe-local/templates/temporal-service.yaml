@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+    app: temporal
+spec:
+  # ClusterIP only — Temporal frontend is internal-only, never publicly exposed.
+  type: ClusterIP
+  selector:
+    app: temporal
+  ports:
+    - name: frontend
+      port: {{ .Values.temporal.frontendPort }}
+      targetPort: {{ .Values.temporal.frontendPort }}

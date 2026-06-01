@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: continuity-worker-config
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+data:
+  WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
+  WELLBE_TEMPORAL_HOST: {{ .Values.continuityWorker.config.temporalHost | quote }}
+  WELLBE_TEMPORAL_NAMESPACE: {{ .Values.continuityWorker.config.temporalNamespace | quote }}
+  WELLBE_LOG_LEVEL: {{ .Values.continuityWorker.config.logLevel | quote }}
+  WELLBE_ENVIRONMENT: {{ .Values.continuityWorker.config.environment | quote }}
