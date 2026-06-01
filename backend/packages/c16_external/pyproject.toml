@@ -1,0 +1,19 @@
+[project]
+name = "wellbe-c16-external"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "External Evidence Graph + Research Relevance (C16): external_kg sources/claims and the patient-scoped, context-only relevance-link bridge."
+dependencies = [
+    "wellbe-contracts",
+    "wellbe-platform",
+    "wellbe-db",
+    "wellbe-events",
+    "wellbe-c6-graph",
+]
+
+[tool.uv.sources]
+wellbe-contracts = { workspace = true }
+wellbe-platform = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-c6-graph = { workspace = true }
