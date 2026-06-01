@@ -1,9 +1,9 @@
 # Decision: Correction Service layered, source-linked, non-mutating overlay model
 
-**Status:** Proposed
+**Status:** Approved
 **Date opened:** 2026-06-01
 **Research received:** 2026-06-01
-**Date approved:** (fill on approval)
+**Date approved:** 2026-06-01
 **Approved by:** User
 **Jira Spike:** WEL-138
 **Blocks:** WEL-71 — Build source-linked non-mutating Correction Service for facts and memories
