@@ -25,3 +25,11 @@ postgresql://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@{{ incl
 {{- define "wellbe-local.databaseUrlAsync" -}}
 postgresql+asyncpg://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@{{ include "wellbe-local.pgHost" . }}/{{ .Values.postgres.database }}
 {{- end }}
+
+{{/*
+Canonical Redis URL. Single source of truth so no consumer hardcodes a
+divergent host/port. Source: redis-service name + .Values.redis.port.
+*/}}
+{{- define "wellbe-local.redisUrl" -}}
+redis://wellbe-redis:{{ .Values.redis.port }}/0
+{{- end }}

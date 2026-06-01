@@ -146,6 +146,7 @@ async def create_grant(
         extra={"grant_id": str(row.id), "grantee_type": body.grantee_type},
     )
     await session.commit()
+    await session.refresh(row)
     return _grant_to_v2(row, principal.patient_id)
 
 
@@ -230,6 +231,7 @@ def _grant_to_v2(row: ShareGrantRow, patient_id: uuid.UUID) -> GrantV2:
     grantee_ref = str(row.grantee_user_id) if row.grantee_user_id else (
         row.grantee_identifier_hash or "unknown"
     )
+    created = row.created_at or datetime.now(UTC)
     return GrantV2(
         grant_id=str(row.id),
         grant_type=row.grantee_type,
@@ -241,13 +243,13 @@ def _grant_to_v2(row: ShareGrantRow, patient_id: uuid.UUID) -> GrantV2:
         scope_profile_version=str(row.policy_version),
         purpose_code=row.purpose or "unspecified",
         status=row.status,
-        starts_at=row.accepted_at or row.created_at,
+        starts_at=row.accepted_at or created,
         expires_at=row.expires_at,
         revoked_at=row.revoked_at,
         capabilities=caps,
         resource_constraints_summary=(
             f"{len(row.thread_ids or [])} thread(s)" if row.thread_ids else "selector"
         ),
-        created_at=row.created_at,
-        updated_at=row.updated_at,
+        created_at=created,
+        updated_at=row.revoked_at or created,
     )

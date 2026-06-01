@@ -7,3 +7,5 @@ metadata:
 data:
   WELLBE_LOG_LEVEL: {{ .Values.api.config.logLevel | quote }}
   WELLBE_ENVIRONMENT: {{ .Values.api.config.environment | quote }}
+  WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
+  WELLBE_REDIS_URL: {{ include "wellbe-local.redisUrl" . | quote }}
