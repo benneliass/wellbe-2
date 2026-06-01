@@ -1,0 +1,3346 @@
+{
+  "components": {
+    "schemas": {
+      "AccessEvaluateRequest": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "purpose_code": {
+            "default": "personal_care",
+            "title": "Purpose Code",
+            "type": "string"
+          },
+          "resource_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Id"
+          },
+          "resource_type": {
+            "title": "Resource Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource_type",
+          "action"
+        ],
+        "title": "AccessEvaluateRequest",
+        "type": "object"
+      },
+      "AccessPredicateV2": {
+        "additionalProperties": false,
+        "properties": {
+          "access_predicate_hash": {
+            "title": "Access Predicate Hash",
+            "type": "string"
+          },
+          "audit_event_id": {
+            "title": "Audit Event Id",
+            "type": "string"
+          },
+          "capabilities": {
+            "additionalProperties": true,
+            "title": "Capabilities",
+            "type": "object"
+          },
+          "decision": {
+            "enum": [
+              "allow",
+              "deny",
+              "allow_with_obligations"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "decision_reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Reason Codes",
+            "type": "array"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "grant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Id"
+          },
+          "obligations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Obligations",
+            "type": "array"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "purpose_code": {
+            "title": "Purpose Code",
+            "type": "string"
+          },
+          "resource_constraints_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Constraints Summary"
+          },
+          "role_binding_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Binding Id"
+          },
+          "schema_version": {
+            "const": "c13.access_predicate.v2",
+            "default": "c13.access_predicate.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope Codes",
+            "type": "array"
+          },
+          "valid_until": {
+            "format": "date-time",
+            "title": "Valid Until",
+            "type": "string"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "required": [
+          "access_predicate_hash",
+          "decision",
+          "purpose_code",
+          "valid_until",
+          "policy_version",
+          "evaluated_at",
+          "audit_event_id"
+        ],
+        "title": "AccessPredicateV2",
+        "type": "object"
+      },
+      "AuditRefV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_event_id": {
+            "title": "Audit Event Id",
+            "type": "string"
+          },
+          "correlation_id": {
+            "title": "Correlation Id",
+            "type": "string"
+          },
+          "event_summary": {
+            "title": "Event Summary",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.audit_ref.v2",
+            "default": "c13.audit_ref.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "visibility": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Visibility",
+            "type": "array"
+          }
+        },
+        "required": [
+          "audit_event_id",
+          "correlation_id",
+          "visibility",
+          "event_summary"
+        ],
+        "title": "AuditRefV2",
+        "type": "object"
+      },
+      "C10ObligationV2": {
+        "additionalProperties": false,
+        "properties": {
+          "blocking_if_unfulfilled": {
+            "default": true,
+            "title": "Blocking If Unfulfilled",
+            "type": "boolean"
+          },
+          "display_location": {
+            "default": "inline",
+            "enum": [
+              "inline",
+              "banner",
+              "source_panel"
+            ],
+            "title": "Display Location",
+            "type": "string"
+          },
+          "obligation_code": {
+            "title": "Obligation Code",
+            "type": "string"
+          },
+          "required": {
+            "default": true,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "c13.c10_obligation.v2",
+            "default": "c13.c10_obligation.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "obligation_code"
+        ],
+        "title": "C10ObligationV2",
+        "type": "object"
+      },
+      "CloseInvestigationRequest": {
+        "properties": {
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "reason_code": {
+            "default": "user_closed",
+            "title": "Reason Code",
+            "type": "string"
+          }
+        },
+        "title": "CloseInvestigationRequest",
+        "type": "object"
+      },
+      "CreateGrantRequest": {
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "data_categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Data Categories",
+            "type": "array"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "grantee_type": {
+            "title": "Grantee Type",
+            "type": "string"
+          },
+          "grantee_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grantee User Id"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "thread_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Thread Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "grantee_type"
+        ],
+        "title": "CreateGrantRequest",
+        "type": "object"
+      },
+      "CreateInvestigationRequest": {
+        "properties": {
+          "owner_type": {
+            "$ref": "#/components/schemas/InvestigationOwnerType",
+            "default": "user"
+          },
+          "primary_question": {
+            "title": "Primary Question",
+            "type": "string"
+          },
+          "thread_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Thread Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "primary_question"
+        ],
+        "title": "CreateInvestigationRequest",
+        "type": "object"
+      },
+      "CreateTheoryRequest": {
+        "properties": {
+          "theory_text": {
+            "title": "Theory Text",
+            "type": "string"
+          },
+          "theory_type": {
+            "$ref": "#/components/schemas/TheoryType",
+            "default": "symptom_cause"
+          }
+        },
+        "required": [
+          "theory_text"
+        ],
+        "title": "CreateTheoryRequest",
+        "type": "object"
+      },
+      "GrantCapabilitiesV2": {
+        "additionalProperties": false,
+        "properties": {
+          "can_comment": {
+            "default": false,
+            "title": "Can Comment",
+            "type": "boolean"
+          },
+          "can_contribute": {
+            "default": false,
+            "title": "Can Contribute",
+            "type": "boolean"
+          },
+          "can_export": {
+            "default": false,
+            "title": "Can Export",
+            "type": "boolean"
+          },
+          "can_invite": {
+            "default": false,
+            "title": "Can Invite",
+            "type": "boolean"
+          },
+          "can_read": {
+            "default": false,
+            "title": "Can Read",
+            "type": "boolean"
+          },
+          "can_request_correction": {
+            "default": false,
+            "title": "Can Request Correction",
+            "type": "boolean"
+          },
+          "can_run_aggregate": {
+            "default": false,
+            "title": "Can Run Aggregate",
+            "type": "boolean"
+          },
+          "can_search": {
+            "default": false,
+            "title": "Can Search",
+            "type": "boolean"
+          },
+          "can_use_research_sandbox": {
+            "default": false,
+            "title": "Can Use Research Sandbox",
+            "type": "boolean"
+          },
+          "can_view_external_context": {
+            "default": false,
+            "title": "Can View External Context",
+            "type": "boolean"
+          }
+        },
+        "title": "GrantCapabilitiesV2",
+        "type": "object"
+      },
+      "GrantV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/GrantCapabilitiesV2"
+          },
+          "contribution_policy": {
+            "additionalProperties": true,
+            "title": "Contribution Policy",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "grant_id": {
+            "title": "Grant Id",
+            "type": "string"
+          },
+          "grant_type": {
+            "title": "Grant Type",
+            "type": "string"
+          },
+          "grantee_ref": {
+            "title": "Grantee Ref",
+            "type": "string"
+          },
+          "obligations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Obligations",
+            "type": "array"
+          },
+          "purpose_code": {
+            "title": "Purpose Code",
+            "type": "string"
+          },
+          "resource_constraints_summary": {
+            "title": "Resource Constraints Summary",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "role_binding_id": {
+            "title": "Role Binding Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.grant.v2",
+            "default": "c13.grant.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope Codes",
+            "type": "array"
+          },
+          "scope_profile_version": {
+            "title": "Scope Profile Version",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_ref": {
+            "title": "Subject Ref",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant_id",
+          "grant_type",
+          "subject_ref",
+          "grantee_ref",
+          "workspace_id",
+          "role_binding_id",
+          "scope_codes",
+          "scope_profile_version",
+          "purpose_code",
+          "status",
+          "starts_at",
+          "resource_constraints_summary",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "GrantV2",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InvestigationOwnerType": {
+        "enum": [
+          "user",
+          "caregiver",
+          "system"
+        ],
+        "title": "InvestigationOwnerType",
+        "type": "string"
+      },
+      "InvestigationStatus": {
+        "description": "Workflow status (NEVER a clinical conclusion \u2014 constraint G1).",
+        "enum": [
+          "open",
+          "monitoring",
+          "waiting_for_data",
+          "ready_for_visit",
+          "handed_off",
+          "closed"
+        ],
+        "title": "InvestigationStatus",
+        "type": "string"
+      },
+      "InvestigationV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "additionalProperties": true,
+            "title": "Created By",
+            "type": "object"
+          },
+          "evidence_bundle_ref": {
+            "title": "Evidence Bundle Ref",
+            "type": "string"
+          },
+          "external_context_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "External Context Refs",
+            "type": "array"
+          },
+          "health_thread_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Health Thread Ids",
+            "type": "array"
+          },
+          "investigation_id": {
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "linked_theory_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Linked Theory Ids",
+            "type": "array"
+          },
+          "missing_context_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Missing Context Items",
+            "type": "array"
+          },
+          "participants": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Participants",
+            "type": "array"
+          },
+          "pending_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Pending Items",
+            "type": "array"
+          },
+          "primary_question": {
+            "title": "Primary Question",
+            "type": "string"
+          },
+          "review_cadence": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Cadence"
+          },
+          "safety_level": {
+            "title": "Safety Level",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.investigation.v2",
+            "default": "c13.investigation.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "title": "Scope",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "investigation_id",
+          "health_thread_ids",
+          "primary_question",
+          "scope",
+          "status",
+          "safety_level",
+          "workspace_id",
+          "evidence_bundle_ref",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "InvestigationV2",
+        "type": "object"
+      },
+      "RelevanceLinkV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "context_only": {
+            "const": true,
+            "title": "Context Only",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "external_claim_id": {
+            "title": "External Claim Id",
+            "type": "string"
+          },
+          "external_source_id": {
+            "title": "External Source Id",
+            "type": "string"
+          },
+          "linked_investigation_id": {
+            "title": "Linked Investigation Id",
+            "type": "string"
+          },
+          "linked_thread_id": {
+            "title": "Linked Thread Id",
+            "type": "string"
+          },
+          "not_personal_evidence": {
+            "const": true,
+            "title": "Not Personal Evidence",
+            "type": "boolean"
+          },
+          "obligations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Obligations",
+            "type": "array"
+          },
+          "relevance_link_id": {
+            "title": "Relevance Link Id",
+            "type": "string"
+          },
+          "relevance_status": {
+            "title": "Relevance Status",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.relevance_link.v2",
+            "default": "c13.relevance_link.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_quality_tier": {
+            "$ref": "#/components/schemas/SourceQualityTierV2"
+          },
+          "why_relevant_summary": {
+            "title": "Why Relevant Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relevance_link_id",
+          "external_source_id",
+          "external_claim_id",
+          "linked_thread_id",
+          "linked_investigation_id",
+          "relevance_status",
+          "why_relevant_summary",
+          "source_quality_tier",
+          "context_only",
+          "not_personal_evidence",
+          "created_at",
+          "evaluated_at"
+        ],
+        "title": "RelevanceLinkV2",
+        "type": "object"
+      },
+      "RenderApprovalV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_event_id": {
+            "title": "Audit Event Id",
+            "type": "string"
+          },
+          "binds_request_id": {
+            "title": "Binds Request Id",
+            "type": "string"
+          },
+          "binds_text_sha256": {
+            "title": "Binds Text Sha256",
+            "type": "string"
+          },
+          "c10_decision": {
+            "title": "C10 Decision",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "obligations": {
+            "items": {
+              "$ref": "#/components/schemas/C10ObligationV2"
+            },
+            "title": "Obligations",
+            "type": "array"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "render_authorization_ref": {
+            "title": "Render Authorization Ref",
+            "type": "string"
+          },
+          "render_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Render Token"
+          },
+          "review_markers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Markers",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "c13.render_approval.v2",
+            "default": "c13.render_approval.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_display_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Display Requirements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "render_authorization_ref",
+          "binds_request_id",
+          "binds_text_sha256",
+          "expires_at",
+          "c10_decision",
+          "audit_event_id"
+        ],
+        "title": "RenderApprovalV2",
+        "type": "object"
+      },
+      "RenderValidateRequestV2": {
+        "additionalProperties": false,
+        "properties": {
+          "correlation_id": {
+            "default": "corr-render",
+            "title": "Correlation Id",
+            "type": "string"
+          },
+          "render_approval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RenderApprovalV2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "const": "c13.render_validate.request.v2",
+            "default": "c13.render_validate.request.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "surface_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Surface Capabilities",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "RenderValidateRequestV2",
+        "type": "object"
+      },
+      "RevokeGrantRequest": {
+        "properties": {
+          "reason": {
+            "default": "user_revoked",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "RevokeGrantRequest",
+        "type": "object"
+      },
+      "SourceQualityTierV2": {
+        "enum": [
+          "tier_1",
+          "tier_2",
+          "tier_3",
+          "tier_4",
+          "tier_5"
+        ],
+        "title": "SourceQualityTierV2",
+        "type": "string"
+      },
+      "SupportedSchemaVersionsV2": {
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "const": "c13.schema_versions.v2",
+            "default": "c13.schema_versions.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "supported_schema_versions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Schema Versions",
+            "type": "array"
+          }
+        },
+        "title": "SupportedSchemaVersionsV2",
+        "type": "object"
+      },
+      "TheoryType": {
+        "enum": [
+          "symptom_cause",
+          "treatment_effect",
+          "trigger",
+          "pattern",
+          "other"
+        ],
+        "title": "TheoryType",
+        "type": "string"
+      },
+      "TheoryV2": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "clinician_annotation_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clinician Annotation Ref"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_against": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Evidence Against",
+            "type": "array"
+          },
+          "evidence_for": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Evidence For",
+            "type": "array"
+          },
+          "external_context_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "External Context Refs",
+            "type": "array"
+          },
+          "health_thread_id": {
+            "title": "Health Thread Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "missing_data": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Missing Data",
+            "type": "array"
+          },
+          "not_diagnosis": {
+            "const": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "proposed_by": {
+            "additionalProperties": true,
+            "title": "Proposed By",
+            "type": "object"
+          },
+          "review_marker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Marker"
+          },
+          "safety_level": {
+            "title": "Safety Level",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.theory.v2",
+            "default": "c13.theory.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "theory_id": {
+            "title": "Theory Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "theory_id",
+          "investigation_id",
+          "health_thread_id",
+          "label",
+          "proposed_by",
+          "status",
+          "safety_level",
+          "not_diagnosis",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TheoryV2",
+        "type": "object"
+      },
+      "TransitionInvestigationRequest": {
+        "properties": {
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "target_status": {
+            "$ref": "#/components/schemas/InvestigationStatus"
+          }
+        },
+        "required": [
+          "target_status",
+          "reason_code"
+        ],
+        "title": "TransitionInvestigationRequest",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WorkspaceV2": {
+        "additionalProperties": false,
+        "properties": {
+          "active_role_binding": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Role Binding"
+          },
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "capability_summary": {
+            "additionalProperties": true,
+            "title": "Capability Summary",
+            "type": "object"
+          },
+          "controller_subject_ref": {
+            "title": "Controller Subject Ref",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "data_access_not_implied": {
+            "const": true,
+            "title": "Data Access Not Implied",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "membership_state": {
+            "title": "Membership State",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.workspace.v2",
+            "default": "c13.workspace.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "workspace_type": {
+            "title": "Workspace Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "workspace_type",
+          "display_name",
+          "controller_subject_ref",
+          "membership_state",
+          "data_access_not_implied",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "WorkspaceV2",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Single external boundary. All surfaces call through here. See docs/architecture/component-map.md C13.",
+    "title": "WellBe API (v2)",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v2/access/evaluate": {
+      "post": {
+        "operationId": "access_evaluate_v2_access_evaluate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessEvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessPredicateV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Access Evaluate",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    },
+    "/v2/audit/my-events": {
+      "get": {
+        "operationId": "my_audit_events_v2_audit_my_events_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditRefV2"
+                  },
+                  "title": "Response My Audit Events V2 Audit My Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Audit Events",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    },
+    "/v2/grants": {
+      "get": {
+        "operationId": "list_grants_v2_grants_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GrantV2"
+                  },
+                  "title": "Response List Grants V2 Grants Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Grants",
+        "tags": [
+          "v2-access"
+        ]
+      },
+      "post": {
+        "operationId": "create_grant_v2_grants_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Grant",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    },
+    "/v2/grants/{grant_id}/revoke": {
+      "post": {
+        "operationId": "revoke_grant_v2_grants__grant_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Grant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Grant",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    },
+    "/v2/investigations": {
+      "get": {
+        "operationId": "list_investigations_v2_investigations_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvestigationV2"
+                  },
+                  "title": "Response List Investigations V2 Investigations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Investigations",
+        "tags": [
+          "v2-investigations"
+        ]
+      },
+      "post": {
+        "operationId": "create_investigation_v2_investigations_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvestigationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Investigation",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/investigations/{investigation_id}": {
+      "get": {
+        "operationId": "get_investigation_v2_investigations__investigation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Investigation",
+        "tags": [
+          "v2-investigations"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_investigation_v2_investigations__investigation_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionInvestigationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Investigation",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/investigations/{investigation_id}/close": {
+      "post": {
+        "operationId": "close_investigation_v2_investigations__investigation_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseInvestigationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close Investigation",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/investigations/{investigation_id}/external-context": {
+      "get": {
+        "operationId": "investigation_external_context_v2_investigations__investigation_id__external_context_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RelevanceLinkV2"
+                  },
+                  "title": "Response Investigation External Context V2 Investigations  Investigation Id  External Context Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Investigation External Context",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/investigations/{investigation_id}/reopen": {
+      "post": {
+        "operationId": "reopen_investigation_v2_investigations__investigation_id__reopen_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseInvestigationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reopen Investigation",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/investigations/{investigation_id}/theories": {
+      "get": {
+        "operationId": "list_theories_v2_investigations__investigation_id__theories_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TheoryV2"
+                  },
+                  "title": "Response List Theories V2 Investigations  Investigation Id  Theories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Theories",
+        "tags": [
+          "v2-investigations"
+        ]
+      },
+      "post": {
+        "operationId": "create_theory_v2_investigations__investigation_id__theories_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investigation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Investigation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTheoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TheoryV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Theory",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/render/validate": {
+      "post": {
+        "operationId": "v2_render_validate_v2_render_validate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenderValidateRequestV2"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "V2 Render Validate",
+        "tags": [
+          "v2-render"
+        ]
+      }
+    },
+    "/v2/schema": {
+      "get": {
+        "operationId": "v2_schema_v2_schema_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportedSchemaVersionsV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "V2 Schema",
+        "tags": [
+          "v2-render"
+        ]
+      }
+    },
+    "/v2/workspaces": {
+      "get": {
+        "operationId": "list_workspaces_v2_workspaces_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceV2"
+                  },
+                  "title": "Response List Workspaces V2 Workspaces Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Workspaces",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    },
+    "/v2/workspaces/{workspace_id}": {
+      "get": {
+        "operationId": "get_workspace_v2_workspaces__workspace_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Workspace",
+        "tags": [
+          "v2-access"
+        ]
+      }
+    }
+  }
+}
