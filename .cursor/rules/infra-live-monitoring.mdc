@@ -1,6 +1,6 @@
 ---
 description: Active monitoring protocol for long-running cluster operations — no passive timeout waits
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Infra Live Monitoring
@@ -11,11 +11,27 @@ alwaysApply: false
 
 This applies to every operation that changes cluster state: `helm upgrade`, `helm install`, `helm rollback`, `kubectl apply`, `flux reconcile`, rolling restarts, node provisioning (Karpenter), and any command that causes Kubernetes workloads to transition.
 
+Treat these as **close-monitoring operations**, not fire-and-forget shell commands. A cluster-mutating command is not done when the shell command exits; it is done only after the affected workloads, jobs, or reconciler resources have been observed healthy.
+
+---
+
+## Mandatory Shell Pattern
+
+Before running any command that may block on cluster convergence, plan the monitor command too.
+
+1. Start the mutating operation with a bounded foreground wait only if it is expected to return quickly.
+2. If it can take more than ~30 seconds, run it with `block_until_ms: 0` or a short `block_until_ms`, and configure `notify_on_output` for failure text such as `CrashLoop|OOMKilled|Error|Failed|ImagePull|BackOff|context deadline exceeded`.
+3. Immediately start a targeted monitor in a separate Shell call: rollout status, pod watch, job watch, events, or HelmRelease status.
+4. Keep checking until the operation reaches a healthy steady state, fails, or is clearly hung.
+5. If the first command is still running after 2 minutes with no useful state change, inspect the cluster state before waiting longer.
+
+Do not start `helm upgrade --wait`, `kubectl rollout status`, `kubectl wait`, or a similar blocking command unless you also have a way to observe pod/job/events progress while it is blocked.
+
 ---
 
 ## What "Active Monitoring" Means
 
-After firing any cluster-mutating command, immediately start watching the relevant workloads. Do not wait for the command's built-in timeout.
+After firing any cluster-mutating command, immediately start watching the relevant workloads. Do not wait for the command's built-in timeout, and do not wait for the mutating command to return before inspecting pods/events if it is still running.
 
 ### After `helm upgrade` / `helm install`
 
@@ -42,6 +58,13 @@ kubectl rollout status <kind>/<name> -n <namespace>
 
 # Events stream for the namespace
 kubectl get events -n <namespace> -w --sort-by='.lastTimestamp'
+```
+
+If the apply creates or updates a `Job`, watch job completion and pods:
+
+```bash
+kubectl wait --for=condition=complete job/<name> -n <namespace> --timeout=120s
+kubectl get pods -n <namespace> -l job-name=<name> -w
 ```
 
 ### During node provisioning / Karpenter scale-out
@@ -84,11 +107,13 @@ A run is "hanging" if:
 - The helm command or `kubectl rollout status` has been waiting for more than **2 minutes** with no pod state change
 - Pods are stuck in `Pending` or `ContainerCreating` with no events in the last 60 seconds
 - A `helm upgrade --wait` has consumed more than half its timeout with no successful rollout
+- A Kubernetes `Job` has no new pods, logs, or completion events for 2 minutes
+- A Flux reconciliation remains `Reconciling=True` or `Ready=False` with no new events for 2 minutes
 
 When a hang is detected:
 1. Cancel or background the blocking command
 2. Immediately inspect: `kubectl describe pod -n <namespace>` on the stuck pod
-3. Check events: `kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20`
+3. Check recent events: `kubectl get events -n <namespace> --sort-by='.lastTimestamp'`
 4. Report finding to the user before taking any remediation action
 
 ---
@@ -100,6 +125,7 @@ When a hang is detected:
 - ❌ Re-run the same helm command without diagnosing why the previous one failed
 - ❌ Wait for `kubectl rollout status` to exit before checking pod logs
 - ❌ Assume a successful helm exit code means the workload is healthy — verify pod status
+- ❌ Leave a Kubernetes `Job`, Flux reconciliation, or HelmRelease unmonitored after triggering it
 
 ---
 
@@ -107,7 +133,7 @@ When a hang is detected:
 
 When running monitoring commands in the Shell tool:
 
-- Use `block_until_ms: 0` to background long-running watches, then read the terminal file to observe output
-- Set `notify_on_output` with a regex that catches failure signals: `CrashLoop|OOMKilled|Error|Failed|ImagePull`
-- Poll the terminal file every ~30s for state changes rather than waiting for the full operation to complete
+- Use `block_until_ms: 0` to background long-running operations and watches, then read the terminal output or await the specific job when your next step depends on it
+- Set `notify_on_output` with a regex that catches failure signals: `CrashLoop|OOMKilled|Error|Failed|ImagePull|BackOff|context deadline exceeded`
+- Poll or inspect progress every ~30s for state changes rather than waiting for the full operation to complete
 - Kill a hanging watch and re-inspect if no output has appeared in 2 minutes

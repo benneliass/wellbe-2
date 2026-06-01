@@ -53,6 +53,23 @@ class InvestigationRepository:
         stmt = select(InvestigationRow).where(InvestigationRow.id == investigation_id)
         return (await self._session.execute(stmt)).scalar_one_or_none()
 
+    async def list_for_patient(
+        self, patient_id: uuid.UUID, *, limit: int = 100
+    ) -> list[InvestigationRow]:
+        stmt = (
+            select(InvestigationRow)
+            .where(InvestigationRow.patient_id == patient_id)
+            .order_by(InvestigationRow.created_at.desc())
+            .limit(limit)
+        )
+        return list((await self._session.execute(stmt)).scalars().all())
+
+    async def linked_thread_ids(self, investigation_id: uuid.UUID) -> list[uuid.UUID]:
+        stmt = select(InvestigationThreadRow.thread_id).where(
+            InvestigationThreadRow.investigation_id == investigation_id
+        )
+        return list((await self._session.execute(stmt)).scalars().all())
+
     async def get_for_update(self, investigation_id: uuid.UUID) -> InvestigationRow | None:
         stmt = (
             select(InvestigationRow)

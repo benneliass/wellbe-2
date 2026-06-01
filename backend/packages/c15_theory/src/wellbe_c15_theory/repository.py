@@ -62,6 +62,17 @@ class TheoryRepository:
         stmt = select(TheoryRow).where(TheoryRow.id == theory_id)
         return (await self._session.execute(stmt)).scalar_one_or_none()
 
+    async def list_for_investigation(
+        self, investigation_id: uuid.UUID, *, limit: int = 100
+    ) -> list[TheoryRow]:
+        stmt = (
+            select(TheoryRow)
+            .where(TheoryRow.linked_investigation_id == investigation_id)
+            .order_by(TheoryRow.created_at.desc())
+            .limit(limit)
+        )
+        return list((await self._session.execute(stmt)).scalars().all())
+
     async def create_projection_node(
         self, *, patient_id: uuid.UUID, theory_id: uuid.UUID, display_label: str
     ) -> uuid.UUID:

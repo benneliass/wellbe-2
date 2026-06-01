@@ -58,6 +58,18 @@ class ThreadRepository:
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_for_patient(
+        self, patient_id: uuid.UUID, *, limit: int = 100
+    ) -> list[HealthThreadRow]:
+        stmt = (
+            select(HealthThreadRow)
+            .where(HealthThreadRow.patient_id == patient_id)
+            .order_by(HealthThreadRow.created_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def find_transition_by_idempotency(
         self, thread_id: uuid.UUID, idempotency_key: str
     ) -> ThreadStateTransitionRow | None:

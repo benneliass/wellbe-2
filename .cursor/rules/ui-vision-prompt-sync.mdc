@@ -1,0 +1,28 @@
+---
+description: Keep the UI implementation prompt synchronized with the UI vision
+alwaysApply: true
+---
+
+# UI Vision Prompt Sync
+
+Whenever `docs/implementation/ui_vision.md` is changed, also review and update `docs/implementation/ui_vision_implementation_prompt.md` in the same logical change.
+
+The prompt file is the paste-ready instruction set for a UI/UX designer or frontend developer. It must stay aligned with the latest UI vision.
+
+Update the prompt when the UI vision changes any of these:
+
+- product thesis, design principles, or visual language
+- primary navigation or screen concepts
+- feature/functionality sketches
+- MVP, near-term, post-MVP, deferred, or gated phasing
+- safety, provenance, correction, consent, grant, or sharing rules
+- progressive journey, Journey Rail, Journey Funnel, or relevance candidate behavior
+
+When updating the prompt:
+
+- Keep it copy-paste ready and self-contained
+- Preserve WellBe guardrails: personal-first, user-controlled, source-linked, non-diagnostic, calm, and grant-scoped
+- Mark design targets clearly when code/API support does not exist yet
+- Do not introduce clinician-controlled, institution-first, cross-patient-default, or diagnostic framing
+
+If `ui_vision.md` changes but the prompt does not need a content change, state that explicitly in the final response.

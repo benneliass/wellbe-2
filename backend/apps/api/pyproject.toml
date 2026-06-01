@@ -6,16 +6,36 @@ description = "C13 API & Contract Layer: FastAPI REST external boundary."
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
+    "pydantic-settings>=2.5",
+    "greenlet>=3.0",
+    "asyncpg>=0.30",
+    "redis>=5.0",
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-db",
+    "wellbe-events",
     "wellbe-c1-consent",
     "wellbe-c7-thread",
     "wellbe-c10-safety",
+    "wellbe-c14-investigation",
+    "wellbe-c15-theory",
+    "wellbe-c16-external",
+    "wellbe-c8-memories",
+    "wellbe-c9-continuity",
+    "wellbe-c11-correction",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
 wellbe-c1-consent = { workspace = true }
 wellbe-c7-thread = { workspace = true }
 wellbe-c10-safety = { workspace = true }
+wellbe-c14-investigation = { workspace = true }
+wellbe-c15-theory = { workspace = true }
+wellbe-c16-external = { workspace = true }
+wellbe-c8-memories = { workspace = true }
+wellbe-c9-continuity = { workspace = true }
+wellbe-c11-correction = { workspace = true }

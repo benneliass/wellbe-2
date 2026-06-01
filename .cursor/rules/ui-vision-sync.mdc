@@ -1,0 +1,23 @@
+---
+description: Keep the UI vision document aligned with product feature changes
+alwaysApply: true
+---
+
+# UI Vision Sync
+
+When a meaningful product feature is added, removed, deferred, reprioritized, or materially changed in Jira, docs, or code, check whether `docs/implementation/ui_vision.md` needs an update.
+
+Run this check for:
+
+- New or changed WEL Epics, Stories, Tasks, or Spikes that affect user-facing behavior
+- Changes to `docs/feature-backlog/`, `docs/workflows/`, `docs/system-design/`, `docs/safety/`, or `docs/decisions/`
+- Code changes that expose a new user-facing surface, API-backed capability, workflow state, share/grant behavior, safety obligation, or evidence/provenance display requirement
+
+If the change affects UI direction, update `docs/implementation/ui_vision.md` in the same logical work:
+
+- Add or revise the relevant feature/functionality sketch
+- Update Source Basis or Jira references when needed
+- Update phasing if MVP, near-term, post-MVP, deferred, or gated status changed
+- Preserve WellBe's guardrails: personal-first, user-controlled, source-linked, non-diagnostic, calm, and grant-scoped
+
+Do not silently add institution-first, clinician-controlled, cross-patient, or diagnostic UI framing. If a feature conflicts with the vision guardrails or a bible file, trigger the doc governance protocol before editing.
