@@ -19,4 +19,4 @@ spec:
           imagePullPolicy: {{ .Values.migration.imagePullPolicy }}
           env:
             - name: DATABASE_URL
-              value: "postgresql://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@wellbe-postgres:5432/{{ .Values.postgres.database }}"
+              value: {{ include "wellbe-local.databaseUrl" . | quote }}

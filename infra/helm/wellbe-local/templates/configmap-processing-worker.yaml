@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
 data:
-  WELLBE_DATABASE_URL: {{ .Values.processingWorker.config.databaseUrl | quote }}
+  WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
   WELLBE_REDIS_URL: {{ .Values.processingWorker.config.redisUrl | quote }}
   WELLBE_TEMPORAL_HOST: {{ .Values.processingWorker.config.temporalHost | quote }}
   WELLBE_LOG_LEVEL: {{ .Values.processingWorker.config.logLevel | quote }}
