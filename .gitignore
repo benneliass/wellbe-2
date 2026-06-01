@@ -3,6 +3,9 @@ __pycache__/
 *.egg-info/
 uv.lock
 .worktrees/
+.venv/
+.pytest_cache/
+.ruff_cache/
 
 # Node / JS workspace
 node_modules/

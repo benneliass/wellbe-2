@@ -1,3 +1,5 @@
 pytest>=8.3
 pytest-asyncio>=0.24
 httpx>=0.28
+asyncpg>=0.30
+PyYAML>=6.0
