@@ -115,7 +115,7 @@
 
 .sync {
   position: absolute;
-  top: 104px;
+  top: 88px;
   left: 64px;
   display: flex;
   align-items: center;
@@ -431,7 +431,7 @@
     height: 192px;
   }
   .sync {
-    top: 96px;
+    top: 80px;
   }
   .signals {
     top: 132px;
