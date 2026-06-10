@@ -98,6 +98,8 @@
   /* type families */
   --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* brand serif wordmark (Newsreader) — loaded via next/font as --font-newsreader */
+  --font-serif-brand: var(--font-newsreader), "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
 
   /* type scale (px) */
   --text-display: 40px;

@@ -1,4 +1,4 @@
-import type { SourceType } from "@wellbe/ui";
+import type { SourceType, Tone } from "@wellbe/ui";
 
 /**
  * Domain types for the patient workspace UI.
@@ -58,6 +58,27 @@ export interface EvidenceItem {
   author: string;
   date: string;
   conf: number;
+}
+
+/**
+ * A single body-system signal that rolls up into the Launcher "signals" summary
+ * line. Today these are mock rows (see SIGNALS in `meta.ts`); this is the shape a
+ * real signals/vitals endpoint would adapt to.
+ */
+export interface Signal {
+  id: string;
+  label: string;
+  value: string;
+  status: string;
+  tone: Tone;
+  /** 0–5 confidence in the underlying data. */
+  conf: number;
+}
+
+export interface SignalsSummary {
+  headline: string;
+  detail: string;
+  signals: Signal[];
 }
 
 export interface Thread {
