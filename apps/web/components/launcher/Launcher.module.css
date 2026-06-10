@@ -222,6 +222,8 @@
   -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 70%);
   mask-image: radial-gradient(circle, #000 52%, transparent 70%);
   filter: saturate(1.05);
+  transform: scale(1.12);
+  transform-origin: center;
 }
 .orbRings {
   position: absolute;
