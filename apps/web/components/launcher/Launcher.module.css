@@ -158,10 +158,16 @@
   color: var(--fg3);
 }
 
-.signals {
+.signalsWrap {
   position: absolute;
   top: 150px;
   right: 56px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.signals {
   display: flex;
   align-items: center;
   gap: 13px;
@@ -198,6 +204,65 @@
 .signalsChev {
   color: var(--fg3);
   margin-left: 6px;
+  transition: transform var(--wb-motion-base) var(--wb-ease);
+}
+.signals[data-open] .signalsChev {
+  transform: rotate(180deg);
+}
+
+/* Inline expandable signal breakdown — overlays in place, never navigates. */
+.signalsPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 300px;
+  max-width: 86vw;
+  margin-top: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    grid-template-rows var(--wb-motion-base) var(--wb-ease),
+    opacity var(--wb-motion-base) var(--wb-ease),
+    margin-top var(--wb-motion-base) var(--wb-ease);
+}
+.signalsPanel[data-open] {
+  grid-template-rows: 1fr;
+  margin-top: 10px;
+  opacity: 1;
+  pointer-events: auto;
+}
+.signalRows {
+  overflow: hidden;
+  min-height: 0;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+}
+.signalRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 14px;
+}
+.signalRow + .signalRow {
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
+}
+.signalLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg1);
+  white-space: nowrap;
+}
+.signalValue {
+  flex: 1;
+  font-size: 12px;
+  color: var(--fg2);
+  white-space: nowrap;
 }
 
 .hero {
@@ -222,7 +287,7 @@
   -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 70%);
   mask-image: radial-gradient(circle, #000 52%, transparent 70%);
   filter: saturate(1.05);
-  transform: scale(1.12);
+  transform: scale(1.344);
   transform-origin: center;
 }
 .orbRings {
@@ -435,7 +500,7 @@
   .sync {
     top: 80px;
   }
-  .signals {
+  .signalsWrap {
     top: 132px;
   }
 }
