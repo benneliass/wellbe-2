@@ -86,3 +86,20 @@ export const CAPTURE_TYPES: CaptureType[] = [
   { id: "doc", icon: "file-text", label: "Upload a document", hint: "PDF, photo, or report" },
   { id: "note", icon: "clipboard-list", label: "Write a note", hint: "A thought or question" },
 ];
+
+export interface LaunchAction {
+  id: string;
+  icon: string;
+  title: string;
+  sub: string;
+  tone?: "alert";
+}
+
+export const LAUNCH_ACTIONS: LaunchAction[] = [
+  { id: "triage", icon: "heart-pulse", title: "Something feels off", sub: "Triage", tone: "alert" },
+  { id: "log", icon: "pencil", title: "Log something", sub: "Quick Log" },
+  { id: "delta", icon: "activity", title: "What changed?", sub: "Delta Digest" },
+  { id: "pattern", icon: "bar-chart-3", title: "Check my patterns", sub: "Pattern Check" },
+  { id: "prep", icon: "user", title: "Prepare for appointment", sub: "Doctor Prep" },
+  { id: "graph", icon: "git-fork", title: "Open the graph", sub: "Deep Dive" },
+];

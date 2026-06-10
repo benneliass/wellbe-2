@@ -2,6 +2,7 @@ import { Button } from "@wellbe/ui";
 import type { Thread } from "@/lib/types";
 import { ConcernHeader } from "./ConcernHeader";
 import { EvidenceList } from "./EvidenceList";
+import { NextActions } from "./NextActions";
 import { Panel } from "./Panel";
 import { StatusRail } from "./StatusRail";
 import { Timeline } from "./Timeline";
@@ -36,17 +37,7 @@ export function ThreadDetail({ thread }: { thread: Thread }) {
         </Panel>
 
         <Panel title="What next?" icon="circle-help">
-          <div className={styles.next}>
-            <Button variant="primary" icon="share" full>
-              Share this thread
-            </Button>
-            <Button variant="secondary" icon="message-circle" full>
-              Add a question to ask
-            </Button>
-            <Button variant="tertiary" icon="shield-check" full>
-              Correct something
-            </Button>
-          </div>
+          <NextActions thread={thread} />
         </Panel>
       </aside>
     </div>

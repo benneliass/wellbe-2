@@ -1,9 +1,6 @@
-import { redirect } from "next/navigation";
+import { Launcher } from "@/components/launcher/Launcher";
 
-/**
- * Root. The Launcher ("front door") lands here in pass 2; for now the app opens
- * directly on the workspace.
- */
+/** Root: the calm front door. "Full View" leads into the workspace. */
 export default function Home() {
-  redirect("/workspace");
+  return <Launcher />;
 }

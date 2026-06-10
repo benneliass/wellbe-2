@@ -1,0 +1,415 @@
+.launch {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(165deg, #eef4f5 0%, #e6eef0 55%, #dfe9eb 100%);
+}
+.launch > .bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(60% 45% at 50% 20%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(40% 40% at 86% 78%, rgba(103, 230, 231, 0.1), rgba(255, 255, 255, 0) 70%);
+}
+.bg::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: 1500px;
+  height: 1500px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.35);
+}
+.launch > * {
+  position: relative;
+  z-index: 1;
+}
+
+.top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 36px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  -webkit-mask-image: radial-gradient(circle, #000 60%, transparent 75%);
+  mask-image: radial-gradient(circle, #000 60%, transparent 75%);
+}
+.brand span {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--fg1);
+}
+.brand b {
+  color: var(--teal-500);
+}
+.topright {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.full {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 46px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #137d7b, #0c5f5e);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(13, 110, 109, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.full:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(13, 110, 109, 0.38);
+}
+.avatar {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(10px);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg2);
+}
+.avatarDot {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--teal-500);
+  border: 2px solid #eef4f5;
+}
+
+.sync {
+  position: absolute;
+  top: 104px;
+  left: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg2);
+}
+.syncDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal-500);
+  box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.18);
+}
+.syncTime {
+  color: var(--fg3);
+}
+
+.signals {
+  position: absolute;
+  top: 150px;
+  right: 56px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+  text-align: left;
+  white-space: nowrap;
+}
+.signals:hover {
+  background: rgba(255, 255, 255, 0.66);
+}
+.signalsIcon {
+  color: var(--teal-500);
+  display: flex;
+}
+.signalsText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.signalsText b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg1);
+}
+.signalsText span {
+  font-size: 12px;
+  color: var(--fg2);
+}
+.signalsChev {
+  color: var(--fg3);
+  margin-left: 6px;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 18px;
+}
+.orb {
+  position: relative;
+  width: 310px;
+  height: 310px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orbImg {
+  width: 290px;
+  height: 290px;
+  object-fit: cover;
+  border-radius: 50%;
+  -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 52%, transparent 70%);
+  filter: saturate(1.05);
+}
+.orbRings {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 60px 10px rgba(255, 255, 255, 0.5);
+}
+.h1 {
+  font-size: 60px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: #243240;
+  margin: 14px 0 0;
+  text-align: center;
+}
+.h1 em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--teal-500);
+}
+.sub {
+  font-size: 18px;
+  color: var(--fg2);
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.rec {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.recRow {
+  display: flex;
+  gap: 20px;
+}
+.pill {
+  flex: none;
+  width: 148px;
+  height: 208px;
+  border-radius: 74px;
+  padding: 26px 13px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.46);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  position: relative;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+}
+.pill:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.pillIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--teal-600);
+  margin-bottom: 18px;
+}
+.pillTitle {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--fg1);
+  text-align: center;
+  line-height: 1.28;
+  flex: 1;
+  width: 100%;
+}
+.pillSub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal-500);
+  margin-top: 10px;
+}
+.pillSubAlert {
+  color: var(--red-600);
+}
+.pillAlert {
+  border-color: rgba(220, 38, 38, 0.3);
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12), 0 18px 44px rgba(220, 38, 38, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.pillAlert .pillIcon {
+  color: var(--red-600);
+}
+.pillDot {
+  position: absolute;
+  top: 26px;
+  right: 30px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--red-600);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.16);
+}
+
+.or {
+  margin: 26px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--fg3);
+}
+.ask {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 680px;
+  max-width: 86vw;
+  height: 64px;
+  padding: 0 10px 0 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+.askLead {
+  color: var(--teal-500);
+  display: flex;
+}
+.ask input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 17px;
+  color: var(--fg1);
+}
+.ask input::placeholder {
+  color: var(--fg3);
+}
+.askGo {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(180deg, #137d7b, #0c5f5e);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(13, 110, 109, 0.3);
+}
+.askGo:hover {
+  background: linear-gradient(180deg, #0e6e6c, #0a5251);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--fg2);
+}
+.foot svg {
+  color: var(--fg3);
+}
+.settings {
+  position: absolute;
+  left: 36px;
+  bottom: 32px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--teal-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+.settings:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-height: 860px) {
+  .orb {
+    width: 230px;
+    height: 230px;
+  }
+  .orbImg {
+    width: 214px;
+    height: 214px;
+  }
+  .h1 {
+    font-size: 48px;
+  }
+  .pill {
+    height: 192px;
+  }
+  .sync {
+    top: 96px;
+  }
+  .signals {
+    top: 132px;
+  }
+}
