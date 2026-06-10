@@ -1,23 +1,131 @@
 /*
  * WellBe design tokens.
- * Calm, never-alarm palette per docs/implementation/ui/health-adaptive-safety-language.md.
- * State is carried by subtle tints on small elements only, never full-surface recolor.
- * Color is never the sole carrier of meaning (always paired with label + icon in components).
+ *
+ * Two layers, single file:
+ *   1. FOUNDATION — the WellBe Design System palette/scale (teal #0EA5A4, slate
+ *      neutrals, radii, shadows, spacing, type scale). This is the brand truth,
+ *      ported from the design system's colors_and_type.css.
+ *   2. SEMANTIC (--wb-*) — the app's existing semantic aliases, now mapped onto
+ *      the foundation. Existing components (StatePill, markers, DisclosureRegion)
+ *      keep working, and the safety-gated StateToken contract is preserved.
+ *
+ * The Plus Jakarta Sans font is loaded via next/font (see app/layout.tsx) and
+ * exposed as --font-jakarta; we do NOT @import it here.
  */
 
 :root {
+  /* ============ FOUNDATION — primary ============ */
+  --teal-600: #0d6e6d; /* deep teal — pressed / strong */
+  --teal-500: #0ea5a4; /* PRIMARY brand teal */
+  --teal-300: #67e6e7; /* light cyan highlight */
+  --green-600: #16a34a; /* success / verified / normal */
+
+  /* support */
+  --amber-500: #f59e0b;
+  --orange-500: #f97316;
+  --red-600: #dc2626;
+  --violet-500: #8b5cf6;
+
+  /* neutrals (slate scale) */
+  --white: #ffffff;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+
+  /* foundation surfaces / text / accents */
+  --bg-app: var(--slate-50);
+  --bg-surface: var(--white);
+  --bg-subtle: var(--slate-100);
+  --border: var(--slate-200);
+  --border-strong: var(--slate-300);
+  --fg1: var(--slate-900);
+  --fg2: var(--slate-600);
+  --fg3: var(--slate-400);
+  --accent: var(--teal-500);
+  --accent-hover: #0c8c8b;
+  --accent-press: var(--teal-600);
+  --accent-soft: #e6f6f6;
+  --accent-ring: #99e2e1;
+
+  /* state tints (chip / node backgrounds) */
+  --success: var(--green-600);
+  --success-soft: #ecfdf3;
+  --warning: var(--amber-500);
+  --warning-soft: #fff7e6;
+  --danger: var(--red-600);
+  --danger-soft: #fef1f1;
+  --info: var(--teal-500);
+  --info-soft: #e6f6f6;
+  --paused: var(--violet-500);
+  --paused-soft: #f2edfe;
+  --neutral: var(--slate-500);
+  --neutral-soft: var(--slate-100);
+
+  /* radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-pill: 999px;
+
+  /* elevation (soft, cool-tinted) */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-focus: 0 0 0 3px var(--accent-ring);
+
+  /* spacing (4px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* type families */
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale (px) */
+  --text-display: 40px;
+  --text-h1: 30px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-h4: 17px;
+  --text-body: 15px;
+  --text-sm: 13px;
+  --text-xs: 12px;
+  --text-2xs: 11px;
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.55;
+
+  /* ============ SEMANTIC (--wb-*) — mapped onto the foundation ============ */
   /* surfaces + text */
-  --wb-bg: #f7f8f8;
-  --wb-surface: #ffffff;
-  --wb-surface-muted: #eef1f1;
-  --wb-border: #d9dfdf;
-  --wb-text: #18211f;
-  --wb-text-muted: #5a6663;
-  --wb-accent: #2f7d72;
-  --wb-accent-contrast: #ffffff;
+  --wb-bg: var(--bg-app);
+  --wb-surface: var(--bg-surface);
+  --wb-surface-muted: var(--slate-100);
+  --wb-border: var(--border);
+  --wb-text: var(--fg1);
+  --wb-text-muted: var(--fg2);
+  --wb-accent: var(--accent);
+  --wb-accent-contrast: var(--white);
 
   /* typography */
-  --wb-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --wb-font-sans: var(--font-sans);
   --wb-font-serif: ui-serif, Georgia, "Times New Roman", serif; /* patient voice / quotes */
   --wb-text-xs: 0.75rem;
   --wb-text-sm: 0.875rem;
@@ -32,15 +140,15 @@
   --wb-space-4: 1rem;
   --wb-space-6: 1.5rem;
   --wb-space-8: 2rem;
-  --wb-radius: 0.625rem;
-  --wb-radius-sm: 0.375rem;
+  --wb-radius: var(--r-lg);
+  --wb-radius-sm: var(--r-sm);
 
   /* motion */
   --wb-motion-fast: 150ms;
   --wb-motion-base: 240ms;
   --wb-ease: cubic-bezier(0.2, 0, 0, 1);
 
-  /* state tokens — subtle tint + readable on-color, AA contrast */
+  /* state tokens — subtle tint + readable on-color, AA contrast (safety contract) */
   --wb-state-stable-tint: #e6f1ee;
   --wb-state-stable-fg: #1f5a50;
   --wb-state-watch-tint: #eef0e2;
@@ -71,9 +179,26 @@
   --wb-state-urgent-fg: #f0a59c;
 }
 
+/*
+ * Tone variants — set --tone-bg / --tone-fg on any element via data-tone.
+ * Components consume these (background: var(--tone-bg); color: var(--tone-fg))
+ * so the tone palette lives in exactly one place. Add a tone = add one line.
+ */
+[data-tone="teal"] { --tone-bg: var(--accent-soft); --tone-fg: var(--teal-600); }
+[data-tone="tealmid"] { --tone-bg: var(--accent-soft); --tone-fg: var(--teal-500); }
+[data-tone="green"] { --tone-bg: var(--success-soft); --tone-fg: #15803d; }
+[data-tone="amber"] { --tone-bg: var(--warning-soft); --tone-fg: #b45309; }
+[data-tone="orange"] { --tone-bg: #fff1e6; --tone-fg: #c2410c; }
+[data-tone="danger"] { --tone-bg: var(--danger-soft); --tone-fg: #b91c1c; }
+[data-tone="violet"] { --tone-bg: var(--paused-soft); --tone-fg: #6d28d9; }
+[data-tone="neutral"] { --tone-bg: var(--slate-100); --tone-fg: var(--slate-600); }
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --wb-motion-fast: 0ms;
     --wb-motion-base: 0ms;
+  }
+  * {
+    animation: none !important;
   }
 }

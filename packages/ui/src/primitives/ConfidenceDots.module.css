@@ -1,0 +1,24 @@
+.conf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--slate-300);
+}
+
+.dot[data-on="true"] {
+  background: var(--teal-500);
+  border-color: var(--teal-500);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg2);
+  margin-left: 4px;
+}

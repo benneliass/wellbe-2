@@ -1,0 +1,68 @@
+.tl {
+  display: flex;
+  flex-direction: column;
+}
+.ev {
+  display: flex;
+  gap: 14px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.node {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: var(--tone-bg, var(--slate-100));
+  color: var(--tone-fg, var(--slate-600));
+}
+.node[data-current="true"] {
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.line {
+  width: 2px;
+  flex: 1;
+  background: var(--border);
+  margin: 4px 0;
+  min-height: 16px;
+}
+.card {
+  flex: 1;
+  padding-bottom: 20px;
+  min-width: 0;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.time {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--teal-500);
+  font-weight: 500;
+}
+.title {
+  font-size: 14.5px;
+  font-weight: 600;
+  margin-top: 3px;
+  color: var(--fg1);
+}
+.detail {
+  font-size: 13px;
+  color: var(--fg2);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+.evi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}

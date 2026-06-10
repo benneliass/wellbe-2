@@ -1,3 +1,5 @@
+"use client";
+
 import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import type { DisclosureLevel } from "../tokens";
 
