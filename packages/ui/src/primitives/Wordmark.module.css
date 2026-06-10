@@ -1,0 +1,21 @@
+.word {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--fg1);
+  white-space: nowrap;
+}
+
+.word[data-serif="true"] {
+  font-family: var(--wb-font-serif);
+  font-weight: 500;
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.accent[data-italic="true"] {
+  font-style: italic;
+}

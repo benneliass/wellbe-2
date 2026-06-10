@@ -25,6 +25,8 @@
   --orange-500: #f97316;
   --red-600: #dc2626;
   --violet-500: #8b5cf6;
+  --slate-700b: #334155; /* support dark slate */
+  --slate-500b: #64748b; /* support mid slate */
 
   /* neutrals (slate scale) */
   --white: #ffffff;
@@ -42,11 +44,14 @@
   --bg-app: var(--slate-50);
   --bg-surface: var(--white);
   --bg-subtle: var(--slate-100);
+  --bg-inset: var(--slate-50); /* wells, inset fields */
   --border: var(--slate-200);
   --border-strong: var(--slate-300);
   --fg1: var(--slate-900);
   --fg2: var(--slate-600);
   --fg3: var(--slate-400);
+  --fg-on-accent: var(--white);
+  --link: var(--teal-500);
   --accent: var(--teal-500);
   --accent-hover: #0c8c8b;
   --accent-press: var(--teal-600);
@@ -82,6 +87,13 @@
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
   --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1), 0 4px 8px rgba(15, 23, 42, 0.04);
   --shadow-focus: 0 0 0 3px var(--accent-ring);
+
+  /* ambient elevation — borderless, soft glow that fades into the canvas
+     (use on the launcher / calm glass surfaces where there is no hard card edge) */
+  --shadow-ambient: 0 24px 70px -20px rgba(15, 23, 42, 0.12);
+  --shadow-float: 0 40px 90px -30px rgba(15, 23, 42, 0.16);
+  --shadow-glow: 0 0 50px -6px rgba(14, 165, 164, 0.22);
+  --shadow-halo: 0 0 0 1px rgba(255, 255, 255, 0.6), 0 30px 60px -24px rgba(15, 23, 42, 0.14);
 
   /* spacing (4px base) */
   --sp-1: 4px;

@@ -1,0 +1,39 @@
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  min-width: 230px;
+  color: var(--fg3);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.input {
+  border: none;
+  outline: none;
+  background: none;
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--fg1);
+}
+
+.input::placeholder {
+  color: var(--fg3);
+}
+
+/* Hide the native search clear affordance for a calmer field. */
+.input::-webkit-search-decoration,
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
