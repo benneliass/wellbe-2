@@ -26,8 +26,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${jetbrains.variable}`}>
-      <body>
+    // suppressHydrationWarning tolerates attributes injected into <html>/<body>
+    // by browser extensions before React hydrates. Without it, React 19 surfaces
+    // such third-party DOM mutations as a "removeChild of null" crash. This only
+    // applies one level deep, so genuine app-level mismatches are still reported.
+    <html lang="en" className={`${jakarta.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
