@@ -1,8 +1,8 @@
 # Decision: Visit Packet composition, source-linking, scoped-share/revocation, and C10 gating
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-06-17  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-17  
 **Approved by:** User  
 **Jira Spike:** WEL-160  
 **Blocks:** WEL-68 [Build Visit Packet generator with source-linked summary and scoped share/export]
@@ -233,7 +233,7 @@ _Grounded only in the recorded research above (IPS, FHIR Provenance/Consent/Comp
 
 ## Decision
 
-_Proposed by agent; awaiting user approval._
+_Approved by user 2026-06-17._
 
 **Q1:** Adopt **A1c (two-layer packet)** — a patient-prep layer plus an optional, user-selectable source-backed summary layer, with **claim-level** source links and **explicit absence semantics** (no silent omission that implies "none"). Required fields mean "include if known, else show an explicit absence reason"; user may deselect, but deselection is visibly marked, not silently dropped.
 
@@ -243,11 +243,18 @@ _Proposed by agent; awaiting user approval._
 
 ## Trade-offs accepted
 
-<!-- Filled after approval. -->
+- **Implementation complexity.** Claim-level provenance + per-statement C10 classification (Q1c/Q3b) is materially harder than packet-level provenance or a banned-word gate. We accept this cost because "no orphan claims" and do-not-diagnose are core guarantees, not nice-to-haves.
+- **Shareability friction.** Named-recipient grants are stricter than open link-holder sharing; covering clinicians/front-desk may need an explicit re-share. We accept this for honest, scoped audience semantics.
+- **Honest-but-limited revocation.** Revocation only stops future access; we will not pretend exported copies can be recalled. We accept that the UI must clearly communicate this rather than offer false reassurance.
+- **Phased bias review.** Bias/equity checks start as post-hoc audit, not pre-share gates, for MVP. We accept residual bias-exposure risk in exchange for shipping, and commit to graduating high-risk checks to pre-share over time.
 
 ## Implementation notes
 
-<!-- Filled after approval. -->
+- **Components:** C7 (thread→packet composition), C5 (claim-level provenance links), C1 (grant object + revocation log), C10 (pre-share gate). New C13 endpoint(s) for generate + share/export.
+- **Packet model:** two layers — (1) patient-prep (questions, goals, observations; clearly patient-authored) and (2) optional source-backed summary. Every summary statement carries a source link; classify each as direct-source-fact / patient-reported / generated-synthesis / generated-inference / source-record-diagnosis / new-AI-diagnosis. Block the last category at the gate. Use explicit absence reasons (IPS `emptyReason`/known-absence) — never silently omit in a way that implies "none". Deselected fields are visibly marked, not dropped.
+- **Grant object (C1):** recipient (named), purpose, info scope, expiration; revocation flips future access + writes an audit entry. Delivery via time-boxed, passcode-protected, revocable link (SMART Health Links pattern); inactive link returns 404. "Export/copy" is a distinct, clearly-warned state.
+- **C10 gate:** runs before any packet can be shared/exported; enforces source-provenance + do-not-diagnose per-statement classification + calm/plain-language check at share time. Bias/equity audit logged post-hoc initially.
+- **Unblocks:** WEL-68 (Visit Packet generator) and the `prepare/` UI; relates WEL-30.
 
 ---
 
