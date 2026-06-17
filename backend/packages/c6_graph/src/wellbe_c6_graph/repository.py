@@ -160,6 +160,39 @@ class GraphRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def edges_for_patient(
+        self,
+        *,
+        patient_id: uuid.UUID,
+        edge_types: list[str] | None = None,
+        limit: int = 200,
+    ) -> list[KgEdgeRow]:
+        """All of a patient's edges (optionally filtered by type), strongest first.
+
+        Used by the non-diagnostic pattern engine (WEL-79), which surfaces
+        cross-thread co-occurrence/temporal candidates. Anchored to the
+        authenticated patient.
+        """
+        stmt = select(KgEdgeRow).where(KgEdgeRow.patient_id == patient_id)
+        if edge_types:
+            stmt = stmt.where(KgEdgeRow.edge_type.in_(edge_types))
+        stmt = stmt.order_by(KgEdgeRow.potential_score.desc()).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def nodes_by_ids(
+        self, *, patient_id: uuid.UUID, node_ids: list[uuid.UUID]
+    ) -> dict[uuid.UUID, KgNodeRow]:
+        """Fetch patient-owned nodes by id, returned as an id->row map."""
+        if not node_ids:
+            return {}
+        stmt = select(KgNodeRow).where(
+            KgNodeRow.patient_id == patient_id,
+            KgNodeRow.id.in_(node_ids),
+        )
+        result = await self._session.execute(stmt)
+        return {row.id: row for row in result.scalars().all()}
+
     async def edges_among_nodes(
         self,
         *,

@@ -316,6 +316,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Patterns */
+        get: operations["get_patterns_v2_patterns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/pending-items": {
         parameters: {
             query?: never;
@@ -870,6 +887,12 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * EvidenceTier
+         * @description Qualitative evidence strength for an *observed* pattern — not disease truth.
+         * @enum {string}
+         */
+        EvidenceTier: "stronger_signal" | "moderate_signal" | "early_signal";
         /** ExportPacketResponse */
         ExportPacketResponse: {
             /**
@@ -1230,6 +1253,70 @@ export interface components {
             observations?: string[];
             /** Questions */
             questions?: string[];
+        };
+        /** PatternCandidateV2 */
+        PatternCandidateV2: {
+            /** Alternative Explanations */
+            alternative_explanations?: string[];
+            /** Caveat */
+            caveat: string;
+            /** Confounder Note */
+            confounder_note?: string | null;
+            evidence_tier: components["schemas"]["EvidenceTier"];
+            /** Evidence Weight */
+            evidence_weight: number;
+            /** Id */
+            id: string;
+            /**
+             * Is Contradiction
+             * @default false
+             */
+            is_contradiction: boolean;
+            /** Missing Data Note */
+            missing_data_note?: string | null;
+            /** Object Label */
+            object_label: string;
+            /** Relation Code */
+            relation_code: string;
+            /** Relation Phrase */
+            relation_phrase: string;
+            /** Sources */
+            sources?: components["schemas"]["PatternSourceRef"][];
+            /** Subject Label */
+            subject_label: string;
+        };
+        /**
+         * PatternSourceRef
+         * @description A source link back to a graph node the candidate is derived from.
+         */
+        PatternSourceRef: {
+            /** Label */
+            label: string;
+            /**
+             * Ref Type
+             * @default graph_node
+             */
+            ref_type: string;
+            /** Source Id */
+            source_id: string;
+        };
+        /** PatternsResponseV2 */
+        PatternsResponseV2: {
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            /** Note */
+            note: string;
+            /** Patterns */
+            patterns?: components["schemas"]["PatternCandidateV2"][];
+            /**
+             * Schema Version
+             * @default c13.patterns.v2
+             * @constant
+             */
+            schema_version: "c13.patterns.v2";
         };
         /** PendingItemV2 */
         PendingItemV2: {
@@ -2670,6 +2757,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TheoryV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_patterns_v2_patterns_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatternsResponseV2"];
                 };
             };
             /** @description Validation Error */

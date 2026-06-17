@@ -739,6 +739,16 @@
         "title": "CreateTheoryRequest",
         "type": "object"
       },
+      "EvidenceTier": {
+        "description": "Qualitative evidence strength for an *observed* pattern \u2014 not disease truth.",
+        "enum": [
+          "stronger_signal",
+          "moderate_signal",
+          "early_signal"
+        ],
+        "title": "EvidenceTier",
+        "type": "string"
+      },
       "ExportPacketResponse": {
         "properties": {
           "export_warning": {
@@ -1437,6 +1447,149 @@
           }
         },
         "title": "PatientPrepInput",
+        "type": "object"
+      },
+      "PatternCandidateV2": {
+        "properties": {
+          "alternative_explanations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternative Explanations",
+            "type": "array"
+          },
+          "caveat": {
+            "title": "Caveat",
+            "type": "string"
+          },
+          "confounder_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confounder Note"
+          },
+          "evidence_tier": {
+            "$ref": "#/components/schemas/EvidenceTier"
+          },
+          "evidence_weight": {
+            "title": "Evidence Weight",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_contradiction": {
+            "default": false,
+            "title": "Is Contradiction",
+            "type": "boolean"
+          },
+          "missing_data_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Data Note"
+          },
+          "object_label": {
+            "title": "Object Label",
+            "type": "string"
+          },
+          "relation_code": {
+            "title": "Relation Code",
+            "type": "string"
+          },
+          "relation_phrase": {
+            "title": "Relation Phrase",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PatternSourceRef"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "subject_label": {
+            "title": "Subject Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subject_label",
+          "relation_phrase",
+          "object_label",
+          "relation_code",
+          "evidence_tier",
+          "evidence_weight",
+          "caveat"
+        ],
+        "title": "PatternCandidateV2",
+        "type": "object"
+      },
+      "PatternSourceRef": {
+        "description": "A source link back to a graph node the candidate is derived from.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ref_type": {
+            "default": "graph_node",
+            "title": "Ref Type",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "label"
+        ],
+        "title": "PatternSourceRef",
+        "type": "object"
+      },
+      "PatternsResponseV2": {
+        "properties": {
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "patterns": {
+            "items": {
+              "$ref": "#/components/schemas/PatternCandidateV2"
+            },
+            "title": "Patterns",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "c13.patterns.v2",
+            "default": "c13.patterns.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "title": "PatternsResponseV2",
         "type": "object"
       },
       "PendingItemV2": {
@@ -4703,6 +4856,125 @@
         "summary": "Create Theory",
         "tags": [
           "v2-investigations"
+        ]
+      }
+    },
+    "/v2/patterns": {
+      "get": {
+        "operationId": "get_patterns_v2_patterns_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternsResponseV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Patterns",
+        "tags": [
+          "v2-patterns"
         ]
       }
     },

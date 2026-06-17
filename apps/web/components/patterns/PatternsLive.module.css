@@ -1,0 +1,140 @@
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 0 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-muted, #667085);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--border, #e3e6ea);
+  border-radius: 16px;
+  padding: 18px 20px;
+  background: var(--surface, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.card[data-contradiction="true"] {
+  border-color: #e6a23c;
+  background: #fff8ef;
+}
+
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.subject,
+.object {
+  font-weight: 600;
+  color: var(--text, #1d2433);
+}
+
+.relation {
+  color: var(--text-muted, #667085);
+  font-style: italic;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef4f3;
+  color: #2f6f6b;
+  border: 1px solid #d7e7e4;
+}
+
+.tier[data-kind="contradiction"] {
+  background: #fdeede;
+  color: #b9742a;
+  border-color: #f0d6ad;
+}
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f5f6f8;
+  color: var(--text-muted, #667085);
+  border: 1px solid var(--border, #e3e6ea);
+}
+
+.caveat {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted, #667085);
+  line-height: 1.5;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted, #667085);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.alts {
+  font-size: 13px;
+  color: var(--text-muted, #667085);
+}
+
+.alts summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #2f6f6b;
+}
+
+.alts ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.error {
+  font-size: 14px;
+  color: #b42318;
+}

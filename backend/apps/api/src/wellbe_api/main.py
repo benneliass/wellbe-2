@@ -18,6 +18,7 @@ from wellbe_api.routers import (
     capture_v1,
     graph_v2,
     investigations,
+    patterns_v2,
     phase5,
     render,
     threads_v1,
@@ -56,3 +57,4 @@ app.include_router(phase5.router)
 app.include_router(visit_packets_v2.router)
 app.include_router(ask_v2.router)
 app.include_router(graph_v2.router)
+app.include_router(patterns_v2.router)
