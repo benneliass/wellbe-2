@@ -79,9 +79,33 @@ def _request(method: str, url: str, key: str, payload: dict | None = None) -> di
         raise ResearchError(f"Network error calling {method} {url}: {exc.reason}") from None
 
 
+RESEARCH_INSTRUCTIONS = (
+    "You are a research assistant producing a DECISION-NEUTRAL research brief for a "
+    "software design decision. The user message is a Research Context Packet that gives "
+    "you the decision's context, constraints, and the questions at stake. Your job is to "
+    "ACTUALLY PERFORM RESEARCH (use the web_search tool to find real, citable sources) and "
+    "RETURN FINDINGS — not to restate the packet, not to describe how you would research, "
+    "and not to ask whether to proceed.\n\n"
+    "Produce a brief with these sections, grounded only in sources you actually consulted:\n"
+    "1. External patterns to examine — established patterns/standards relevant to each "
+    "decision question.\n"
+    "2. Evidence inventory — a list of concrete sources (name, URL, what it covers, "
+    "jurisdiction/context if relevant, limitations).\n"
+    "3. Decision-neutral findings — what the sources say, mapped to the decision questions "
+    "and the affected components. Factual only.\n"
+    "4. Tradeoffs and open questions — the unresolved choices the maintainers must make, "
+    "and the risks of each direction.\n\n"
+    "HARD CONSTRAINT: do NOT propose, recommend, or choose a final answer/architecture/policy "
+    "for any decision question. Present the option space and the evidence; the human decides. "
+    "Honor the packet's identity guardrails (personal-first, user-controlled, source-linked, "
+    "non-diagnostic, calm, grant-scoped). Cite sources inline."
+)
+
+
 def start_run(prompt: str, key: str) -> str:
     payload: dict = {
         "model": DEFAULT_MODEL,
+        "instructions": RESEARCH_INSTRUCTIONS,
         "input": prompt,
         "background": True,
     }
@@ -137,10 +161,12 @@ def record_into_decision_record(record_path: str, model: str, run_id: str, raw_o
         content = fh.read()
     if RESEARCH_MARKER in content:
         head, _, tail = content.partition(RESEARCH_MARKER)
-        # Replace from the marker to the next top-level heading (## ) or EOF.
-        rest = tail
-        next_idx = rest.find("\n## ")
-        remainder = rest[next_idx:] if next_idx != -1 else ""
+        # The recorded research is multi-section (the model emits its own "## "
+        # headings), so we cannot bound it at "the next ## ". Bound it at the next
+        # agent-authored section instead, which is stable across re-runs.
+        end_marker = "## Approaches considered"
+        end_idx = tail.find(end_marker)
+        remainder = tail[end_idx:] if end_idx != -1 else ""
         content = head + block + ("\n" + remainder.lstrip("\n") if remainder else "")
     else:
         content = content.rstrip() + "\n\n" + block
