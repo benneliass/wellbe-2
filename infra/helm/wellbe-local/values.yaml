@@ -1,5 +1,20 @@
 namespace: wellbe
 
+# HTTP ingress for local browser/curl access without `kubectl port-forward`.
+# Requires the kind cluster created from infra/local/kind-cluster.yaml (host
+# port 80 mapping) and ingress-nginx installed via infra/k8s/setup-ingress.sh.
+# Hosts use the *.localhost TLD, which browsers and the OS resolve to loopback.
+# NOTE: ZITADEL is intentionally NOT exposed here — it derives its OIDC issuer
+# from externalDomain/externalPort, so it must be reached on localhost:8090
+# (via port-forward) to keep auth flows valid.
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    app: app.localhost
+    api: api.localhost
+    minio: minio.localhost
+
 postgres:
   image: wellbe-postgres:local
   imagePullPolicy: Never
@@ -119,3 +134,11 @@ auditService:
   config:
     logLevel: "INFO"
     environment: "dev"
+
+# Next.js web UI (apps/web). Served via ingress on app.localhost. Renders from
+# mock data today, so it has no backend dependency at runtime.
+web:
+  image: wellbe-web:local
+  imagePullPolicy: Never
+  port: 3000
+  replicas: 1

@@ -15,6 +15,8 @@ docker build -t wellbe-processing-worker:local -f "$REPO_ROOT/backend/apps/proce
 docker build -t wellbe-safety-gate:local -f "$REPO_ROOT/backend/apps/safety-gate/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-api:local -f "$REPO_ROOT/backend/apps/api/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-audit-service:local -f "$REPO_ROOT/backend/apps/audit-service/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-continuity-worker:local -f "$REPO_ROOT/backend/apps/continuity-worker/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-web:local -f "$REPO_ROOT/apps/web/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-migrations:local -f "$REPO_ROOT/db/Dockerfile.migrations" "$REPO_ROOT"
 
 echo "=== Loading images into Kind cluster ==="
@@ -33,6 +35,8 @@ LOCAL_IMAGES=(
   wellbe-safety-gate:local
   wellbe-api:local
   wellbe-audit-service:local
+  wellbe-continuity-worker:local
+  wellbe-web:local
   wellbe-migrations:local
 )
 
