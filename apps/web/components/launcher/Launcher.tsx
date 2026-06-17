@@ -6,7 +6,7 @@ import { Chip, ConfidenceDots, Icon } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
-import { LAUNCH_ACTIONS, SIGNALS } from "@/lib/meta";
+import { LAUNCH_ACTIONS, SIGNALS, type LaunchAction } from "@/lib/meta";
 import styles from "./Launcher.module.css";
 
 const SIGNALS_PANEL_ID = "launcher-signals-panel";
@@ -18,17 +18,22 @@ export function Launcher() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [signalsExpanded, setSignalsExpanded] = useState(false);
+  const [askValue, setAskValue] = useState("");
 
   const goFullView = () => router.push("/workspace");
 
-  const onAction = (id: string) => {
-    if (id === "log") {
+  const onAction = (action: LaunchAction) => {
+    if (action.id === "log") {
       setCaptureOpen(true);
-    } else if (id === "triage") {
-      router.push("/threads/labs");
-    } else {
-      router.push("/workspace");
+      return;
     }
+    if (action.href) router.push(action.href);
+  };
+
+  const onAsk = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = askValue.trim();
+    router.push(q ? `/ask?q=${encodeURIComponent(q)}` : "/ask");
   };
 
   return (
@@ -122,7 +127,7 @@ export function Launcher() {
               key={a.id}
               type="button"
               className={`${styles.pill} ${a.tone === "alert" ? styles.pillAlert : ""}`}
-              onClick={() => onAction(a.id)}
+              onClick={() => onAction(a)}
             >
               {a.tone === "alert" && <span className={styles.pillDot} />}
               <span className={styles.pillIcon}>
@@ -140,17 +145,16 @@ export function Launcher() {
       <div className={styles.or}>
         <span>OR</span>
       </div>
-      <form
-        className={styles.ask}
-        onSubmit={(e) => {
-          e.preventDefault();
-          goFullView();
-        }}
-      >
+      <form className={styles.ask} onSubmit={onAsk}>
         <span className={styles.askLead}>
           <Icon name="activity" size={20} />
         </span>
-        <input placeholder="Type what you need…" aria-label="Ask WellBe" />
+        <input
+          placeholder="Type what you need…"
+          aria-label="Ask WellBe"
+          value={askValue}
+          onChange={(e) => setAskValue(e.target.value)}
+        />
         <button type="submit" className={styles.askGo} aria-label="Go">
           <Icon name="arrow-right" size={18} />
         </button>

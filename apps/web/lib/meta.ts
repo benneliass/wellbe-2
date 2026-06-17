@@ -93,6 +93,11 @@ export interface LaunchAction {
   title: string;
   sub: string;
   tone?: "alert";
+  /**
+   * Destination route. Omitted for `log`, which opens the capture modal instead
+   * of navigating. Every other action routes here — no silent fall-through.
+   */
+  href?: string;
 }
 
 /**
@@ -117,10 +122,10 @@ export const SIGNALS: SignalsSummary = {
 };
 
 export const LAUNCH_ACTIONS: LaunchAction[] = [
-  { id: "triage", icon: "heart-pulse", title: "Something feels off", sub: "Triage", tone: "alert" },
+  { id: "triage", icon: "heart-pulse", title: "Something feels off", sub: "Triage", tone: "alert", href: "/triage" },
   { id: "log", icon: "pencil", title: "Log something", sub: "Quick Log" },
-  { id: "delta", icon: "activity", title: "What changed?", sub: "Delta Digest" },
-  { id: "pattern", icon: "bar-chart-3", title: "Check my patterns", sub: "Pattern Check" },
-  { id: "prep", icon: "user", title: "Prepare for appointment", sub: "Doctor Prep" },
-  { id: "graph", icon: "git-fork", title: "Open the graph", sub: "Deep Dive" },
+  { id: "delta", icon: "activity", title: "What changed?", sub: "Delta Digest", href: "/delta" },
+  { id: "pattern", icon: "bar-chart-3", title: "Check my patterns", sub: "Pattern Check", href: "/patterns" },
+  { id: "prep", icon: "user", title: "Prepare for appointment", sub: "Doctor Prep", href: "/prepare" },
+  { id: "graph", icon: "git-fork", title: "Open the graph", sub: "Deep Dive", href: "/graph" },
 ];
