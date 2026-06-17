@@ -2,29 +2,151 @@
 
 import { useRef, useState } from "react";
 import { Button, Icon, Modal } from "@wellbe/ui";
+import type { components } from "@wellbe/api-client";
+import { getApiClient } from "@/lib/api";
 import { CAPTURE_TYPES } from "@/lib/meta";
 import styles from "./CaptureModal.module.css";
 
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
 
-export function CaptureModal({ onClose }: { onClose: () => void }) {
+type CaptureType = components["schemas"]["CaptureType"];
+
+/**
+ * UI capture-type id (from CAPTURE_TYPES) -> backend capture_type. The UI ids are
+ * product labels; the write path (WEL-155) speaks symptom/lab/document/note.
+ */
+const TYPE_MAP: Record<string, CaptureType> = {
+  reported: "symptom",
+  lab: "lab",
+  doc: "document",
+  note: "note",
+};
+
+function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read file"));
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Strip the "data:<mime>;base64," prefix — the API wants raw base64.
+      resolve(result.slice(result.indexOf(",") + 1));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+export function CaptureModal({
+  onClose,
+  onCaptured,
+}: {
+  onClose: () => void;
+  /** Called after a capture is durably stored, so callers can refresh. */
+  onCaptured?: (captureId: string) => void;
+}) {
   const [type, setType] = useState("reported");
   const [severity, setSeverity] = useState("Mild");
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [note, setNote] = useState("");
+  const [labName, setLabName] = useState("");
+  const [labValue, setLabValue] = useState("");
+  const [labUnit, setLabUnit] = useState("");
+  const [labRange, setLabRange] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Stable across error-retries of the same capture so a retried submit is
+  // idempotent (one permanent raw record); reset only after a clean success.
+  const idempotencyKeyRef = useRef<string | null>(null);
+
+  async function buildPayload(): Promise<Record<string, unknown>> {
+    switch (type) {
+      case "reported":
+        return { description: description.trim(), severity };
+      case "note":
+        return { text: note.trim() };
+      case "lab":
+        return {
+          test_name: labName.trim(),
+          value: labValue.trim(),
+          unit: labUnit.trim() || undefined,
+          reference_range: labRange.trim() || undefined,
+        };
+      case "doc": {
+        if (!file) throw new Error("Choose a document to upload first.");
+        return {
+          content_base64: await readFileAsBase64(file),
+          mime_type: file.type || "application/pdf",
+          filename: file.name,
+        };
+      }
+      default:
+        return {};
+    }
+  }
+
+  function clientValidationError(): string | null {
+    if (type === "reported" && !description.trim()) return "Describe what you're feeling first.";
+    if (type === "note" && !note.trim()) return "Write your note first.";
+    if (type === "lab" && (!labName.trim() || !labValue.trim()))
+      return "Add the test name and value first.";
+    if (type === "doc" && !file) return "Choose a document to upload first.";
+    return null;
+  }
+
+  async function handleSubmit() {
+    const validation = clientValidationError();
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
+    try {
+      const captureType = TYPE_MAP[type];
+      if (!captureType) throw new Error("Unknown capture type.");
+      const payload = await buildPayload();
+      const { data, error: apiError } = await getApiClient().POST("/v1/capture", {
+        params: { header: { "Idempotency-Key": idempotencyKeyRef.current } },
+        body: {
+          schema_version: "c13.capture.request.v1",
+          capture_type: captureType,
+          payload,
+        },
+      });
+      if (apiError || !data) {
+        throw new Error("The capture could not be saved. Please try again.");
+      }
+      idempotencyKeyRef.current = null;
+      onCaptured?.(data.capture_id);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong saving your capture.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const footer = (
     <>
-      <span className={styles.note}>
-        <Icon name="lock" size={13} />
-        Saved privately to your memory
-      </span>
+      {error ? (
+        <span className={styles.error}>
+          <Icon name="alert-circle" size={13} />
+          {error}
+        </span>
+      ) : (
+        <span className={styles.note}>
+          <Icon name="lock" size={13} />
+          Saved privately to your memory
+        </span>
+      )}
       <div className={styles.footBtns}>
-        <Button variant="tertiary" onClick={onClose}>
+        <Button variant="tertiary" onClick={onClose} disabled={submitting}>
           Cancel
         </Button>
-        <Button variant="primary" icon="check" onClick={onClose}>
-          Add to memory
+        <Button variant="primary" icon="check" onClick={handleSubmit} disabled={submitting}>
+          {submitting ? "Saving…" : "Add to memory"}
         </Button>
       </div>
     </>
@@ -40,7 +162,10 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
             type="button"
             className={styles.type}
             data-active={type === t.id || undefined}
-            onClick={() => setType(t.id)}
+            onClick={() => {
+              setType(t.id);
+              setError(null);
+            }}
           >
             <span className={styles.typeIcon}>
               <Icon name={t.icon} size={18} />
@@ -63,6 +188,8 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
               id="capture-desc"
               placeholder="Describe the symptom in your own words…"
               rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className={styles.field}>
@@ -88,21 +215,46 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
         <>
           <div className={styles.field}>
             <label htmlFor="lab-name">Test name</label>
-            <input id="lab-name" type="text" placeholder="e.g. Vitamin D, HbA1c, LDL…" />
+            <input
+              id="lab-name"
+              type="text"
+              placeholder="e.g. Vitamin D, HbA1c, LDL…"
+              value={labName}
+              onChange={(e) => setLabName(e.target.value)}
+            />
           </div>
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label htmlFor="lab-value">Value</label>
-              <input id="lab-value" type="text" inputMode="decimal" placeholder="e.g. 32" />
+              <input
+                id="lab-value"
+                type="text"
+                inputMode="decimal"
+                placeholder="e.g. 32"
+                value={labValue}
+                onChange={(e) => setLabValue(e.target.value)}
+              />
             </div>
             <div className={styles.field}>
               <label htmlFor="lab-unit">Unit</label>
-              <input id="lab-unit" type="text" placeholder="e.g. ng/mL" />
+              <input
+                id="lab-unit"
+                type="text"
+                placeholder="e.g. ng/mL"
+                value={labUnit}
+                onChange={(e) => setLabUnit(e.target.value)}
+              />
             </div>
           </div>
           <div className={styles.field}>
             <label htmlFor="lab-range">Reference range (optional)</label>
-            <input id="lab-range" type="text" placeholder="e.g. 30–100 ng/mL" />
+            <input
+              id="lab-range"
+              type="text"
+              placeholder="e.g. 30–100 ng/mL"
+              value={labRange}
+              onChange={(e) => setLabRange(e.target.value)}
+            />
           </div>
         </>
       )}
@@ -113,14 +265,14 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             className={styles.dropzone}
-            data-has-file={fileName ? true : undefined}
+            data-has-file={file ? true : undefined}
             onClick={() => fileInputRef.current?.click()}
           >
             <span className={styles.dropIcon}>
-              <Icon name={fileName ? "file-text" : "upload-cloud"} size={22} />
+              <Icon name={file ? "file-text" : "upload-cloud"} size={22} />
             </span>
-            {fileName ? (
-              <span className={styles.dropFile}>{fileName}</span>
+            {file ? (
+              <span className={styles.dropFile}>{file.name}</span>
             ) : (
               <>
                 <span className={styles.dropText}>
@@ -135,7 +287,10 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
             type="file"
             accept=".pdf,image/*"
             hidden
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+            onChange={(e) => {
+              setFile(e.target.files?.[0] ?? null);
+              setError(null);
+            }}
           />
         </div>
       )}
@@ -147,6 +302,8 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
             id="note-body"
             placeholder="A thought, a question for your doctor, anything to remember…"
             rows={4}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
       )}

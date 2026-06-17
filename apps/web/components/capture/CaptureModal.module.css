@@ -228,6 +228,17 @@
 .note svg {
   color: var(--teal-500);
 }
+.error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--danger, #c0392b);
+}
+.error svg {
+  color: var(--danger, #c0392b);
+  flex: none;
+}
 .footBtns {
   display: flex;
   gap: 8px;

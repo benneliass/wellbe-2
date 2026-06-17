@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/capture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Capture */
+        post: operations["create_capture_v1_capture_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/threads": {
         parameters: {
             query?: never;
@@ -481,6 +498,50 @@ export interface components {
              */
             schema_version: "c13.c10_obligation.v2";
         };
+        /** CaptureRequestV1 */
+        CaptureRequestV1: {
+            capture_type: components["schemas"]["CaptureType"];
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Payload */
+            payload?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Schema Version
+             * @default c13.capture.request.v1
+             */
+            schema_version: string;
+            /** Source */
+            source?: string | null;
+            /** Thread Id */
+            thread_id?: string | null;
+        };
+        /** CaptureResponseV1 */
+        CaptureResponseV1: {
+            /** Capture Id */
+            capture_id: string;
+            /**
+             * Processing
+             * @default pending
+             */
+            processing: string;
+            /**
+             * Schema Version
+             * @default c13.capture.response.v1
+             */
+            schema_version: string;
+            /**
+             * Status
+             * @default captured
+             */
+            status: string;
+        };
+        /**
+         * CaptureType
+         * @enum {string}
+         */
+        CaptureType: "symptom" | "lab" | "document" | "note";
         /** CloseInvestigationRequest */
         CloseInvestigationRequest: {
             /** Expected Version */
@@ -1218,6 +1279,46 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    create_capture_v1_capture_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaptureRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureResponseV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
