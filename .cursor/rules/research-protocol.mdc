@@ -172,6 +172,32 @@ Every Decision Record lives at `docs/decisions/<slug>.md`. The template is at `d
 | User says "skip research" explicitly | Record the override in the Spike description and in the Decision Record stub under "Context". Close the Spike. Proceed to implementation. Add `[research-skipped]` to the commit message. |
 | Ambiguous whether a component is touched | Treat as a core component touch. Raise hand. Better to create an unnecessary Spike than to miss one. |
 | Multiple Stories touch the same open question | One Spike covers all. Add additional `blocks` links from the Spike to each Story. Do not create duplicate Spikes for the same question. |
+| User enabled agent-run research (Section I) | Agent may run the configured LLM to gather research, record it verbatim, propose a Decision — then still wait for explicit user approval before closing the Spike. |
+
+---
+
+## I. User-Authorized Agent-Run Research (opt-in)
+
+The user may authorize the agent to gather spike research via a user-supplied LLM API
+key. This is the single exception to Section C's prohibition on agent self-research,
+and applies only when ALL of the following hold:
+
+1. The user has explicitly enabled this mode.
+2. The API key is supplied via environment variable (WELLBE_RESEARCH_API_KEY) and is
+   never committed, logged, or written into any file.
+3. The model output is recorded verbatim in the Decision Record under "Research
+   provided", attributed as "Agent-run LLM research (model: X, date: Y)" — not
+   paraphrased, not relabeled as the agent's own analysis.
+4. The agent writes "Approaches considered" and a proposed "Decision" grounded ONLY in
+   that recorded output.
+5. The user still must explicitly approve the Decision before the Spike closes and the
+   Story unblocks. The approval gate in Sections D/E is unchanged.
+6. The commit recording the Decision includes the tag [research-agent-run].
+
+Agent-run research replaces ONLY the "wait for the user to gather research" step — never
+the approval step, and never the requirement to stop feature implementation when the flag
+is raised. For any C10 (Safety Gate) spike, the agent MUST confirm with the user before
+agent-running research.
 
 ---
 
