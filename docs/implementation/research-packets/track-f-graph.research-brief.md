@@ -20,6 +20,8 @@ Produce a brief with these sections, grounded only in sources you actually consu
 
 **HARD CONSTRAINT:** do **not** propose, recommend, or choose a final answer/architecture/contract for any decision question. Present the option space and the evidence; the human decides. Honor the product's identity guardrails (personal-first, user-controlled, source-linked, non-diagnostic; **strict per-thread/user scoping — no unscoped data exposure**). Cite sources inline.
 
+**OUTPUT FORMAT — deliver as a downloadable file:** write the complete brief to a **downloadable Markdown (`.md`) file** named **`track-f-graph-research-result.md`** and give me a download link/button. Do not put the brief only in the chat body — I need the file to download. Use the four section headings above as `##` Markdown headings, and keep all source citations as inline Markdown links.
+
 ---
 
 ## PRODUCT CONTEXT — what WellBe is
