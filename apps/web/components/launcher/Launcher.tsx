@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Chip, ConfidenceDots, Icon } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
+import { ProfileModal } from "@/components/account/ProfileModal";
+import { SettingsModal } from "@/components/account/SettingsModal";
 import { LAUNCH_ACTIONS, SIGNALS } from "@/lib/meta";
 import styles from "./Launcher.module.css";
 
@@ -13,6 +15,8 @@ const SIGNALS_PANEL_ID = "launcher-signals-panel";
 export function Launcher() {
   const router = useRouter();
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [signalsExpanded, setSignalsExpanded] = useState(false);
 
   const goFullView = () => router.push("/workspace");
@@ -41,7 +45,13 @@ export function Launcher() {
           <button type="button" className={styles.full} onClick={goFullView}>
             Full View <Icon name="arrow-right" size={16} />
           </button>
-          <button type="button" className={styles.avatar}>
+          <button
+            type="button"
+            className={styles.avatar}
+            onClick={() => setProfileOpen(true)}
+            aria-label="Your account"
+            aria-haspopup="dialog"
+          >
             A<span className={styles.avatarDot} />
           </button>
         </div>
@@ -151,11 +161,28 @@ export function Launcher() {
         Your data is private and secure. We never sell your data.
       </div>
 
-      <button type="button" className={styles.settings} title="Settings" aria-label="Settings">
+      <button
+        type="button"
+        className={styles.settings}
+        title="Settings"
+        aria-label="Settings"
+        aria-haspopup="dialog"
+        onClick={() => setSettingsOpen(true)}
+      >
         <Icon name="sliders-horizontal" size={20} />
       </button>
 
       {captureOpen && <CaptureModal onClose={() => setCaptureOpen(false)} />}
+      {profileOpen && (
+        <ProfileModal
+          onClose={() => setProfileOpen(false)}
+          onOpenSettings={() => {
+            setProfileOpen(false);
+            setSettingsOpen(true);
+          }}
+        />
+      )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }
