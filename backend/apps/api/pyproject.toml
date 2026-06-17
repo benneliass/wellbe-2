@@ -16,6 +16,7 @@ dependencies = [
     "wellbe-db",
     "wellbe-events",
     "wellbe-c1-consent",
+    "wellbe-c6-graph",
     "wellbe-c7-thread",
     "wellbe-c10-safety",
     "wellbe-c14-investigation",
@@ -32,6 +33,7 @@ wellbe-contracts = { workspace = true }
 wellbe-db = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-c1-consent = { workspace = true }
+wellbe-c6-graph = { workspace = true }
 wellbe-c7-thread = { workspace = true }
 wellbe-c10-safety = { workspace = true }
 wellbe-c14-investigation = { workspace = true }

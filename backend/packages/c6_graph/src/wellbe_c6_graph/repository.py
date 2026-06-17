@@ -135,3 +135,56 @@ class GraphRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def nodes_for_thread(
+        self,
+        *,
+        patient_id: uuid.UUID,
+        thread_id: uuid.UUID,
+        node_types: list[str] | None = None,
+        limit: int = 200,
+    ) -> list[KgNodeRow]:
+        """Thread-scoped nodes for a patient (WEL-156).
+
+        Anchored to BOTH the authenticated patient and the requested thread:
+        ``thread_id = ANY(kg_nodes.thread_ids)``. Out-of-thread nodes are never
+        selected, so their existence cannot be disclosed.
+        """
+        stmt = select(KgNodeRow).where(
+            KgNodeRow.patient_id == patient_id,
+            KgNodeRow.thread_ids.any(thread_id),
+        )
+        if node_types:
+            stmt = stmt.where(KgNodeRow.node_type.in_(node_types))
+        stmt = stmt.order_by(KgNodeRow.last_seen_at.desc()).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def edges_among_nodes(
+        self,
+        *,
+        patient_id: uuid.UUID,
+        thread_id: uuid.UUID,
+        node_ids: list[uuid.UUID],
+        edge_types: list[str] | None = None,
+        limit: int = 400,
+    ) -> list[KgEdgeRow]:
+        """Edges of a thread whose BOTH endpoints are in the in-thread node set.
+
+        Requiring both endpoints in ``node_ids`` structurally omits any edge that
+        would reach an out-of-thread node, so no adjacent out-of-scope node id or
+        existence is ever leaked (per docs/decisions/graph-query-api-contract.md).
+        """
+        if not node_ids:
+            return []
+        stmt = select(KgEdgeRow).where(
+            KgEdgeRow.patient_id == patient_id,
+            KgEdgeRow.thread_ids.any(thread_id),
+            KgEdgeRow.from_node_id.in_(node_ids),
+            KgEdgeRow.to_node_id.in_(node_ids),
+        )
+        if edge_types:
+            stmt = stmt.where(KgEdgeRow.edge_type.in_(edge_types))
+        stmt = stmt.order_by(KgEdgeRow.potential_score.desc()).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())

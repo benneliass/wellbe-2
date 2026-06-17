@@ -194,6 +194,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/graph/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Thread Subgraph */
+        get: operations["get_thread_subgraph_v2_graph_threads__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/investigations": {
         parameters: {
             query?: never;
@@ -1000,6 +1017,63 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** GraphEdgeV2 */
+        GraphEdgeV2: {
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /** Evidence Weight */
+            evidence_weight: number;
+            /** Id */
+            id: string;
+            /** Relation */
+            relation: string;
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+        };
+        /** GraphNodeV2 */
+        GraphNodeV2: {
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+        };
+        /** GraphPageInfo */
+        GraphPageInfo: {
+            /**
+             * Edge Count
+             * @default 0
+             */
+            edge_count: number;
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /** Next Page Token */
+            next_page_token?: string | null;
+            /**
+             * Node Count
+             * @default 0
+             */
+            node_count: number;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1498,6 +1572,22 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ThreadSubgraphV2 */
+        ThreadSubgraphV2: {
+            /** Edges */
+            edges?: components["schemas"]["GraphEdgeV2"][];
+            /** Nodes */
+            nodes?: components["schemas"]["GraphNodeV2"][];
+            page_info?: components["schemas"]["GraphPageInfo"];
+            /**
+             * Schema Version
+             * @default c13.graph.subgraph.v2
+             * @constant
+             */
+            schema_version: "c13.graph.subgraph.v2";
+            /** Thread Id */
+            thread_id: string;
         };
         /** ThreadV1 */
         ThreadV1: {
@@ -2189,6 +2279,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GrantV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_thread_subgraph_v2_graph_threads__thread_id__get: {
+        parameters: {
+            query?: {
+                max_nodes?: number;
+                max_edges?: number;
+                node_types?: string[] | null;
+                edge_types?: string[] | null;
+            };
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadSubgraphV2"];
                 };
             };
             /** @description Validation Error */
