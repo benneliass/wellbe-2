@@ -11,6 +11,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "deploy:smoke": "bash infra/k8s/deploy-and-smoke.sh",
     "generate:api-client": "npm run generate --workspace=packages/api-client"
   },
   "engines": {

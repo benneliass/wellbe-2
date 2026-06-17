@@ -286,3 +286,41 @@ k8s_resource(
     port_forwards=['8006:8006'],
     labels=['app'],
 )
+
+# ---------------------------------------------------------------------------
+# web (Next.js UI) — served via ingress on app.localhost (Track 0.6, WEL-156).
+# Built as a Next standalone production image, so there is no source live-sync;
+# Tilt rebuilds + redeploys the image when web/UI source changes. The `only`
+# scope keeps unrelated backend edits from triggering a web rebuild.
+# ---------------------------------------------------------------------------
+
+docker_build(
+    'wellbe-web:local',
+    context='.',
+    dockerfile='apps/web/Dockerfile',
+    only=[
+        'package.json',
+        'package-lock.json',
+        'apps/web/',
+        'packages/api-client/',
+        'packages/ui/',
+        'packages/tsconfig/',
+        'packages/eslint-config/',
+    ],
+    ignore=[
+        '**/node_modules',
+        '**/.next',
+        'apps/web/e2e/',
+        'apps/web/test-results/',
+        'apps/web/playwright-report/',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+    ],
+)
+
+k8s_resource(
+    'web',
+    port_forwards=['3000:3000'],
+    labels=['app'],
+)

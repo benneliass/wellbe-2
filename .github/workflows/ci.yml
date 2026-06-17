@@ -51,3 +51,29 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
+
+  cluster-e2e:
+    name: Cluster e2e — kind deploy + Playwright smoke
+    # Merge-to-main gate only: PRs stay fast (lint/typecheck/unit/build), the full
+    # cluster e2e runs on push to main. See docs/implementation/home-buildout-plan.md.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Install Playwright (chromium)
+        run: npx --workspace=apps/web playwright install --with-deps chromium
+      - uses: azure/setup-helm@v4
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: desktop
+          config: infra/local/kind-cluster.yaml
+      - name: Install ingress-nginx
+        run: bash infra/k8s/setup-ingress.sh
+      - name: Deploy web + run Home smoke against ingress
+        run: npm run deploy:smoke
