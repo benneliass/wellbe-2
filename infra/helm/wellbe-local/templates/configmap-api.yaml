@@ -9,3 +9,4 @@ data:
   WELLBE_ENVIRONMENT: {{ .Values.api.config.environment | quote }}
   WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
   WELLBE_REDIS_URL: {{ include "wellbe-local.redisUrl" . | quote }}
+  WELLBE_INGESTION_WORKER_URL: "http://ingestion-worker:{{ .Values.ingestionWorker.port }}"

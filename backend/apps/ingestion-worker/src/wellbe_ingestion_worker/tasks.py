@@ -4,15 +4,18 @@ import asyncio
 import base64
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
-
+from wellbe_c3_ingestion import (
+    AdapterRegistry,
+    DocumentAdapter,
+    IngestionService,
+    ManualTextAdapter,
+)
 from wellbe_contracts.c3_ingestion import AdapterInput
-
-from wellbe_c3_ingestion import AdapterRegistry, IngestionService, ManualTextAdapter, DocumentAdapter
 
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
 dramatiq.set_broker(RedisBroker(url=_redis_url))
@@ -51,6 +54,7 @@ def ingest_task(payload_json: str) -> None:
                 correlation_id=data["correlation_id"],
                 trace_id=data["trace_id"],
                 share_grant_id=UUID(data["share_grant_id"]) if data.get("share_grant_id") else None,
+                client_idempotency_key=data.get("idempotency_key"),
             )
         finally:
             await service.close()

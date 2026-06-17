@@ -252,6 +252,100 @@
         "title": "C10ObligationV2",
         "type": "object"
       },
+      "CaptureRequestV1": {
+        "properties": {
+          "capture_type": {
+            "$ref": "#/components/schemas/CaptureType"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "schema_version": {
+            "default": "c13.capture.request.v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "capture_type"
+        ],
+        "title": "CaptureRequestV1",
+        "type": "object"
+      },
+      "CaptureResponseV1": {
+        "properties": {
+          "capture_id": {
+            "title": "Capture Id",
+            "type": "string"
+          },
+          "processing": {
+            "default": "pending",
+            "title": "Processing",
+            "type": "string"
+          },
+          "schema_version": {
+            "default": "c13.capture.response.v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "default": "captured",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capture_id"
+        ],
+        "title": "CaptureResponseV1",
+        "type": "object"
+      },
+      "CaptureType": {
+        "enum": [
+          "symptom",
+          "lab",
+          "document",
+          "note"
+        ],
+        "title": "CaptureType",
+        "type": "string"
+      },
       "CloseInvestigationRequest": {
         "properties": {
           "expected_version": {
@@ -1879,6 +1973,139 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/v1/capture": {
+      "post": {
+        "operationId": "create_capture_v1_capture_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureResponseV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Capture",
+        "tags": [
+          "v1-capture"
+        ]
       }
     },
     "/v1/threads": {

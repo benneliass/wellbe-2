@@ -58,31 +58,54 @@ async def _get_session() -> AsyncGenerator[AsyncSession]:
 SessionDep = Annotated[AsyncSession, Depends(_get_session)]
 
 
+def _aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
+
+
 @app.post("/vault/events", response_model=VaultWriteResponse, status_code=201)
 async def write_event(
     req: VaultWriteRequest,
     session: SessionDep,
 ) -> VaultWriteResponse:
     content_hash = hashlib.sha256(req.normalized_payload).hexdigest()
-
     repo = VaultRepository(session)
 
+    # Deterministic-id path (capture write path, WEL-155): the id is a uuid5 of
+    # the natural key, so a retried/redelivered append collapses onto the same
+    # row via ON CONFLICT DO NOTHING — duplicate raw records become impossible.
+    if req.event_id is not None:
+        existing = await repo.get_event(req.event_id)
+        if existing is not None:
+            return VaultWriteResponse(
+                event_id=existing.id,
+                content_hash=existing.content_hash,
+                duplicate_of_event_id=None,
+                ingested_at=_aware(existing.ingested_at),
+            )
+        return await _create_event(session, repo, req, content_hash, req.event_id)
+
+    # Legacy content-hash dedupe path (direct ingest without a client key).
     dup_id = await repo.find_duplicate(req.patient_id, content_hash)
     if dup_id is not None:
         existing = await repo.get_event(dup_id)
         if existing is None:
             raise HTTPException(status_code=500, detail="Duplicate record vanished")
-        existing_ingested = existing.ingested_at
-        if existing_ingested.tzinfo is None:
-            existing_ingested = existing_ingested.replace(tzinfo=UTC)
         return VaultWriteResponse(
             event_id=existing.id,
             content_hash=content_hash,
             duplicate_of_event_id=None,
-            ingested_at=existing_ingested,
+            ingested_at=_aware(existing.ingested_at),
         )
+    return await _create_event(session, repo, req, content_hash, uuid.uuid4())
 
-    event_id = uuid.uuid4()
+
+async def _create_event(
+    session: AsyncSession,
+    repo: VaultRepository,
+    req: VaultWriteRequest,
+    content_hash: str,
+    event_id: uuid.UUID,
+) -> VaultWriteResponse:
     blob_key = build_raw_blob_key(req.patient_id, event_id)
     blob_version_id = await _blob_store.upload_blob(
         blob_key, req.normalized_payload, content_hash
@@ -95,7 +118,7 @@ async def write_event(
     if hasattr(captured_at, "tzinfo") and captured_at.tzinfo is not None:
         captured_at = captured_at.replace(tzinfo=None)
 
-    inserted_id = await repo.insert_event(
+    inserted_id, created = await repo.insert_event_idempotent(
         id=event_id,
         patient_id=req.patient_id,
         actor_id=req.actor_id,
@@ -125,7 +148,37 @@ async def write_event(
         correlation_id=req.correlation_id,
         trace_id=req.trace_id,
         created_at=now,
-    )  # now is naive UTC — TIMESTAMP WITHOUT TIME ZONE
+    )
+
+    if not created:
+        # A concurrent writer won the race; return the durable row, no double-emit.
+        existing = await repo.get_event(inserted_id)
+        await session.commit()
+        if existing is None:
+            raise HTTPException(status_code=500, detail="Idempotent record vanished")
+        return VaultWriteResponse(
+            event_id=existing.id,
+            content_hash=existing.content_hash,
+            duplicate_of_event_id=None,
+            ingested_at=_aware(existing.ingested_at),
+        )
+
+    capture_type = (prov.source_metadata or {}).get("capture_type")
+    await repo.insert_provenance(
+        provenance_id=uuid.uuid5(uuid.NAMESPACE_OID, f"provenance:{inserted_id}"),
+        event_id=inserted_id,
+        patient_id=req.patient_id,
+        agent_actor_id=req.actor_id,
+        agent_software=prov.adapter_name,
+        agent_software_version=prov.adapter_version,
+        capture_type=capture_type,
+        content_hash=content_hash,
+        occurred_at=captured_at,
+        recorded_at=now,
+        correlation_id=req.correlation_id,
+        trace_id=req.trace_id,
+        created_at=now,
+    )
 
     await emit_event(
         session,

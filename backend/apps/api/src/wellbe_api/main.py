@@ -12,7 +12,14 @@ from fastapi import FastAPI
 
 from wellbe_api.deps import UnauthenticatedError, lifespan
 from wellbe_api.errors import ProblemError, problem_error_handler, unauthenticated_response
-from wellbe_api.routers import access, investigations, phase5, render, threads_v1
+from wellbe_api.routers import (
+    access,
+    capture_v1,
+    investigations,
+    phase5,
+    render,
+    threads_v1,
+)
 
 app = FastAPI(
     title="WellBe API",
@@ -39,6 +46,7 @@ async def health() -> dict[str, str]:
 
 app.include_router(render.router)
 app.include_router(threads_v1.router)
+app.include_router(capture_v1.router)
 app.include_router(investigations.router)
 app.include_router(access.router)
 app.include_router(phase5.router)

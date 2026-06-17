@@ -5,16 +5,11 @@ import json
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Optional
 
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
-from wellbe_contracts.c2_vault import VaultWriteResponse
-from wellbe_contracts.c3_ingestion import AdapterInput
-
 from wellbe_c3_ingestion import (
     AdapterRegistry,
     DocumentAdapter,
@@ -22,6 +17,8 @@ from wellbe_c3_ingestion import (
     ManualTextAdapter,
 )
 from wellbe_c3_ingestion.exceptions import IngestionValidationError
+from wellbe_contracts.c2_vault import VaultWriteResponse
+from wellbe_contracts.c3_ingestion import AdapterInput
 
 from wellbe_ingestion_worker.config import IngestionWorkerSettings
 from wellbe_ingestion_worker.tasks import ingest_task
@@ -34,10 +31,13 @@ class IngestRequest(BaseModel):
     actor_id: uuid.UUID
     consent_snapshot_id: uuid.UUID
     captured_at: datetime
-    metadata: Optional[dict] = None
-    share_grant_id: Optional[uuid.UUID] = None
-    correlation_id: Optional[str] = None
-    trace_id: Optional[str] = None
+    metadata: dict | None = None
+    share_grant_id: uuid.UUID | None = None
+    correlation_id: str | None = None
+    trace_id: str | None = None
+    # Client-supplied retry-safety key (WEL-155). When present, the Vault id is
+    # deterministic and the append is idempotent under at-least-once delivery.
+    idempotency_key: str | None = None
 
 
 class AsyncIngestResponse(BaseModel):
@@ -89,11 +89,12 @@ async def ingest_sync(req: IngestRequest) -> VaultWriteResponse:
             correlation_id=correlation_id,
             trace_id=trace_id,
             share_grant_id=req.share_grant_id,
+            client_idempotency_key=req.idempotency_key,
         )
     except IngestionValidationError as exc:
-        raise HTTPException(status_code=422, detail=exc.errors)
+        raise HTTPException(status_code=422, detail=exc.errors) from exc
     except KeyError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/ingest/async", response_model=AsyncIngestResponse)
@@ -113,6 +114,7 @@ async def ingest_async(req: IngestRequest) -> AsyncIngestResponse:
         "share_grant_id": str(req.share_grant_id) if req.share_grant_id else None,
         "correlation_id": correlation_id,
         "trace_id": trace_id,
+        "idempotency_key": req.idempotency_key,
     }
 
     ingest_task.send(json.dumps(payload))

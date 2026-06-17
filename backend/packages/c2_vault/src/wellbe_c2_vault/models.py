@@ -6,7 +6,6 @@ from datetime import datetime
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base, UUIDPrimaryKeyMixin
 
 
@@ -69,4 +68,34 @@ class RawContextEventRow(UUIDPrimaryKeyMixin, Base):
         nullable=True,
     )
     schema_version: Mapped[int] = mapped_column(Integer, server_default="1")
+    created_at: Mapped[datetime] = mapped_column()
+
+
+class RawContextProvenanceRow(Base):
+    """W3C-PROV/FHIR-Provenance-aligned ingest provenance, one per raw event.
+
+    Append-only (see migration 016). The raw event is the PROV *entity*, ingest
+    is the *activity*, and the user actor + software are the *agents*. C5
+    source-linking ("no orphan claims") resolves raw evidence through this row.
+    """
+
+    __tablename__ = "raw_context_provenance"
+    __table_args__ = {"schema": "vault"}
+
+    provenance_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("vault.raw_context_events.id"), unique=True
+    )
+    patient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    entity_kind: Mapped[str] = mapped_column(Text, server_default="raw_context_event")
+    activity: Mapped[str] = mapped_column(Text, server_default="ingest")
+    agent_actor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    agent_software: Mapped[str] = mapped_column(Text)
+    agent_software_version: Mapped[str] = mapped_column(Text)
+    capture_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    content_hash: Mapped[str] = mapped_column(Text)
+    occurred_at: Mapped[datetime] = mapped_column()
+    recorded_at: Mapped[datetime] = mapped_column()
+    correlation_id: Mapped[str] = mapped_column(Text)
+    trace_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column()
