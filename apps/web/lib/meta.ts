@@ -67,10 +67,10 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { id: "home", icon: "home", label: "Home", href: "/" },
   { id: "threads", icon: "list", label: "Threads", href: "/workspace" },
-  { id: "memory", icon: "book", label: "Memory", href: "#", disabled: true },
-  { id: "results", icon: "bar-chart-3", label: "Results", href: "#", disabled: true },
-  { id: "documents", icon: "file-text", label: "Documents", href: "#", disabled: true },
-  { id: "appointments", icon: "calendar", label: "Appointments", href: "#", disabled: true },
+  { id: "memory", icon: "book", label: "Memory", href: "/memory" },
+  { id: "results", icon: "bar-chart-3", label: "Results", href: "/results" },
+  { id: "documents", icon: "file-text", label: "Documents", href: "/documents" },
+  { id: "appointments", icon: "calendar", label: "Appointments", href: "/appointments" },
 ];
 
 export interface CaptureType {
