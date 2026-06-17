@@ -101,6 +101,10 @@ class ClaimType(StrEnum):
     URGENCY_GUIDANCE = "urgency_guidance"
     AGGREGATE_OR_COHORT = "aggregate_or_cohort"
     META_OR_DISCLAIMER = "meta_or_disclaimer"
+    # A diagnosis already present in the user's source records (allowed, attributed).
+    SOURCE_RECORD_DIAGNOSIS = "source_record_diagnosis"
+    # A NEW AI-generated diagnostic label — always blocked (do-not-diagnose).
+    NEW_AI_DIAGNOSIS = "new_ai_diagnosis"
 
 
 class EvidenceRefType(StrEnum):

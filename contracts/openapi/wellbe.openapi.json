@@ -1,6 +1,17 @@
 {
   "components": {
     "schemas": {
+      "AbsenceReason": {
+        "description": "IPS-style explicit absence \u2014 never imply \"none\" by silent omission.",
+        "enum": [
+          "known_absent",
+          "not_asked",
+          "unavailable",
+          "masked"
+        ],
+        "title": "AbsenceReason",
+        "type": "string"
+      },
       "AccessEvaluateRequest": {
         "properties": {
           "action": {
@@ -722,6 +733,79 @@
         "title": "CreateThreadRequest",
         "type": "object"
       },
+      "ExportPacketResponse": {
+        "properties": {
+          "export_warning": {
+            "default": "This is an exported copy. Once shared or saved by a recipient it cannot be recalled \u2014 revoking a link only stops future access.",
+            "title": "Export Warning",
+            "type": "string"
+          },
+          "packet": {
+            "$ref": "#/components/schemas/VisitPacketV2"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.export.v2",
+            "default": "c13.visit_packet.export.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "packet"
+        ],
+        "title": "ExportPacketResponse",
+        "type": "object"
+      },
+      "GenerateVisitPacketRequest": {
+        "properties": {
+          "include_summary": {
+            "default": true,
+            "title": "Include Summary",
+            "type": "boolean"
+          },
+          "prep": {
+            "$ref": "#/components/schemas/PatientPrepInput"
+          },
+          "thread_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Thread Ids",
+            "type": "array"
+          },
+          "time_window_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Window End"
+          },
+          "time_window_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Window Start"
+          },
+          "title": {
+            "default": "Visit packet",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "GenerateVisitPacketRequest",
+        "type": "object"
+      },
       "GrantCapabilitiesV2": {
         "additionalProperties": false,
         "properties": {
@@ -1171,6 +1255,94 @@
         "title": "MemoryEntryV2",
         "type": "object"
       },
+      "PacketLayer": {
+        "enum": [
+          "patient_prep",
+          "summary"
+        ],
+        "title": "PacketLayer",
+        "type": "string"
+      },
+      "PacketSection": {
+        "enum": [
+          "concern",
+          "timeline",
+          "pending",
+          "narrative",
+          "question",
+          "goal",
+          "observation",
+          "medication",
+          "result"
+        ],
+        "title": "PacketSection",
+        "type": "string"
+      },
+      "PacketSourceRef": {
+        "description": "A claim-level pointer back to the evidence/object a statement summarizes.",
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "ref_type": {
+            "title": "Ref Type",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref_type",
+          "source_id"
+        ],
+        "title": "PacketSourceRef",
+        "type": "object"
+      },
+      "PacketStatus": {
+        "enum": [
+          "draft",
+          "shared"
+        ],
+        "title": "PacketStatus",
+        "type": "string"
+      },
+      "PatientPrepInput": {
+        "properties": {
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "observations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Observations",
+            "type": "array"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions",
+            "type": "array"
+          }
+        },
+        "title": "PatientPrepInput",
+        "type": "object"
+      },
       "PendingItemV2": {
         "additionalProperties": false,
         "properties": {
@@ -1545,6 +1717,146 @@
         "title": "RevokeGrantRequest",
         "type": "object"
       },
+      "SharePacketRequest": {
+        "properties": {
+          "expires_in_hours": {
+            "default": 168,
+            "maximum": 8760.0,
+            "minimum": 1.0,
+            "title": "Expires In Hours",
+            "type": "integer"
+          },
+          "info_scope": {
+            "default": "selected_threads",
+            "title": "Info Scope",
+            "type": "string"
+          },
+          "passcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passcode"
+          },
+          "purpose": {
+            "default": "clinician_visit",
+            "title": "Purpose",
+            "type": "string"
+          },
+          "recipient_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Identifier"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient_name"
+        ],
+        "title": "SharePacketRequest",
+        "type": "object"
+      },
+      "SharePacketResponse": {
+        "properties": {
+          "c10_decision": {
+            "title": "C10 Decision",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "grant_id": {
+            "title": "Grant Id",
+            "type": "string"
+          },
+          "passcode_required": {
+            "title": "Passcode Required",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.share.v2",
+            "default": "c13.visit_packet.share.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "share_link_id": {
+            "title": "Share Link Id",
+            "type": "string"
+          },
+          "share_token": {
+            "title": "Share Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "share_link_id",
+          "grant_id",
+          "share_token",
+          "passcode_required",
+          "expires_at",
+          "c10_decision"
+        ],
+        "title": "SharePacketResponse",
+        "type": "object"
+      },
+      "SharedPacketView": {
+        "description": "Recipient-facing read of a shared packet (no owner-only internals).",
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "review_note": {
+            "default": "Patient-prepared and not clinician-reviewed. Every statement links to its source. This packet does not contain a diagnosis from WellBe.",
+            "title": "Review Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.shared_view.v2",
+            "default": "c13.visit_packet.shared_view.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "shared_by_label": {
+            "default": "the patient",
+            "title": "Shared By Label",
+            "type": "string"
+          },
+          "statements": {
+            "items": {
+              "$ref": "#/components/schemas/VisitPacketStatementV2"
+            },
+            "title": "Statements",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "expires_at"
+        ],
+        "title": "SharedPacketView",
+        "type": "object"
+      },
       "SourceQualityTierV2": {
         "enum": [
           "tier_1",
@@ -1554,6 +1866,19 @@
           "tier_5"
         ],
         "title": "SourceQualityTierV2",
+        "type": "string"
+      },
+      "StatementClassification": {
+        "description": "Per-statement provenance class (decision Q1c/Q3b).\n\nThe gate blocks ``NEW_AI_DIAGNOSIS``. ``SOURCE_RECORD_DIAGNOSIS`` is a\ndiagnosis already in the user's records (allowed, attributed), distinct from\na *new* AI-generated diagnostic label (blocked).",
+        "enum": [
+          "direct_source_fact",
+          "patient_reported",
+          "generated_synthesis",
+          "generated_inference",
+          "source_record_diagnosis",
+          "new_ai_diagnosis"
+        ],
+        "title": "StatementClassification",
         "type": "string"
       },
       "SupportedSchemaVersionsV2": {
@@ -1822,6 +2147,37 @@
         "title": "TransitionThreadRequest",
         "type": "object"
       },
+      "UpdatePacketRequest": {
+        "properties": {
+          "inclusions": {
+            "items": {
+              "$ref": "#/components/schemas/UpdateStatementInclusion"
+            },
+            "title": "Inclusions",
+            "type": "array"
+          }
+        },
+        "title": "UpdatePacketRequest",
+        "type": "object"
+      },
+      "UpdateStatementInclusion": {
+        "properties": {
+          "included": {
+            "title": "Included",
+            "type": "boolean"
+          },
+          "statement_id": {
+            "title": "Statement Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_id",
+          "included"
+        ],
+        "title": "UpdateStatementInclusion",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1860,6 +2216,157 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VisitPacketStatementV2": {
+        "properties": {
+          "absence_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AbsenceReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "absent": {
+            "default": false,
+            "title": "Absent",
+            "type": "boolean"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/StatementClassification"
+          },
+          "included": {
+            "default": true,
+            "title": "Included",
+            "type": "boolean"
+          },
+          "layer": {
+            "$ref": "#/components/schemas/PacketLayer"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.statement.v2",
+            "default": "c13.visit_packet.statement.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "section": {
+            "$ref": "#/components/schemas/PacketSection"
+          },
+          "source_refs": {
+            "items": {
+              "$ref": "#/components/schemas/PacketSourceRef"
+            },
+            "title": "Source Refs",
+            "type": "array"
+          },
+          "statement_id": {
+            "title": "Statement Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_id",
+          "layer",
+          "section",
+          "ordinal",
+          "text",
+          "classification"
+        ],
+        "title": "VisitPacketStatementV2",
+        "type": "object"
+      },
+      "VisitPacketV2": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "packet_id": {
+            "title": "Packet Id",
+            "type": "string"
+          },
+          "patient_id": {
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.v2",
+            "default": "c13.visit_packet.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "statements": {
+            "items": {
+              "$ref": "#/components/schemas/VisitPacketStatementV2"
+            },
+            "title": "Statements",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PacketStatus"
+          },
+          "thread_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Thread Ids",
+            "type": "array"
+          },
+          "time_window_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Window End"
+          },
+          "time_window_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Window Start"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "packet_id",
+          "patient_id",
+          "title",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VisitPacketV2",
         "type": "object"
       },
       "WorkspaceV2": {
@@ -4721,6 +5228,65 @@
         ]
       }
     },
+    "/v2/share/{token}": {
+      "get": {
+        "description": "Public recipient read of a shared packet. Returns 404 for any unknown,\nrevoked, expired, or passcode-failing link (no information leak).",
+        "operationId": "read_shared_packet_v2_share__token__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Share-Passcode",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Share-Passcode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedPacketView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Shared Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
     "/v2/threads/{thread_id}/memories": {
       "get": {
         "operationId": "thread_memories_v2_threads__thread_id__memories_get",
@@ -4839,6 +5405,731 @@
         "summary": "Thread Memories",
         "tags": [
           "v2-continuity-memory-correction"
+        ]
+      }
+    },
+    "/v2/visit-packets": {
+      "post": {
+        "operationId": "generate_visit_packet_v2_visit_packets_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateVisitPacketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitPacketV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Visit Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
+    "/v2/visit-packets/{packet_id}": {
+      "get": {
+        "operationId": "get_visit_packet_v2_visit_packets__packet_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Packet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitPacketV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Visit Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      },
+      "patch": {
+        "description": "Toggle statement inclusion. Deselected statements are kept and marked,\nnever silently dropped (decision: deselection visibility).",
+        "operationId": "update_visit_packet_v2_visit_packets__packet_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Packet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePacketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitPacketV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Visit Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
+    "/v2/visit-packets/{packet_id}/export": {
+      "post": {
+        "description": "Export a copy. This is a distinct, clearly-warned state from a controlled\nlink share: an exported copy cannot be recalled.",
+        "operationId": "export_visit_packet_v2_visit_packets__packet_id__export_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Packet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportPacketResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Visit Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
+    "/v2/visit-packets/{packet_id}/share": {
+      "post": {
+        "operationId": "share_visit_packet_v2_visit_packets__packet_id__share_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Packet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharePacketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharePacketResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Share Visit Packet",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
+    "/v2/visit-packets/{packet_id}/share/{link_id}/revoke": {
+      "post": {
+        "operationId": "revoke_share_link_v2_visit_packets__packet_id__share__link_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "packet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Packet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Link Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Share Link",
+        "tags": [
+          "v2-visit-packet"
         ]
       }
     },

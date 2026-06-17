@@ -19,6 +19,7 @@ from wellbe_api.routers import (
     phase5,
     render,
     threads_v1,
+    visit_packets_v2,
 )
 
 app = FastAPI(
@@ -50,3 +51,4 @@ app.include_router(capture_v1.router)
 app.include_router(investigations.router)
 app.include_router(access.router)
 app.include_router(phase5.router)
+app.include_router(visit_packets_v2.router)

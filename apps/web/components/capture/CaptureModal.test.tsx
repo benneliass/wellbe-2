@@ -38,7 +38,7 @@ describe("CaptureModal", () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
 
     expect(post).toHaveBeenCalledTimes(1);
-    const [path, opts] = post.mock.calls[0];
+    const [path, opts] = post.mock.calls[0]!;
     expect(path).toBe("/v1/capture");
     expect(opts.body.capture_type).toBe("symptom");
     expect(opts.body.payload.description).toBe("sharp lower back ache");
@@ -76,8 +76,8 @@ describe("CaptureModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
 
-    const firstKey = post.mock.calls[0][1].params.header["Idempotency-Key"];
-    const secondKey = post.mock.calls[1][1].params.header["Idempotency-Key"];
+    const firstKey = post.mock.calls[0]![1].params.header["Idempotency-Key"];
+    const secondKey = post.mock.calls[1]![1].params.header["Idempotency-Key"];
     expect(firstKey).toBe(secondKey);
   });
 });

@@ -16,5 +16,8 @@ class ApiSettings(BaseSettings):
     # C3 ingestion worker (the capture write path forwards here; it owns the
     # adapter registry and the C2 Vault append).
     ingestion_worker_url: str = "http://ingestion-worker:8003"
+    # C10 render-token HMAC secret. Matches the safety-gate default so render
+    # tokens minted at visit-packet share time validate consistently.
+    c10_token_secret: SecretStr = SecretStr("local-dev-c10-render-token-secret")
     log_level: str = "INFO"
     environment: str = "dev"

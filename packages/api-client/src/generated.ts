@@ -333,6 +333,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/share/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Shared Packet
+         * @description Public recipient read of a shared packet. Returns 404 for any unknown,
+         *     revoked, expired, or passcode-failing link (no information leak).
+         */
+        get: operations["read_shared_packet_v2_share__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/threads/{thread_id}/memories": {
         parameters: {
             query?: never;
@@ -344,6 +365,100 @@ export interface paths {
         get: operations["thread_memories_v2_threads__thread_id__memories_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/visit-packets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Visit Packet */
+        post: operations["generate_visit_packet_v2_visit_packets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/visit-packets/{packet_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Visit Packet */
+        get: operations["get_visit_packet_v2_visit_packets__packet_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Visit Packet
+         * @description Toggle statement inclusion. Deselected statements are kept and marked,
+         *     never silently dropped (decision: deselection visibility).
+         */
+        patch: operations["update_visit_packet_v2_visit_packets__packet_id__patch"];
+        trace?: never;
+    };
+    "/v2/visit-packets/{packet_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Visit Packet
+         * @description Export a copy. This is a distinct, clearly-warned state from a controlled
+         *     link share: an exported copy cannot be recalled.
+         */
+        post: operations["export_visit_packet_v2_visit_packets__packet_id__export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/visit-packets/{packet_id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share Visit Packet */
+        post: operations["share_visit_packet_v2_visit_packets__packet_id__share_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/visit-packets/{packet_id}/share/{link_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Share Link */
+        post: operations["revoke_share_link_v2_visit_packets__packet_id__share__link_id__revoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -388,6 +503,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AbsenceReason
+         * @description IPS-style explicit absence — never imply "none" by silent omission.
+         * @enum {string}
+         */
+        AbsenceReason: "known_absent" | "not_asked" | "unavailable" | "masked";
         /** AccessEvaluateRequest */
         AccessEvaluateRequest: {
             /** Action */
@@ -665,6 +786,41 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** ExportPacketResponse */
+        ExportPacketResponse: {
+            /**
+             * Export Warning
+             * @default This is an exported copy. Once shared or saved by a recipient it cannot be recalled — revoking a link only stops future access.
+             */
+            export_warning: string;
+            packet: components["schemas"]["VisitPacketV2"];
+            /**
+             * Schema Version
+             * @default c13.visit_packet.export.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.export.v2";
+        };
+        /** GenerateVisitPacketRequest */
+        GenerateVisitPacketRequest: {
+            /**
+             * Include Summary
+             * @default true
+             */
+            include_summary: boolean;
+            prep?: components["schemas"]["PatientPrepInput"];
+            /** Thread Ids */
+            thread_ids?: string[];
+            /** Time Window End */
+            time_window_end?: string | null;
+            /** Time Window Start */
+            time_window_start?: string | null;
+            /**
+             * Title
+             * @default Visit packet
+             */
+            title: string;
+        };
         /** GrantCapabilitiesV2 */
         GrantCapabilitiesV2: {
             /**
@@ -898,6 +1054,42 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * PacketLayer
+         * @enum {string}
+         */
+        PacketLayer: "patient_prep" | "summary";
+        /**
+         * PacketSection
+         * @enum {string}
+         */
+        PacketSection: "concern" | "timeline" | "pending" | "narrative" | "question" | "goal" | "observation" | "medication" | "result";
+        /**
+         * PacketSourceRef
+         * @description A claim-level pointer back to the evidence/object a statement summarizes.
+         */
+        PacketSourceRef: {
+            /** Label */
+            label?: string | null;
+            /** Ref Type */
+            ref_type: string;
+            /** Source Id */
+            source_id: string;
+        };
+        /**
+         * PacketStatus
+         * @enum {string}
+         */
+        PacketStatus: "draft" | "shared";
+        /** PatientPrepInput */
+        PatientPrepInput: {
+            /** Goals */
+            goals?: string[];
+            /** Observations */
+            observations?: string[];
+            /** Questions */
+            questions?: string[];
+        };
         /** PendingItemV2 */
         PendingItemV2: {
             /** Audit Refs */
@@ -1070,11 +1262,100 @@ export interface components {
              */
             reason: string;
         };
+        /** SharePacketRequest */
+        SharePacketRequest: {
+            /**
+             * Expires In Hours
+             * @default 168
+             */
+            expires_in_hours: number;
+            /**
+             * Info Scope
+             * @default selected_threads
+             */
+            info_scope: string;
+            /** Passcode */
+            passcode?: string | null;
+            /**
+             * Purpose
+             * @default clinician_visit
+             */
+            purpose: string;
+            /** Recipient Identifier */
+            recipient_identifier?: string | null;
+            /** Recipient Name */
+            recipient_name: string;
+        };
+        /** SharePacketResponse */
+        SharePacketResponse: {
+            /** C10 Decision */
+            c10_decision: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Grant Id */
+            grant_id: string;
+            /** Passcode Required */
+            passcode_required: boolean;
+            /**
+             * Schema Version
+             * @default c13.visit_packet.share.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.share.v2";
+            /** Share Link Id */
+            share_link_id: string;
+            /** Share Token */
+            share_token: string;
+        };
+        /**
+         * SharedPacketView
+         * @description Recipient-facing read of a shared packet (no owner-only internals).
+         */
+        SharedPacketView: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Review Note
+             * @default Patient-prepared and not clinician-reviewed. Every statement links to its source. This packet does not contain a diagnosis from WellBe.
+             */
+            review_note: string;
+            /**
+             * Schema Version
+             * @default c13.visit_packet.shared_view.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.shared_view.v2";
+            /**
+             * Shared By Label
+             * @default the patient
+             */
+            shared_by_label: string;
+            /** Statements */
+            statements?: components["schemas"]["VisitPacketStatementV2"][];
+            /** Title */
+            title: string;
+        };
         /**
          * SourceQualityTierV2
          * @enum {string}
          */
         SourceQualityTierV2: "tier_1" | "tier_2" | "tier_3" | "tier_4" | "tier_5";
+        /**
+         * StatementClassification
+         * @description Per-statement provenance class (decision Q1c/Q3b).
+         *
+         *     The gate blocks ``NEW_AI_DIAGNOSIS``. ``SOURCE_RECORD_DIAGNOSIS`` is a
+         *     diagnosis already in the user's records (allowed, attributed), distinct from
+         *     a *new* AI-generated diagnostic label (blocked).
+         * @enum {string}
+         */
+        StatementClassification: "direct_source_fact" | "patient_reported" | "generated_synthesis" | "generated_inference" | "source_record_diagnosis" | "new_ai_diagnosis";
         /** SupportedSchemaVersionsV2 */
         SupportedSchemaVersionsV2: {
             /**
@@ -1195,6 +1476,18 @@ export interface components {
             reason_code: string;
             target_status: components["schemas"]["HealthThreadStatus"];
         };
+        /** UpdatePacketRequest */
+        UpdatePacketRequest: {
+            /** Inclusions */
+            inclusions?: components["schemas"]["UpdateStatementInclusion"][];
+        };
+        /** UpdateStatementInclusion */
+        UpdateStatementInclusion: {
+            /** Included */
+            included: boolean;
+            /** Statement Id */
+            statement_id: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1207,6 +1500,71 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VisitPacketStatementV2 */
+        VisitPacketStatementV2: {
+            absence_reason?: components["schemas"]["AbsenceReason"] | null;
+            /**
+             * Absent
+             * @default false
+             */
+            absent: boolean;
+            classification: components["schemas"]["StatementClassification"];
+            /**
+             * Included
+             * @default true
+             */
+            included: boolean;
+            layer: components["schemas"]["PacketLayer"];
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Schema Version
+             * @default c13.visit_packet.statement.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.statement.v2";
+            section: components["schemas"]["PacketSection"];
+            /** Source Refs */
+            source_refs?: components["schemas"]["PacketSourceRef"][];
+            /** Statement Id */
+            statement_id: string;
+            /** Text */
+            text: string;
+        };
+        /** VisitPacketV2 */
+        VisitPacketV2: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Packet Id */
+            packet_id: string;
+            /** Patient Id */
+            patient_id: string;
+            /**
+             * Schema Version
+             * @default c13.visit_packet.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.v2";
+            /** Statements */
+            statements?: components["schemas"]["VisitPacketStatementV2"][];
+            status: components["schemas"]["PacketStatus"];
+            /** Thread Ids */
+            thread_ids?: string[];
+            /** Time Window End */
+            time_window_end?: string | null;
+            /** Time Window Start */
+            time_window_start?: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** WorkspaceV2 */
         WorkspaceV2: {
@@ -2181,6 +2539,39 @@ export interface operations {
             };
         };
     };
+    read_shared_packet_v2_share__token__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Share-Passcode"?: string | null;
+            };
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedPacketView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     thread_memories_v2_threads__thread_id__memories_get: {
         parameters: {
             query?: never;
@@ -2206,6 +2597,237 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MemoryEntryV2"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_visit_packet_v2_visit_packets_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateVisitPacketRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitPacketV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_visit_packet_v2_visit_packets__packet_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                packet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitPacketV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_visit_packet_v2_visit_packets__packet_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                packet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePacketRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitPacketV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_visit_packet_v2_visit_packets__packet_id__export_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                packet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportPacketResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_visit_packet_v2_visit_packets__packet_id__share_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                packet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharePacketRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharePacketResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_share_link_v2_visit_packets__packet_id__share__link_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                packet_id: string;
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

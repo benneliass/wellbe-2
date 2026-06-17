@@ -342,6 +342,11 @@ SUPPORTED_SCHEMA_VERSIONS = [
     "c13.role_binding.v2",
     "c13.source_ref.v2",
     "c13.theory.v2",
+    "c13.visit_packet.v2",
+    "c13.visit_packet.statement.v2",
+    "c13.visit_packet.share.v2",
+    "c13.visit_packet.export.v2",
+    "c13.visit_packet.shared_view.v2",
     "c13.workspace.v2",
 ]
 
