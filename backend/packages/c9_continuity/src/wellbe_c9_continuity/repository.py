@@ -124,6 +124,26 @@ class ContinuityRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def changed_since_for_patient(
+        self, patient_id: uuid.UUID, *, since: datetime, limit: int = 100
+    ) -> list[PendingItemRow]:
+        """Pending items created or updated at/after ``since``, newest change first.
+
+        Backs the C9 contribution to the "What changed?" digest (WEL-56): open
+        loops are the highest-ranked change category.
+        """
+        stmt = (
+            select(PendingItemRow)
+            .where(
+                PendingItemRow.patient_id == patient_id,
+                PendingItemRow.updated_at >= since,
+            )
+            .order_by(PendingItemRow.updated_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def bump_timer_epoch(self, *, row: PendingItemRow) -> int:
         row.timer_epoch += 1
         row.version += 1

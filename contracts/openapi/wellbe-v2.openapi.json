@@ -739,6 +739,134 @@
         "title": "CreateTheoryRequest",
         "type": "object"
       },
+      "DeltaCategory": {
+        "enum": [
+          "open_loop",
+          "lifecycle",
+          "new_fact"
+        ],
+        "title": "DeltaCategory",
+        "type": "string"
+      },
+      "DeltaDigestV2": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/DeltaEventV2"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.delta.v2",
+            "default": "c13.delta.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "window_label": {
+            "title": "Window Label",
+            "type": "string"
+          },
+          "window_since": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Since"
+          }
+        },
+        "required": [
+          "window_label",
+          "note"
+        ],
+        "title": "DeltaDigestV2",
+        "type": "object"
+      },
+      "DeltaEventV2": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/DeltaCategory"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "ranking_reason": {
+            "title": "Ranking Reason",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/DeltaSourceRef"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "title",
+          "ranking_reason",
+          "occurred_at",
+          "source"
+        ],
+        "title": "DeltaEventV2",
+        "type": "object"
+      },
+      "DeltaSourceRef": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ref_type": {
+            "title": "Ref Type",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref_type",
+          "source_id",
+          "label"
+        ],
+        "title": "DeltaSourceRef",
+        "type": "object"
+      },
       "EvidenceTier": {
         "description": "Qualitative evidence strength for an *observed* pattern \u2014 not disease truth.",
         "enum": [
@@ -3235,6 +3363,142 @@
         "summary": "Request Correction",
         "tags": [
           "v2-continuity-memory-correction"
+        ]
+      }
+    },
+    "/v2/delta": {
+      "get": {
+        "operationId": "get_delta_v2_delta_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeltaDigestV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Delta",
+        "tags": [
+          "v2-delta"
         ]
       }
     },

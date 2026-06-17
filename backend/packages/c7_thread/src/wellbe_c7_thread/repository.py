@@ -70,6 +70,28 @@ class ThreadRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def transitions_since_for_patient(
+        self, patient_id: uuid.UUID, *, since: datetime, limit: int = 100
+    ) -> list[tuple[ThreadStateTransitionRow, str]]:
+        """Status transitions at/after ``since`` for the patient's own threads.
+
+        Joined to ``health_threads`` so the digest can render the thread title;
+        the join is anchored to ``patient_id`` so no other patient's transitions
+        are reachable. Backs the C7 contribution to the "What changed?" digest.
+        """
+        stmt = (
+            select(ThreadStateTransitionRow, HealthThreadRow.title)
+            .join(HealthThreadRow, HealthThreadRow.id == ThreadStateTransitionRow.thread_id)
+            .where(
+                HealthThreadRow.patient_id == patient_id,
+                ThreadStateTransitionRow.created_at >= since,
+            )
+            .order_by(ThreadStateTransitionRow.created_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return [(row, title) for row, title in result.all()]
+
     async def find_transition_by_idempotency(
         self, thread_id: uuid.UUID, idempotency_key: str
     ) -> ThreadStateTransitionRow | None:

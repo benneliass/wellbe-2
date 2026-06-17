@@ -159,6 +159,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/delta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Delta */
+        get: operations["get_delta_v2_delta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/grants": {
         parameters: {
             query?: never;
@@ -886,6 +903,60 @@ export interface components {
         CreateThreadRequest: {
             /** Title */
             title: string;
+        };
+        /**
+         * DeltaCategory
+         * @enum {string}
+         */
+        DeltaCategory: "open_loop" | "lifecycle" | "new_fact";
+        /** DeltaDigestV2 */
+        DeltaDigestV2: {
+            /** Events */
+            events?: components["schemas"]["DeltaEventV2"][];
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            /** Note */
+            note: string;
+            /**
+             * Schema Version
+             * @default c13.delta.v2
+             * @constant
+             */
+            schema_version: "c13.delta.v2";
+            /** Window Label */
+            window_label: string;
+            /** Window Since */
+            window_since?: string | null;
+        };
+        /** DeltaEventV2 */
+        DeltaEventV2: {
+            category: components["schemas"]["DeltaCategory"];
+            /** Detail */
+            detail?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Ranking Reason */
+            ranking_reason: string;
+            source: components["schemas"]["DeltaSourceRef"];
+            /** Title */
+            title: string;
+        };
+        /** DeltaSourceRef */
+        DeltaSourceRef: {
+            /** Label */
+            label: string;
+            /** Ref Type */
+            ref_type: string;
+            /** Source Id */
+            source_id: string;
         };
         /**
          * EvidenceTier
@@ -2251,6 +2322,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorrectionV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_delta_v2_delta_get: {
+        parameters: {
+            query?: {
+                since?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeltaDigestV2"];
                 };
             };
             /** @description Validation Error */

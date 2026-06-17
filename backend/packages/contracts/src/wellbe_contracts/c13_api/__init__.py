@@ -351,6 +351,7 @@ SUPPORTED_SCHEMA_VERSIONS = [
     "c13.ask.answer.v2",
     "c13.graph.subgraph.v2",
     "c13.patterns.v2",
+    "c13.delta.v2",
     "c13.workspace.v2",
 ]
 

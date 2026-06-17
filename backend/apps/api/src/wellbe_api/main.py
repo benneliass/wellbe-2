@@ -16,6 +16,7 @@ from wellbe_api.routers import (
     access,
     ask_v2,
     capture_v1,
+    delta_v2,
     graph_v2,
     investigations,
     patterns_v2,
@@ -58,3 +59,4 @@ app.include_router(visit_packets_v2.router)
 app.include_router(ask_v2.router)
 app.include_router(graph_v2.router)
 app.include_router(patterns_v2.router)
+app.include_router(delta_v2.router)
