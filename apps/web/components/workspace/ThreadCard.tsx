@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Chip, Icon } from "@wellbe/ui";
 import { STATUS_META } from "@/lib/meta";
-import type { Thread } from "@/lib/types";
+import type { ThreadSummary } from "@/lib/types";
 import styles from "./ThreadCard.module.css";
 
-export function ThreadCard({ thread }: { thread: Thread }) {
+export function ThreadCard({ thread }: { thread: ThreadSummary }) {
   const status = STATUS_META[thread.status];
   return (
     <Link href={`/threads/${thread.id}`} className={styles.card}>
@@ -17,12 +17,6 @@ export function ThreadCard({ thread }: { thread: Thread }) {
         </Chip>
       </div>
       <h3 className={styles.title}>{thread.title}</h3>
-      <p className={styles.question}>{thread.question}</p>
-
-      <div className={styles.changed}>
-        <Icon name="trending-up" size={14} />
-        <span>{thread.changed}</span>
-      </div>
 
       <div className={styles.foot}>
         <span className={styles.meta}>

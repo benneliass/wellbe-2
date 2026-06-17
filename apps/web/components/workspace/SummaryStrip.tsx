@@ -1,10 +1,20 @@
-import type { Thread } from "@/lib/types";
+import type { ThreadStatus, ThreadSummary } from "@/lib/types";
 import styles from "./SummaryStrip.module.css";
 
-const OPEN_STATUSES: Thread["status"][] = ["active", "monitoring", "attention"];
+const OPEN_STATUSES: ThreadStatus[] = ["active", "monitoring", "attention"];
 
-/** "What am I carrying forward?" — at-a-glance counts derived from the threads. */
-export function SummaryStrip({ threads }: { threads: Thread[] }) {
+/**
+ * "What am I carrying forward?" — at-a-glance counts derived from real data:
+ * open/attention threads from /v1/threads and open loops from /v2/pending-items.
+ * No fabricated deltas — value surfaces (e.g. lab changes) arrive with Track D.
+ */
+export function SummaryStrip({
+  threads,
+  pendingCount,
+}: {
+  threads: ThreadSummary[];
+  pendingCount: number;
+}) {
   const open = threads.filter((t) => OPEN_STATUSES.includes(t.status)).length;
   const attention = threads.filter((t) => t.status === "attention").length;
 
@@ -13,7 +23,7 @@ export function SummaryStrip({ threads }: { threads: Thread[] }) {
       <div className={styles.item}>
         <span className={styles.label}>Carrying forward</span>
         <span className={styles.value}>
-          {open} <em>open threads</em>
+          {open} <em>{open === 1 ? "open thread" : "open threads"}</em>
         </span>
       </div>
       <div className={styles.divider} />
@@ -25,16 +35,9 @@ export function SummaryStrip({ threads }: { threads: Thread[] }) {
       </div>
       <div className={styles.divider} />
       <div className={styles.item}>
-        <span className={styles.label}>Changed from your normal</span>
+        <span className={styles.label}>Open loops</span>
         <span className={styles.value}>
-          CRP <em>↑ 18 mg/L</em>
-        </span>
-      </div>
-      <div className={styles.divider} />
-      <div className={styles.item}>
-        <span className={styles.label}>Unresolved questions</span>
-        <span className={styles.value}>
-          2 <em>to ask</em>
+          {pendingCount} <em>{pendingCount === 1 ? "to follow up" : "to follow up"}</em>
         </span>
       </div>
     </section>

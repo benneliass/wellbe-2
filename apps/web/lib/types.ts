@@ -95,3 +95,20 @@ export interface Thread {
   events: ThreadEvent[];
   evidence: EvidenceItem[];
 }
+
+/**
+ * Lightweight thread shape backed by the real `/v1/threads` list endpoint
+ * (`ThreadV1`), which exposes id/title/status/dates only. The rich `Thread`
+ * shape above (timeline, evidence, rail, metrics) has no list/detail endpoint
+ * yet, so the thread LIST and continuity Home consume this summary while the
+ * detail demo keeps the rich mock until a detail endpoint lands.
+ */
+export interface ThreadSummary {
+  id: string;
+  title: string;
+  status: ThreadStatus;
+  /** The original HealthThreadStatus value from the API, before UI mapping. */
+  rawStatus: string;
+  started: string;
+  updated: string;
+}

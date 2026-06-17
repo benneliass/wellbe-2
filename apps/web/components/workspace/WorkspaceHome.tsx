@@ -2,14 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@wellbe/ui";
-import type { Thread, ThreadStatus } from "@/lib/types";
+import type { ThreadStatus, ThreadSummary } from "@/lib/types";
 import { SummaryStrip } from "./SummaryStrip";
 import { ThreadCard } from "./ThreadCard";
 import styles from "./WorkspaceHome.module.css";
 
 type TabId = "all" | Extract<ThreadStatus, "active" | "attention" | "resolved">;
 
-export function WorkspaceHome({ threads }: { threads: Thread[] }) {
+export function WorkspaceHome({
+  threads,
+  pendingCount,
+}: {
+  threads: ThreadSummary[];
+  pendingCount: number;
+}) {
   const [tab, setTab] = useState<TabId>("all");
 
   const tabs = useMemo(
@@ -26,7 +32,7 @@ export function WorkspaceHome({ threads }: { threads: Thread[] }) {
 
   return (
     <div>
-      <SummaryStrip threads={threads} />
+      <SummaryStrip threads={threads} pendingCount={pendingCount} />
 
       <div className={styles.bar}>
         <div className={styles.tabs} role="tablist">
