@@ -107,6 +107,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask Wellbe */
+        post: operations["ask_wellbe_v2_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/audit/my-events": {
         parameters: {
             query?: never;
@@ -572,6 +589,56 @@ export interface components {
             valid_until: string;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /** AskAnswerV2 */
+        AskAnswerV2: {
+            /** Answer Text */
+            answer_text: string;
+            /** C10 Decision */
+            c10_decision?: string | null;
+            /** Citations */
+            citations?: components["schemas"]["AskCitation"][];
+            mode: components["schemas"]["AskMode"];
+            /** Next Steps */
+            next_steps?: string[];
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            /** Query */
+            query: string;
+            /**
+             * Schema Version
+             * @default c13.ask.answer.v2
+             * @constant
+             */
+            schema_version: "c13.ask.answer.v2";
+        };
+        /** AskCitation */
+        AskCitation: {
+            /** Label */
+            label: string;
+            /** Ref Type */
+            ref_type: string;
+            /** Source Id */
+            source_id: string;
+        };
+        /**
+         * AskMode
+         * @enum {string}
+         */
+        AskMode: "answered" | "no_sources" | "out_of_scope_redirect" | "urgent" | "blocked";
+        /** AskRequest */
+        AskRequest: {
+            /** Question */
+            question: string;
+            /**
+             * Schema Version
+             * @default c13.ask.request.v1
+             * @constant
+             */
+            schema_version: "c13.ask.request.v1";
         };
         /** AuditRefV2 */
         AuditRefV2: {
@@ -1859,6 +1926,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessPredicateV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_wellbe_v2_ask_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskAnswerV2"];
                 };
             };
             /** @description Validation Error */

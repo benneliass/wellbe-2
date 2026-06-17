@@ -347,6 +347,8 @@ SUPPORTED_SCHEMA_VERSIONS = [
     "c13.visit_packet.share.v2",
     "c13.visit_packet.export.v2",
     "c13.visit_packet.shared_view.v2",
+    "c13.ask.request.v1",
+    "c13.ask.answer.v2",
     "c13.workspace.v2",
 ]
 

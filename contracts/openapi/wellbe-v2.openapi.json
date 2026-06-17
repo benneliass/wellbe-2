@@ -174,6 +174,119 @@
         "title": "AccessPredicateV2",
         "type": "object"
       },
+      "AskAnswerV2": {
+        "properties": {
+          "answer_text": {
+            "title": "Answer Text",
+            "type": "string"
+          },
+          "c10_decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "C10 Decision"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/AskCitation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/AskMode"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Next Steps",
+            "type": "array"
+          },
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.ask.answer.v2",
+            "default": "c13.ask.answer.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "mode",
+          "answer_text"
+        ],
+        "title": "AskAnswerV2",
+        "type": "object"
+      },
+      "AskCitation": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ref_type": {
+            "title": "Ref Type",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref_type",
+          "source_id",
+          "label"
+        ],
+        "title": "AskCitation",
+        "type": "object"
+      },
+      "AskMode": {
+        "enum": [
+          "answered",
+          "no_sources",
+          "out_of_scope_redirect",
+          "urgent",
+          "blocked"
+        ],
+        "title": "AskMode",
+        "type": "string"
+      },
+      "AskRequest": {
+        "properties": {
+          "question": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.ask.request.v1",
+            "default": "c13.ask.request.v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
       "AuditRefV2": {
         "additionalProperties": false,
         "properties": {
@@ -2371,6 +2484,123 @@
         "summary": "Access Evaluate",
         "tags": [
           "v2-access"
+        ]
+      }
+    },
+    "/v2/ask": {
+      "post": {
+        "operationId": "ask_wellbe_v2_ask_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskAnswerV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask Wellbe",
+        "tags": [
+          "v2-ask"
         ]
       }
     },

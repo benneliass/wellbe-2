@@ -14,6 +14,7 @@ from wellbe_api.deps import UnauthenticatedError, lifespan
 from wellbe_api.errors import ProblemError, problem_error_handler, unauthenticated_response
 from wellbe_api.routers import (
     access,
+    ask_v2,
     capture_v1,
     investigations,
     phase5,
@@ -52,3 +53,4 @@ app.include_router(investigations.router)
 app.include_router(access.router)
 app.include_router(phase5.router)
 app.include_router(visit_packets_v2.router)
+app.include_router(ask_v2.router)
