@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, Icon, Modal } from "@wellbe/ui";
 import { CAPTURE_TYPES } from "@/lib/meta";
 import styles from "./CaptureModal.module.css";
 
+const SEVERITIES = ["Mild", "Moderate", "Severe"];
+
 export function CaptureModal({ onClose }: { onClose: () => void }) {
   const [type, setType] = useState("reported");
+  const [severity, setSeverity] = useState("Mild");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const footer = (
     <>
@@ -49,10 +54,104 @@ export function CaptureModal({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor="capture-desc">Description</label>
-        <textarea id="capture-desc" placeholder="Describe what you noticed, in your own words…" rows={3} />
-      </div>
+      {/* Type-specific fields — each capture type asks for what it needs. */}
+      {type === "reported" && (
+        <>
+          <div className={styles.field}>
+            <label htmlFor="capture-desc">What are you feeling?</label>
+            <textarea
+              id="capture-desc"
+              placeholder="Describe the symptom in your own words…"
+              rows={3}
+            />
+          </div>
+          <div className={styles.field}>
+            <label>How intense is it?</label>
+            <div className={styles.choices}>
+              {SEVERITIES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={styles.choice}
+                  data-active={severity === s || undefined}
+                  onClick={() => setSeverity(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {type === "lab" && (
+        <>
+          <div className={styles.field}>
+            <label htmlFor="lab-name">Test name</label>
+            <input id="lab-name" type="text" placeholder="e.g. Vitamin D, HbA1c, LDL…" />
+          </div>
+          <div className={styles.fieldRow}>
+            <div className={styles.field}>
+              <label htmlFor="lab-value">Value</label>
+              <input id="lab-value" type="text" inputMode="decimal" placeholder="e.g. 32" />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="lab-unit">Unit</label>
+              <input id="lab-unit" type="text" placeholder="e.g. ng/mL" />
+            </div>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="lab-range">Reference range (optional)</label>
+            <input id="lab-range" type="text" placeholder="e.g. 30–100 ng/mL" />
+          </div>
+        </>
+      )}
+
+      {type === "doc" && (
+        <div className={styles.field}>
+          <label>Document</label>
+          <button
+            type="button"
+            className={styles.dropzone}
+            data-has-file={fileName ? true : undefined}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <span className={styles.dropIcon}>
+              <Icon name={fileName ? "file-text" : "upload-cloud"} size={22} />
+            </span>
+            {fileName ? (
+              <span className={styles.dropFile}>{fileName}</span>
+            ) : (
+              <>
+                <span className={styles.dropText}>
+                  <b>Click to browse</b> or drag a file here
+                </span>
+                <span className={styles.dropHint}>PDF, photo, or report — up to 25 MB</span>
+              </>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,image/*"
+            hidden
+            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          />
+        </div>
+      )}
+
+      {type === "note" && (
+        <div className={styles.field}>
+          <label htmlFor="note-body">Your note</label>
+          <textarea
+            id="note-body"
+            placeholder="A thought, a question for your doctor, anything to remember…"
+            rows={4}
+          />
+        </div>
+      )}
+
+      {/* Common metadata for every capture type. */}
       <div className={styles.fieldRow}>
         <div className={styles.field}>
           <label>When</label>

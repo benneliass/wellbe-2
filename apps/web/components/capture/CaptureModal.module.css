@@ -29,6 +29,7 @@
 .type[data-active="true"] {
   border-color: var(--teal-500);
   background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 8px 18px rgba(14, 165, 164, 0.16);
 }
 .typeIcon {
   width: 36px;
@@ -40,9 +41,14 @@
   align-items: center;
   justify-content: center;
   flex: none;
+  transition: background 0.15s, color 0.15s;
 }
 .type[data-active="true"] .typeIcon {
-  background: #fff;
+  background: var(--teal-500);
+  color: #fff;
+}
+.type[data-active="true"] .typeText b {
+  color: var(--teal-600);
 }
 .typeText {
   display: flex;
@@ -89,6 +95,105 @@
 .field textarea:focus {
   border-color: var(--teal-500);
   box-shadow: var(--shadow-focus);
+}
+.field input {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--fg1);
+  outline: none;
+  background: #fff;
+}
+.field input::placeholder {
+  color: var(--fg3);
+}
+.field input:focus {
+  border-color: var(--teal-500);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Severity / single-choice chips (e.g. symptom intensity). */
+.choices {
+  display: flex;
+  gap: 8px;
+}
+.choice {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg2);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.choice:hover {
+  border-color: var(--border-strong);
+}
+.choice[data-active="true"] {
+  border-color: var(--teal-500);
+  background: var(--accent-soft);
+  color: var(--teal-600);
+}
+
+/* Document upload drop zone (UI only — no upload wired yet). */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 26px 20px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 11px;
+  background: var(--slate-50);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover {
+  border-color: var(--teal-500);
+  background: var(--accent-soft);
+}
+.dropzone[data-has-file="true"] {
+  border-style: solid;
+  border-color: var(--teal-500);
+  background: var(--accent-soft);
+}
+.dropIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--teal-600);
+  border: 1px solid var(--border);
+}
+.dropText {
+  font-size: 13.5px;
+  color: var(--fg2);
+}
+.dropText b {
+  color: var(--teal-600);
+  font-weight: 600;
+}
+.dropHint {
+  font-size: 12px;
+  color: var(--fg3);
+}
+.dropFile {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--fg1);
+  word-break: break-all;
 }
 .fieldRow {
   display: flex;
