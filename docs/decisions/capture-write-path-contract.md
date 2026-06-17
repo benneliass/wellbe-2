@@ -1,8 +1,8 @@
 # Decision: Capture write-path API contract (CaptureModal → C3 → C2)
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-06-17  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-17  
 **Approved by:** User  
 **Jira Spike:** WEL-161  
 **Blocks:** WEL-155 [Capture write API endpoint (ingestion adapter to Vault) for Log something]
@@ -305,7 +305,7 @@ _Grounded only in the recorded research above (FHIR Observation/DiagnosticReport
 
 ## Decision
 
-_Proposed by agent; awaiting user approval._
+_Approved by user 2026-06-17._
 
 - **Q1:** Adopt **A1b** — type-specific, internal-native capture payloads (symptom/observation, lab report + results, document + attachment metadata, note) behind one common capture envelope; raw-first (store the raw artifact + metadata; defer normalization to C4). Do not expose FHIR to clients, but keep field choices mappable to FHIR categories.
 - **Q2:** Adopt **A2c** — clients send an `Idempotency-Key`; C2 computes a **deterministic UUIDv5 vault record id** from a natural key (actor + patient + capture-type + content hash + client key) and appends with `ON CONFLICT DO NOTHING`, so re-delivery/retry is idempotent by construction at the durable boundary. C3 checks the key for a fast first-response replay; C2 is the hard guarantee. Idempotency-key→response mapping is TTL-bounded; the natural-key dedupe at C2 is permanent.
@@ -314,11 +314,20 @@ _Proposed by agent; awaiting user approval._
 
 ## Trade-offs accepted
 
-<!-- Filled after approval. -->
+- **Two idempotency mechanisms.** Carrying both a client `Idempotency-Key` and a deterministic C2 vault id is more to keep coherent than either alone. We accept it because the Vault is append-only and a duplicate raw record is permanent — the hard C2 guarantee is non-negotiable, and the client key buys fast first-response replay.
+- **Natural-key edge cases.** Free-text notes and repeated identical symptoms may not have a naturally unique key; the content hash + timestamp + client key disambiguates, at the cost of occasionally treating two genuinely identical captures as distinct. We accept that over silently dropping a real second capture.
+- **Deferred derived memory.** Returning `201` before C4 finishes means the UI must show a "processing" state and derived facts arrive slightly later. We accept this for capture reliability and speed (capture must not depend on C4 availability).
+- **Rich provenance cost.** More fields to store/validate/protect at ingest. Accepted because C5 "no orphan claims" depends on it.
 
 ## Implementation notes
 
-<!-- Filled after approval. -->
+- **Components/repos:** C3 ingestion (`backend/packages/c3_ingestion/`, `backend/apps/ingestion-worker/`), C2 vault (`backend/packages/c2_vault/`, `backend/apps/vault-writer/`), new C13 endpoint in `backend/apps/api/`. Builds on WEL-95 adapter pattern.
+- **Endpoint:** `POST` capture with a common envelope `{ capture_type, payload, occurred_at?, source }` + `Idempotency-Key` header. `capture_type ∈ {symptom, lab, document, note}` with a type-specific `payload` schema. Returns `201` `{ id, status: "captured", processing: "pending" }`.
+- **Idempotency:** vault record id = `uuid5(NAMESPACE, actor_id|patient_id|capture_type|sha256(canonical_payload)|idempotency_key)`; write with `INSERT ... ON CONFLICT (id) DO NOTHING`; if conflict, return the existing record (200/201 idempotent replay). Persist key→response for a bounded TTL; the C2 natural-key uniqueness is permanent.
+- **Provenance:** on append, write a provenance row: entity (the raw artifact), activity (ingest), agents (user actor + software/version), `recorded_at`, `correlation_id`, `content_hash` (sha-256; note FHIR R4 `Attachment.hash` is SHA-1 — we store sha-256 internally).
+- **Processing:** validate synchronously (schema, authz, idempotency-key conflict) before the durable append; enqueue C4 via the existing outbox/ingestion-worker (must itself be idempotent on re-delivery). 
+- **Frontend:** `CaptureModal` calls the endpoint, generates the `Idempotency-Key` (e.g. `crypto.randomUUID()`), shows captured-immediately + a "processing" affordance for derived memory.
+- **Unblocks:** WEL-155 (capture write API endpoint) and wiring `CaptureModal` "Add to memory".
 
 ---
 
