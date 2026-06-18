@@ -1,11 +1,11 @@
 # Decision: Pending thread candidate object, lifecycle, and promotion rules
 
-**Status:** Proposed  
+**Status:** Approved (MVP scope; post-MVP enrichment deferred to WEL-173)  
 **Date opened:** 2026-06-18  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (S2 — to be created on plan approval; research recommends splitting into S2a minimal-MVP contract and S2b post-MVP enrichment, see Plan-level note)  
-**Blocks:** Story C0 (minimal pending-candidate path) and Story C1 (candidate promotion / merge-dismiss polish / richer API)
+**Jira Spike:** WEL-172 (S2a — minimal MVP candidate contract, approved). Post-MVP enrichment (S2b) tracked separately by WEL-173, which remains open and will need its own follow-up research/decision.  
+**Blocks:** WEL-177 (Story C0 — minimal pending-candidate path). Story C1 (WEL-178, enrichment) is blocked by WEL-173/S2b, not by this approved MVP scope.
 
 ---
 

@@ -1,11 +1,11 @@
 # Decision: Thread genesis triage decision contract & consumer event boundary
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-06-18  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (S1 — to be created on plan approval; research recommends a shared approval gate with the concern-key Spike, see Plan-level note)  
-**Blocks:** Story B0 (genesis consumer skeleton + decision ledger) and Story B1 (high-confidence auto-create path)
+**Jira Spike:** WEL-171 (merged S1+S3 — one shared approval gate with the concern-key record `thread-genesis-concern-resolution-key.md`)  
+**Blocks:** WEL-175 (Story B0 — genesis consumer skeleton + decision ledger) and WEL-176 (Story B1 — high-confidence auto-create path)
 
 ---
 

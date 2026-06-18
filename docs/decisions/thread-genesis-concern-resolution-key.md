@@ -1,11 +1,11 @@
 # Decision: Concern resolution key, dedup/grouping, and reopen-vs-new-episode policy
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-06-18  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
-**Jira Spike:** WEL-XXX (S3 — to be created on plan approval; research recommends merging with the triage-decision-contract Spike (S1) or sharing one approval gate, see Plan-level note)  
-**Blocks:** Story B1 (high-confidence auto-create path — cannot dedup without the key)
+**Jira Spike:** WEL-171 (merged S1+S3 — one shared approval gate with the triage-decision-contract record `thread-genesis-triage-decision-contract.md`)  
+**Blocks:** WEL-176 (Story B1 — high-confidence auto-create path; cannot dedup without the key)
 
 ---
 
