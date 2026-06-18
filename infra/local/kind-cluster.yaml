@@ -1,0 +1,31 @@
+# kind cluster config for local WellBe dev.
+#
+# Adds the two things a plain `kind create cluster` lacks for HTTP ingress:
+#   1. extraPortMappings — bind the node's :80/:443 to the host (127.0.0.1),
+#      so an ingress controller is reachable from the Mac without port-forward.
+#   2. node-labels: ingress-ready=true — the label ingress-nginx's kind values
+#      target with a nodeSelector, so the controller lands on this node.
+#
+# Recreate the cluster with:
+#   kind delete cluster --name desktop
+#   kind create cluster --name desktop --config infra/local/kind-cluster.yaml
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: desktop
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        listenAddress: "127.0.0.1"
+        protocol: TCP
