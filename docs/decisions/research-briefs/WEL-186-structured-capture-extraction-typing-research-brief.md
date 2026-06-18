@@ -41,12 +41,14 @@ This brief is about an internal data-processing problem — **how raw captures b
 
 ## 2. The problem we are solving
 
-When a user (or an import) records a piece of health context, it enters WellBe as a **capture** with a declared **type** — for example:
+When a user (or an import) records a piece of health context, it enters WellBe as a **capture** with a declared **type**. There are exactly **four** capture types today:
 
 - `symptom` — free text, e.g. *"Dry cough most mornings for three weeks, unusual afternoon tiredness."*
-- `lab` — **structured** fields, e.g. `{ test_name: "LDL cholesterol", value: "165", unit: "mg/dL", reference_range: "<130" }`
+- `lab` — **structured** fields, e.g. `{ test_name: "LDL cholesterol", value: "165", unit: "mg/dL", reference_range: "<130" }`.
 - `note` — free text.
-- (and others, including vital signs such as blood pressure.)
+- `document` — a binary upload (e.g. a PDF or image), routed to a separate document/OCR path (not the focus of this brief).
+
+**Important nuance — there is no dedicated `vital` capture type.** Vital signs currently arrive **inside `lab` captures**, e.g. `{ test_name: "Blood pressure", value: "128/82", unit: "mmHg" }`. So the target node types we want (`LabResult` vs `VitalSign`) **cannot be distinguished by `capture_type` alone** — both are `lab`. Telling a vital from a lab must come from the **content** (test name / units / shape of the value), which is part of what this research must address.
 
 A downstream **Processing Pipeline** turns each capture into one or more **facts** (typed atomic assertions), and each fact becomes a **node** in a personal knowledge graph. Nodes carry a **node type** (e.g. `Symptom`, `LabResult`, `VitalSign`, `Medication`, `Other`). Many features filter strictly by node type — for instance, a "coverage" view of health areas (cardiovascular, metabolic, etc.) only counts `LabResult` and `VitalSign` nodes.
 
@@ -73,7 +75,7 @@ Result in the graph: the four lab/vital items were stored as **node type `Other`
 ## 4. What exists vs. what does not (factual)
 
 **Exists:**
-- A declared `capture_type` on every capture, and structured payloads for `lab` (and the ability to express vitals).
+- A declared `capture_type` on every capture (one of `symptom`, `lab`, `document`, `note`), with structured payloads for `lab` — which is also how vital signs arrive today (e.g. blood pressure as a `lab`).
 - An immutable raw store with provenance.
 - A fact model with a `fact_type` field and a defined enum of fact types (including `lab_result`, `vital_sign`, `symptom`, `medication`, `finding`, `allergy`, `procedure`, `immunization`, `family_history`, `social_history`, `other`).
 - A correct `fact_type → node_type` map (already supports `LabResult`, `VitalSign`, etc.).
@@ -88,7 +90,7 @@ Result in the graph: the four lab/vital items were stored as **node type `Other`
 
 ## 5. Constraints your recommendation must satisfy
 
-1. **Correct typing for known-structured captures.** A `lab` capture must become a `LabResult`; a vital-sign capture (e.g. blood pressure) must become a `VitalSign`.
+1. **Correct typing for known-structured captures.** A `lab` capture must become a `LabResult` — **except** when its content is actually a vital sign (e.g. blood pressure), which must become a `VitalSign`. Because vitals are not a distinct capture type (they arrive as `lab` captures, see §2), this lab-vs-vital distinction must be derived from **content**, not the declared `capture_type`.
 2. **No regression of the free-text path.** Symptom/medication/free-text extraction must keep working unchanged.
 3. **Idempotency / at-least-once safety preserved.** Re-processing the same capture must not create duplicates or double-fire downstream work (deterministic identity must still hold for the new fact types).
 4. **No orphan claims.** Every produced fact must remain traceable to its raw source.
