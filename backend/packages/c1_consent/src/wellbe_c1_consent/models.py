@@ -3,10 +3,14 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, Integer, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from wellbe_db import Base, TimestampMixin, UUIDPrimaryKeyMixin
+
+# Migration 021/009 create these timestamp columns as timestamptz; the ORM must
+# match (timezone=True) or asyncpg rejects tz-aware datetimes on write.
+_TZ = DateTime(timezone=True)
 
 
 class ConsentScopeRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -112,8 +116,8 @@ class AccountRow(UUIDPrimaryKeyMixin, Base):
     controller_patient_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
     display_name: Mapped[str | None] = mapped_column(Text)
     contact_email: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
 
 
 class OnboardingSessionRow(UUIDPrimaryKeyMixin, Base):
@@ -136,9 +140,9 @@ class OnboardingSessionRow(UUIDPrimaryKeyMixin, Base):
     consent_version: Mapped[str] = mapped_column(Text, nullable=False)
     choices: Mapped[dict] = mapped_column(JSONB, default=dict)
     baseline: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    finalized_at: Mapped[datetime | None] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
+    finalized_at: Mapped[datetime | None] = mapped_column(_TZ)
 
 
 class RoleBindingRow(Base):
@@ -157,8 +161,8 @@ class RoleBindingRow(Base):
     organization_id: Mapped[uuid.UUID | None] = mapped_column()
     credential_ref: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="active")
-    verified_at: Mapped[datetime | None] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    verified_at: Mapped[datetime | None] = mapped_column(_TZ)
+    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
 
 
 class WorkspaceRow(Base):
@@ -178,7 +182,7 @@ class WorkspaceRow(Base):
     policy_profile_id: Mapped[uuid.UUID | None] = mapped_column()
     default_expiry_policy: Mapped[dict] = mapped_column(JSONB, default=dict)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="active")
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
 
 
 class WorkspaceMembershipRow(Base):
@@ -197,4 +201,4 @@ class WorkspaceMembershipRow(Base):
     )
     status: Mapped[str] = mapped_column(Text, nullable=False, default="active")
     invited_by_role_binding_id: Mapped[uuid.UUID | None] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())

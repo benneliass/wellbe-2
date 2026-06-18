@@ -34,23 +34,43 @@ function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+// Snapshot cache: useSyncExternalStore compares snapshots by reference, so
+// getSession() MUST return a stable object while the stored value is unchanged.
+// Re-parsing JSON on every call returns a fresh object each time, which makes the
+// store think it changed on every render -> infinite re-render loop. Cache the
+// parsed value keyed on the raw string and only re-parse when the raw changes.
+let cachedRaw: string | null = null;
+let cachedSession: Session | null = null;
+
 export function getSession(): Session | null {
   if (!isBrowser()) return null;
+  let raw: string | null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    raw = window.localStorage.getItem(STORAGE_KEY);
   } catch {
     return null;
   }
+  if (raw === cachedRaw) return cachedSession;
+  cachedRaw = raw;
+  try {
+    cachedSession = raw ? (JSON.parse(raw) as Session) : null;
+  } catch {
+    cachedSession = null;
+  }
+  return cachedSession;
 }
 
 function write(session: Session | null): void {
   if (!isBrowser()) return;
+  // Keep the snapshot cache in lockstep so same-tab reads are immediately stable.
   if (session) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    cachedRaw = JSON.stringify(session);
+    window.localStorage.setItem(STORAGE_KEY, cachedRaw);
   } else {
+    cachedRaw = null;
     window.localStorage.removeItem(STORAGE_KEY);
   }
+  cachedSession = session;
   window.dispatchEvent(new Event(EVENT));
 }
 

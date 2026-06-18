@@ -50,5 +50,7 @@ test("Ask WellBe carries the typed query to /ask", async ({ page }) => {
   await page.getByLabel("Ask WellBe").fill("knee pain");
   await page.getByRole("button", { name: "Go" }).click();
   await expect(page).toHaveURL(/\/ask\?q=knee%20pain$/);
-  await expect(page.getByText("knee pain")).toBeVisible();
+  // The query is carried into the Ask input (a loose text match would also hit
+  // seeded "knee pain" thread content in the dev workspace).
+  await expect(page.getByLabel("Ask WellBe")).toHaveValue("knee pain");
 });
