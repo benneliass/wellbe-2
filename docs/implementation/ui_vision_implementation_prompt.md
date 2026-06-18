@@ -59,6 +59,19 @@ On mobile, use bottom navigation with one major task per screen. On desktop/tabl
 
 ## Core Screens To Design First
 
+### 0. Front Door, Onboarding, and Workspace Switcher
+
+Purpose: deliberately enter WellBe. There is **no auto-login** — an unauthenticated visitor sees a calm chooser, never a populated dashboard.
+
+Design modules:
+
+- front door with three honest paths: **New to WellBe** (start onboarding → fresh empty personal workspace), **Continue** (returning identity signs back in), and **choose a specific workspace** (e.g. a labelled Dev/test workspace; later grant-scoped role workspaces) — selecting a workspace is always explicit, never automatic
+- first-run onboarding: personal-first welcome → minimal **core** consent (create private workspace, store/retrieve what the user adds, organise into threads, keep a private audit record) → optional, skippable baseline (name, what they hope WellBe helps with) → finalize. Resumable and idempotent; nothing beyond core consent is pre-granted (everything else is asked at point of use)
+- persistent workspace switcher in the nav rail: shows the active scope, lists only the contexts the individual can act in (personal first), makes switching explicit, and is the only place to sign out. It is display-safe — membership is presence, never data access; each non-personal context shows what it does NOT imply, with a standing note that membership never means access to others' data
+- no institution can enable, switch on, or reveal a workspace on the user's behalf
+
+Design target: backend onboarding (`/v1/onboarding`) and persisted workspace enumeration (`/v2/workspaces`) exist; the real ZITADEL OIDC redirect is a later adapter swap behind the same sign-in seam.
+
 ### 1. Personal Home
 
 Purpose: answer "what needs my attention today?"

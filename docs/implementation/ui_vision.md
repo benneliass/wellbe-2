@@ -129,6 +129,20 @@ The top-level product should stay small:
 
 On mobile, this maps naturally to bottom navigation with no more than five destinations. On larger screens, a left sidebar can expose the same structure with thread filters and grants.
 
+### Entry, Onboarding, and Workspace Switching
+
+Before any workspace surface, there is an explicit **front door**. WellBe never auto-signs anyone in: identity is always the result of a deliberate choice, so the smallest truthful state for an unauthenticated visitor is a calm chooser, not a populated dashboard.
+
+The front door offers three honest paths:
+
+- **New to WellBe** — begins first-run onboarding and mints a fresh, empty *personal* workspace.
+- **Continue** — a returning identity signs back in and lands in their own workspace.
+- **A specific workspace** (e.g. a labelled "Dev"/test workspace, or later a grant-scoped role workspace) — selecting a workspace is always an explicit act, never an automatic default. The personal workspace is the always-present default *destination*, but it is never entered without an explicit sign-in.
+
+**Onboarding** is a short, calm, resumable, idempotent sequence: a personal-first welcome → minimal **core** consent (only what is needed to create the private workspace, store/retrieve what the user adds, organise it into threads, and keep a private audit record) → an optional, skippable baseline (name, what they hope WellBe helps with) → finalize. Anything beyond core consent is requested later, at the moment of use, never pre-granted. Finalization is atomic: a half-finished onboarding leaves nothing effective, and re-running it never double-provisions.
+
+A persistent **workspace switcher** lives in the nav rail. It always shows the active scope, lists only the contexts the individual can act in (their personal workspace first), and makes switching explicit and visible. It is a display-safe projection of the access model: membership is presence, never data access, so each non-personal context shows what it does *not* imply, alongside a standing note that membership never means access to others' data. Sign out lives here too — the only way to leave a session, since there is no auto-login. No workspace can ever be enabled, switched on, or made visible by an institution on the user's behalf.
+
 ### Home Screen
 
 Home should begin as a holistic, calm landing surface and answer "what needs my attention today?" It should have:
@@ -751,6 +765,9 @@ Safety-specific UI requirements:
 
 Build first:
 
+- front door (explicit sign-in chooser; no auto-login)
+- first-run onboarding (welcome → core consent → optional baseline → finalize)
+- personal-first workspace switcher with persistent active-scope indicator
 - Personal Home
 - Health Thread Detail
 - Story Memory capture
