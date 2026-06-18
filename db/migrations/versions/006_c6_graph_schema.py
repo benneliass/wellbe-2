@@ -29,8 +29,15 @@ EDGE_TYPE_SEEDS = [
 
 
 def upgrade() -> None:
-    # Apache AGE requires a custom Postgres build; skip if unavailable
+    # Apache AGE requires a custom Postgres build; skip if unavailable.
     op.execute("LOAD 'age'")
+    # create_graph() builds btree indexes that reference the unqualified
+    # "graphid_ops" operator class, which only resolves when ag_catalog is on
+    # the search_path. Without this, create_graph fails with
+    # 'operator class "graphid_ops" does not exist for access method "btree"'.
+    # ag_catalog is created by CREATE EXTENSION age below; Postgres tolerates a
+    # not-yet-existing schema in search_path until the extension creates it.
+    op.execute('SET search_path = ag_catalog, "$user", public')
     op.execute("""
         DO $$ BEGIN
           BEGIN
@@ -41,6 +48,9 @@ def upgrade() -> None:
           END;
         END $$;
     """)
+    # Restore the default search_path so later statements/migrations are not
+    # affected by the ag_catalog override above.
+    op.execute('SET search_path = "$user", public')
 
     op.execute("CREATE SCHEMA IF NOT EXISTS graph")
 
