@@ -1,8 +1,8 @@
 # Decision: MVP onboarding consent + identity flow on top of C1
 
-**Status:** Proposed (awaiting approval)  
+**Status:** Approved  
 **Date opened:** 2026-06-18  
-**Date approved:** (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
 **Jira Spike:** WEL-183  
 **Blocks:** WEL-181 [MVP onboarding / first-run flow: welcome, consent capture, baseline profile & goals]

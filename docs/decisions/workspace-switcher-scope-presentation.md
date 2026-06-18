@@ -1,8 +1,8 @@
 # Decision: Workspace switcher presentation + scoping under C17
 
-**Status:** Proposed (awaiting approval)  
+**Status:** Approved  
 **Date opened:** 2026-06-18  
-**Date approved:** (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
 **Jira Spike:** WEL-184  
 **Blocks:** WEL-182 [Workspace identity + switcher UI (personal + grant-scoped role workspaces)]
