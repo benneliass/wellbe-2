@@ -235,12 +235,14 @@ Each edge carries: `PotentialScore` (0–100), `score_level` (7 levels), `source
 ## Part IX — Interaction model & states
 
 ### IX.1 Entry
-Land on the relevance-weighted full constellation (III.6): active concerns bright/central, resolved dimmed/peripheral. A "zoom out" reveals the full galaxy; "tidy up" triggers opt-in re-layout.
+Land on the **progressive cluster overview** (III.6, XV.1): concern clusters, counts, open loops, and high-confidence bridge concepts — relevance-ordered (active prominent, resolved dimmed, never hidden). An explicit "Explore all connections" mode reveals the full galaxy; "tidy up" triggers opt-in re-layout.
 
 ### IX.2 Core interactions
-- **Tap node** → select; show a side drawer (label, type, dates, evidence count, thread membership).
-- **Tap node again / expand affordance** → reveal full neighborhood: related concepts + their captures (III.5), respecting the confidence floor.
-- **Tap edge** → "why connected?" panel (IV.2).
+- **Hover node** (pointer devices) → highlight the node and its edges/immediate neighbors, dim the rest, and show a lightweight quick-label tooltip (name · type · evidence count). Non-committal — no panel opens. See IX.5.
+- **Hover edge** (pointer devices) → highlight the edge and both endpoints; show the **plain-language relationship family** as a tooltip (e.g. "Around the same time") — the lightweight precursor to the full "why connected?" panel. Never the raw edge-type name.
+- **Tap node** → select; show a side drawer (label, type, dates, evidence count, thread membership). Selection persists the neighbor-highlight.
+- **Tap node again / expand affordance** → reveal budgeted neighborhood: top 5–12 related concepts, captures behind the evidence drawer (III.5), respecting the confidence floor.
+- **Tap edge** → "why connected?" panel (IV.2) — relationship family, signals, source captures on both ends, safety line.
 - **Long-press / right-click node** → action-radial (IV.4): Ask · Add capture · Mark resolved · Correct · Add to visit packet · Hide.
 - **Pinch / scroll** → semantic zoom across cluster → concept → capture LOD (IV.3).
 - **Collapse control** → per-branch collapse to manage density.
@@ -256,6 +258,19 @@ Land on the relevance-weighted full constellation (III.6): active concerns brigh
 ### IX.4 Always-available non-graph equivalent
 Per VI.6, every node/edge is also reachable via list/timeline views. The graph is a lens, never a gate.
 
+### IX.5 Micro-interactions, feedback & motion (subtle details)
+The graph reads as calm only if the small interactions are deliberate. Grounded in the research review (edge hover/tap accuracy, edge tap usability, onboarding microcopy, "use animation sparingly").
+
+- **Two-tier reveal (hover vs commit):** hover is *non-committal* (highlight + tooltip/quick-label, IX.2); tap/click is the *commit* that opens the drawer or "why connected?" panel. This keeps exploration cheap and avoids opening heavy panels by accident. On touch (no hover), the quick-label is shown briefly on first tap before the panel on second tap, or inline in the panel header.
+- **Focus & neighbor highlighting:** selecting (or hovering) a node lifts it and its 1-hop neighborhood and dims everything else, so a connection is read as *local and bounded*, not as part of a dense web. Clearing selection restores the resting view.
+- **Edge hover quick-label:** shows only the plain-language relationship family + a confidence cue (e.g. "Around the same time · weak"), never the raw edge type and never a causal verb. The full evidence/sources live in the tap panel (IV.2).
+- **Weak/exploratory edges:** faint + dashed (IV.1); on hover they brighten just enough to be inspectable, with copy reminding they are unconfirmed ("Exploratory connection — may be incomplete or coincidental").
+- **Hidden-count affordances:** "Showing 8 of 31 related items" with a "show more" that reveals in batches (III.5); counts are suppressed for data outside the viewer's grant (XV.7).
+- **Onboarding (first view):** a one-time, dismissible coachmark explaining the legend — that brightness = activity not severity, and lines = recorded relationships not proof of cause (ties to the persistent legend, XV.13). Re-accessible from a "?" affordance.
+- **Motion budget:** animation used **sparingly** — gentle docking of new nodes (IV.5), smooth zoom/expand transitions, no looping pulses or attention-grabbing motion. All non-essential motion respects `prefers-reduced-motion` (and a manual "reduce motion" toggle); reduced-motion replaces transitions with instant state changes.
+- **Loading / empty / error micro-states:** skeleton clusters while the overview loads; the calm cold-start prompt when there is no data (IX.3); a non-alarming inline message if a scoped region can't be shown.
+- **Hit targets & precision:** edges/nodes meet mobile touch-target sizes; edge hit areas are padded so thin/weak edges remain tappable (validated in the renderer bakeoff, XV.12).
+
 ## Part X — Visual language
 
 Aligned to WellBe's calm, personal-first aesthetic (see `docs/implementation/ui_vision.md`).
@@ -264,7 +279,8 @@ Aligned to WellBe's calm, personal-first aesthetic (see `docs/implementation/ui_
 - **Nodes:** **never size-alone for mixed signals** (large reads as "serious"). Split channels: activity → brightness/opacity; evidence volume → ring count / chip; user priority → pin/star; open loop → small task badge. Shape/icon encodes node type so color is never the sole signal.
 - **Edges:** weight/opacity/dash encode **evidence strength** only (not severity/activity); user-authored edges visually distinct; no red "danger" edges.
 - **Color:** per-concern tints for clusters; relevance via brightness/saturation (active bright, resolved dim). No clinical red/green risk coding.
-- **Motion:** gentle docking of new nodes (IV.5); no aggressive pulsing; transitions are slow and calm.
+- **Motion:** used **sparingly** — gentle docking of new nodes (IV.5); no aggressive pulsing or looping motion; transitions slow and calm; honors `prefers-reduced-motion` (see IX.5).
+- **Hover/focus:** highlight node/edge + 1-hop neighborhood and dim the rest; lightweight quick-label tooltips on hover; commit (panel/drawer) only on tap/click (see IX.5).
 - **Typography & chrome:** consistent with the workspace shell (`TopBar`, `PageBody`); evidence chips and date labels appear only at deep zoom.
 
 ## Part XI — Current state vs target
