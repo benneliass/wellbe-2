@@ -51,6 +51,10 @@ class EvidenceSourceType(str, Enum):
     MEMORY_ENTRY = "memory_entry"
     AI_SUMMARY = "ai_summary"
     AI_RESPONSE = "ai_response"
+    # A C7 Health Thread created from the pipeline carries originating evidence
+    # back to the raw capture(s) it was opened from — thread genesis must never
+    # produce a thread whose origin is untraceable (no orphan claims).
+    HEALTH_THREAD = "health_thread"
 
 
 class ConfidenceBasis(str, Enum):

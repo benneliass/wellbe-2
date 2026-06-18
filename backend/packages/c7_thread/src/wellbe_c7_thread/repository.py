@@ -23,16 +23,25 @@ class ThreadRepository:
         thread_id: uuid.UUID,
         patient_id: uuid.UUID,
         title: str,
+        status: str = "draft",
+        created_by: str = "user",
+        created_via: str | None = None,
+        genesis_reason: str | None = None,
+        concern_key: dict[str, object] | None = None,
     ) -> HealthThreadRow:
         now = _utcnow()
         row = HealthThreadRow(
             id=thread_id,
             patient_id=patient_id,
             title=title,
-            status="draft",
+            status=status,
             status_version=1,
             status_changed_at=now,
             created_at=now,
+            created_by=created_by,
+            created_via=created_via,
+            genesis_reason=genesis_reason,
+            concern_key=concern_key,
         )
         self._session.add(row)
         await self._session.flush()

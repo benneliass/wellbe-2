@@ -8,15 +8,22 @@ import pytest
 from wellbe_c7_thread.errors import (
     ClosureSafetyError,
     InvalidTransitionError,
+    SystemThreadRequiresEvidenceError,
     ThreadNotFoundError,
     VersionConflictError,
 )
 from wellbe_c7_thread.repository import ThreadRepository
 from wellbe_c7_thread.service import ThreadService
+from wellbe_contracts.c5_evidence import (
+    ConfidenceBasis,
+    EvidenceLinkType,
+    EvidenceRef,
+)
 from wellbe_contracts.c7_thread import (
     HealthThreadStatus,
     ThreadActor,
     ThreadActorType,
+    ThreadCreatedBy,
     TransitionGuardContext,
 )
 
@@ -42,6 +49,103 @@ def service():
 
 def _actor() -> ThreadActor:
     return ThreadActor(type=ThreadActorType.USER, id=uuid.uuid4())
+
+
+def _evidence_ref() -> EvidenceRef:
+    return EvidenceRef(
+        raw_context_event_id=uuid.uuid4(),
+        link_type=EvidenceLinkType.PRIMARY,
+        confidence=0.9,
+        confidence_basis=ConfidenceBasis.EXTRACTION_MODEL,
+    )
+
+
+class TestCreateThread:
+    @pytest.mark.asyncio
+    async def test_user_create_defaults_to_draft_without_evidence(self, service):
+        with patch("wellbe_c5_evidence.service.EvidenceService") as mock_es:
+            tid = await service.create_thread(
+                patient_id=uuid.uuid4(), title="Cough"
+            )
+
+        assert isinstance(tid, uuid.UUID)
+        service._repo.create_thread.assert_awaited_once()
+        kwargs = service._repo.create_thread.await_args.kwargs
+        assert kwargs["status"] == HealthThreadStatus.DRAFT.value
+        assert kwargs["created_by"] == ThreadCreatedBy.USER.value
+        # No evidence supplied for a manual draft → C5 is never touched.
+        mock_es.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_system_create_without_evidence_raises_before_any_write(self, service):
+        with pytest.raises(SystemThreadRequiresEvidenceError):
+            await service.create_thread(
+                patient_id=uuid.uuid4(),
+                title="Cough",
+                created_by=ThreadCreatedBy.SYSTEM,
+                initial_status=HealthThreadStatus.ACTIVE_UNRESOLVED,
+            )
+        # Invariant is checked before insert: no orphan thread is ever flushed.
+        service._repo.create_thread.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_system_create_writes_thread_and_links_evidence_atomically(self, service):
+        ref = _evidence_ref()
+        evidence_instance = AsyncMock()
+        patient_id = uuid.uuid4()
+
+        with patch(
+            "wellbe_c5_evidence.service.EvidenceService",
+            return_value=evidence_instance,
+        ) as mock_es:
+            tid = await service.create_thread(
+                patient_id=patient_id,
+                title="Cough",
+                created_by=ThreadCreatedBy.SYSTEM,
+                initial_status=HealthThreadStatus.ACTIVE_UNRESOLVED,
+                created_via="continuity_triage",
+                genesis_reason="explicit_user_concern",
+                concern_key={"concept": "cough", "type": "symptom"},
+                evidence_refs=[ref],
+                correlation_id="corr-1",
+                trace_id="trace-1",
+            )
+
+        # Thread row written with genesis metadata + the genesis initial status.
+        kwargs = service._repo.create_thread.await_args.kwargs
+        assert kwargs["status"] == HealthThreadStatus.ACTIVE_UNRESOLVED.value
+        assert kwargs["created_by"] == ThreadCreatedBy.SYSTEM.value
+        assert kwargs["created_via"] == "continuity_triage"
+        assert kwargs["genesis_reason"] == "explicit_user_concern"
+        assert kwargs["concern_key"] == {"concept": "cough", "type": "symptom"}
+
+        # Same session passed to C5 so the writes share one transaction.
+        mock_es.assert_called_once_with(service._session)
+        evidence_instance.link_thread.assert_awaited_once()
+        link_kwargs = evidence_instance.link_thread.await_args.kwargs
+        assert link_kwargs["thread_id"] == tid
+        assert link_kwargs["patient_id"] == patient_id
+        assert link_kwargs["evidence_refs"] == [ref]
+        assert link_kwargs["linked_by"] == "system"
+
+    @pytest.mark.asyncio
+    async def test_user_create_with_evidence_links_as_user(self, service):
+        ref = _evidence_ref()
+        evidence_instance = AsyncMock()
+
+        with patch(
+            "wellbe_c5_evidence.service.EvidenceService",
+            return_value=evidence_instance,
+        ):
+            await service.create_thread(
+                patient_id=uuid.uuid4(),
+                title="Cough",
+                created_by=ThreadCreatedBy.USER,
+                evidence_refs=[ref],
+            )
+
+        evidence_instance.link_thread.assert_awaited_once()
+        assert evidence_instance.link_thread.await_args.kwargs["linked_by"] == "user"
 
 
 class TestTransitionThread:

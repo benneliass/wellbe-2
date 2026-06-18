@@ -25,6 +25,10 @@ class HealthThreadRow(Base):
             "'closed','reopened','archived')",
             name="ck_health_thread_status",
         ),
+        CheckConstraint(
+            "created_by IN ('user','system')",
+            name="ck_health_thread_created_by",
+        ),
         {"schema": "thread"},
     )
 
@@ -37,6 +41,14 @@ class HealthThreadRow(Base):
         DateTime(timezone=True), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    # Genesis provenance (thread-genesis-from-capture.md / triage-decision-contract).
+    # ``user`` for manual creation; ``system`` for continuity/triage genesis, which
+    # additionally requires at least one C5 originating evidence link.
+    created_by: Mapped[str] = mapped_column(Text(), nullable=False, default="user")
+    created_via: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    genesis_reason: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    concern_key: Mapped[dict[str, object] | None] = mapped_column(JSONB(), nullable=True)
 
 
 class ThreadStateTransitionRow(Base):

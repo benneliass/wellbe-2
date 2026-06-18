@@ -3,6 +3,7 @@
 from wellbe_c7_thread.errors import (
     ClosureSafetyError,
     InvalidTransitionError,
+    SystemThreadRequiresEvidenceError,
     ThreadError,
     ThreadNotFoundError,
     VersionConflictError,
@@ -21,6 +22,7 @@ __all__ = [
     "InvalidTransitionError",
     "ClosureSafetyError",
     "VersionConflictError",
+    "SystemThreadRequiresEvidenceError",
     "validate_edge",
     "validate_transition",
     "evaluate_safety_guards",

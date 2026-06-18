@@ -15,12 +15,14 @@ import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from wellbe_contracts.c5_evidence import EvidenceRef
 from wellbe_contracts.c7_thread import (
     RESOLVED_THREAD_STATUSES,
     THREAD_STATE_CHANGED,
     HealthThreadStatus,
     ThreadActor,
     ThreadClosureSnapshot,
+    ThreadCreatedBy,
     ThreadEvidenceRef,
     ThreadStateChangedPayload,
     ThreadTransitionResult,
@@ -28,7 +30,11 @@ from wellbe_contracts.c7_thread import (
 )
 from wellbe_events import emit_event
 
-from wellbe_c7_thread.errors import ThreadNotFoundError, VersionConflictError
+from wellbe_c7_thread.errors import (
+    SystemThreadRequiresEvidenceError,
+    ThreadNotFoundError,
+    VersionConflictError,
+)
 from wellbe_c7_thread.repository import ThreadRepository
 from wellbe_c7_thread.state_machine import validate_transition
 
@@ -48,10 +54,63 @@ class ThreadService:
         patient_id: uuid.UUID,
         title: str,
         thread_id: uuid.UUID | None = None,
+        created_by: ThreadCreatedBy = ThreadCreatedBy.USER,
+        initial_status: HealthThreadStatus = HealthThreadStatus.DRAFT,
+        created_via: str | None = None,
+        genesis_reason: str | None = None,
+        concern_key: dict[str, object] | None = None,
+        evidence_refs: list[EvidenceRef] | None = None,
+        correlation_id: str | None = None,
+        trace_id: str | None = None,
     ) -> uuid.UUID:
-        """Create a new thread in ``draft`` status. Returns the thread id."""
+        """Create a new thread and return its id.
+
+        Manual creation (``created_by=user``) defaults to ``draft`` with no
+        evidence, preserving the existing ``POST /v1/threads`` behaviour.
+
+        System genesis (``created_by=system``) is the continuity/triage path: it
+        carries genesis metadata and **must** supply at least one originating
+        ``EvidenceRef``. The thread row and its C5 evidence links are written in
+        the same uncommitted transaction (the caller owns the commit), so a
+        ``CREATE_NEW_THREAD`` outcome is atomic — there is never a system thread
+        whose origin is untraceable (no orphan claims). If evidence linking fails
+        (e.g. a referenced raw event is missing), the error propagates and the
+        caller's rollback removes the half-written thread.
+        """
+        evidence_refs = evidence_refs or []
+
+        # Invariant: a system-created thread requires originating evidence. Check
+        # before inserting anything so an orphan thread is never even flushed.
+        if created_by is ThreadCreatedBy.SYSTEM and not evidence_refs:
+            raise SystemThreadRequiresEvidenceError(patient_id)
+
         tid = thread_id or uuid.uuid4()
-        await self._repo.create_thread(thread_id=tid, patient_id=patient_id, title=title)
+        await self._repo.create_thread(
+            thread_id=tid,
+            patient_id=patient_id,
+            title=title,
+            status=initial_status.value,
+            created_by=created_by.value,
+            created_via=created_via,
+            genesis_reason=genesis_reason,
+            concern_key=concern_key,
+        )
+
+        if evidence_refs:
+            # C7 depends on C5 (component map): link originating evidence in the
+            # same transaction so commit/rollback is atomic with the thread row.
+            from wellbe_c5_evidence.service import EvidenceService
+
+            evidence_service = EvidenceService(self._session)
+            await evidence_service.link_thread(
+                thread_id=tid,
+                patient_id=patient_id,
+                evidence_refs=evidence_refs,
+                correlation_id=correlation_id or str(tid),
+                trace_id=trace_id or str(tid),
+                linked_by="system" if created_by is ThreadCreatedBy.SYSTEM else "user",
+            )
+
         return tid
 
     async def get_closure_snapshot(

@@ -22,7 +22,7 @@ class EvidenceLinkRow(Base):
             name="ck_evidence_link_type",
         ),
         CheckConstraint(
-            "source_type IN ('extracted_fact', 'health_signal', 'memory_entry', 'ai_summary', 'ai_response')",
+            "source_type IN ('extracted_fact', 'health_signal', 'memory_entry', 'ai_summary', 'ai_response', 'health_thread')",
             name="ck_evidence_source_type",
         ),
         CheckConstraint(

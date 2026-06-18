@@ -57,6 +57,19 @@ class ThreadActorType(StrEnum):
     ADMIN = "admin"
 
 
+class ThreadCreatedBy(StrEnum):
+    """Provenance of a thread's genesis.
+
+    ``user`` — a person explicitly opened the thread (manual ``POST /v1/threads``);
+    may start without extracted evidence but still records user provenance.
+    ``system`` — the continuity/triage genesis consumer opened it from the pipeline;
+    must carry at least one C5 originating evidence link (no orphan claims).
+    """
+
+    USER = "user"
+    SYSTEM = "system"
+
+
 # ---------------------------------------------------------------------------
 # Structurally-allowed transition graph (edge validity)
 #
@@ -259,6 +272,7 @@ __all__ = [
     # Enums
     "HealthThreadStatus",
     "ThreadActorType",
+    "ThreadCreatedBy",
     # Transition graph
     "ALLOWED_TRANSITIONS",
     "is_edge_allowed",

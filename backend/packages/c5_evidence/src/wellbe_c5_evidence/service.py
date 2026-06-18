@@ -242,6 +242,97 @@ class EvidenceService:
 
         return link_ids
 
+    async def link_thread(
+        self,
+        *,
+        thread_id: uuid.UUID,
+        patient_id: uuid.UUID,
+        evidence_refs: list[EvidenceRef],
+        correlation_id: str,
+        trace_id: str,
+        linked_by: str = "system",
+    ) -> list[uuid.UUID]:
+        """Create originating evidence links for a C7 Health Thread.
+
+        Thread genesis (the continuity/triage consumer) calls this so a
+        pipeline-created thread is atomically backed by the raw capture(s) it was
+        opened from. Same no-orphan-claims contract as ``link_fact``: at least one
+        ref, every ``raw_context_event_id`` must exist in vault, and the deferred
+        Postgres trigger is the second enforcement layer. The caller owns the
+        commit, so the thread row and its evidence links land in one transaction.
+        """
+        if not evidence_refs:
+            await self._emit_orphan_rejected(
+                source_type=EvidenceSourceType.HEALTH_THREAD,
+                source_id=thread_id,
+                patient_id=patient_id,
+                missing_ids=[],
+                reason="No evidence refs provided",
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+            raise NoEvidenceRefsError(
+                f"Thread {thread_id} cannot be written without evidence refs"
+            )
+
+        missing = await self._check_raw_events_exist(
+            [ref.raw_context_event_id for ref in evidence_refs]
+        )
+        if missing:
+            await self._emit_orphan_rejected(
+                source_type=EvidenceSourceType.HEALTH_THREAD,
+                source_id=thread_id,
+                patient_id=patient_id,
+                missing_ids=missing,
+                reason="Referenced raw_context_event_ids do not exist in vault",
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+            raise MissingRawEventError(missing)
+
+        link_ids: list[uuid.UUID] = []
+        for ref in evidence_refs:
+            inserted_id = await self._repo.insert_link(
+                id=uuid.uuid4(),
+                source_type=EvidenceSourceType.HEALTH_THREAD.value,
+                source_id=thread_id,
+                raw_context_event_id=ref.raw_context_event_id,
+                patient_id=patient_id,
+                link_type=ref.link_type.value,
+                confidence=ref.confidence,
+                confidence_basis=ref.confidence_basis.value,
+                linked_by=linked_by,
+                relevance_span_start=ref.relevance_span_start,
+                relevance_span_end=ref.relevance_span_end,
+            )
+            # Re-delivery of an already-linked (thread, raw event, link_type):
+            # the insert was a no-op, so do not re-emit evidence.linked.
+            if inserted_id is None:
+                continue
+            link_ids.append(inserted_id)
+
+            payload = EvidenceLinkedPayload(
+                evidence_link_id=inserted_id,
+                source_type=EvidenceSourceType.HEALTH_THREAD,
+                source_id=thread_id,
+                raw_context_event_id=ref.raw_context_event_id,
+                patient_id=patient_id,
+                link_type=ref.link_type,
+                confidence=ref.confidence,
+                confidence_basis=ref.confidence_basis,
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+            await emit_event(
+                session=self._session,
+                event_type=EVIDENCE_LINKED,
+                payload=payload.model_dump(mode="json"),
+                correlation_id=correlation_id,
+                trace_id=trace_id,
+            )
+
+        return link_ids
+
     async def _check_raw_events_exist(
         self, event_ids: list[uuid.UUID]
     ) -> list[uuid.UUID]:

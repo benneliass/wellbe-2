@@ -37,6 +37,23 @@ class ClosureSafetyError(ThreadError):
         super().__init__("Closure-safety guard rejected transition: " + ", ".join(violations))
 
 
+class SystemThreadRequiresEvidenceError(ThreadError):
+    """Raised when system/pipeline thread genesis is attempted with no evidence.
+
+    Enforces the genesis contract (thread-genesis-from-capture.md): a
+    ``CREATE_NEW_THREAD`` outcome must atomically create the C7 thread AND its C5
+    originating evidence link(s). No auto-created thread may exist without
+    evidence — a thread whose origin is untraceable is an orphan claim.
+    """
+
+    def __init__(self, patient_id: object) -> None:
+        self.patient_id = patient_id
+        super().__init__(
+            "System-created thread requires at least one originating evidence ref "
+            f"(patient {patient_id})"
+        )
+
+
 class VersionConflictError(ThreadError):
     """Raised on optimistic-concurrency conflict (stale expected_version)."""
 
