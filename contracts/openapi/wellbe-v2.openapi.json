@@ -6638,6 +6638,7 @@
     },
     "/v2/workspaces": {
       "get": {
+        "description": "Enumerate the contexts the actor can act in, personal pinned first.\n\nFail-closed for *others'* workspaces (only persisted memberships are returned),\nbut fail-open for the caller's *own* personal surface: if the actor has no\npersisted personal workspace yet (e.g. a dev principal that predates onboarding),\na synthetic personal entry is returned so the personal-first default always holds.",
         "operationId": "list_workspaces_v2_workspaces_get",
         "parameters": [
           {

@@ -38,6 +38,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Onboarding */
+        get: operations["get_onboarding_v1_onboarding_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save Onboarding Draft */
+        patch: operations["save_onboarding_draft_v1_onboarding_patch"];
+        trace?: never;
+    };
+    "/v1/onboarding/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finalize Onboarding */
+        post: operations["finalize_onboarding_v1_onboarding_finalize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/onboarding/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Onboarding */
+        post: operations["start_onboarding_v1_onboarding_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/things-noticed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Things Noticed */
+        get: operations["list_things_noticed_v1_things_noticed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/things-noticed/{candidate_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Thing Noticed */
+        post: operations["confirm_thing_noticed_v1_things_noticed__candidate_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/things-noticed/{candidate_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss Thing Noticed */
+        post: operations["dismiss_thing_noticed_v1_things_noticed__candidate_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/threads": {
         parameters: {
             query?: never;
@@ -557,7 +660,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Workspaces */
+        /**
+         * List Workspaces
+         * @description Enumerate the contexts the actor can act in, personal pinned first.
+         *
+         *     Fail-closed for *others'* workspaces (only persisted memberships are returned),
+         *     but fail-open for the caller's *own* personal surface: if the actor has no
+         *     persisted personal workspace yet (e.g. a dev principal that predates onboarding),
+         *     a synthetic personal entry is returned so the personal-first default always holds.
+         */
         get: operations["list_workspaces_v2_workspaces_get"];
         put?: never;
         post?: never;
@@ -814,6 +925,33 @@ export interface components {
          * @enum {string}
          */
         ConfidenceLabel: "good" | "limited" | "none";
+        /** ConfirmResponseV1 */
+        ConfirmResponseV1: {
+            /** Candidate Id */
+            candidate_id: string;
+            /**
+             * Schema Version
+             * @default c13.thing_noticed_confirm.v1
+             */
+            schema_version: string;
+            /** Status */
+            status: string;
+            /** Thread Id */
+            thread_id: string;
+        };
+        /** ConsentPurposeV1 */
+        ConsentPurposeV1: {
+            /** Action */
+            action: string;
+            /** Data Category */
+            data_category: string;
+            /** Label */
+            label: string;
+            /** Purpose */
+            purpose: string;
+            /** Resource Type */
+            resource_type: string;
+        };
         /**
          * CorrectionTargetKind
          * @enum {string}
@@ -1001,6 +1139,22 @@ export interface components {
              * @constant
              */
             schema_version: "c13.visit_packet.export.v2";
+        };
+        /** FinalizeRequest */
+        FinalizeRequest: {
+            /**
+             * Accept Core Consent
+             * @default false
+             */
+            accept_core_consent: boolean;
+            /** Baseline */
+            baseline?: {
+                [key: string]: unknown;
+            } | null;
+            /** Choices */
+            choices?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** GenerateVisitPacketRequest */
         GenerateVisitPacketRequest: {
@@ -1312,6 +1466,39 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** OnboardingStateV1 */
+        OnboardingStateV1: {
+            /** Account Id */
+            account_id?: string | null;
+            /** Baseline */
+            baseline?: {
+                [key: string]: unknown;
+            };
+            /** Choices */
+            choices?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Consent Version
+             * @default core.v1
+             */
+            consent_version: string;
+            /** Controller Patient Id */
+            controller_patient_id?: string | null;
+            /** Core Consent */
+            core_consent?: components["schemas"]["ConsentPurposeV1"][];
+            /** Display Name */
+            display_name?: string | null;
+            /** Personal Workspace Id */
+            personal_workspace_id?: string | null;
+            /**
+             * Schema Version
+             * @default c13.onboarding.v1
+             */
+            schema_version: string;
+            /** Status */
+            status: string;
+        };
         /**
          * PacketLayer
          * @enum {string}
@@ -1584,6 +1771,17 @@ export interface components {
              */
             reason: string;
         };
+        /** SaveDraftRequest */
+        SaveDraftRequest: {
+            /** Baseline */
+            baseline?: {
+                [key: string]: unknown;
+            } | null;
+            /** Choices */
+            choices?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** SharePacketRequest */
         SharePacketRequest: {
             /**
@@ -1730,6 +1928,13 @@ export interface components {
          * @enum {string}
          */
         SourceQualityTierV2: "tier_1" | "tier_2" | "tier_3" | "tier_4" | "tier_5";
+        /** StartOnboardingRequest */
+        StartOnboardingRequest: {
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+        };
         /**
          * StatementClassification
          * @description Per-statement provenance class (decision Q1c/Q3b).
@@ -1815,6 +2020,40 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ThingNoticedV1 */
+        ThingNoticedV1: {
+            /** Candidate Id */
+            candidate_id: string;
+            /** Candidate Type */
+            candidate_type: string;
+            /** Confidence */
+            confidence?: number | null;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
+            /** Promoted Thread Id */
+            promoted_thread_id?: string | null;
+            /** Reason Code */
+            reason_code?: string | null;
+            /**
+             * Schema Version
+             * @default c13.thing_noticed.v1
+             */
+            schema_version: string;
+            /** Seen Count */
+            seen_count: number;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
         };
         /** ThreadSubgraphV2 */
         ThreadSubgraphV2: {
@@ -2068,6 +2307,271 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaptureResponseV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_onboarding_v1_onboarding_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-issuer"?: string;
+                "x-wellbe-subject"?: string | null;
+                "x-wellbe-display-name"?: string | null;
+                "x-wellbe-email"?: string | null;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingStateV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_onboarding_draft_v1_onboarding_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-issuer"?: string;
+                "x-wellbe-subject"?: string | null;
+                "x-wellbe-display-name"?: string | null;
+                "x-wellbe-email"?: string | null;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingStateV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finalize_onboarding_v1_onboarding_finalize_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-issuer"?: string;
+                "x-wellbe-subject"?: string | null;
+                "x-wellbe-display-name"?: string | null;
+                "x-wellbe-email"?: string | null;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinalizeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingStateV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_onboarding_v1_onboarding_start_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-issuer"?: string;
+                "x-wellbe-subject"?: string | null;
+                "x-wellbe-display-name"?: string | null;
+                "x-wellbe-email"?: string | null;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartOnboardingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingStateV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_things_noticed_v1_things_noticed_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThingNoticedV1"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_thing_noticed_v1_things_noticed__candidate_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmResponseV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_thing_noticed_v1_things_noticed__candidate_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThingNoticedV1"];
                 };
             };
             /** @description Validation Error */

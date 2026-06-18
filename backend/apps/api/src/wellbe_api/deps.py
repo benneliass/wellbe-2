@@ -119,6 +119,49 @@ async def resolve_principal(
 PrincipalDep = Annotated[Principal, Depends(resolve_principal)]
 
 
+@dataclass(frozen=True)
+class Identity:
+    """The authenticated federated identity, present *before* onboarding.
+
+    This is the (issuer, subject) pair an OIDC id-token would carry. Onboarding
+    resolves it to a WellBe controller account; it is deliberately distinct from
+    Principal, which requires a resolved patient/controller. Today the dev adapter
+    reads it from X-Wellbe-Issuer / X-Wellbe-Subject headers; wiring real ZITADEL
+    OIDC (WEL-151) means reading the verified id-token here instead — same contract.
+    """
+
+    issuer: str
+    subject: str
+    display_name: str | None
+    contact_email: str | None
+    correlation_id: str
+    trace_id: str
+
+
+async def resolve_identity(
+    x_wellbe_issuer: Annotated[str, Header()] = "dev-local",
+    x_wellbe_subject: Annotated[str | None, Header()] = None,
+    x_wellbe_display_name: Annotated[str | None, Header()] = None,
+    x_wellbe_email: Annotated[str | None, Header()] = None,
+    x_correlation_id: Annotated[str | None, Header()] = None,
+    x_trace_id: Annotated[str | None, Header()] = None,
+) -> Identity:
+    correlation_id = x_correlation_id or f"corr-{uuid.uuid4().hex[:12]}"
+    if not x_wellbe_subject:
+        raise UnauthenticatedError(correlation_id)
+    return Identity(
+        issuer=x_wellbe_issuer,
+        subject=x_wellbe_subject,
+        display_name=x_wellbe_display_name,
+        contact_email=x_wellbe_email,
+        correlation_id=correlation_id,
+        trace_id=x_trace_id or correlation_id,
+    )
+
+
+IdentityDep = Annotated[Identity, Depends(resolve_identity)]
+
+
 async def require_access(
     principal: Principal,
     session: AsyncSession,

@@ -34,8 +34,18 @@ import os
 import uuid
 
 import httpx
+from wellbe_c1_consent import OnboardingService
+from wellbe_db import create_engine, create_session_factory
+
+from wellbe_api.config import ApiSettings
 
 logger = logging.getLogger("wellbe.dev_seed")
+
+# The dev identity is a real federated identity, just like any user's. It is one
+# selectable workspace — never auto-entered. The web "Dev workspace" sign-in uses
+# exactly this (issuer, subject); its account maps to the seeded patient id.
+DEV_ISSUER = "dev-local"
+DEV_SUBJECT = "dev-controller"
 
 # Namespace for deterministic capture Idempotency-Keys. Fixed so repeated runs
 # map the same logical capture to the same key (idempotent at the raw-record
@@ -249,6 +259,32 @@ async def _seed_captures(client: httpx.AsyncClient, patient_id: str) -> int:
     return created
 
 
+async def _seed_dev_account(patient_id: uuid.UUID) -> None:
+    """Provision the dev identity's account + personal workspace (idempotent).
+
+    Written directly through OnboardingService (not HTTP) because the public
+    onboarding contract deliberately mints a *fresh* patient id for new accounts;
+    only the dev seed maps the well-known dev identity to the pre-seeded patient.
+    """
+    settings = ApiSettings()
+    engine = create_engine(settings.database_url.get_secret_value())
+    factory = create_session_factory(engine)
+    try:
+        async with factory() as session:
+            svc = OnboardingService(session)
+            account = await svc.get_or_create_account(
+                issuer=DEV_ISSUER,
+                subject=DEV_SUBJECT,
+                display_name="Dev workspace",
+                controller_patient_id=patient_id,
+            )
+            await svc.finalize(account)
+            await session.commit()
+        logger.info("dev account provisioned (issuer=%s subject=%s)", DEV_ISSUER, DEV_SUBJECT)
+    finally:
+        await engine.dispose()
+
+
 async def seed() -> None:
     if os.environ.get("WELLBE_DEV_SEED_ENABLED", "").lower() != "true":
         logger.info("WELLBE_DEV_SEED_ENABLED is not 'true'; skipping dev seed")
@@ -258,10 +294,14 @@ async def seed() -> None:
     if not patient_id:
         raise RuntimeError("WELLBE_DEV_PATIENT_ID is required when dev seed is enabled")
     # Validate early — a malformed id would otherwise fail deep in the API.
-    uuid.UUID(patient_id)
+    patient_uuid = uuid.UUID(patient_id)
 
     base_url = os.environ.get("WELLBE_DEV_SEED_API_BASE", "http://api:8001")
     logger.info("dev seed starting (patient=%s, api=%s)", patient_id, base_url)
+
+    # Always ensure the dev account exists (cheap + idempotent) so the "Dev
+    # workspace" sign-in works even when the threads/captures seed is a no-op.
+    await _seed_dev_account(patient_uuid)
 
     async with httpx.AsyncClient(base_url=base_url, timeout=30.0) as client:
         await _wait_for_api(client)

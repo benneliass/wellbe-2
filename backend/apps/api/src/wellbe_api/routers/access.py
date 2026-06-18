@@ -13,8 +13,9 @@ from datetime import UTC, datetime
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, select
-from wellbe_c1_consent import ConsentService
+from wellbe_c1_consent import ConsentService, WorkspaceService
 from wellbe_c1_consent.models import ShareGrantRow
+from wellbe_c1_consent.workspaces import WorkspaceSummary
 from wellbe_contracts.c13_api import (
     AccessPredicateV2,
     AuditRefV2,
@@ -94,7 +95,18 @@ async def access_evaluate(
 
 @router.get("/workspaces", response_model=list[WorkspaceV2])
 async def list_workspaces(principal: PrincipalDep, session: SessionDep) -> list[WorkspaceV2]:
-    return [_personal_workspace(principal)]
+    """Enumerate the contexts the actor can act in, personal pinned first.
+
+    Fail-closed for *others'* workspaces (only persisted memberships are returned),
+    but fail-open for the caller's *own* personal surface: if the actor has no
+    persisted personal workspace yet (e.g. a dev principal that predates onboarding),
+    a synthetic personal entry is returned so the personal-first default always holds.
+    """
+    summaries = await WorkspaceService(session).list_for_actor(principal.actor_id)
+    if not any(s.is_personal for s in summaries):
+        # No persisted personal workspace — synthesize the caller's own only.
+        return [_personal_workspace(principal), *[_summary_to_v2(s) for s in summaries]]
+    return [_summary_to_v2(s) for s in summaries]
 
 
 @router.get("/workspaces/{workspace_id}", response_model=WorkspaceV2)
@@ -103,10 +115,10 @@ async def get_workspace(
 ) -> WorkspaceV2:
     from fastapi import HTTPException  # noqa: PLC0415
 
-    ws = _personal_workspace(principal)
-    if workspace_id != ws.workspace_id:
-        raise HTTPException(status_code=404, detail="workspace_not_found")
-    return ws
+    for ws in await list_workspaces(principal, session):
+        if ws.workspace_id == workspace_id:
+            return ws
+    raise HTTPException(status_code=404, detail="workspace_not_found")
 
 
 @router.get("/grants", response_model=list[GrantV2])
@@ -198,6 +210,24 @@ async def my_audit_events(principal: PrincipalDep, session: SessionDep) -> list[
         )
         for r in rows
     ]
+
+
+def _summary_to_v2(s: WorkspaceSummary) -> WorkspaceV2:
+    now = datetime.now(UTC)
+    return WorkspaceV2(
+        workspace_id=str(s.workspace_id),
+        workspace_type=("personal" if s.is_personal else s.workspace_type),
+        display_name=s.display_name,
+        controller_subject_ref=s.controller_subject_ref,
+        membership_state=s.membership_state,
+        active_role_binding={"role_type": s.role_type, "state": "active"},
+        capability_summary=dict(s.capability_summary),
+        # Membership is presence, never data access — the C17 invariant the
+        # switcher UI projects.
+        data_access_not_implied=True,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 def _personal_workspace(principal: PrincipalDep) -> WorkspaceV2:
