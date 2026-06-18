@@ -18,7 +18,9 @@ from wellbe_c9_continuity.genesis import (
     classify_concern_group,
     decision_inputs_hash,
     derive_concern_key,
+    is_clinically_asserted,
 )
+from wellbe_contracts.c7_thread import HealthThreadStatus, ThreadCreatedBy
 from wellbe_contracts.genesis import (
     CandidateStatus,
     ConcernType,
@@ -119,13 +121,38 @@ class TestDecisionInputsHash:
 
 
 class TestClassifyConcernGroup:
-    def test_concern_forming_defaults_to_candidate(self):
+    def test_uncertain_symptom_defaults_to_candidate(self):
         decision, reason, confidence = classify_concern_group(
             [_fact(extraction_confidence=0.6), _fact(extraction_confidence=0.9)]
         )
         assert decision is GenesisDecision.CREATE_OR_UPDATE_PENDING_CANDIDATE
         assert reason == "default_candidate_pending_classification"
         assert confidence == 0.9
+
+    def test_clinician_diagnosis_creates_thread(self):
+        decision, reason, _ = classify_concern_group(
+            [_fact(fact_type="dx_mention", entity_label="Hypertension")]
+        )
+        assert decision is GenesisDecision.CREATE_NEW_THREAD
+        assert reason == "clinically_asserted_concern"
+
+    def test_flagged_abnormal_lab_creates_thread(self):
+        decision, reason, _ = classify_concern_group(
+            [_fact(fact_type="lab_result", normalized_key="ldl", abnormal_flag=True)]
+        )
+        assert decision is GenesisDecision.CREATE_NEW_THREAD
+        assert reason == "clinically_asserted_concern"
+
+    def test_unflagged_lab_routes_to_candidate(self):
+        decision, _, _ = classify_concern_group(
+            [_fact(fact_type="lab_result", normalized_key="ldl", abnormal_flag=False)]
+        )
+        assert decision is GenesisDecision.CREATE_OR_UPDATE_PENDING_CANDIDATE
+
+    def test_negated_clinical_fact_is_not_asserted(self):
+        # A negated diagnosis ("no hypertension") is not concern-forming, so it
+        # never auto-creates a thread.
+        assert is_clinically_asserted(_fact(fact_type="dx_mention", is_negated=True)) is False
 
     def test_negated_only_group_is_no_thread(self):
         decision, reason, confidence = classify_concern_group(
@@ -171,6 +198,18 @@ def _row(**overrides) -> SimpleNamespace:
 def service():
     svc = ThreadGenesisService(AsyncMock())
     svc._repo = AsyncMock(spec=GenesisDecisionRepository)
+    svc._threads = AsyncMock()
+    svc._thread_repo = AsyncMock()
+    svc._candidates = AsyncMock()
+    svc._evidence = AsyncMock()
+    # Sensible defaults: no existing thread (no dedup), claimed insert, side effects
+    # return ids. Individual tests override as needed.
+    svc._thread_repo.find_open_thread_by_concern_key.return_value = None
+    svc._threads.create_thread.return_value = uuid.uuid4()
+    svc._evidence.link_thread.return_value = [uuid.uuid4()]
+    svc._candidates.create_or_update.return_value = ThreadCandidateFactory()
+    svc._repo.insert_decision.return_value = uuid.uuid4()
+    svc._repo.get_by_hash.side_effect = lambda h: _row(decision_inputs_hash=h)
     return svc
 
 
@@ -196,9 +235,6 @@ class TestHandleInputReady:
             _fact(normalized_key="cough"),
             _fact(fact_type="lab_result", normalized_key="ldl", entity_label="LDL"),
         ]
-        service._repo.insert_decision.return_value = uuid.uuid4()
-        service._repo.get_by_hash.side_effect = lambda h: _row(decision_inputs_hash=h)
-
         records = await service.handle_input_ready(_payload(facts))
 
         assert len(records) == 2
@@ -209,21 +245,60 @@ class TestHandleInputReady:
         assert cough_call["decision"] == GenesisDecision.CREATE_OR_UPDATE_PENDING_CANDIDATE.value
 
     @pytest.mark.asyncio
-    async def test_redelivery_is_idempotent_replay(self, service):
+    async def test_uncertain_signal_routes_to_candidate(self, service):
+        await service.handle_input_ready(_payload([_fact(normalized_key="cough")]))
+
+        service._candidates.create_or_update.assert_awaited_once()
+        service._threads.create_thread.assert_not_awaited()
+        service._evidence.link_thread.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_clinical_signal_auto_creates_thread(self, service):
+        await service.handle_input_ready(
+            _payload([_fact(fact_type="dx_mention", entity_label="Hypertension")])
+        )
+
+        service._threads.create_thread.assert_awaited_once()
+        create_call = service._threads.create_thread.await_args.kwargs
+        assert create_call["created_by"] is ThreadCreatedBy.SYSTEM
+        assert create_call["initial_status"] is HealthThreadStatus.ACTIVE_UNRESOLVED
+        assert create_call["evidence_refs"]  # never an orphan thread
+        service._candidates.create_or_update.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_existing_open_thread_attaches_not_duplicates(self, service):
+        # Dedup precedence: an open thread for the concern key wins → attach.
+        existing = SimpleNamespace(id=uuid.uuid4())
+        service._thread_repo.find_open_thread_by_concern_key.return_value = existing
+
+        await service.handle_input_ready(
+            _payload([_fact(fact_type="dx_mention", entity_label="Hypertension")])
+        )
+
+        service._evidence.link_thread.assert_awaited_once()
+        assert service._evidence.link_thread.await_args.kwargs["thread_id"] == existing.id
+        service._threads.create_thread.assert_not_awaited()
+        insert_call = service._repo.insert_decision.await_args.kwargs
+        assert insert_call["decision"] == GenesisDecision.ATTACH_TO_EXISTING_THREAD.value
+
+    @pytest.mark.asyncio
+    async def test_redelivery_applies_no_side_effects(self, service):
         # insert returns None → the decision already existed (redelivery).
         service._repo.insert_decision.return_value = None
-        service._repo.get_by_hash.side_effect = lambda h: _row(decision_inputs_hash=h)
 
-        records = await service.handle_input_ready(_payload([_fact()]))
+        records = await service.handle_input_ready(
+            _payload([_fact(fact_type="dx_mention")])
+        )
 
         assert len(records) == 1
         assert records[0].idempotent_replay is True
+        service._threads.create_thread.assert_not_awaited()
+        service._candidates.create_or_update.assert_not_awaited()
+        service._evidence.link_thread.assert_not_awaited()
+        service._repo.update_decision_outcome.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_fresh_insert_is_not_replay(self, service):
-        service._repo.insert_decision.return_value = uuid.uuid4()
-        service._repo.get_by_hash.side_effect = lambda h: _row(decision_inputs_hash=h)
-
         records = await service.handle_input_ready(_payload([_fact()]))
 
         assert records[0].idempotent_replay is False

@@ -156,6 +156,12 @@ class GenesisFactInput(BaseModel):
     is_negated: bool = False
     is_historical: bool = False
     is_hypothetical: bool = False
+    # True only when a clinical source explicitly flagged this lab/vital as
+    # abnormal/out-of-range. Used by the genesis auto-create policy: a thread is
+    # auto-opened only for clinically-asserted concerns (clinician diagnosis/
+    # instruction, or an explicitly-flagged-abnormal lab), never for an
+    # ordinary symptom mention (which routes to a candidate).
+    abnormal_flag: bool = False
 
 
 class GenesisInputReadyPayload(BaseModel):

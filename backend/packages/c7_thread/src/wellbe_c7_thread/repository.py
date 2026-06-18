@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import case, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wellbe_c7_thread.models import HealthThreadRow, ThreadStateTransitionRow
@@ -11,6 +11,19 @@ from wellbe_c7_thread.models import HealthThreadRow, ThreadStateTransitionRow
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+# Statuses an open concern can be auto-attached to, in dedup precedence order
+# (concern-resolution-key.md §4): active > waiting/watchful > draft. Closed /
+# explained / referred / escalated / chronic / archived are intentionally excluded
+# from auto-attach (closure + linked-recurrence is a separate, gated path).
+_ATTACH_PRECEDENCE: dict[str, int] = {
+    "active_unresolved": 0,
+    "reopened": 0,
+    "waiting_for_result": 1,
+    "watchful_waiting": 2,
+    "draft": 3,
+}
 
 
 class ThreadRepository:
@@ -64,6 +77,32 @@ class ThreadRepository:
 
     async def get(self, thread_id: uuid.UUID) -> HealthThreadRow | None:
         stmt = select(HealthThreadRow).where(HealthThreadRow.id == thread_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def find_open_thread_by_concern_key(
+        self, *, patient_id: uuid.UUID, concern_key: dict[str, object]
+    ) -> HealthThreadRow | None:
+        """Highest-precedence open thread for the patient matching a concern key.
+
+        Backs genesis dedup (Story B1): when a concern already has an open thread,
+        new evidence attaches to it rather than spawning a duplicate. JSONB equality
+        is order-independent, so a key produced by the same model dump matches
+        regardless of field order. Only genesis-created threads carry a
+        ``concern_key``; user-created drafts (key NULL) are not auto-attached.
+        Returns ``None`` when no open thread covers the concern.
+        """
+        precedence = case(_ATTACH_PRECEDENCE, value=HealthThreadRow.status, else_=99)
+        stmt = (
+            select(HealthThreadRow)
+            .where(
+                HealthThreadRow.patient_id == patient_id,
+                HealthThreadRow.concern_key == concern_key,
+                HealthThreadRow.status.in_(list(_ATTACH_PRECEDENCE.keys())),
+            )
+            .order_by(precedence.asc(), HealthThreadRow.created_at.desc())
+            .limit(1)
+        )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -76,6 +76,37 @@ class GenesisDecisionRepository:
         inserted_id = result.scalar_one_or_none()
         await self._session.flush()
         return inserted_id
+
+    async def update_decision_outcome(
+        self,
+        *,
+        decision_id: uuid.UUID,
+        target_thread_id: uuid.UUID | None = None,
+        candidate_id: uuid.UUID | None = None,
+        created_thread_id: uuid.UUID | None = None,
+        evidence_link_ids: list[uuid.UUID] | None = None,
+    ) -> None:
+        """Complete the outcome columns of a freshly-claimed decision.
+
+        Called once, in the same transaction that just inserted the decision, after
+        the side effect (thread create/attach or candidate upsert) produced its ids.
+        This is NOT a re-evaluation: the decision/reason/concern_key/hash are never
+        altered — only the outcome references the row was created to hold are filled.
+        A re-evaluation under a new policy version still writes a NEW row
+        (``supersedes_decision_id``), never mutates this one.
+        """
+        stmt = (
+            update(GenesisDecisionRow)
+            .where(GenesisDecisionRow.decision_id == decision_id)
+            .values(
+                target_thread_id=target_thread_id,
+                candidate_id=candidate_id,
+                created_thread_id=created_thread_id,
+                evidence_link_ids=evidence_link_ids or [],
+            )
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
 
     async def get_by_hash(self, decision_inputs_hash: str) -> GenesisDecisionRow | None:
         stmt = select(GenesisDecisionRow).where(

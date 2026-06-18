@@ -55,6 +55,13 @@ _NON_CONCERN_FACT_TYPES: frozenset[str] = frozenset(
     {"other", "family_history", "social_history"}
 )
 
+# Fact types where a clinical source has itself asserted the concern (a diagnosis
+# or clinical finding). These auto-open a thread (subject to dedup).
+_CLINICALLY_ASSERTED_FACT_TYPES: frozenset[str] = frozenset({"dx_mention", "finding"})
+
+# Lab/vital fact types — clinically asserted only when explicitly flagged abnormal.
+_LAB_FACT_TYPES: frozenset[str] = frozenset({"lab_result", "vital_sign"})
+
 
 def _episode_bucket(when: datetime) -> str:
     """Bucket an episode by calendar month of the event/onset date.
@@ -161,26 +168,53 @@ def _is_concern_forming(fact: GenesisFactInput) -> bool:
     return fact.fact_type not in _NON_CONCERN_FACT_TYPES
 
 
+def is_clinically_asserted(fact: GenesisFactInput) -> bool:
+    """Whether a clinical source itself asserted this concern.
+
+    Per the approved B1 auto-create policy (conservative source-based rule), a
+    thread is auto-opened only when the concern is clinically asserted:
+    a clinician diagnosis/finding/instruction, or a lab/vital **explicitly flagged
+    abnormal**. An ordinary symptom mention is never auto-thread material — it
+    routes to a pending candidate so we never alarm on an unconfirmed signal.
+    """
+    if not _is_concern_forming(fact):
+        return False
+    if fact.fact_type in _CLINICALLY_ASSERTED_FACT_TYPES:
+        return True
+    return fact.fact_type in _LAB_FACT_TYPES and fact.abnormal_flag
+
+
 def classify_concern_group(
     facts: list[GenesisFactInput],
 ) -> tuple[GenesisDecision, str, float | None]:
-    """B0 skeleton classifier for a group of facts sharing one concern key.
+    """Classify a group of facts sharing one concern key into a genesis *intent*.
 
-    Returns ``(decision, reason_code, confidence)``. B0 records only the decided
-    safe defaults:
+    Returns ``(decision, reason_code, confidence)``. The returned decision is the
+    intent before dedup — the consumer downgrades a ``create`` to ``attach`` (and a
+    ``candidate`` to ``attach``) when an existing open thread already covers the
+    concern key (dedup precedence, concern-resolution-key.md §4):
 
-    - any concern-forming fact in the group  -> CANDIDATE (never auto-thread here;
-      strong-signal auto-create is Story B1), reason ``default_candidate_pending_classification``.
-    - no concern-forming fact                -> NO_THREAD_WITH_REASON, reason
+    - clinically-asserted concern (diagnosis/finding/instruction, or flagged-abnormal
+      lab) -> ``CREATE_NEW_THREAD``, reason ``clinically_asserted_concern``.
+    - any other concern-forming fact          -> ``CREATE_OR_UPDATE_PENDING_CANDIDATE``,
+      reason ``default_candidate_pending_classification`` (never auto-thread; never
+      alarm on an unconfirmed signal).
+    - no concern-forming fact                 -> ``NO_THREAD_WITH_REASON``, reason
       ``not_concern_forming``.
 
-    This honours the hard invariant that ``NO_THREAD_WITH_REASON`` is never used as
-    a substitute for routing a real signal — uncertain signals become candidates.
+    Honours the hard invariant that ``NO_THREAD_WITH_REASON`` is never a substitute
+    for routing a real signal — uncertain-but-relevant signals become candidates.
     """
     concern_facts = [f for f in facts if _is_concern_forming(f)]
     if not concern_facts:
         return GenesisDecision.NO_THREAD_WITH_REASON, "not_concern_forming", None
     confidence = max(f.extraction_confidence for f in concern_facts)
+    if any(is_clinically_asserted(f) for f in concern_facts):
+        return (
+            GenesisDecision.CREATE_NEW_THREAD,
+            "clinically_asserted_concern",
+            confidence,
+        )
     return (
         GenesisDecision.CREATE_OR_UPDATE_PENDING_CANDIDATE,
         "default_candidate_pending_classification",

@@ -18,6 +18,7 @@ from wellbe_c9_continuity.genesis.concern_key import (
     classify_concern_group,
     decision_inputs_hash,
     derive_concern_key,
+    is_clinically_asserted,
 )
 from wellbe_c9_continuity.genesis.errors import (
     CandidateNotFoundError,
@@ -40,4 +41,5 @@ __all__ = [
     "classify_concern_group",
     "decision_inputs_hash",
     "derive_concern_key",
+    "is_clinically_asserted",
 ]

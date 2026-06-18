@@ -9,6 +9,7 @@ dependencies = [
     "wellbe-db",
     "wellbe-events",
     "wellbe-c7-thread",
+    "wellbe-c5-evidence",
     "temporalio>=1.27",
 ]
 
@@ -18,3 +19,4 @@ wellbe-platform = { workspace = true }
 wellbe-db = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-c7-thread = { workspace = true }
+wellbe-c5-evidence = { workspace = true }
