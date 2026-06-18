@@ -70,3 +70,5 @@ git commit -m "wip"
 - Never use `--no-verify` to skip hooks unless explicitly asked
 - Never force-push to `main`/`master`
 - One logical change per commit — don't batch unrelated changes
+
+## Imported Claude Cowork project instructions
