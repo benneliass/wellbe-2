@@ -139,10 +139,25 @@ auditService:
     logLevel: "INFO"
     environment: "dev"
 
-# Next.js web UI (apps/web). Served via ingress on app.localhost. Renders from
-# mock data today, so it has no backend dependency at runtime.
+# Next.js web UI (apps/web). Served via ingress on app.localhost.
 web:
   image: wellbe-web:local
   imagePullPolicy: Never
   port: 3000
   replicas: 1
+
+# Dev workspace seed (local kind only). Loads a fixed, committed dataset for a
+# single well-known dev controller so the cluster comes up with a populated
+# workspace instead of an empty sign-in state. The seed drives the public C13
+# API over HTTP and is idempotent (skips when the dev patient already has data),
+# so the post-install/post-upgrade Helm hook is safe to fire on every upgrade.
+#
+# patientId is the SINGLE SOURCE OF TRUTH for the dev identity: deploy.sh reads
+# it from here and bakes it into the web image (NEXT_PUBLIC_WELLBE_DEV_*), so the
+# browser session and the seeded data always point at the same patient. It is a
+# clearly-labeled dev-only UUID, never a real identity.
+devSeed:
+  enabled: true
+  image: wellbe-api:local
+  imagePullPolicy: Never
+  patientId: "de7a0000-0000-4000-8000-000000000001"

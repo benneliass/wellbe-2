@@ -27,6 +27,19 @@ RUN npm ci
 # ---------------------------------------------------------------------------
 FROM deps AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
+# Dev workspace identity + API base. NEXT_PUBLIC_* values are inlined into the
+# client bundle at build time, so they must be present here (a runtime env on the
+# Deployment would not reach the browser bundle). With no dev identity passed the
+# build produces the calm sign-in state — these args are how the local kind chart
+# opts into a pre-populated Dev workspace (see infra/k8s/deploy.sh + values.yaml).
+ARG NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=""
+ARG NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=""
+ARG NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE=""
+ARG NEXT_PUBLIC_WELLBE_API_URL=""
+ENV NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=$NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID
+ENV NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=$NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID
+ENV NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE=$NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE
+ENV NEXT_PUBLIC_WELLBE_API_URL=$NEXT_PUBLIC_WELLBE_API_URL
 COPY apps/web apps/web
 COPY packages packages
 RUN npm run build --workspace=apps/web
