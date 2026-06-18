@@ -212,15 +212,17 @@
 }
 
 /* Inline expandable signal breakdown — overlays in place, never navigates.
-   Absolutely anchored under the pill at the pill's exact width (width: 100% of
-   the shrink-wrapped wrap) so it expands straight down, never sideways. Taking
-   it out of flow is what keeps the wrap (and thus this panel) at pill width;
-   long row/note text wraps within that width. */
+   Absolutely anchored to the pill's right edge so it expands straight down, not
+   sideways. At least the pill's width, widened to a comfortable minimum so the
+   rows don't wrap into an over-tall column. Height is capped to the viewport
+   (max-height on the grid container limits the 1fr track) and the rows scroll
+   inside, so the breakdown can never run off the bottom or clip content. */
 .signalsPanel {
   position: absolute;
   top: 100%;
   right: 0;
-  width: 100%;
+  width: max(100%, 19rem);
+  max-height: min(68vh, 30rem);
   display: grid;
   grid-template-rows: 0fr;
   margin-top: 0;
@@ -238,7 +240,8 @@
   pointer-events: auto;
 }
 .signalRows {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   margin: 0;
   padding: var(--sp-2);
