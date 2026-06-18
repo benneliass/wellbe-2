@@ -1,0 +1,144 @@
+/* ============================================================
+   WellBe Design System — Colors & Type Foundations
+   A calm health memory workspace. Teal-forward, slate neutrals.
+   ============================================================ */
+
+/* ---- Fonts ----
+   PRIMARY UI typeface: Plus Jakarta Sans — a calm, humanist geometric
+   sans (warm, legible, distinctly non-corporate). NOTE: no original
+   font files were supplied with the WellBe spec sheets; this is a
+   CLOSE SUBSTITUTE chosen for the calm, rounded, modern voice the
+   specimens imply. Swap in the real brand font if/when provided.
+   NUMERIC / DATA: same family with tabular-nums for aligned values. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ============ PRIMARY ============ */
+  --teal-600:   #0D6E6D;   /* deep teal — pressed / strong accents */
+  --teal-500:   #0EA5A4;   /* PRIMARY brand teal */
+  --teal-300:   #67E6E7;   /* light cyan — highlight / light fills */
+  --green-600:  #16A34A;   /* brand green — success / verified / normal */
+
+  /* ============ SUPPORT ============ */
+  --amber-500:  #F59E0B;   /* warning / needs-attention / pending */
+  --orange-500: #F97316;   /* elevated warning (e.g. "High" risk) */
+  --red-600:    #DC2626;   /* error / danger / critical / urgent */
+  --violet-500: #8B5CF6;   /* paused / special state (sparingly) */
+  --slate-700b: #334155;   /* support dark slate */
+  --slate-500b: #64748B;   /* support mid slate */
+
+  /* ============ NEUTRALS (slate scale) ============ */
+  --white:      #FFFFFF;
+  --slate-50:   #F8FAFC;
+  --slate-100:  #F1F5F9;
+  --slate-200:  #E2E8F0;
+  --slate-300:  #CBD5E1;
+  --slate-400:  #94A3B8;
+  --slate-500:  #64748B;
+  --slate-600:  #475569;
+  --slate-800:  #1E293B;
+  --slate-900:  #0F172A;
+
+  /* ============ SEMANTIC — surfaces ============ */
+  --bg-app:        var(--slate-50);    /* default app canvas */
+  --bg-surface:    var(--white);       /* cards, panels */
+  --bg-subtle:     var(--slate-100);   /* subtle grouping / hover rows */
+  --bg-inset:      var(--slate-50);    /* wells, inset fields */
+  --border:        var(--slate-200);   /* default hairline border */
+  --border-strong: var(--slate-300);   /* emphasized border */
+
+  /* ============ SEMANTIC — text ============ */
+  --fg1: var(--slate-900);   /* primary text / headings */
+  --fg2: var(--slate-600);   /* secondary / supporting text */
+  --fg3: var(--slate-400);   /* tertiary / meta / placeholder */
+  --fg-on-accent: var(--white);
+  --link: var(--teal-500);
+
+  /* ============ SEMANTIC — accents ============ */
+  --accent:        var(--teal-500);
+  --accent-hover:  #0C8C8B;   /* teal darken ~8% */
+  --accent-press:  var(--teal-600);
+  --accent-soft:   #E6F6F6;   /* teal 8% tint — soft fills/chips */
+  --accent-ring:   #99E2E1;   /* focus ring teal */
+
+  /* state tints (chip / card backgrounds) */
+  --success:      var(--green-600);  --success-soft: #ECFDF3;
+  --warning:      var(--amber-500);  --warning-soft: #FFF7E6;
+  --danger:       var(--red-600);    --danger-soft:  #FEF1F1;
+  --info:         var(--teal-500);   --info-soft:    #E6F6F6;
+  --paused:       var(--violet-500); --paused-soft:  #F2EDFE;
+  --neutral:      var(--slate-500);  --neutral-soft: var(--slate-100);
+
+  /* ============ RADII ============ */
+  --r-xs:  4px;    /* tiny chips, dots */
+  --r-sm:  6px;    /* inputs, small buttons */
+  --r-md:  8px;    /* buttons, list items */
+  --r-lg:  12px;   /* cards, containers */
+  --r-xl:  16px;   /* large cards, modals */
+  --r-2xl: 20px;   /* hero surfaces */
+  --r-pill: 999px; /* chips, toggles, pills */
+
+  /* ============ ELEVATION (soft, cool-tinted) ============ */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-focus: 0 0 0 3px var(--accent-ring);
+
+  /* ---- Ambient elevation: borderless, soft glow that fades into the canvas
+     (use on the launcher / calm surfaces where there is no hard card edge) ---- */
+  --shadow-ambient: 0 24px 70px -20px rgba(15, 23, 42, 0.12);          /* large diffuse fade */
+  --shadow-float:   0 40px 90px -30px rgba(15, 23, 42, 0.16);          /* lifted, edgeless */
+  --shadow-glow:    0 0 50px -6px rgba(14, 165, 164, 0.22);            /* teal ambient glow */
+  --shadow-halo:    0 0 0 1px rgba(255,255,255,0.6), 0 30px 60px -24px rgba(15, 23, 42, 0.14); /* frosted-glass halo */
+
+  /* ============ SPACING (4px base) ============ */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  /* ============ TYPE — families ============ */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ============ TYPE — scale (px) ============ */
+  --text-display: 40px;  /* page-level hero numbers / display */
+  --text-h1: 30px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-h4: 17px;
+  --text-body: 15px;     /* default body */
+  --text-sm: 13px;       /* supporting / meta */
+  --text-xs: 12px;       /* chips, captions, labels */
+  --text-2xs: 11px;      /* overline / dense meta */
+
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.55;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+.wb-display {
+  font-family: var(--font-sans); font-weight: 800;
+  font-size: var(--text-display); line-height: var(--lh-tight);
+  letter-spacing: -0.02em; color: var(--fg1);
+}
+.wb-h1 { font-family: var(--font-sans); font-weight: 700; font-size: var(--text-h1); line-height: var(--lh-tight); letter-spacing: -0.015em; color: var(--fg1); }
+.wb-h2 { font-family: var(--font-sans); font-weight: 700; font-size: var(--text-h2); line-height: var(--lh-snug); letter-spacing: -0.01em; color: var(--fg1); }
+.wb-h3 { font-family: var(--font-sans); font-weight: 600; font-size: var(--text-h3); line-height: var(--lh-snug); letter-spacing: -0.005em; color: var(--fg1); }
+.wb-h4 { font-family: var(--font-sans); font-weight: 600; font-size: var(--text-h4); line-height: var(--lh-snug); color: var(--fg1); }
+.wb-body { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-body); line-height: var(--lh-normal); color: var(--fg2); }
+.wb-body-strong { font-family: var(--font-sans); font-weight: 600; font-size: var(--text-body); line-height: var(--lh-normal); color: var(--fg1); }
+.wb-sm { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-sm); line-height: var(--lh-normal); color: var(--fg2); }
+.wb-caption { font-family: var(--font-sans); font-weight: 500; font-size: var(--text-xs); line-height: var(--lh-snug); color: var(--fg3); }
+.wb-overline {
+  font-family: var(--font-sans); font-weight: 700; font-size: var(--text-2xs);
+  line-height: var(--lh-snug); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg3);
+}
+.wb-data {
+  font-family: var(--font-mono); font-weight: 500;
+  font-variant-numeric: tabular-nums; color: var(--fg1);
+}

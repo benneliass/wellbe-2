@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WellBe Dashboard Replica</title>
+    <link rel="stylesheet" href="./tokens.css">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="dashboard-canvas" aria-label="WellBe dashboard replica">
+      <svg class="backdrop-lines" viewBox="0 0 1536 1024" aria-hidden="true">
+        <path d="M-138 920 C35 585 222 389 508 318 C616 292 694 279 778 250" />
+        <path d="M-116 937 C54 610 231 417 497 344 C614 312 698 302 775 268" />
+        <path d="M540 199 C615 69 829 51 961 112 C1047 152 1093 235 1077 336" />
+        <path d="M578 309 C505 201 552 93 665 57 C776 20 940 56 1006 155 C1052 223 1042 312 1015 384" />
+        <circle cx="768" cy="246" r="121" />
+        <circle cx="768" cy="246" r="159" />
+        <circle cx="768" cy="246" r="206" />
+        <circle cx="596" cy="99" r="3" class="dot" />
+        <circle cx="541" cy="216" r="4" class="dot" />
+        <circle cx="991" cy="248" r="4" class="dot" />
+        <circle cx="980" cy="126" r="4" class="dot" />
+        <circle cx="1012" cy="266" r="4" class="dot" />
+        <circle cx="585" cy="388" r="2" class="dot" />
+      </svg>
+
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="WellBe home">
+          <img class="brand-mark" src="./logo.png" alt="" aria-hidden="true">
+          <span class="brand-name">Well<b>Be</b></span>
+        </a>
+
+        <div class="top-actions">
+          <button class="full-view" type="button">
+            <span>Full View</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </button>
+          <button class="avatar" type="button" aria-label="Open profile">A</button>
+          <span class="avatar-status" aria-hidden="true"></span>
+        </div>
+      </header>
+
+      <div class="sync-status" aria-label="Data synced 4 minutes ago">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>Data synced</span>
+        <span>4 min ago</span>
+      </div>
+
+      <aside class="signal-card" aria-label="Signal summary">
+        <svg class="signal-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M5 29h10l5-17 8 28 6-17 4 6h7" />
+        </svg>
+        <div>
+          <strong>Your signals look steady</strong>
+          <span>6 of 6 systems in range</span>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </aside>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-orb" aria-hidden="true">
+          <span class="orb-rings"></span>
+          <img class="orb-img" src="./logo.png" alt="">
+        </div>
+
+        <h1 id="hero-title">What do you need <span>today?</span></h1>
+        <p>We'll guide you to the right things.</p>
+      </section>
+
+      <section class="actions" aria-label="Recommended dashboard actions">
+        <div class="recommend-label">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3l1.6 5.1L19 10l-5.4 1.9L12 17l-1.6-5.1L5 10l5.4-1.9L12 3z" />
+          </svg>
+          <span>Recommended for you</span>
+        </div>
+
+        <div class="action-grid">
+          <button class="action-card triage-card" type="button">
+            <span class="attention-dot" aria-hidden="true"></span>
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M8 21c0-6 4-10 10-10 4 0 6 2 8 5 2-3 5-5 9-5 6 0 10 4 10 10 0 10-14 17-19 21C21 38 8 31 8 21z" />
+                <path d="M12 26h8l4-7 6 13 4-7h6" />
+              </svg>
+            </span>
+            <span class="action-title">Something<br>feels off</span>
+            <span class="action-subtitle danger">Triage</span>
+          </button>
+
+          <button class="action-card log-card" type="button">
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M14 34l-2 8 8-2 23-23-6-6L14 34z" />
+                <path d="M32 16l6 6" />
+              </svg>
+            </span>
+            <span class="action-title">Log<br>something</span>
+            <span class="action-subtitle">Quick Log</span>
+          </button>
+
+          <button class="action-card" type="button">
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M7 25h10l4-10 7 20 4-10h9" />
+              </svg>
+            </span>
+            <span class="action-title">What<br>changed?</span>
+            <span class="action-subtitle">Delta Digest</span>
+          </button>
+
+          <button class="action-card" type="button">
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M15 34V20" />
+                <path d="M24 34V12" />
+                <path d="M33 34V7" />
+              </svg>
+            </span>
+            <span class="action-title">Check my<br>patterns</span>
+            <span class="action-subtitle">Pattern Check</span>
+          </button>
+
+          <button class="action-card" type="button">
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M15 41c2-7 7-11 14-11s12 4 14 11" />
+                <circle cx="29" cy="17" r="8" />
+              </svg>
+            </span>
+            <span class="action-title">Prepare for<br>appointment</span>
+            <span class="action-subtitle">Doctor Prep</span>
+          </button>
+
+          <button class="action-card" type="button">
+            <span class="icon-bubble">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="13" cy="31" r="5" />
+                <circle cx="31" cy="14" r="5" />
+                <circle cx="38" cy="36" r="5" />
+                <path d="M17 28l14-14M18 33l20 3M32 19l6 17" />
+              </svg>
+            </span>
+            <span class="action-title">Open the<br>graph</span>
+            <span class="action-subtitle">Deep Dive</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="prompt-area" aria-label="Custom request">
+        <div class="or-divider">OR</div>
+        <form class="prompt-bar">
+          <svg class="prompt-icon" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M3 17h7l3-10 6 21 3-11h7" />
+          </svg>
+          <label class="visually-hidden" for="need-input">Type what you need</label>
+          <input id="need-input" type="text" placeholder="Type what you need...">
+          <button type="submit" aria-label="Submit request">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <p class="privacy-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 10V8a5 5 0 0 1 10 0v2" />
+          <rect x="5" y="10" width="14" height="11" rx="2" />
+          <path d="M12 15v3" />
+        </svg>
+        <span>Your data is private and secure. We never sell your data.</span>
+      </p>
+
+      <button class="settings-button" type="button" aria-label="Open settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h8" />
+          <path d="M16 7h4" />
+          <circle cx="14" cy="7" r="2" />
+          <path d="M4 12h4" />
+          <path d="M12 12h8" />
+          <circle cx="10" cy="12" r="2" />
+          <path d="M4 17h11" />
+          <path d="M19 17h1" />
+          <circle cx="17" cy="17" r="2" />
+        </svg>
+      </button>
+    </main>
+  </body>
+</html>
