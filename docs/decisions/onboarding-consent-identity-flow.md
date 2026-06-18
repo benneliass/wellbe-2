@@ -26,6 +26,8 @@ Onboarding is the first consent surface a new individual ever sees, and it touch
 
 <!-- Awaiting user-provided research. Agents may not self-research. -->
 
+**Research brief for the external observer:** [`research-briefs/WEL-183-onboarding-consent-identity-research-brief.md`](research-briefs/WEL-183-onboarding-consent-identity-research-brief.md) — self-contained context, questions, and deliverable instructions. Findings come back as the file `WEL-183-onboarding-research-findings.md` and are recorded verbatim here.
+
 _Research received: (pending)_
 
 ## Approaches considered

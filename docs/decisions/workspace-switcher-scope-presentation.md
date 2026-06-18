@@ -26,6 +26,8 @@ The switcher is the UI boundary for the entire C17 audience model and touches **
 
 <!-- Awaiting user-provided research. Agents may not self-research. -->
 
+**Research brief for the external observer:** [`research-briefs/WEL-184-workspace-switcher-research-brief.md`](research-briefs/WEL-184-workspace-switcher-research-brief.md) — self-contained context, questions, and deliverable instructions. Findings come back as the file `WEL-184-workspace-switcher-research-findings.md` and are recorded verbatim here.
+
 _Research received: (pending)_
 
 ## Approaches considered
