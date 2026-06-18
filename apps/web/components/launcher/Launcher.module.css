@@ -162,7 +162,12 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* Anchor children to the right edge. The wrap is pinned by `right` but sized
+     to its content, and the expandable panel is wider (width: max-content) than
+     the pill. With center alignment the narrow pill re-centers over the wider
+     panel when it opens, so the headline visibly jumps toward the middle.
+     Right-aligning keeps the pill fixed in place and grows the panel leftward. */
+  align-items: flex-end;
 }
 .signals {
   display: flex;
