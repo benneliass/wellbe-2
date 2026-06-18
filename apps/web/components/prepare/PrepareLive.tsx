@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Button, Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
-import { getApiClient, devSessionConfigured } from "@/lib/api";
+import { getApiClient } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import { useThreads } from "@/lib/hooks";
 import { StateNote } from "@/components/placeholder/StateNote";
 import { PacketShareSheet } from "./PacketShareSheet";
@@ -65,6 +66,7 @@ function StatementCard({
 }
 
 export function PrepareLive() {
+  const signedIn = Boolean(useSession()?.patientId);
   const threadsQuery = useThreads();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [questions, setQuestions] = useState("");
@@ -75,7 +77,7 @@ export function PrepareLive() {
   const [showShare, setShowShare] = useState(false);
   const [exported, setExported] = useState(false);
 
-  if (!devSessionConfigured && threadsQuery.isError) {
+  if (!signedIn && threadsQuery.isError) {
     return (
       <StateNote
         icon="lock"

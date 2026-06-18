@@ -1,7 +1,7 @@
 "use client";
 
 import { StateNote } from "@/components/placeholder/StateNote";
-import { devSessionConfigured } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import { usePendingItems, useThreads } from "@/lib/hooks";
 import { WorkspaceHome } from "./WorkspaceHome";
 
@@ -11,10 +11,11 @@ import { WorkspaceHome } from "./WorkspaceHome";
  * Replaces the previous mock-data render (Track 0.3, WEL-154).
  */
 export function WorkspaceLive() {
+  const signedIn = Boolean(useSession()?.patientId);
   const threadsQuery = useThreads();
   const pendingQuery = usePendingItems();
 
-  if (!devSessionConfigured && threadsQuery.isError) {
+  if (!signedIn && threadsQuery.isError) {
     return (
       <StateNote
         icon="lock"

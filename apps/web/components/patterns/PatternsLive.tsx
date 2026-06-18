@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
-import { getApiClient, devSessionConfigured } from "@/lib/api";
+import { getApiClient } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import { StateNote } from "@/components/placeholder/StateNote";
 import styles from "./PatternsLive.module.css";
 
@@ -17,12 +18,13 @@ const TIER_LABEL: Record<string, string> = {
 };
 
 export function PatternsLive() {
+  const signedIn = Boolean(useSession()?.patientId);
   const [data, setData] = useState<PatternsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!devSessionConfigured) {
+    if (!signedIn) {
       setLoading(false);
       return;
     }
@@ -48,9 +50,9 @@ export function PatternsLive() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [signedIn]);
 
-  if (!devSessionConfigured) {
+  if (!signedIn) {
     return (
       <div className={styles.wrap}>
         <StateNote

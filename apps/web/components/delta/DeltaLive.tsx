@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
-import { getApiClient, devSessionConfigured } from "@/lib/api";
+import { getApiClient } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import { StateNote } from "@/components/placeholder/StateNote";
 import styles from "./DeltaLive.module.css";
 
@@ -23,12 +24,13 @@ function formatWhen(iso: string): string {
 }
 
 export function DeltaLive() {
+  const signedIn = Boolean(useSession()?.patientId);
   const [data, setData] = useState<DeltaDigest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!devSessionConfigured) {
+    if (!signedIn) {
       setLoading(false);
       return;
     }
@@ -54,9 +56,9 @@ export function DeltaLive() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [signedIn]);
 
-  if (!devSessionConfigured) {
+  if (!signedIn) {
     return (
       <div className={styles.wrap}>
         <StateNote

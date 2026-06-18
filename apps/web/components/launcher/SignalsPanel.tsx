@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Chip, ConfidenceDots, Icon, type Tone } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
-import { getApiClient, devSessionConfigured } from "@/lib/api";
+import { getApiClient } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import styles from "./Launcher.module.css";
 
 type SignalsSummary = components["schemas"]["SignalsSummaryV2"];
@@ -36,13 +37,19 @@ const SIGNED_OUT: SignalsSummary = {
 };
 
 export function SignalsPanel() {
+  const session = useSession();
+  const signedIn = Boolean(session?.patientId);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<SignalsSummary | null>(null);
-  const [loading, setLoading] = useState(devSessionConfigured);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!devSessionConfigured) return;
+    if (!signedIn) {
+      setData(null);
+      return;
+    }
     let active = true;
+    setLoading(true);
     (async () => {
       try {
         const { data: resp } = await getApiClient().GET("/v2/signals");
@@ -56,9 +63,9 @@ export function SignalsPanel() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [signedIn]);
 
-  const summary = data ?? (devSessionConfigured ? null : SIGNED_OUT);
+  const summary = data ?? (signedIn ? null : SIGNED_OUT);
   const headline = loading
     ? "Checking your records…"
     : summary?.headline ?? "Your health signals";

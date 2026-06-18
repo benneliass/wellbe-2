@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
-import { getApiClient, devSessionConfigured } from "@/lib/api";
+import { getApiClient } from "@/lib/api";
+import { useSession } from "@/lib/useSession";
 import { StateNote } from "@/components/placeholder/StateNote";
 import styles from "./AskLive.module.css";
 
@@ -18,6 +19,7 @@ const MODE_TAG: Record<string, string> = {
 };
 
 export function AskLive({ initialQuery }: { initialQuery: string }) {
+  const signedIn = Boolean(useSession()?.patientId);
   const [query, setQuery] = useState(initialQuery);
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,14 +49,14 @@ export function AskLive({ initialQuery }: { initialQuery: string }) {
 
   // Auto-run the query passed in from the Home launcher (?q=...), once.
   useEffect(() => {
-    if (devSessionConfigured && initialQuery && askedRef.current !== initialQuery) {
+    if (signedIn && initialQuery && askedRef.current !== initialQuery) {
       askedRef.current = initialQuery;
       void ask(initialQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery]);
+  }, [initialQuery, signedIn]);
 
-  if (!devSessionConfigured) {
+  if (!signedIn) {
     return (
       <div className={styles.wrap}>
         {initialQuery && (

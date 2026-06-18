@@ -1,6 +1,6 @@
-import { Launcher } from "@/components/launcher/Launcher";
+import { RootGate } from "@/components/auth/RootGate";
 
-/** Root: the calm front door. "Full View" leads into the workspace. */
+/** Root: the front door. Gated on an explicit session — never auto-entered. */
 export default function Home() {
-  return <Launcher />;
+  return <RootGate />;
 }

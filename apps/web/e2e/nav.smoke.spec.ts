@@ -1,10 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { injectSession } from "./_session";
 
 /**
  * Sidebar nav smoke (Track G, WEL-158/WEL-159): from the workspace, each enabled
  * nav view is reachable and renders its honest placeholder. Guards that the nav
  * links are no longer inert.
+ *
+ * The workspace shell is session-guarded (WEL-151), so a session is injected first.
  */
+
+test.beforeEach(async ({ page }) => {
+  await injectSession(page);
+});
 
 const NAV: { label: string; path: string }[] = [
   { label: "Memory", path: "/memory" },

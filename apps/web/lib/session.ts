@@ -1,43 +1,139 @@
 /**
- * Frontend session source (T0.4 / WEL-151).
+ * Frontend session (WEL-151).
  *
- * Today the API authenticates via the dev header contract
- * (X-Wellbe-Actor-Id / X-Wellbe-Patient-Id, see backend resolve_principal) rather
- * than full ZITADEL OIDC. This module is the single place that resolves "who is
- * acting", so swapping the dev headers for a real OIDC token later (WEL-151) is a
- * one-file change — every caller goes through getSession()/getAuthToken().
+ * The session is established by an *explicit* sign-in — never baked in. There is
+ * no auto-login. This is the single place that resolves "who is acting", modelled
+ * on the OIDC (issuer, subject) federated identity the backend's resolve_identity
+ * expects. Wiring real ZITADEL OIDC later is an adapter swap behind these same
+ * functions (signIn* establish the session; getAuthToken returns the id-token).
  *
- * The dev identity is supplied via NEXT_PUBLIC env so no real id is ever hardcoded
- * or committed. With no env set, there is no session and the UI shows a calm
- * sign-in state instead of pretending data exists.
+ * Identity is held client-side (localStorage) so a sign-in survives reloads but is
+ * never persisted into the build. The NEXT_PUBLIC dev env is NOT an auto-session;
+ * it only supplies the default patient id for the explicitly-chosen "Dev workspace".
  */
 
+const STORAGE_KEY = "wellbe.session";
+const EVENT = "wellbe:session";
+
 export interface Session {
-  actorId: string;
-  patientId: string;
+  /** OIDC issuer (dev adapter uses "dev-local"). */
+  issuer: string;
+  /** OIDC subject — the stable per-identity id. */
+  subject: string;
+  /** Controller/patient id, known only after onboarding (or for the dev identity). */
+  patientId: string | null;
   actorType: string;
+  onboarded: boolean;
+  displayName: string | null;
+}
+
+const DEV_ISSUER = "dev-local";
+const DEV_SUBJECT = "dev-controller";
+
+function isBrowser(): boolean {
+  return typeof window !== "undefined";
 }
 
 export function getSession(): Session | null {
-  const actorId = process.env.NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID ?? "";
-  if (!actorId) return null;
-  return {
-    actorId,
-    patientId: process.env.NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID || actorId,
-    actorType: process.env.NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE || "controller",
-  };
+  if (!isBrowser()) return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Session) : null;
+  } catch {
+    return null;
+  }
 }
 
-/** True when an identity is configured — surfaced so the UI can prompt sign-in. */
+function write(session: Session | null): void {
+  if (!isBrowser()) return;
+  if (session) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  } else {
+    window.localStorage.removeItem(STORAGE_KEY);
+  }
+  window.dispatchEvent(new Event(EVENT));
+}
+
+export function setSession(session: Session): void {
+  write(session);
+}
+
+export function updateSession(patch: Partial<Session>): Session | null {
+  const current = getSession();
+  if (!current) return null;
+  const next = { ...current, ...patch };
+  write(next);
+  return next;
+}
+
+export function clearSession(): void {
+  write(null);
+}
+
 export function hasSession(): boolean {
   return getSession() !== null;
 }
 
+/** The default patient id for the explicitly-chosen Dev workspace (env-supplied). */
+export function devPatientId(): string {
+  return (
+    process.env.NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID ||
+    process.env.NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID ||
+    ""
+  );
+}
+
+export function devWorkspaceAvailable(): boolean {
+  return devPatientId() !== "";
+}
+
+/** Sign in as the seeded dev identity — a real, pre-onboarded, selectable workspace. */
+export function signInDev(): Session | null {
+  const patientId = devPatientId();
+  if (!patientId) return null;
+  const session: Session = {
+    issuer: DEV_ISSUER,
+    subject: DEV_SUBJECT,
+    patientId,
+    actorType: "controller",
+    onboarded: true,
+    displayName: "Dev workspace",
+  };
+  write(session);
+  return session;
+}
+
+/** Begin a brand-new identity for onboarding. No patient id yet — onboarding mints it. */
+export function signInNewUser(): Session {
+  const session: Session = {
+    issuer: DEV_ISSUER,
+    subject: `user-${crypto.randomUUID()}`,
+    patientId: null,
+    actorType: "controller",
+    onboarded: false,
+    displayName: null,
+  };
+  write(session);
+  return session;
+}
+
 /**
- * Bearer token for the API client's getToken hook. No OIDC yet, so this is null
- * in dev; reachability comes from the X-Wellbe-* headers. ZITADEL (WEL-151) wires
- * a real token here.
+ * Bearer token for the API client. No OIDC yet, so null in the dev adapter;
+ * reachability comes from the X-Wellbe-* headers. ZITADEL (WEL-151) returns the
+ * real id-token here without touching any caller.
  */
 export async function getAuthToken(): Promise<string | null> {
   return null;
+}
+
+/** Subscribe to session changes (storage events + same-tab writes). */
+export function subscribeSession(cb: () => void): () => void {
+  if (!isBrowser()) return () => {};
+  const handler = () => cb();
+  window.addEventListener(EVENT, handler);
+  window.addEventListener("storage", handler);
+  return () => {
+    window.removeEventListener(EVENT, handler);
+    window.removeEventListener("storage", handler);
+  };
 }

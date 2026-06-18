@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Icon } from "@wellbe/ui";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { NAV_ITEMS, type NavItem } from "@/lib/meta";
 import styles from "./NavRail.module.css";
 
@@ -61,38 +62,10 @@ export function NavRail({ onCapture }: { onCapture: () => void }) {
           <Icon name="lock" size={14} />
           <span>Only you can see this. You control every share.</span>
         </div>
-        <button
-          type="button"
-          className={styles.profile}
-          onClick={() => setProfileOpen(true)}
-          aria-haspopup="dialog"
-          aria-label="Your account"
-        >
-          <span className={styles.avatar}>YV</span>
-          <span className={styles.profileMeta}>
-            <b>Your workspace</b>
-            <span>Data controller</span>
-          </span>
-          <span
-            className={styles.gearBtn}
-            role="button"
-            tabIndex={0}
-            aria-label="Settings"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSettingsOpen(true);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                setSettingsOpen(true);
-              }
-            }}
-          >
-            <Icon name="settings" size={16} className={styles.gear} />
-          </span>
-        </button>
+        <WorkspaceSwitcher
+          onOpenProfile={() => setProfileOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
       </div>
 
       {profileOpen && (

@@ -1,9 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { injectSession } from "./_session";
 
 /**
  * Home smoke flow (Track 0.5, WEL-155): the front door loads and every launcher
  * pill routes to its honest destination. Guards the T0.1 routing fix end to end.
+ *
+ * There is no auto-login (WEL-151), so an onboarded session is injected before
+ * each navigation to reach the launcher home.
  */
+
+test.beforeEach(async ({ page }) => {
+  await injectSession(page);
+});
 
 const PILLS: { name: RegExp; path: string }[] = [
   { name: /Something feels off/, path: "/triage" },
