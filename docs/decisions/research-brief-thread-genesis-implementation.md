@@ -1,6 +1,6 @@
 # Research brief: Thread genesis implementation plan & sub-contracts
 
-Prepared for: product owner review (and optional external architecture consultant)
+Prepared for: product owner review and external architecture consultant (self-contained — no prior WellBe knowledge assumed)
 Date prepared: 2026-06-18
 Owner: Ben Elias, product owner / individual data controller
 Approved parent decision: `docs/decisions/thread-genesis-from-capture.md` (WEL-170, Approved 2026-06-18)
@@ -32,28 +32,73 @@ items are created on the basis of this brief until the plan is approved.
 
 ---
 
-## 1. Product framing (why genesis matters at all)
+## 1. Product background (self-contained — no prior WellBe knowledge assumed)
 
-WellBe is a Patient-Centered Health Investigation OS. The operating loop is:
+**What WellBe is.** WellBe is a **Patient-Centered Health Investigation OS** built
+on a sovereign *personal* core: a user-controlled health-memory layer that helps
+an individual carry their health context forward until each concern is resolved,
+explained, monitored, or safely handed off. It is not an EHR, not a clinician
+workflow tool, and not a diagnosis engine.
+
+**Who it's for.** The **individual managing their own health is always the primary
+user and the data controller.** Clinicians, care teams, institutions, and
+researchers may use role-scoped workspaces, but only under the individual's
+explicit, revocable grant — never by default, never as controller. A business
+(hospital, employer) may *distribute* WellBe to individuals but gets no data
+access unless each individual opts in.
+
+**The problem it addresses.** Health context is scattered across visits, devices,
+labs, and time. Concerns fall through the cracks: a symptom mentioned once is
+forgotten, a "normal" test closes a thread that should stay open, a referral or
+pending result is never followed up. WellBe's job is to make sure **nothing the
+user raised is silently lost**, and to help them understand their own data better
+than they could without it.
+
+**The operating loop** (every feature serves some step of it):
 
 ```text
 Capture -> Connect -> Investigate -> Clarify -> Close -> Correct
 ```
 
-The **Health Thread (C7)** is the central product object — a living container for
-one unresolved or ongoing concern. Nearly every higher surface reads threads:
-C8 Six Memories organize around them, C9 Continuity tracks open loops per thread,
-C10 evaluates output in thread context, and Ask / Prepare-for-a-visit / Delta /
-Workspace all surface thread state.
-
-Two guardrails bound every genesis design choice:
+**The non-negotiable guardrails** (they bound every genesis design choice):
 
 - **Personal-first / nothing is silently lost.** A concern the user raised must
-  never vanish. The individual is the controller; genesis must serve their
-  understanding, not an institution's.
-- **Never alarm.** The system must not elevate every passing mention into a
-  tracked "health issue", and must not use clinical/alarming framing. Calm,
-  personal-first labels only. Genesis is a UX decision as much as a backend one.
+  never vanish. Genesis must serve the individual's understanding.
+- **Investigate, never diagnose.** WellBe surfaces what is known/unknown/pending/
+  unresolved and helps prepare for care conversations. It never says "you have X",
+  "this rules out X", or ranks differentials.
+- **Never alarm.** It must not elevate every passing mention into a tracked
+  "health issue", and must not use clinical/alarming framing. Calm, personal-first
+  labels only. Genesis is as much a UX decision as a backend one.
+- **Source-linked / no orphan claims.** Every derived claim traces to a raw
+  source. "WellBe says" is not a source.
+
+**The central object — the Health Thread (C7).** A *Health Thread* is a living
+container for **one** unresolved or ongoing concern (e.g. "Cough", "Low vitamin
+D"). It holds the narrative, timeline, linked symptoms/labs/referrals, pending
+items, and a lifecycle status (draft → active_unresolved → waiting_for_result /
+watchful_waiting / explained / chronic_monitoring / closed, etc.). Nearly every
+higher surface reads threads: **C8** Six Memories organize around them, **C9**
+Continuity tracks open loops per thread, **C10** evaluates output in thread
+context, and the user-facing surfaces (**Ask**, **Prepare-for-a-visit**,
+**Delta**, **Workspace**) all render thread state. **This is why "what opens a
+thread" is the highest-leverage missing contract in the product.**
+
+### 1.1 Glossary (terms used throughout this brief)
+
+| Term | Meaning |
+|---|---|
+| **Capture** | A single user-submitted input (symptom, lab, note, document) written to the immutable Raw Context Vault. |
+| **Fact** | A structured claim the Processing Pipeline (C4) extracts from a capture (e.g. "cough", "duration: 3 weeks"). |
+| **Graph node / entity** | A normalized entity in the Knowledge Graph (C6) that resolves/links facts across captures and time. |
+| **Health Thread** | The C7 container for one concern (see above). |
+| **Genesis** | The act of a thread (or candidate) coming into existence from the capture/processing pipeline — the subject of this brief. |
+| **Concern resolution key** | A user-scoped key (normalized concept + type + body site + temporal episode + source context) used to decide whether new evidence belongs to an existing thread or a new one. Not the capture-id or fact-id. |
+| **Pending thread candidate** | A proposed, not-yet-active thread for a weak/ambiguous signal; the user can confirm/merge/dismiss, or it auto-promotes on more evidence. |
+| **Episode bucket** | A time window grouping repeated mentions of the same concern into one episode vs. a later recurrence. |
+| **`NO_THREAD_WITH_REASON`** | A triage outcome recording that a fact was considered and deliberately not turned into a thread/candidate, with an auditable reason — so "nothing is silently lost" holds even when nothing is created. |
+| **Surfaces** | The thread-dependent product views: **Ask** (Q&A grounded on the user's threads + pending items), **Prepare** (pre-visit packet from open threads), **Delta** ("what changed" digest), **Workspace** (the thread list / home). |
+| **Spike** | A time-boxed research/decision task that must resolve an open design question before its implementation Stories may build (WellBe research protocol). |
 
 ---
 
@@ -73,6 +118,35 @@ So genesis is the missing edge between "data is captured" and "the product does
 anything with it." That is why it is worth getting the contract right rather than
 bolting on a quick `one-thread-per-capture` rule (explicitly rejected in the
 approved decision).
+
+### 2.1 Concrete before/after (what genesis should change)
+
+Grounding example, using data shaped like the committed dev-workspace seed:
+
+> A user logs, over two weeks: *"dry cough most mornings, ~3 weeks, plus
+> afternoon tiredness"*, then *"cough still there"*, then a lab *"Vitamin D 22
+> ng/mL (ref 30–100)"*, plus a note *"ask the doctor if low vitamin D explains
+> the fatigue"*.
+
+**Today:** four captures → C4 facts + C6 nodes are created, but **zero threads**.
+Workspace is empty, Ask finds no sources, Prepare has nothing to assemble, Delta
+shows nothing. The user sees a blank product despite having given it real data.
+
+**With genesis (target):**
+- The repeated cough mentions dedup (via the concern key) into **one** thread
+  *"Cough"* in `active_unresolved`, linked to the two cough captures as C5
+  evidence.
+- The abnormal Vitamin D lab opens a thread *"Low vitamin D"* (or attaches, if the
+  note ties them together), linked to the lab as evidence.
+- The note's explicit worry is attached as supporting evidence (or raises a
+  candidate), never lost.
+- Nothing alarming is asserted; titles stay calm ("Cough", not "Possible
+  respiratory illness"). Anything not turned into a thread is recorded as
+  `NO_THREAD_WITH_REASON`.
+
+The design questions in §7 are exactly what determine whether the above happens
+correctly (right grouping, right confidence threshold, right provenance) instead
+of producing four noisy threads or dropping the note.
 
 ---
 
@@ -108,6 +182,37 @@ the build. Those are §6 (the proposal) and §7 (the questions).
 ---
 
 ## 4. Architecture context — the seam genesis sits on
+
+### 4.0 The component map (primer)
+
+WellBe's core is 17 numbered components (C1–C17). A component is *core* if
+removing it breaks the Capture→…→Correct loop. Genesis touches the L1–L5 spine
+(C3–C9). Full canonical list in `docs/architecture/component-map.md`:
+
+| # | Core component | One-line purpose |
+|---|---|---|
+| C1 | Trust & Consent | Auth identity, consent scopes, share grants, revocation, cross-patient opt-in gate. |
+| C2 | Raw Context Vault | Immutable, append-only store of every raw input with provenance. |
+| C3 | Ingestion Layer | Source adapters (manual, document, device, FHIR…) that write into the Vault. |
+| **C4** | **Processing Pipeline** | **Extracts entities/facts/signals; quality & confidence scoring.** |
+| **C5** | **Evidence & Provenance** | **Links every derived fact to its raw source; enforces "no orphan claims".** |
+| **C6** | **Knowledge Graph** | **Typed nodes + evidence-weighted edges; entity resolution across threads/time.** |
+| **C7** | **Health Thread Engine + State Machine** | **The central object: one concern's lifecycle, linking, status.** |
+| C8 | Six Memories | Story/Clinical/Pattern/Decision/Responsibility/Equity memories around a thread. |
+| **C9** | **Continuity & Closure** | **Pending-item ledger, referral/result trackers, durable timers, repeat-visit view.** |
+| C10 | Safety & Governance Gate | Mandatory gate before any user-facing AI output (do-not-diagnose, anti-alarm, provenance, bias). |
+| C11 | Correction Service | Captures user repairs as new source-linked layers; never overwrites raw/derived. |
+| C12 | Notification & Audit | Append-only audit trail; low-alarm, closure-oriented notifications. |
+| C13 | API & Contract Layer | The single REST/OpenAPI boundary all surfaces/features call through. |
+| C14 | Investigation Engine | The Investigation object — the "Investigate" loop step (scope, participants, evidence bundles). |
+| C15 | Theory Service | The Theory object — evidence-for/against, status, safety level; never diagnosis. |
+| C16 | External Evidence Graph | Separate external-source graph; relevance links to personal facts; research watch. |
+| C17 | Workspace, Role & Grant | Role-scoped workspaces + deep grant model; individual stays controller. |
+
+**Bold rows are the components genesis directly touches.** The table below details
+their current state.
+
+### 4.1 The genesis seam (C3 → C7) and current state
 
 Genesis spans the C3→C7 path. Components and their current state:
 
@@ -206,6 +311,13 @@ reshapes) the plan in §6.
 
 ### For S1 — triage decision contract & consumer boundary
 
+*Why it matters:* this is the load-bearing contract — it defines the durable
+record of every genesis decision and where the logic lives. *What it unblocks:*
+Story B (the auto-create path). *What breaks if we guess wrong:* a wrong event
+boundary either double-fires genesis or runs before C6 has resolved entities
+(producing fragmented/duplicate threads), and a weak decision-record schema means
+genesis decisions aren't auditable — violating "nothing silently lost".
+
 - **Q1 — Event boundary & home.** Should the consumer fire on `fact.extracted`
   (per fact), on a `capture.processing_completed` (per capture, after all facts),
   on `graph.cluster_updated` (after entity resolution), or a combination? Per
@@ -222,6 +334,14 @@ reshapes) the plan in §6.
 
 ### For S2 — pending candidate object
 
+*Why it matters:* candidates are how weak/ambiguous signals stay visible without
+alarming the user with premature threads. *What it unblocks:* Stories C and D (the
+"things noticed" layer). *What breaks if we guess wrong:* either we build a second
+candidate concept that overlaps C9's pending-item ledger and relevance candidates
+(WEL-141/142), or — if deferred wrongly — a large class of real mid-confidence
+signals becomes invisible, quietly breaking "nothing lost". Q6 is the pivotal
+MVP-scoping question.
+
 - **Q5 — Object & ownership.** Fields, statuses, and which component owns the
   candidate (extend C9 pending-tracker vs a new C7-adjacent store)? How does it
   relate to the existing C9 pending-item ledger and to "relevance candidates"
@@ -236,6 +356,14 @@ reshapes) the plan in §6.
   instruction, cluster confidence)? Configurable per concern type?
 
 ### For S3 — concern key & dedup
+
+*Why it matters:* the concern key decides whether new evidence joins an existing
+thread or spawns a new one — it is the difference between one coherent "Cough"
+thread and four noisy fragments. *What it unblocks:* Story B (genesis can't create
+without a dedup key). *What breaks if we guess wrong:* too-loose keys merge
+unrelated concerns; too-tight keys fragment one concern across many threads; a
+wrong episode/reopen policy either resurrects closed threads inappropriately or
+loses the link between a recurrence and its history.
 
 - **Q8 — Concept normalization source.** Does the normalized concept come from C6
   entity resolution, a separate normalization step, or C4 extraction? How mature
@@ -289,6 +417,27 @@ Approve the plan as-is if:
 
 Reshape the plan if any of the above fails — most likely by promoting the
 candidate layer to MVP (Alt B) or merging Spikes (Alt D).
+
+### 9.1 What "genesis works" looks like (observable success criteria)
+
+Independent of the plan decision, the *feature* is successful when, on the live
+cluster with the dev-workspace seed (and for a real capture-only user):
+
+1. **The empty loop is closed.** After capturing health-relevant data, the user
+   sees at least one thread; Workspace, Ask, Prepare, and Delta are no longer
+   empty.
+2. **Right grouping.** Repeated mentions of the same concern produce **one**
+   thread (deduped via the concern key), not one-per-capture; distinct concerns
+   produce distinct threads.
+3. **No orphan threads.** Every system-created thread has ≥1 C5 evidence link to
+   the originating capture/fact (verifiable in the DB), created atomically.
+4. **Nothing silently lost.** Every health-relevant fact ends in exactly one
+   recorded outcome — attached, created, candidate, or `NO_THREAD_WITH_REASON` —
+   and that record is auditable.
+5. **Idempotent.** Re-delivering the same event (or re-running the pipeline) does
+   not create duplicate threads/candidates/decisions.
+6. **Calm & safe.** Auto-created titles are personal/non-alarming; no genesis path
+   emits user-facing text that bypasses C10.
 
 ---
 
