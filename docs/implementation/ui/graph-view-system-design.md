@@ -247,6 +247,7 @@ Land on the **progressive cluster overview** (III.6, XV.1): concern clusters, co
 - **Pinch / scroll** → semantic zoom across cluster → concept → capture LOD (IV.3).
 - **Collapse control** → per-branch collapse to manage density.
 - **Confidence-floor slider** → reveal/hide weaker edges.
+- **Search** → a search box to find and jump to any node/concept/cluster directly, without visually scanning the graph (search-first navigation, XV.14). Doubles as a non-spatial accessibility path and supports "search → evidence". (WEL-210)
 
 ### IX.3 States
 - **Cold start (no data):** not an empty hairball — a calm prompt to capture, with one example concept. The graph earns its first nodes through Capture.
@@ -270,6 +271,15 @@ The graph reads as calm only if the small interactions are deliberate. Grounded 
 - **Motion budget:** animation used **sparingly** — gentle docking of new nodes (IV.5), smooth zoom/expand transitions, no looping pulses or attention-grabbing motion. All non-essential motion respects `prefers-reduced-motion` (and a manual "reduce motion" toggle); reduced-motion replaces transitions with instant state changes.
 - **Loading / empty / error micro-states:** skeleton clusters while the overview loads; the calm cold-start prompt when there is no data (IX.3); a non-alarming inline message if a scoped region can't be shown.
 - **Hit targets & precision:** edges/nodes meet mobile touch-target sizes; edge hit areas are padded so thin/weak edges remain tappable (validated in the renderer bakeoff, XV.12).
+
+### IX.6 Lenses, layers & modes
+The graph is rarely best viewed "all at once." These reduce overwhelm, anxiety, and semantic confusion (research §4.7, §4.8, §5.9, §9.1).
+
+- **Task lenses (default to these, not the full map):** quick views like **Open loops only**, **Today / recent**, and a **Calm mode** that hides weak links, suppresses the global hairball, and uses no alarming colors. "Open loop" wording, never "danger." (WEL-211)
+- **Layer toggles (layered graph model, XV.8):** observation / concept / thread / continuity are visible by default; correction / investigation / external are optional toggles. External context stays a separate graph, linked only via explicit `relevance_link` — never visually merged with personal facts. (WEL-212)
+- **Complete-evidence / audit mode:** a user-only mode that drops the progressive budget and exposes the full personal graph for auditing/review/export. Still scope-filtered to the user's own data; never the primary surface (research §3.2; query mode `audit_full`, XV.6). (WEL-215)
+- **Time scrubber (expansion, Part V #1):** replays how the graph grew over time as chronology — explicitly *sequence ≠ causation*. (WEL-213)
+- **Shareable subgraph → visit packet (expansion, Part V #6):** select a cluster/subgraph and export a clean, source-linked packet into the visit-packet feature; user-controlled and grant-scoped (query mode `visit_packet_selection`, XV.6). (WEL-214)
 
 ## Part X — Visual language
 
@@ -397,4 +407,15 @@ Prototype **Sigma.js + Graphology** (read-heavy, WebGL, large graphs; more custo
 
 ### XV.13 Safety copy
 **Use:** "Recorded together," "Appeared around the same time," "Part of the same care step," "You linked these," "A source you uploaded says…," "WellBe noticed this pattern in your records," "Worth asking about." **Avoid:** "causes," "proves," "diagnoses," "risk," "danger," "high severity," "this means," "AI found the cause." Persistent legend: *"This map shows how items appear in your records. Brighter items are more active or recent, not more medically serious. Lines show recorded relationships or patterns, not proof of cause."* System-inferred edges are framed as "WellBe noticed these appeared together in your records," never "AI discovered."
+
+### XV.14 Cognitive-load & anxiety-reduction abilities (now tracked)
+Additional abilities the research names to keep dense health graphs legible, calm, and bounded. These are documented in the interaction model (IX.2, IX.6, Part V) and now have Jira coverage:
+- **Search-first navigation** (§4.7, §16): find and jump to any node/concept/cluster without visual scanning; also a non-spatial accessibility path and a "search → evidence" measure. (WEL-210)
+- **Task lenses + calm mode** (§4.8, §5.9, §20): "Open loops only," "Today/recent," and a calm mode (hide weak links, no hairball, no alarming colors); default to task lenses over the full map. (WEL-211)
+- **Layered model + layer toggles** (§9.1, XV.8): default-visible vs optional layers; external stays separate. (WEL-212)
+- **Time scrubber** (Part V #1): temporal replay as chronology, never cause. (WEL-213)
+- **Shareable subgraph → visit packet** (§4.3, §8 Phase 2; `visit_packet_selection`): export a source-linked subgraph into the visit-packet feature, grant-scoped. (WEL-214)
+- **Complete-evidence / audit-full mode** (§3.2; `audit_full`): user-only full, unbudgeted graph for review/export. (WEL-215)
+- **Regulatory & legal boundary review** (§14, XV.11): per-market legal review before launch, distinct from the comprehension gate. (WEL-216)
+- **Folded into existing stories:** "what would strengthen/weaken this connection" in the why-connected panel (WEL-201); data-type-specific confidence weighting (WEL-193); synthetic-graph generator + static clickable prototype for the renderer bakeoff and comprehension gate (WEL-204, WEL-205); cross-patient comparison governance — opt-in, cohort definition, minimum cohort size, differential privacy, no institution default, no risk language, fairness/bias review (WEL-63).
 
