@@ -1,11 +1,11 @@
 # WellBe Graph View — Full System Design
 
-**Status:** Proposed / forward design — gated by research spike **WEL-187** and Open decision record `docs/decisions/whole-person-graph-model-scoping.md`. Not yet approved for implementation.
-**Date:** 2026-06-18
+**Status:** **Approved — Approach C (progressive whole-person graph).** Decision record `docs/decisions/whole-person-graph-model-scoping.md` approved 2026-06-18; research spike **WEL-187** resolved/closed. The whole-person model supersedes the prior thread-scoped default; the user-facing default is a *progressive, budgeted, explainable* graph (see Part XV).
+**Date:** 2026-06-18 (rev. 2026-06-18 — adopted WEL-187 research)
 **Primary Jira:** WEL-78 · relates to WEL-60, WEL-156, WEL-16 (E5 Knowledge Graph)
 **Related docs:** design spec `docs/superpowers/specs/2026-06-18-second-brain-graph-design.md` · current/live build spec `docs/implementation/ui/graph-visualization-spec.md` · data model `docs/system-design/knowledge_graph.md` · live API `docs/decisions/graph-query-api-contract.md`
 
-> **How to read this document.** It is self-contained. Part I sets the platform context. Part II explains what the graph view is and why it exists. Parts III–V are the full design (core model, improvements, expansion roadmap) with rationale and nuance. Parts VI–XIV cover safety, data model, interaction states, visual language, current state, open questions, and governance. Where this design diverges from previously approved decisions, it is flagged explicitly.
+> **How to read this document.** It is self-contained. Part I sets the platform context. Part II explains what the graph view is and why it exists. Parts III–V are the full design (core model, improvements, expansion roadmap) with rationale and nuance. Parts VI–XIV cover safety, data model, interaction states, visual language, current state, spike answers, and governance. **Part XV is the operative refinement layer** adopted from the WEL-187 research — where it conflicts with an earlier part, Part XV (and the edited core sections) win. Where this design diverges from previously approved decisions, it is flagged explicitly.
 
 ## Part I — Platform context
 
@@ -97,25 +97,27 @@ Graphs are powerful for revealing structure, but the industry lesson is stark: *
 **Nuance:** "frozen" must be reconciled with ever-growing data — see IV.5 (incremental layout). New nodes dock near their cluster without disturbing existing positions.
 
 ### III.5 Click a node = expand the full neighborhood
-**Decision:** clicking a concept reveals **both** its related concepts **and** their captures at once — the full neighborhood. Prior expansions persist; each branch has one-tap collapse; captures are toggleable per node.
-**Why:** the user explicitly wants "each click expands with all related other elements" — concepts *and* the evidence behind them.
-**Nuance / the density risk:** "everything related at once" can explode. Mitigations: keep prior expansions open but offer per-branch collapse; toggle captures per node so they don't all appear; respect the confidence floor (IV.1) so weak edges don't flood the expansion. This is the one place where the user's "show everything" instinct most needs guardrails.
+**Decision (revised per WEL-187):** clicking a concept reveals a **budgeted neighborhood** — the top **5–12** related concepts above the confidence floor, with captures held **behind an evidence drawer** (not auto-shown). A **"show more"** control reveals weaker/older links in batches, and the view **always shows hidden counts** ("Showing 8 of 31 related items"). Prior expansions persist with one-tap per-branch collapse.
+**Why:** the user wants to reach everything related — but the research [S2] shows "everything at once" explodes into a hairball, makes performance unpredictable, and inflates false meaning. Budgeting preserves reachability (nothing is hidden, only deferred) while keeping each step legible and safe.
+**Nuance:** the budget is enforced server-side (`node_budget`, `edge_budget`, `min_score_level`, `sort_by`, `cursor` — see Part XV.6). "Complete evidence mode" is available for users who want full audit. This is where the original "show everything" instinct is most deliberately constrained.
 
-### III.6 Entry = full constellation, relevance-weighted (A+C)
-**Decision:** the user lands on the **whole brain** (full constellation), but it is **relevance-weighted** — active/recent concerns are bright and central; resolved/older concerns are dimmed toward the edges (still reachable, never hidden). A "zoom out" control reveals the full galaxy.
-**Why:** the user wanted a mix of "see everything" (the galaxy) and "lead me to what matters now" (relevance). This synthesis shows the complete picture while guiding attention, avoiding both the empty-feeling overview and the overwhelming hairball on open.
-**Nuance:** relevance weighting must derive from neutral signals (recency, thread status, open loops) and must **not** imply severity or diagnosis. "Dim" means "less active," never "less important to your health."
+### III.6 Entry = progressive whole-person overview (revised per WEL-187)
+**Decision (revised):** the user lands on a **progressive cluster overview** — concern clusters, their counts, open loops, and a small set of **high-confidence bridge concepts** — *not* a full node-link constellation. Relevance still orders the view (active concerns prominent, resolved dimmed). The **full galaxy is preserved as an explicit "Explore all connections" / audit mode**, never the primary operating surface.
+**Why (changed from the original "land on the full constellation"):** the research is unambiguous — a whole-network default is both a usability hazard (hairball above ~50–100 nodes [S2]) and a *safety* hazard (users infer cause/severity from density, centrality, and lines [S3]). The principle is **"whole-person model, not whole-network dump."** Overview-first → zoom/filter → details-on-demand [S1].
+**Nuance:** relevance weighting derives only from neutral signals (recency, thread status, open loops, upcoming visit, user pin) and must **not** imply severity or diagnosis. A persistent legend states: *"This map shows activity and evidence in your records, not medical severity."* See Part XV.2 (split encodings) and XV.5 (relevance signals).
 
 ## Part IV — Core improvements (now part of the design)
 
 These were brainstormed as enhancements and all approved into the core design.
 
-### IV.1 Confidence-first edges
-Edges carry a `PotentialScore` (0–100, with 7 `score_level` bands). Strong/evidenced relationships render as solid, brighter, thicker lines; weak/candidate relationships render faint, thin, dashed. A **confidence floor** (adjustable by the user) hides the weakest links by default.
-**Why it matters most in health:** this is the single most important anti-harm mechanism. It prevents a coincidental co-mention from *looking* like a meaningful causal link. The visual weight of an edge must track the strength of its evidence, never exceed it.
+### IV.1 Confidence-first edges (split scoring per WEL-187)
+Edge *evidence strength* drives visual weight: strong/evidenced relationships render as solid, brighter, thicker lines; weak/candidate relationships render faint, thin, dashed. A **confidence floor** (adjustable) hides the weakest links by default (defaults in Part XV.5).
+**Important (revised):** evidence strength must **not** be conflated into a single composite that users can read as medical risk. Scoring is **split into three independent concepts** — *evidence strength* (how well-supported in the user's sources), *recency/activity*, and *user priority* — each mapped to a *different* visual channel (XV.2). The underlying C6 `PotentialScore`/`score_level` informs evidence strength only.
+**Why it matters most in health:** this is the single most important anti-harm mechanism. It prevents a coincidental co-mention from *looking* like a meaningful causal link [S3]. The visual weight of an edge must track the strength of its evidence, never exceed it — and never imply severity.
 
-### IV.2 "Why are these connected?"
-Every edge is inspectable. Tapping an edge opens a panel: the relationship type in plain language ("mentioned together," "happened around the same time," "share a body system"), the contributing signals, and the **source captures** on both ends. No connection is a black box.
+### IV.2 "Why are these connected?" + relationship vocabulary policy
+Every edge is inspectable. Tapping an edge opens a panel with: a **plain-language relationship label** (never the raw edge-type name), the contributing signals, the **source captures** on both ends, any contradicting evidence, and a standard safety line ("This connection means these items were related in your records in the way shown above. It does not prove that one caused the other."). No connection is a black box.
+**Relationship vocabulary policy (per WEL-187):** raw edge types (`may_explain`, `aggravates`, …) are **never shown** in the graph. They map to user-facing families: *Recorded together · Around the same time · Part of the same care step · You linked these · A source you uploaded says · System candidate (hidden by default) · Investigation-only hypothesis.* See Part XV.3.
 **Tie to platform:** direct expression of C5 provenance — "no orphan claims" extended to relationships.
 
 ### IV.3 Semantic zoom / level-of-detail (LOD)
@@ -131,8 +133,9 @@ Long-press / right-click a node opens a radial menu of loop actions: **Ask about
 New nodes from new captures **dock near their cluster** using a local force pass; existing node positions are preserved. The map grows like an accreting organism rather than re-shuffling. Spatial memory is protected; full re-layout is opt-in only.
 
 ### IV.6 User-authored edges (C11 correction)
-The user can **assert a connection** the system missed ("these two are related") and **dispute** one it inferred. User-authored edges are visually distinct (e.g. a different stroke) and are first-class corrections layered over source data — never destroying inferred edges, always traceable.
-**Tie to platform:** this is **Correct** in the operating loop, applied to the graph. It also feeds the model: user assertions are high-confidence signals.
+The user can **assert a connection** the system missed ("these two are related") and **dispute** one it inferred. User-authored edges are visually distinct and are first-class corrections layered over source data — never destroying inferred edges, always traceable.
+**Important (revised per WEL-187):** user-authored edges are a **separate evidence class** and must **not** auto-raise medical confidence. "You linked these" is kept distinct from "records show these often appeared together." They influence **personalization and retrieval**, not clinical interpretation, and only strengthen when later supported by source evidence or repeated patterns. This prevents the graph from reinforcing confirmation bias or health anxiety.
+**Tie to platform:** this is **Correct** in the operating loop, applied to the graph.
 
 ## Part V — Expansion roadmap (phased, post-core)
 
@@ -179,13 +182,17 @@ The graph must not be the *only* path to any information — a list/timeline equ
 | Risk | Severity | Mitigation in this design |
 |------|----------|---------------------------|
 | **False causality** — lines/adjacency imply cause | High | Confidence-first edges (IV.1); hedged vocabulary (VI.1); "why connected" provenance (IV.2); confidence floor |
-| **Overwhelm / hairball** at scale | High | Concept-level resting view (III.2); relevance-weighted entry (III.6); semantic zoom (IV.3); per-branch collapse (III.5) |
+| **Overwhelm / hairball** at scale | High | Progressive cluster-overview default (III.6, XV.1); budgeted expansion with hidden counts (III.5); concept-level resting view (III.2); semantic zoom (IV.3) |
 | **Anxiety** from seeing everything at once | High | Calm visual language (VI.4); dim-not-delete; ghost nodes framed as follow-ups; no severity coding |
 | **"Admired but unused"** (Obsidian lesson) | High | Action-radial menus tie every node to the loop (IV.4); "explain my graph" (V.5); relevance-led usefulness |
 | **Spatial instability** between visits | Medium | Frozen layout (III.4) + incremental docking (IV.5) |
 | **Performance** at 300+ nodes / mobile | Medium | LOD/cluster collapse (IV.3); server-side scoping; resolve in spike (canvas/WebGL renderer choice) |
-| **Scope/governance** — overrides approved thread-scoped design | Medium | Gated by WEL-187 spike + decision record; not implemented until approved |
-| **Cross-patient privacy** (comparison overlay) | High | Default off; explicit opt-in; aggregate-only; never institution-enabled (V.4, VI.5) |
+| **Scope/governance** — overrides approved thread-scoped design | Resolved | WEL-187 spike resolved; decision record approved 2026-06-18 (Approach C) |
+| **Cross-patient privacy** (comparison overlay) | High | Default off; explicit opt-in; aggregate-only; never institution-enabled (V.4, VI.5); **out of MVP** (XV.9) |
+| **Misread relevance as severity** | High | Split visual encodings (XV.2); persistent "not medical severity" legend (XV.8) |
+| **Privacy inference-leakage** via bridge edges / cluster shape | High | Scope-filter **before** graph assembly; recompute edges/clusters on the scoped graph; no hidden counts outside grant (XV.7) |
+| **False-inference (unmeasured)** | High | Mandatory comprehension/anxiety testing gate before launch; ≥85–90% correct edge interpretation (XV.10) |
+| **Regulatory boundary creep** | High | Governance gates for theory/comparison; per-market legal review — FDA CDS, FTC, HIPAA, EU AI Act, IL PPL Am.13 (XV.11) |
 
 **Risks explicitly accepted (pending mitigation in the spike):** higher rendering complexity than a thread-scoped view; the unified map raises the false-causality bar; relevance weighting needs a defensible, non-diagnostic signal definition.
 
@@ -254,8 +261,8 @@ Per VI.6, every node/edge is also reachable via list/timeline views. The graph i
 Aligned to WellBe's calm, personal-first aesthetic (see `docs/implementation/ui_vision.md`).
 
 - **Layout:** organic neuron/constellation; frozen positions; soft tinted halos for concern clusters.
-- **Nodes:** size encodes salience (recency/evidence count), not severity. Shape/icon encodes node type so color is never the sole signal.
-- **Edges:** weight/opacity/dash encode `score_level`; user-authored edges visually distinct; no red "danger" edges.
+- **Nodes:** **never size-alone for mixed signals** (large reads as "serious"). Split channels: activity → brightness/opacity; evidence volume → ring count / chip; user priority → pin/star; open loop → small task badge. Shape/icon encodes node type so color is never the sole signal.
+- **Edges:** weight/opacity/dash encode **evidence strength** only (not severity/activity); user-authored edges visually distinct; no red "danger" edges.
 - **Color:** per-concern tints for clusters; relevance via brightness/saturation (active bright, resolved dim). No clinical red/green risk coding.
 - **Motion:** gentle docking of new nodes (IV.5); no aggressive pulsing; transitions are slow and calm.
 - **Typography & chrome:** consistent with the workspace shell (`TopBar`, `PageBody`); evidence chips and date labels appear only at deep zoom.
@@ -264,36 +271,38 @@ Aligned to WellBe's calm, personal-first aesthetic (see `docs/implementation/ui_
 
 - **Backend / API:** a thread-scoped read endpoint exists and is live — `GET /v2/graph/threads/{thread_id}` (see `docs/decisions/graph-query-api-contract.md`), returning neutral node-link JSON, access/provenance/non-diagnosis scoped at C13.
 - **Frontend:** the web route `apps/web/app/(workspace)/graph/page.tsx` is a `ComingSoon` placeholder — no renderer is built yet.
-- **Gap to this design:**
-  1. **API:** thread-scoped contract must extend to a whole-person, relevance-weighted, cluster-aware query (the central spike question).
-  2. **Renderer:** choose and build the client (Cytoscape.js vs Sigma.js/WebGL) with frozen + incremental layout.
-  3. **Features:** confidence floor, "why connected," semantic zoom, action-radial, user-authored edges.
+- **Gap to this design (Approach C):**
+  1. **API:** thread-scoped contract must extend to the budgeted, scope-filtered, summary-bearing endpoint set in XV.6 (`/v2/graph/person/overview`, `/nodes/{id}/neighborhood`, `/edges/{id}/explanation`, `/nodes/{id}/evidence`, corrections/user-edges, layout endpoints).
+  2. **Renderer:** run the Sigma.js+Graphology vs Cytoscape.js bakeoff (XV.12) at 30/120/300/800 nodes; build frozen + local-docking layout.
+  3. **Features:** progressive cluster overview, budgeted expansion with hidden counts, "why connected" + relationship vocabulary, split-channel encodings, confidence floor, action-radial, separate-class user-authored edges, list/timeline equivalent.
+  4. **Safety/eval:** relationship-copy keys + legend served by API; comprehension/anxiety testing gate before launch.
 - **Jira reality check:** several graph backend stories are implemented but their Jira status lags (Epics still "To Do" while child stories are "Done"). Status reconciliation is tracked separately from this design.
 
-## Part XII — Open questions the research spike (WEL-187) must answer
+## Part XII — Spike (WEL-187) questions — answered
 
-Because this design touches **C6 Knowledge Graph** and **C13 API Layer** (core components), implementation is blocked until these are resolved via the Research Protocol. User-provided research is required; the agent may not self-research.
+The spike is **resolved**. The six open questions were answered by the user-provided research (`wellbe_graph_research_review.md`) and adopted in the decision record. Summary of answers (detail in Part XV):
 
-1. **Cross-concern query & scoping.** How does the API serve a whole-person, cross-thread graph while honoring C13 access scoping, provenance, and non-diagnosis? What is the query shape, pagination/windowing, and node/edge budget?
-2. **Relevance weighting definition.** What neutral, defensible signals define "active/relevant" vs "dim" (recency, thread status, open loops) without implying severity or diagnosis?
-3. **Cluster computation.** Are concern clusters computed at render time from `belongs_to_thread` / entity resolution, or precomputed? How are multi-thread bridge nodes resolved and de-duplicated?
-4. **Confidence floor & edge exposure.** What default `score_level` floor avoids false-causality while staying useful? How does the floor interact with full-neighborhood expansion?
-5. **Layout & performance.** Frozen + incremental layout algorithm; renderer choice (Cytoscape.js vs Sigma.js/WebGL); performance target at 300+ nodes on mobile.
-6. **User-authored edges.** Storage/representation of user-asserted and disputed edges as corrections (C11), their `PotentialScore` treatment, and how they feed back into the model.
+1. **Cross-concern query & scoping** → budgeted, scope-filtered, cursor-based views; authorize *before* assembly; server returns summaries + safety-copy keys; never an unbounded full graph (XV.6).
+2. **Relevance weighting** → neutral signals only (recency, active-thread, open loop, upcoming visit, user pin, new evidence, pending correction); never severity/risk/prognosis (XV.5).
+3. **Cluster computation** → hybrid precompute (from `belongs_to_thread` + entity resolution) + render-time overlap; bridge nodes drawn once with cluster chips; no thread→thread edges (XV.4).
+4. **Confidence floor & edge exposure** → hide score levels 1–2 by default; overview shows 5–7; neighborhoods 3–7; budgeted expansion + "show more" (XV.5).
+5. **Layout & performance** → Sigma.js+Graphology vs Cytoscape.js bakeoff at 30/120/300/800 nodes; frozen + local docking (XV.12).
+6. **User-authored edges** → separate evidence class; influences personalization/retrieval, not medical confidence; strengthens only with later source support (IV.6, XV.3).
 
 ## Part XIII — Governance & status
 
-- **This design supersedes** the thread-scoped framing in `docs/decisions/research-brief-c6-graph-visualization.md` and `docs/decisions/graph-query-api-contract.md` — specifically the rule that "the full patient graph is never shown as a single network." That override is **not in effect until approved.**
-- **Decision record (Open):** `docs/decisions/whole-person-graph-model-scoping.md`.
-- **Spike (blocks WEL-78):** **WEL-187** — "[Spike] Whole-person ('second brain') graph: cross-concern traversal, scoping, relevance & API contract."
-- **Bible-file note:** this document does not modify any bible file. If approval implies changes to `system_design.md` or safety docs, the doc-governance re-eval protocol runs first.
-- **Implementation status:** **paused.** No graph renderer or whole-person API work proceeds until the spike research is provided by the user and the decision record is approved.
+- **This design supersedes** the thread-scoped framing in `docs/decisions/research-brief-c6-graph-visualization.md` and `docs/decisions/graph-query-api-contract.md` — specifically the rule that "the full patient graph is never shown as a single network." **This override is now in effect** (decision approved 2026-06-18).
+- **Decision record (Approved):** `docs/decisions/whole-person-graph-model-scoping.md` (Approach C).
+- **Spike:** **WEL-187 — resolved/closed**; WEL-78 unblocked, `re-eval:clean`.
+- **Bible-file note:** this document does not modify any bible file. Adopting Approach C did not require a bible change; if future implementation implies changes to `system_design.md` or safety docs, the doc-governance re-eval protocol runs first.
+- **Implementation status:** **unblocked.** Build proceeds against Approach C — starting with Phase 0 (prototype + renderer bakeoff + comprehension testing) then the Phase 1 MVP scope (XV.9). New stories flow into the E5 Knowledge Graph epic via triage.
 
 ## Part XIV — References
 
 - Design spec (brainstorm output): `docs/superpowers/specs/2026-06-18-second-brain-graph-design.md`
 - Decision record (Open): `docs/decisions/whole-person-graph-model-scoping.md`
-- Prior approved (superseded by this, pending approval): `docs/decisions/research-brief-c6-graph-visualization.md`, `docs/decisions/graph-query-api-contract.md`
+- Prior approved (superseded by Approach C): `docs/decisions/research-brief-c6-graph-visualization.md`, `docs/decisions/graph-query-api-contract.md`
+- Research input (user-provided, WEL-187): `wellbe_graph_research_review.md` (refs [S1]–[S30])
 - Live API contract: `docs/decisions/graph-query-api-contract.md`
 - Data model: `docs/system-design/knowledge_graph.md`
 - Intelligence engines: `docs/system-design/intelligence_engines.md`
@@ -301,4 +310,75 @@ Because this design touches **C6 Knowledge Graph** and **C13 API Layer** (core c
 - Current build spec: `docs/implementation/ui/graph-visualization-spec.md`
 - Component map: `docs/architecture/component-map.md`
 - Jira: WEL-78 (graph view), WEL-187 (spike), E5 Knowledge Graph epic
+
+## Part XV — Research-driven refinements (WEL-187, adopted 2026-06-18)
+
+This part records the concrete decisions adopted from the user-provided research review. It is the operative spec where it conflicts with earlier parts. **Guiding principle: whole-person model, not whole-network dump — progressive, budgeted, explainable, source-linked, scope-filtered, non-diagnostic, and comprehension-tested before launch.**
+
+### XV.1 Progressive disclosure levels
+- **Overview (default):** concern clusters, counts, open loops, high-confidence bridge concepts only.
+- **Cluster detail:** concept nodes within a selected cluster.
+- **Detail:** captures, dates, evidence chips, source previews.
+- **Explore/audit:** full galaxy — explicit, labeled "Explore all connections," never the default.
+
+### XV.2 Split visual encodings (no signal conflation)
+Activity → brightness/opacity · evidence volume → ring/chip · user priority → pin/star · open loop → task badge. **Never node size alone** for mixed signals. Edge thickness = evidence strength only.
+
+### XV.3 Relationship vocabulary policy
+User-facing families, mapped from C6 edge types, shown instead of raw type names:
+1. **Recorded together** — same capture/document/visit (`co_occurs_with`).
+2. **Around the same time** — temporally close, no causal claim (`temporally_precedes` shown neutrally).
+3. **Part of the same care step** — lab/referral/result/visit/follow-up (`part_of`, care-pathway links).
+4. **You linked these** — user-authored (separate class).
+5. **A source you uploaded says** — source-linked clinical statement (`confirms`/`may_explain` only when a source states it).
+6. **System candidate** — weak/system-inferred, hidden by default.
+7. **Investigation-only hypothesis** — visible only in the theory/investigation lens.
+
+`contradicts` surfaces as "conflicting information" (preserved, not resolved). `may_explain` never renders as "causes."
+
+### XV.4 Cluster computation
+Hybrid: precompute membership/anchors (daily or post-ingestion) from `belongs_to_thread` + entity resolution; resolve overlap and current filters at render time. A node may belong to several clusters; bridge nodes are drawn **once** with small cluster chips. **No thread→thread edges.** Clusters are product groupings around Health Threads — **never** clinical conclusions (no "root cause group" labels).
+
+### XV.5 Split scoring + confidence floor
+Three independent scores, never one medical-risk composite:
+- **Evidence strength** (drives edge weight): source count, source diversity, explicitness, temporal recurrence, extraction confidence; penalties for contradiction and staleness. Ranking/filtering only — copy says "more evidence in your records," not "more likely."
+- **Recency/activity.**
+- **User priority** (pin/dispute).
+
+**Relevance** (for ordering, neutral): active-thread, recency, open loop, upcoming visit, user pin, new evidence, pending correction. Never severity/risk/prognosis. User-facing label "active in your records" / "worth reviewing now."
+
+**Default confidence floor:** hide `score_level` 1–2; neighborhoods show 3–7; overview shows 5–7 only unless the user lowers the slider. Slider labels: "Only strongest source-backed links" / "More links" / "Exploratory links" (avoid "low confidence" as the only label). User-authored edges always shown when requested, visually separate.
+
+### XV.6 API contract direction (C13)
+Principles: never return an unbounded full patient graph; **authorize/scope-filter before assembly**; budgeted + cursor-based; server provides summaries and **safety-copy keys** (client does not invent wording). Endpoints:
+- `GET /v2/graph/person/overview?node_budget&edge_budget&min_score_level&include_resolved=dimmed` → clusters, top bridges, open loops, high-confidence edges, summary cards, layout anchors, provenance counts.
+- `GET /v2/graph/nodes/{id}/neighborhood?radius=1&node_budget&edge_budget&min_score_level&include_captures=false&cursor` → related concepts, edge explanations, hidden counts.
+- `GET /v2/graph/edges/{id}/explanation` → plain label, contributing signals, source captures, contradicting evidence, copy guardrails.
+- `GET /v2/graph/nodes/{id}/evidence?source_type&cursor` → captures behind a concept.
+- `POST /v2/graph/corrections` · `POST /v2/graph/user-edges` · `POST /v2/graph/edges/{id}/dispute`.
+- `GET/PUT /v2/graph/layouts/current` · `POST /v2/graph/layouts/tidy`.
+
+Response carries `scope`, `budgets` (incl. `hidden_node_count`/`hidden_edge_count` — only for data the viewer may know exists), `legend`, `clusters`, `nodes`, `edges`, `open_loops`, `layout`.
+
+### XV.7 Privacy: scope-filter before assembly (C1/C13/C17)
+Authorization runs **before** graph assembly. A hidden node can still leak via a bridge edge or cluster shape (e.g. "oncology visit → hair loss"); therefore scope-filter nodes first, then **recompute edges/clusters on the scoped graph**, and never render hidden counts for data outside the viewer's grant. Maps to FHIR Consent.
+
+### XV.8 Layered graph model
+Toggleable layers: observation · concept · thread · continuity · correction · investigation · external. **Default visible:** observation/concept/thread/continuity only. The external evidence graph stays separate and connects only via explicit `relevance_link` context.
+
+### XV.9 MVP scope (Phase 1) and exclusions
+**Include:** cluster overview · deduplicated concept nodes · concern clusters (soft halos) · high-confidence bridge nodes · edge confidence styling + floor · "why connected?" with sources · node drawer · budgeted local expansion · actions (Ask, Add capture, Correct, Add to visit packet, Hide/mute) · list/timeline equivalent · layout stability · basic user-authored links (separate class) · accessibility basics.
+**Exclude from MVP:** cross-patient comparison overlays · disease-risk/severity overlays · full raw capture network on entry · unbudgeted expansion · theory lens (until C14/C15 governance mature) · external-evidence blending · AI medical interpretation beyond source-cited hedged summaries.
+
+### XV.10 Mandatory comprehension/anxiety testing gate (pre-launch)
+Before launch: comprehension test (show edges, ask "what does this mean?"; track false-causality / false-severity / false-diagnosis rates; require **≥85–90%** correct edge interpretation after legend+panel; re-test low health/graph-literacy users) and an anxiety/calmness test (pre/post self-rated anxiety, perceived control, clinician-discussion confidence). Success metrics span understanding, product utility (% sessions ending in a loop action, visit-packet/closure rates, repeat use), safety (anxiety change, C10 copy-violation catches, edges-without-provenance blocked), and technical (render time, mobile FPS, response size, layout stability).
+
+### XV.11 Regulatory watchpoints (per-market legal review)
+FDA CDS / device-software boundary (no diagnosis, treatment, risk prediction, severity, med-change instructions); FTC Health Breach Notification Rule; HIPAA access rights; EU AI Act (if EU); Israel PPL Amendment 13 (if IL users). Theory and comparison phases carry the most regulatory weight.
+
+### XV.12 Renderer bakeoff (Phase 0)
+Prototype **Sigma.js + Graphology** (read-heavy, WebGL, large graphs; more custom work for compound nodes/overlays/accessibility) vs **Cytoscape.js** (rich interactions, compound nodes, graph algorithms; validate dense-mobile performance) at 30/50, 120/250, 300/800, 800/2,500 node/edge scales on mid-range mobile, low-end laptop, and desktop. Measure render time, pan/zoom FPS, label legibility, edge hit accuracy, memory, accessibility-workaround complexity, and ease of freeze/incremental layout. Favor Sigma if read-heavy/large dominates; Cytoscape if compound nodes/rich interaction dominate.
+
+### XV.13 Safety copy
+**Use:** "Recorded together," "Appeared around the same time," "Part of the same care step," "You linked these," "A source you uploaded says…," "WellBe noticed this pattern in your records," "Worth asking about." **Avoid:** "causes," "proves," "diagnoses," "risk," "danger," "high severity," "this means," "AI found the cause." Persistent legend: *"This map shows how items appear in your records. Brighter items are more active or recent, not more medically serious. Lines show recorded relationships or patterns, not proof of cause."* System-inferred edges are framed as "WellBe noticed these appeared together in your records," never "AI discovered."
 

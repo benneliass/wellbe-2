@@ -1,7 +1,7 @@
 # Design Spec — WellBe "Second Brain" Graph View
 
 **Date:** 2026-06-18
-**Status:** Proposed design (pending research spike + decision record before implementation)
+**Status:** Brainstorm snapshot — **superseded by the approved design.** The WEL-187 spike is resolved and the decision is approved (Approach C). The canonical, operative design is `docs/implementation/ui/graph-view-system-design.md` (esp. Part XV) and the decision record `docs/decisions/whole-person-graph-model-scoping.md`. This file is retained for history; where it differs (e.g. "land on the full constellation," "click expands the full neighborhood"), the canonical doc wins.
 **Owner:** User (brainstorm partner: agent)
 **Primary Jira:** WEL-78 (graph visualization), relates to WEL-60, WEL-156, E5/WEL-16
 **Supersedes (on approval):** the thread-scoped stance in `docs/decisions/graph-query-api-contract.md` and the "never one network / one-click-one-layer" stance in `docs/decisions/research-brief-c6-graph-visualization.md`
