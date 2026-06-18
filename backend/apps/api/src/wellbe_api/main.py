@@ -9,7 +9,9 @@ and docs/decisions/c13-versioned-api-contract-boundary.md.
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from wellbe_api.config import ApiSettings
 from wellbe_api.deps import UnauthenticatedError, lifespan
 from wellbe_api.errors import ProblemError, problem_error_handler, unauthenticated_response
 from wellbe_api.routers import (
@@ -35,6 +37,19 @@ app = FastAPI(
         "See docs/architecture/component-map.md C13."
     ),
     lifespan=lifespan,
+)
+
+# CORS for the browser web app. Data requests send custom X-Wellbe-* headers
+# (and Idempotency-Key / correlation ids), so they are always preflighted; an
+# explicit allow-list is required for the cross-origin app.localhost -> api.localhost
+# calls to succeed. Auth is header-based (no cookies), so credentials stay off.
+_settings = ApiSettings()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.cors_allow_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_exception_handler(ProblemError, problem_error_handler)

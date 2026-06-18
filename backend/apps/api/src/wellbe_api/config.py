@@ -21,3 +21,14 @@ class ApiSettings(BaseSettings):
     c10_token_secret: SecretStr = SecretStr("local-dev-c10-render-token-secret")
     log_level: str = "INFO"
     environment: str = "dev"
+    # Browser origins allowed to call this boundary cross-origin. The web app is
+    # served from a different host (app.localhost) than the API (api.localhost),
+    # and every data request carries custom X-Wellbe-* headers, which forces a
+    # CORS preflight. Without an allow-list the browser blocks all data fetches.
+    # Override via WELLBE_CORS_ALLOW_ORIGINS (JSON list) per environment.
+    cors_allow_origins: list[str] = [
+        "http://app.localhost",
+        "https://app.localhost",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
