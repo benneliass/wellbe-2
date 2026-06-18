@@ -25,3 +25,4 @@ node_modules/
 /blob-report/
 /apps/web/test-results/
 /apps/web/playwright-report/
+.superpowers/

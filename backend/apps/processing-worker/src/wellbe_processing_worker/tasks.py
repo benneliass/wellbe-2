@@ -38,6 +38,7 @@ def extract_facts_task(event_json: str) -> None:
 async def _extract_facts(event_json: str) -> None:
     from wellbe_c4_processing import (
         ProcessingRepository,
+        StructuredObservationExtractor,
         TextFactExtractor,
         PIPELINE_VERSION,
     )
@@ -57,13 +58,29 @@ async def _extract_facts(event_json: str) -> None:
     if decision.route != DispatchRoute.DRAMATIQ_TEXT:
         return
 
-    extractor = TextFactExtractor()
+    # Dispatch by product capture_type *inside* the text route: structured
+    # lab/vital captures (capture_type=lab) get a deterministic structured
+    # extractor that emits LabResult/VitalSign; symptom/note keep the free-text
+    # path unchanged (docs/decisions/structured-capture-extraction-typing.md).
+    source_metadata = event.source_metadata or {}
+    capture_type = source_metadata.get("capture_type")
 
     raw_text = data.get("_raw_text", "")
     if not raw_text and event.blob_ref is None:
-        raw_text = data.get("source_metadata", {}).get("text", "")
+        raw_text = source_metadata.get("text", "")
 
-    results = await extractor.extract(raw_text, event.patient_id)
+    if capture_type == "lab":
+        extractor: object = StructuredObservationExtractor()
+        results = extractor.extract_lab(
+            test_name=source_metadata.get("test_name", ""),
+            value=source_metadata.get("value", ""),
+            unit=source_metadata.get("unit"),
+            reference_range=source_metadata.get("reference_range"),
+            occurrence=event.captured_at,
+        )
+    else:
+        extractor = TextFactExtractor()
+        results = await extractor.extract(raw_text, event.patient_id)
 
     # Payloads for facts that were newly persisted in this run. On at-least-once
     # re-delivery, already-existing facts are skipped here so we do not re-link
