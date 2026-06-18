@@ -38,12 +38,15 @@ function readFileAsBase64(file: File): Promise<string> {
 export function CaptureModal({
   onClose,
   onCaptured,
+  initialType = "reported",
 }: {
   onClose: () => void;
   /** Called after a capture is durably stored, so callers can refresh. */
   onCaptured?: (captureId: string) => void;
+  /** Pre-select a capture type (e.g. "note" when adding a question). */
+  initialType?: string;
 }) {
-  const [type, setType] = useState("reported");
+  const [type, setType] = useState(initialType);
   const [severity, setSeverity] = useState("Mild");
   const [description, setDescription] = useState("");
   const [note, setNote] = useState("");

@@ -1,5 +1,5 @@
-import { Button } from "@wellbe/ui";
 import type { Thread } from "@/lib/types";
+import { AddEventButton } from "./AddEventButton";
 import { ConcernHeader } from "./ConcernHeader";
 import { EvidenceList } from "./EvidenceList";
 import { NextActions } from "./NextActions";
@@ -14,15 +14,7 @@ export function ThreadDetail({ thread }: { thread: Thread }) {
       <div className={styles.main}>
         <ConcernHeader thread={thread} />
 
-        <Panel
-          title="Timeline"
-          icon="clock"
-          action={
-            <Button variant="ghost" size="sm" icon="plus">
-              Add event
-            </Button>
-          }
-        >
+        <Panel title="Timeline" icon="clock" action={<AddEventButton />}>
           <Timeline events={thread.events} />
         </Panel>
       </div>

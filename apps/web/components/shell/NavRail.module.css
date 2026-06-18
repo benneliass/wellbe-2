@@ -149,6 +149,19 @@
   font-size: 11px;
   color: var(--fg3);
 }
+.gearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex: none;
+  cursor: pointer;
+}
+.gearBtn:hover {
+  background: var(--slate-100, var(--slate-50));
+}
 .gear {
   color: var(--fg3);
 }

@@ -90,4 +90,7 @@ export interface ThreadSummary {
   rawStatus: string;
   started: string;
   updated: string;
+  /** Raw ISO timestamps, kept for client-side sorting (display uses started/updated). */
+  createdAt: string;
+  updatedAt: string;
 }

@@ -43,5 +43,7 @@ export function toThreadSummary(t: ThreadV1): ThreadSummary {
     rawStatus: t.status,
     started: started ? `Started ${started}` : "Started recently",
     updated: updated ? `Updated ${updated}` : "Updated recently",
+    createdAt: t.created_at,
+    updatedAt: t.updated_at,
   };
 }

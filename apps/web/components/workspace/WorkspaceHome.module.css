@@ -46,6 +46,89 @@
   display: flex;
   gap: 8px;
 }
+.filterWrap {
+  position: relative;
+}
+.filterMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+}
+.filterHead {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg3);
+  padding: 4px 8px 6px;
+}
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg1);
+  text-align: left;
+  cursor: pointer;
+}
+.filterRow:hover {
+  background: var(--slate-50);
+}
+.filterRow svg {
+  color: var(--fg3);
+}
+.filterCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: #fff;
+  flex: none;
+}
+.filterCheck[data-on="true"] {
+  background: var(--teal-600);
+  border-color: var(--teal-600);
+}
+.filterLabel {
+  flex: 1;
+}
+.filterClear {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--teal-600);
+  cursor: pointer;
+}
+.filterClear:hover {
+  text-decoration: underline;
+}
+.empty {
+  color: var(--fg2);
+  font-size: 14px;
+  padding: 24px 4px;
+}
 
 .grid {
   display: grid;

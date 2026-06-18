@@ -11,6 +11,8 @@ function thread(over: Partial<ThreadSummary>): ThreadSummary {
     rawStatus: "active_unresolved",
     started: "Started May 1",
     updated: "Updated May 2",
+    createdAt: "2026-05-01T00:00:00Z",
+    updatedAt: "2026-05-02T00:00:00Z",
     ...over,
   };
 }
