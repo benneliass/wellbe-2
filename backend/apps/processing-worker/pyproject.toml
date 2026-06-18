@@ -9,6 +9,8 @@ dependencies = [
     "wellbe-c4-processing",
     "wellbe-c5-evidence",
     "wellbe-c6-graph",
+    "wellbe-c7-thread",
+    "wellbe-c9-continuity",
     "wellbe-events",
     "wellbe-db",
     "wellbe-c2-vault",
@@ -24,6 +26,8 @@ wellbe-contracts = { workspace = true }
 wellbe-c4-processing = { workspace = true }
 wellbe-c5-evidence = { workspace = true }
 wellbe-c6-graph = { workspace = true }
+wellbe-c7-thread = { workspace = true }
+wellbe-c9-continuity = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-db = { workspace = true }
 wellbe-c2-vault = { workspace = true }

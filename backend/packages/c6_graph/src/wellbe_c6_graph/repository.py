@@ -66,6 +66,21 @@ class GraphRepository:
         await self._session.flush()
         return node
 
+    async def get_node_by_key(
+        self, *, patient_id: uuid.UUID, normalized_key: str
+    ) -> KgNodeRow | None:
+        """Look up a node by its natural key (patient_id + normalized_key).
+
+        Genesis uses this to attach a ``graph_node_id`` to each fact and to gauge
+        graph resolution status without mutating the graph.
+        """
+        stmt = select(KgNodeRow).where(
+            KgNodeRow.patient_id == patient_id,
+            KgNodeRow.normalized_key == normalized_key,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def insert_edge(
         self,
         *,

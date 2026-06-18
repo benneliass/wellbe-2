@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +13,22 @@ from wellbe_c4_processing.models import ExtractedFactRow, HealthSignalRow
 class ProcessingRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def list_facts_for_capture(
+        self, raw_context_event_id: uuid.UUID
+    ) -> list[ExtractedFactRow]:
+        """All extracted facts for one capture, oldest-first.
+
+        Backs genesis ``genesis.input_ready`` assembly: after a capture finishes
+        processing, the worker collects its facts to build the genesis payload.
+        """
+        stmt = (
+            select(ExtractedFactRow)
+            .where(ExtractedFactRow.raw_context_event_id == raw_context_event_id)
+            .order_by(ExtractedFactRow.created_at)
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
 
     async def insert_fact(
         self,

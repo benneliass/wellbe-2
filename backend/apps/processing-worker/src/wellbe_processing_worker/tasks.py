@@ -157,6 +157,93 @@ async def _extract_facts(event_json: str) -> None:
     for fact_payload in new_fact_payloads:
         await _create_graph_node(fact_payload.model_dump_json())
 
+    # Capture processing is now complete (C4 facts + C5 evidence + C6 nodes). Emit
+    # the synthetic genesis.input_ready signal — the single, well-defined trigger
+    # for thread genesis (triage-decision-contract.md §1). Emission reads all facts
+    # for the capture (not only newly-inserted ones), so a redelivery that re-runs
+    # extraction still produces a complete payload; genesis itself dedups on a
+    # deterministic decision hash, so re-emission is a no-op downstream.
+    await _emit_genesis_input_ready(event)
+
+
+async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
+    """Assemble and emit genesis.input_ready for a fully-processed capture."""
+    from wellbe_c4_processing import ProcessingRepository
+    from wellbe_c6_graph import GraphRepository
+    from wellbe_contracts.genesis import (
+        GENESIS_INPUT_READY,
+        GenesisFactInput,
+        GenesisInputReadyPayload,
+        GraphResolutionStatus,
+    )
+    from wellbe_events import emit_event
+    from wellbe_db import create_engine, create_session_factory
+    from wellbe_processing_worker.config import ProcessingWorkerSettings
+
+    settings = ProcessingWorkerSettings()
+    session_factory = create_session_factory(create_engine(settings.database_url))
+
+    def _aware(value: datetime) -> datetime:
+        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+
+    async with session_factory() as session:
+        repo = ProcessingRepository(session)
+        graph = GraphRepository(session)
+        fact_rows = await repo.list_facts_for_capture(event.id)
+        if not fact_rows:
+            return
+
+        genesis_facts: list[GenesisFactInput] = []
+        resolved = 0
+        for row in fact_rows:
+            node = await graph.get_node_by_key(
+                patient_id=row.patient_id, normalized_key=row.normalized_key
+            )
+            if node is not None:
+                resolved += 1
+            genesis_facts.append(
+                GenesisFactInput(
+                    fact_id=row.id,
+                    raw_context_event_id=row.raw_context_event_id,
+                    fact_type=row.fact_type,
+                    entity_label=row.entity_label,
+                    normalized_key=row.normalized_key,
+                    extraction_confidence=row.extraction_confidence,
+                    graph_node_id=node.id if node is not None else None,
+                    event_date=_aware(row.captured_at),
+                    is_negated=row.is_negated,
+                    is_historical=row.is_historical,
+                    is_hypothetical=row.is_hypothetical,
+                )
+            )
+
+        if resolved == len(fact_rows):
+            graph_status = GraphResolutionStatus.RESOLVED
+        elif resolved > 0:
+            graph_status = GraphResolutionStatus.PARTIAL
+        else:
+            graph_status = GraphResolutionStatus.UNAVAILABLE
+
+        payload = GenesisInputReadyPayload(
+            patient_id=event.patient_id,
+            capture_id=event.id,
+            source_event_id=event.id,
+            captured_at=_aware(event.captured_at),
+            facts=genesis_facts,
+            graph_resolution_status=graph_status,
+            correlation_id=event.correlation_id,
+            trace_id=event.trace_id,
+        )
+
+        await emit_event(
+            session=session,
+            event_type=GENESIS_INPUT_READY,
+            payload=payload.model_dump(mode="json"),
+            correlation_id=event.correlation_id,
+            trace_id=event.trace_id,
+        )
+        await session.commit()
+
 
 def _deterministic_fact_id(raw_event_id: uuid.UUID, result: object) -> uuid.UUID:
     """Derive a stable fact id from the raw event and the fact's natural key.
