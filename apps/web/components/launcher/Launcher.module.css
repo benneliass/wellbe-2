@@ -162,7 +162,7 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
 }
 .signals {
   display: flex;
@@ -207,11 +207,13 @@
   transform: rotate(180deg);
 }
 
-/* Inline expandable signal breakdown — overlays in place, never navigates. */
+/* Inline expandable signal breakdown — overlays in place, never navigates.
+   Sizes to its content (width: max-content) so the rounded card always
+   contains the rows cleanly, with no clipping or empty gaps. */
 .signalsPanel {
   display: grid;
   grid-template-rows: 0fr;
-  width: 300px;
+  width: max-content;
   max-width: 86vw;
   margin-top: 0;
   opacity: 0;
@@ -223,41 +225,69 @@
 }
 .signalsPanel[data-open] {
   grid-template-rows: 1fr;
-  margin-top: 10px;
+  margin-top: var(--sp-2);
   opacity: 1;
   pointer-events: auto;
 }
 .signalRows {
   overflow: hidden;
   min-height: 0;
-  list-style: none;
   margin: 0;
-  padding: 6px;
-  border-radius: 20px;
+  padding: var(--sp-2);
+  border-radius: var(--r-2xl);
   background: rgba(255, 255, 255, 0.62);
   backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow-lg);
+}
+.signalsNote {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.signalList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .signalRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 14px;
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-lg);
 }
 .signalRow + .signalRow {
-  border-top: 1px solid rgba(15, 23, 42, 0.05);
+  border-top: 1px solid var(--border);
+}
+/* DOM order is label, value, status chip, confidence dots.
+   Lay them as a tidy 2×2: text stacked left, status + dots stacked right. */
+.signalRow > :nth-child(1) {
+  grid-area: 1 / 1;
+}
+.signalRow > :nth-child(2) {
+  grid-area: 2 / 1;
+}
+.signalRow > :nth-child(3) {
+  grid-area: 1 / 2;
+  justify-self: end;
+}
+.signalRow > :nth-child(4) {
+  grid-area: 2 / 2;
+  justify-self: end;
 }
 .signalLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
   white-space: nowrap;
 }
 .signalValue {
-  flex: 1;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg2);
   white-space: nowrap;
 }

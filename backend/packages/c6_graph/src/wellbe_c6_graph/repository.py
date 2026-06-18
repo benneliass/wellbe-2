@@ -193,6 +193,26 @@ class GraphRepository:
         result = await self._session.execute(stmt)
         return {row.id: row for row in result.scalars().all()}
 
+    async def nodes_for_patient(
+        self,
+        *,
+        patient_id: uuid.UUID,
+        node_types: list[str] | None = None,
+        limit: int = 500,
+    ) -> list[KgNodeRow]:
+        """All of a patient's nodes (optionally by type), most-recent first.
+
+        Used by the coverage-aware signals summary (WEL-91), which reports what
+        signal-bearing data the patient actually has and how fresh it is.
+        Anchored to the authenticated patient; never crosses owners.
+        """
+        stmt = select(KgNodeRow).where(KgNodeRow.patient_id == patient_id)
+        if node_types:
+            stmt = stmt.where(KgNodeRow.node_type.in_(node_types))
+        stmt = stmt.order_by(KgNodeRow.last_seen_at.desc()).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def edges_among_nodes(
         self,
         *,

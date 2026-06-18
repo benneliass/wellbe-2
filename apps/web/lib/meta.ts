@@ -1,5 +1,5 @@
 import type { Tone } from "@wellbe/ui";
-import type { EventType, ReviewKind, RiskLevel, SignalsSummary, ThreadStatus } from "./types";
+import type { EventType, ReviewKind, RiskLevel, ThreadStatus } from "./types";
 
 export interface StatusMeta {
   tone: Tone;
@@ -99,27 +99,6 @@ export interface LaunchAction {
    */
   href?: string;
 }
-
-/**
- * MOCK DATA — the Launcher "signals" status line and its breakdown.
- *
- * This is static placeholder data. Nothing live feeds it today: there is no
- * @wellbe/api-client call or useQuery hook behind these values. When a real
- * signals/vitals endpoint lands, replace this constant (or swap it for an async
- * fetch) — the Launcher consumes only `SIGNALS`, never inline strings.
- */
-export const SIGNALS: SignalsSummary = {
-  headline: "Your signals look steady",
-  detail: "6 of 6 systems in range",
-  signals: [
-    { id: "cardio", label: "Cardiovascular", value: "Resting HR 62 bpm", status: "In range", tone: "green", conf: 4 },
-    { id: "metabolic", label: "Metabolic", value: "Glucose 92 mg/dL", status: "In range", tone: "green", conf: 4 },
-    { id: "sleep", label: "Sleep", value: "Avg 6h 41m", status: "Steady", tone: "teal", conf: 3 },
-    { id: "activity", label: "Activity", value: "8.2k steps / day", status: "On track", tone: "teal", conf: 3 },
-    { id: "inflammation", label: "Inflammation", value: "CRP 1.1 mg/L", status: "In range", tone: "green", conf: 4 },
-    { id: "vitals", label: "Vitals", value: "BP 118/76", status: "In range", tone: "green", conf: 5 },
-  ],
-};
 
 export const LAUNCH_ACTIONS: LaunchAction[] = [
   { id: "triage", icon: "heart-pulse", title: "Something feels off", sub: "Triage", tone: "alert", href: "/triage" },

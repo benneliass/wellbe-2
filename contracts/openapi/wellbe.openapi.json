@@ -492,6 +492,16 @@
         "title": "CloseInvestigationRequest",
         "type": "object"
       },
+      "ConfidenceLabel": {
+        "description": "Plain-language confidence in an area's coverage (no false precision).",
+        "enum": [
+          "good",
+          "limited",
+          "none"
+        ],
+        "title": "ConfidenceLabel",
+        "type": "string"
+      },
       "CorrectionTargetKind": {
         "enum": [
           "c2_raw_event",
@@ -2357,6 +2367,131 @@
           "expires_at"
         ],
         "title": "SharedPacketView",
+        "type": "object"
+      },
+      "SignalArea": {
+        "description": "One health area's *coverage* summary, fully source-traceable.",
+        "properties": {
+          "confidence": {
+            "$ref": "#/components/schemas/ConfidenceLabel"
+          },
+          "confidence_label": {
+            "title": "Confidence Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated"
+          },
+          "recency_note": {
+            "title": "Recency Note",
+            "type": "string"
+          },
+          "source_count": {
+            "default": 0,
+            "title": "Source Count",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SignalStatus"
+          },
+          "status_label": {
+            "title": "Status Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "status",
+          "status_label",
+          "confidence",
+          "confidence_label",
+          "recency_note"
+        ],
+        "title": "SignalArea",
+        "type": "object"
+      },
+      "SignalStatus": {
+        "description": "Per-area data state \u2014 strictly coverage/recency, NOT a clinical verdict.",
+        "enum": [
+          "recent_data",
+          "stale_data",
+          "no_data"
+        ],
+        "title": "SignalStatus",
+        "type": "string"
+      },
+      "SignalsSummaryV2": {
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/SignalArea"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "areas_total": {
+            "title": "Areas Total",
+            "type": "integer"
+          },
+          "areas_with_data": {
+            "title": "Areas With Data",
+            "type": "integer"
+          },
+          "coverage_label": {
+            "title": "Coverage Label",
+            "type": "string"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.signals.v2",
+            "default": "c13.signals.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "suppressed": {
+            "default": false,
+            "title": "Suppressed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "headline",
+          "coverage_label",
+          "areas_with_data",
+          "areas_total",
+          "note"
+        ],
+        "title": "SignalsSummaryV2",
         "type": "object"
       },
       "SourceQualityTierV2": {
@@ -6373,6 +6508,113 @@
         "summary": "Read Shared Packet",
         "tags": [
           "v2-visit-packet"
+        ]
+      }
+    },
+    "/v2/signals": {
+      "get": {
+        "operationId": "get_signals_v2_signals_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignalsSummaryV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Signals",
+        "tags": [
+          "v2-signals"
         ]
       }
     },

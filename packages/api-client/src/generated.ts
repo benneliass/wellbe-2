@@ -422,6 +422,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/signals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Signals */
+        get: operations["get_signals_v2_signals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/threads/{thread_id}/memories": {
         parameters: {
             query?: never;
@@ -791,6 +808,12 @@ export interface components {
              */
             reason_code: string;
         };
+        /**
+         * ConfidenceLabel
+         * @description Plain-language confidence in an area's coverage (no false precision).
+         * @enum {string}
+         */
+        ConfidenceLabel: "good" | "limited" | "none";
         /**
          * CorrectionTargetKind
          * @enum {string}
@@ -1639,6 +1662,68 @@ export interface components {
             statements?: components["schemas"]["VisitPacketStatementV2"][];
             /** Title */
             title: string;
+        };
+        /**
+         * SignalArea
+         * @description One health area's *coverage* summary, fully source-traceable.
+         */
+        SignalArea: {
+            confidence: components["schemas"]["ConfidenceLabel"];
+            /** Confidence Label */
+            confidence_label: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Last Updated */
+            last_updated?: string | null;
+            /** Recency Note */
+            recency_note: string;
+            /**
+             * Source Count
+             * @default 0
+             */
+            source_count: number;
+            status: components["schemas"]["SignalStatus"];
+            /** Status Label */
+            status_label: string;
+        };
+        /**
+         * SignalStatus
+         * @description Per-area data state — strictly coverage/recency, NOT a clinical verdict.
+         * @enum {string}
+         */
+        SignalStatus: "recent_data" | "stale_data" | "no_data";
+        /** SignalsSummaryV2 */
+        SignalsSummaryV2: {
+            /** Areas */
+            areas?: components["schemas"]["SignalArea"][];
+            /** Areas Total */
+            areas_total: number;
+            /** Areas With Data */
+            areas_with_data: number;
+            /** Coverage Label */
+            coverage_label: string;
+            /** Headline */
+            headline: string;
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            /** Note */
+            note: string;
+            /**
+             * Schema Version
+             * @default c13.signals.v2
+             * @constant
+             */
+            schema_version: "c13.signals.v2";
+            /**
+             * Suppressed
+             * @default false
+             */
+            suppressed: boolean;
         };
         /**
          * SourceQualityTierV2
@@ -3030,6 +3115,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharedPacketView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_signals_v2_signals_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignalsSummaryV2"];
                 };
             };
             /** @description Validation Error */

@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Chip, ConfidenceDots, Icon } from "@wellbe/ui";
+import { Icon } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
-import { LAUNCH_ACTIONS, SIGNALS, type LaunchAction } from "@/lib/meta";
+import { SignalsPanel } from "./SignalsPanel";
+import { LAUNCH_ACTIONS, type LaunchAction } from "@/lib/meta";
 import styles from "./Launcher.module.css";
-
-const SIGNALS_PANEL_ID = "launcher-signals-panel";
 
 /** The calm front door. "Full View" and most actions lead into the workspace. */
 export function Launcher() {
@@ -17,7 +16,6 @@ export function Launcher() {
   const [captureOpen, setCaptureOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [signalsExpanded, setSignalsExpanded] = useState(false);
   const [askValue, setAskValue] = useState("");
 
   const goFullView = () => router.push("/workspace");
@@ -67,46 +65,7 @@ export function Launcher() {
         Data synced <span className={styles.syncTime}>4 min ago</span>
       </div>
 
-      <div className={styles.signalsWrap}>
-        <button
-          type="button"
-          className={styles.signals}
-          data-open={signalsExpanded || undefined}
-          aria-expanded={signalsExpanded}
-          aria-controls={SIGNALS_PANEL_ID}
-          onClick={() => setSignalsExpanded((v) => !v)}
-        >
-          <span className={styles.signalsIcon}>
-            <Icon name="activity" size={20} />
-          </span>
-          <span className={styles.signalsText}>
-            <b>{SIGNALS.headline}</b>
-            <span>{SIGNALS.detail}</span>
-          </span>
-          <Icon name="chevron-down" size={18} className={styles.signalsChev} />
-        </button>
-        <div
-          id={SIGNALS_PANEL_ID}
-          className={styles.signalsPanel}
-          data-open={signalsExpanded || undefined}
-          role="region"
-          aria-label="Signal breakdown"
-          aria-hidden={!signalsExpanded}
-        >
-          <ul className={styles.signalRows}>
-            {SIGNALS.signals.map((s) => (
-              <li key={s.id} className={styles.signalRow}>
-                <span className={styles.signalLabel}>{s.label}</span>
-                <span className={styles.signalValue}>{s.value}</span>
-                <Chip tone={s.tone} size="sm">
-                  {s.status}
-                </Chip>
-                <ConfidenceDots level={s.conf} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <SignalsPanel />
 
       <div className={styles.hero}>
         <div className={styles.orb}>
