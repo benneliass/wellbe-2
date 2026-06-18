@@ -20,13 +20,19 @@
   object-fit: cover;
   flex: none;
 }
+/* Brand wordmark — matches the Home page treatment (Launcher .wordmark):
+   serif brand font (Newsreader), Regular weight, teal-accented "Be". */
 .word {
+  font-family: var(--font-serif-brand);
   font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--fg1);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  color: #1f3536;
+  white-space: nowrap;
 }
 .word b {
+  font-weight: 400;
   color: var(--teal-500);
 }
 
