@@ -7,6 +7,7 @@ metadata:
 data:
   WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
   WELLBE_REDIS_URL: {{ .Values.processingWorker.config.redisUrl | quote }}
+  WELLBE_VAULT_WRITER_URL: {{ .Values.processingWorker.config.vaultWriterUrl | quote }}
   WELLBE_TEMPORAL_HOST: {{ .Values.processingWorker.config.temporalHost | quote }}
   WELLBE_LOG_LEVEL: {{ .Values.processingWorker.config.logLevel | quote }}
   WELLBE_ENVIRONMENT: {{ .Values.processingWorker.config.environment | quote }}

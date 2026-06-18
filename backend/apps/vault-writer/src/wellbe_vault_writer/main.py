@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c2_vault import S3BlobStore, VaultRepository
 from wellbe_contracts.c2_vault import RawContextEvent, VaultWriteRequest, VaultWriteResponse
@@ -213,6 +213,28 @@ async def get_event(
     if row is None:
         raise HTTPException(status_code=404, detail="Event not found")
     return RawContextEvent.model_validate(row)
+
+
+@app.get("/vault/events/{event_id}/content")
+async def get_event_content(
+    event_id: uuid.UUID,
+    session: SessionDep,
+) -> Response:
+    """Return the raw blob bytes for an event.
+
+    Raw content is stored in the blob store (raw stays raw, separate from the
+    structured source_metadata), and the vault-writer is the gateway to it.
+    Downstream consumers (e.g. the C4 extractor) need the original bytes — the
+    metadata alone never carries the captured text.
+    """
+    repo = VaultRepository(session)
+    row = await repo.get_event(event_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if not row.blob_key:
+        raise HTTPException(status_code=404, detail="Event has no blob content")
+    data = await _blob_store.get_blob(row.blob_key)
+    return Response(content=data, media_type="application/octet-stream")
 
 
 @app.get("/health")

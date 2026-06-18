@@ -104,6 +104,10 @@ processingWorker:
     # DB URL is rendered from the canonical postgres.* values via the
     # "wellbe-local.databaseUrlAsync" helper — do not duplicate the credential here.
     redisUrl: "redis://wellbe-redis:6379/0"
+    # The outbox dispatch loop fetches raw events from the vault-writer; without
+    # this the worker falls back to localhost:8002 and the capture->thread
+    # pipeline silently stalls.
+    vaultWriterUrl: "http://vault-writer:8002"
     temporalHost: "temporal:7233"
     logLevel: "INFO"
     environment: "dev"
