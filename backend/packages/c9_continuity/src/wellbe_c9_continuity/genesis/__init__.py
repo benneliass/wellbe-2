@@ -10,17 +10,33 @@ Authoritative decisions:
 - docs/decisions/thread-genesis-concern-resolution-key.md (WEL-171, S3)
 """
 
+from wellbe_c9_continuity.genesis.candidate_repository import CandidateRepository
+from wellbe_c9_continuity.genesis.candidate_service import GenesisCandidateService
 from wellbe_c9_continuity.genesis.concern_key import (
+    calm_display_title,
+    candidate_key,
     classify_concern_group,
     decision_inputs_hash,
     derive_concern_key,
+)
+from wellbe_c9_continuity.genesis.errors import (
+    CandidateNotFoundError,
+    GenesisError,
+    OrphanCandidateError,
 )
 from wellbe_c9_continuity.genesis.repository import GenesisDecisionRepository
 from wellbe_c9_continuity.genesis.service import ThreadGenesisService
 
 __all__ = [
+    "CandidateNotFoundError",
+    "CandidateRepository",
+    "GenesisCandidateService",
     "GenesisDecisionRepository",
+    "GenesisError",
+    "OrphanCandidateError",
     "ThreadGenesisService",
+    "calm_display_title",
+    "candidate_key",
     "classify_concern_group",
     "decision_inputs_hash",
     "derive_concern_key",

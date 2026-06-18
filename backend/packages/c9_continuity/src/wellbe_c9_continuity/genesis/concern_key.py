@@ -121,6 +121,38 @@ def decision_inputs_hash(
     return hashlib.sha256("|".join(parts).encode()).hexdigest()
 
 
+def candidate_key(concern_key: ConcernKey) -> str:
+    """Deterministic dedup key for a pending candidate.
+
+    Unlike ``decision_inputs_hash`` (which is per genesis event), this excludes the
+    source event and policy version so repeated mentions of the same concern across
+    captures update the SAME candidate rather than creating duplicates.
+    """
+    parts = (
+        str(concern_key.user_id),
+        concern_key.concern_type.value,
+        concern_key.normalized_concept_id,
+        concern_key.body_site or "",
+        concern_key.laterality or "",
+        concern_key.episode_bucket,
+        concern_key.source_context_class.value,
+    )
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()
+
+
+def calm_display_title(facts: list[GenesisFactInput]) -> str:
+    """A calm, personal-first candidate title (never clinical/alarming).
+
+    Uses the entity label of the most confident concern-forming fact (falling back
+    to any fact), title-cased — e.g. "Cough", "Cholesterol". Any user-facing text
+    still passes the C10 gate at render time.
+    """
+    pool = [f for f in facts if _is_concern_forming(f)] or list(facts)
+    best = max(pool, key=lambda f: f.extraction_confidence)
+    label = best.entity_label.strip() or best.normalized_key
+    return label[:1].upper() + label[1:] if label else "Something I noticed"
+
+
 def _is_concern_forming(fact: GenesisFactInput) -> bool:
     """A fact is concern-forming unless it is negated/historical/hypothetical or a
     non-concern fact type (incidental, family/social history)."""

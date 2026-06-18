@@ -94,6 +94,23 @@ class GraphResolutionStatus(StrEnum):
     UNAVAILABLE = "unavailable"
 
 
+class CandidateStatus(StrEnum):
+    """Lifecycle of a pending thread candidate.
+
+    ``pending``    — visible under "Things noticed", not yet an active thread;
+    ``promoted``   — confirmed/auto-promoted into a C7 thread (``promoted_thread_id``);
+    ``dismissed``  — user stopped tracking (evidence + triage history preserved);
+    ``merged``     — folded into another thread/candidate;
+    ``expired``    — aged out (post-MVP expiry policy).
+    """
+
+    PENDING = "pending"
+    PROMOTED = "promoted"
+    DISMISSED = "dismissed"
+    MERGED = "merged"
+    EXPIRED = "expired"
+
+
 # ---------------------------------------------------------------------------
 # Core types
 # ---------------------------------------------------------------------------
@@ -189,6 +206,39 @@ class GenesisDecisionRecord(BaseModel):
     idempotent_replay: bool = False
 
 
+class ThreadCandidate(BaseModel):
+    """Read model for a pending thread candidate (the "Things noticed" object).
+
+    A candidate is the non-alarming, lossless destination for weak/ambiguous
+    concern-bearing signals. Create/update is idempotent on the concern key +
+    episode bucket (NOT the source event), so repeated mentions of one concern
+    update the same candidate (``seen_count`` increments) rather than fragmenting.
+    Minimal MVP contract per thread-genesis-pending-candidate-object.md (S2a).
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    candidate_id: UUID
+    user_id: PatientId
+    concern_key: dict[str, object] = Field(default_factory=dict)
+    episode_bucket: str
+    display_title: str
+    candidate_type: ConcernType
+    source_capture_ids: list[UUID] = Field(default_factory=list)
+    source_fact_ids: list[UUID] = Field(default_factory=list)
+    source_graph_entity_ids: list[UUID] = Field(default_factory=list)
+    evidence_link_ids: list[UUID] = Field(default_factory=list)
+    status: CandidateStatus = CandidateStatus.PENDING
+    confidence: float | None = None
+    reason_code: str | None = None
+    first_seen_at: AwareDatetime
+    last_seen_at: AwareDatetime
+    seen_count: int = 1
+    promoted_thread_id: UUID | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+
 __all__ = [
     # Event type constants
     "GENESIS_INPUT_READY",
@@ -198,9 +248,11 @@ __all__ = [
     "ConcernType",
     "SourceContextClass",
     "GraphResolutionStatus",
+    "CandidateStatus",
     # Core types
     "ConcernKey",
     "GenesisFactInput",
     "GenesisInputReadyPayload",
     "GenesisDecisionRecord",
+    "ThreadCandidate",
 ]
