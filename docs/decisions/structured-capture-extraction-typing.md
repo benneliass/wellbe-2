@@ -1,8 +1,8 @@
 # Decision: How C4 extraction types structured lab/vital captures
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date opened:** 2026-06-18  
-**Date approved:** YYYY-MM-DD (fill on approval)  
+**Date approved:** 2026-06-18  
 **Approved by:** User  
 **Jira Spike:** WEL-186  
 **Blocks:** WEL-185 [C4: type-aware extraction for structured lab/vital captures]
