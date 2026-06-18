@@ -25,6 +25,7 @@ from wellbe_api.routers import (
     phase5,
     render,
     signals_v2,
+    things_noticed_v1,
     threads_v1,
     visit_packets_v2,
 )
@@ -67,6 +68,7 @@ async def health() -> dict[str, str]:
 
 app.include_router(render.router)
 app.include_router(threads_v1.router)
+app.include_router(things_noticed_v1.router)
 app.include_router(capture_v1.router)
 app.include_router(investigations.router)
 app.include_router(access.router)
