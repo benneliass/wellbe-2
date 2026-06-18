@@ -8,6 +8,7 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
+    {{- if .Values.web.enabled }}
     - host: {{ .Values.ingress.hosts.app | quote }}
       http:
         paths:
@@ -18,6 +19,7 @@ spec:
                 name: web
                 port:
                   number: {{ .Values.web.port }}
+    {{- end }}
     - host: {{ .Values.ingress.hosts.api | quote }}
       http:
         paths:

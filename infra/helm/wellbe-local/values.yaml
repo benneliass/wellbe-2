@@ -139,8 +139,13 @@ auditService:
     logLevel: "INFO"
     environment: "dev"
 
-# Next.js web UI (apps/web). Served via ingress on app.localhost.
+# Next.js web UI (apps/web) — the dev workspace. Served via ingress on
+# app.localhost. `enabled` is the feature flag that controls whether the dev
+# workspace is deployed to the cluster: it gates the web Deployment, Service,
+# and the app.localhost ingress rule together, so turning it off never leaves
+# an ingress route pointing at a missing backend. Enabled for now.
 web:
+  enabled: true
   image: wellbe-web:local
   imagePullPolicy: Never
   port: 3000
