@@ -1,15 +1,12 @@
-# WellBe full-stack overrides for the k3s "homeserver" cluster
-# (kubeconfig ~/.kube/homeserver). Layered on top of values.yaml:
-#
-#   helm upgrade --install wellbe infra/helm/wellbe-local \
-#     -n wellbe --create-namespace \
-#     -f infra/helm/wellbe-local/values.yaml \
-#     -f infra/helm/wellbe-local/values-homeserver.yaml \
-#     --set imagePullSecret.dockerconfigjson=<base64 dockerconfigjson>
+# WellBe full-stack overrides for the k3s "homeserver" cluster, deployed via
+# ArgoCD (app-of-apps in the benneliass/home-server repo). ArgoCD syncs this
+# chart straight from wellbe-2 and argocd-image-updater bumps the image tags
+# below as CI publishes new ghcr.io/benneliass/wellbe-* semver tags.
 #
 # Differences from the local kind chart:
-#   * Custom images are pulled from ghcr.io/benneliass/* (the cluster's existing
-#     private-registry pattern) instead of kind-loaded :local tags.
+#   * Custom images come from ghcr.io/benneliass/* (CI-built) instead of
+#     kind-loaded :local tags. Tags are managed by argocd-image-updater, which
+#     writes resolved versions to .argocd-source-wellbe.yaml.
 #   * Every pod is pinned to node home-server-worker via nodeSelector, keeping
 #     all WellBe workloads OFF the control-plane node home-server (192.168.1.200).
 #   * Ingress uses Traefik + nip.io hosts anchored at the Traefik LB 192.168.1.164
@@ -17,7 +14,7 @@
 
 namespace: wellbe
 
-# Pull all private images from ghcr and pin everything to the worker node.
+# Pull private images from ghcr and pin everything to the worker node.
 imagePullSecrets:
   - name: ghcr-pull-secret
 
@@ -25,12 +22,12 @@ scheduling:
   nodeSelector:
     kubernetes.io/hostname: home-server-worker
 
-# Helm-managed dockerconfigjson secret; the base64 value is injected with
-# --set imagePullSecret.dockerconfigjson=... at deploy time (never committed).
+# The ghcr-pull-secret is bootstrapped once in the wellbe namespace (out of
+# band, like the cluster's other apps) so no registry credential ever lands in
+# git. The chart must NOT render it under GitOps.
 imagePullSecret:
-  create: true
+  create: false
   name: ghcr-pull-secret
-  dockerconfigjson: ""
 
 ingress:
   enabled: true
@@ -41,51 +38,51 @@ ingress:
     minio: wellbe-minio.192.168.1.164.nip.io
 
 postgres:
-  image: ghcr.io/benneliass/wellbe-postgres:homeserver
+  image: ghcr.io/benneliass/wellbe-postgres:0.1.4
   imagePullPolicy: IfNotPresent
   storage: 5Gi
 
 migration:
-  image: ghcr.io/benneliass/wellbe-migrations:homeserver
+  image: ghcr.io/benneliass/wellbe-migrations:0.1.4
   imagePullPolicy: IfNotPresent
 
 continuityWorker:
-  image: ghcr.io/benneliass/wellbe-continuity-worker:homeserver
+  image: ghcr.io/benneliass/wellbe-continuity-worker:0.1.4
   imagePullPolicy: IfNotPresent
 
 vaultWriter:
-  image: ghcr.io/benneliass/wellbe-vault-writer:homeserver
+  image: ghcr.io/benneliass/wellbe-vault-writer:0.1.4
   imagePullPolicy: IfNotPresent
 
 ingestionWorker:
-  image: ghcr.io/benneliass/wellbe-ingestion-worker:homeserver
+  image: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.4
   imagePullPolicy: IfNotPresent
 
 processingWorker:
-  image: ghcr.io/benneliass/wellbe-processing-worker:homeserver
+  image: ghcr.io/benneliass/wellbe-processing-worker:0.1.4
   imagePullPolicy: IfNotPresent
 
 safetyGate:
-  image: ghcr.io/benneliass/wellbe-safety-gate:homeserver
+  image: ghcr.io/benneliass/wellbe-safety-gate:0.1.4
   imagePullPolicy: IfNotPresent
 
 api:
-  image: ghcr.io/benneliass/wellbe-api:homeserver
+  image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
   config:
     corsAllowOrigins:
       - "http://wellbe.192.168.1.164.nip.io"
 
 auditService:
-  image: ghcr.io/benneliass/wellbe-audit-service:homeserver
+  image: ghcr.io/benneliass/wellbe-audit-service:0.1.4
   imagePullPolicy: IfNotPresent
 
 web:
   enabled: true
-  image: ghcr.io/benneliass/wellbe-web:homeserver
+  image: ghcr.io/benneliass/wellbe-web:0.1.4
   imagePullPolicy: IfNotPresent
 
 devSeed:
   enabled: true
-  image: ghcr.io/benneliass/wellbe-api:homeserver
+  image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
