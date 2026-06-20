@@ -71,7 +71,7 @@ api:
   imagePullPolicy: IfNotPresent
   config:
     corsAllowOrigins:
-      - "http://wellbe.192.168.1.164.nip.io"
+      - "https://wellbe.tail9c487a.ts.net"
 
 auditService:
   image: ghcr.io/benneliass/wellbe-audit-service:0.1.4

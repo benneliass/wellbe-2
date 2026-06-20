@@ -37,7 +37,7 @@ env:
   VERSION: 0.1.${{ github.run_number }}
   # Baked into the web client bundle at build time (NEXT_PUBLIC_* are inlined),
   # so they target the homeserver ingress + dev workspace identity.
-  WEB_API_URL: http://wellbe-api.192.168.1.164.nip.io
+  WEB_API_URL: https://wellbe-api.tail9c487a.ts.net
   DEV_PATIENT_ID: de7a0000-0000-4000-8000-000000000001
 
 jobs:
