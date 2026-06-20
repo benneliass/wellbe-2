@@ -7,7 +7,7 @@ helm:
     value: ghcr.io/benneliass/wellbe-api:0.1.5
     forcestring: true
   - name: web.image
-    value: ghcr.io/benneliass/wellbe-web:0.1.4
+    value: ghcr.io/benneliass/wellbe-web:0.1.5
     forcestring: true
   - name: vaultWriter.image
     value: ghcr.io/benneliass/wellbe-vault-writer:0.1.5
@@ -31,5 +31,5 @@ helm:
     value: ghcr.io/benneliass/wellbe-migrations:0.1.5
     forcestring: true
   - name: postgres.image
-    value: ghcr.io/benneliass/wellbe-postgres:0.1.4
+    value: ghcr.io/benneliass/wellbe-postgres:0.1.5
     forcestring: true
