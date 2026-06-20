@@ -15,6 +15,7 @@ spec:
       labels:
         app: continuity-worker
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       # Give the worker time to drain in-flight activities on rollout.
       terminationGracePeriodSeconds: 30
       containers:

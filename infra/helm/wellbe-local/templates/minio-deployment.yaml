@@ -14,6 +14,7 @@ spec:
       labels:
         app: minio
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: minio
           image: {{ .Values.minio.image }}

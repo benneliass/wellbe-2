@@ -14,6 +14,7 @@ spec:
       labels:
         app: ingestion-worker
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: ingestion-worker
           image: {{ .Values.ingestionWorker.image }}

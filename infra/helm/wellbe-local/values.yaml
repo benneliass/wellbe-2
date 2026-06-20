@@ -1,5 +1,21 @@
 namespace: wellbe
 
+# Pod scheduling + registry auth. Empty by default so local kind behavior is
+# unchanged (images are kind-loaded, all nodes schedulable). Remote targets
+# (e.g. infra/helm/wellbe-local/values-homeserver.yaml) set these to pull from
+# a private registry and pin every workload to a specific node.
+imagePullSecrets: []
+scheduling:
+  nodeSelector: {}
+
+# Optional in-chart image pull secret (dockerconfigjson). Kept Helm-managed so
+# no raw kubectl apply is needed (infra-constraints.mdc). The base64 value is
+# injected at deploy time via --set and never committed.
+imagePullSecret:
+  create: false
+  name: ghcr-pull-secret
+  dockerconfigjson: ""
+
 # HTTP ingress for local browser/curl access without `kubectl port-forward`.
 # Requires the kind cluster created from infra/local/kind-cluster.yaml (host
 # port 80 mapping) and ingress-nginx installed via infra/k8s/setup-ingress.sh.
@@ -129,6 +145,14 @@ api:
   config:
     logLevel: "INFO"
     environment: "dev"
+    # Browser origins allowed to call the C13 boundary cross-origin. Defaults
+    # match the local app.localhost setup; remote targets override this with
+    # their own web origin (rendered into WELLBE_CORS_ALLOW_ORIGINS as JSON).
+    corsAllowOrigins:
+      - "http://app.localhost"
+      - "https://app.localhost"
+      - "http://localhost:3000"
+      - "http://127.0.0.1:3000"
 
 auditService:
   image: wellbe-audit-service:local

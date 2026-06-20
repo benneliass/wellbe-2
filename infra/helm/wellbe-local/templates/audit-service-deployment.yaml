@@ -14,6 +14,7 @@ spec:
       labels:
         app: audit-service
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: audit-service
           image: {{ .Values.auditService.image }}

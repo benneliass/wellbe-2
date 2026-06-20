@@ -1,0 +1,91 @@
+# WellBe full-stack overrides for the k3s "homeserver" cluster
+# (kubeconfig ~/.kube/homeserver). Layered on top of values.yaml:
+#
+#   helm upgrade --install wellbe infra/helm/wellbe-local \
+#     -n wellbe --create-namespace \
+#     -f infra/helm/wellbe-local/values.yaml \
+#     -f infra/helm/wellbe-local/values-homeserver.yaml \
+#     --set imagePullSecret.dockerconfigjson=<base64 dockerconfigjson>
+#
+# Differences from the local kind chart:
+#   * Custom images are pulled from ghcr.io/benneliass/* (the cluster's existing
+#     private-registry pattern) instead of kind-loaded :local tags.
+#   * Every pod is pinned to node home-server-worker via nodeSelector, keeping
+#     all WellBe workloads OFF the control-plane node home-server (192.168.1.200).
+#   * Ingress uses Traefik + nip.io hosts anchored at the Traefik LB 192.168.1.164
+#     so the stack is reachable on the LAN without extra DNS.
+
+namespace: wellbe
+
+# Pull all private images from ghcr and pin everything to the worker node.
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+scheduling:
+  nodeSelector:
+    kubernetes.io/hostname: home-server-worker
+
+# Helm-managed dockerconfigjson secret; the base64 value is injected with
+# --set imagePullSecret.dockerconfigjson=... at deploy time (never committed).
+imagePullSecret:
+  create: true
+  name: ghcr-pull-secret
+  dockerconfigjson: ""
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    app: wellbe.192.168.1.164.nip.io
+    api: wellbe-api.192.168.1.164.nip.io
+    minio: wellbe-minio.192.168.1.164.nip.io
+
+postgres:
+  image: ghcr.io/benneliass/wellbe-postgres:homeserver
+  imagePullPolicy: IfNotPresent
+  storage: 5Gi
+
+migration:
+  image: ghcr.io/benneliass/wellbe-migrations:homeserver
+  imagePullPolicy: IfNotPresent
+
+continuityWorker:
+  image: ghcr.io/benneliass/wellbe-continuity-worker:homeserver
+  imagePullPolicy: IfNotPresent
+
+vaultWriter:
+  image: ghcr.io/benneliass/wellbe-vault-writer:homeserver
+  imagePullPolicy: IfNotPresent
+
+ingestionWorker:
+  image: ghcr.io/benneliass/wellbe-ingestion-worker:homeserver
+  imagePullPolicy: IfNotPresent
+
+processingWorker:
+  image: ghcr.io/benneliass/wellbe-processing-worker:homeserver
+  imagePullPolicy: IfNotPresent
+
+safetyGate:
+  image: ghcr.io/benneliass/wellbe-safety-gate:homeserver
+  imagePullPolicy: IfNotPresent
+
+api:
+  image: ghcr.io/benneliass/wellbe-api:homeserver
+  imagePullPolicy: IfNotPresent
+  config:
+    corsAllowOrigins:
+      - "http://wellbe.192.168.1.164.nip.io"
+
+auditService:
+  image: ghcr.io/benneliass/wellbe-audit-service:homeserver
+  imagePullPolicy: IfNotPresent
+
+web:
+  enabled: true
+  image: ghcr.io/benneliass/wellbe-web:homeserver
+  imagePullPolicy: IfNotPresent
+
+devSeed:
+  enabled: true
+  image: ghcr.io/benneliass/wellbe-api:homeserver
+  imagePullPolicy: IfNotPresent

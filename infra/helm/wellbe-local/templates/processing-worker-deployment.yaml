@@ -14,6 +14,7 @@ spec:
       labels:
         app: processing-worker
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: processing-worker
           image: {{ .Values.processingWorker.image }}

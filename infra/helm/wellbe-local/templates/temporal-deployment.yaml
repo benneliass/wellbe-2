@@ -15,6 +15,7 @@ spec:
       labels:
         app: temporal
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: temporal
           image: {{ .Values.temporal.image }}

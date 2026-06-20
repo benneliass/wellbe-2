@@ -14,6 +14,7 @@ spec:
       labels:
         app: api
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: api
           image: {{ .Values.api.image }}

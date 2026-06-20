@@ -18,6 +18,7 @@ spec:
   backoffLimit: 3
   template:
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       restartPolicy: OnFailure
       containers:
         - name: dev-seed

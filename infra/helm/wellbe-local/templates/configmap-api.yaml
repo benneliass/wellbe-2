@@ -10,3 +10,4 @@ data:
   WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
   WELLBE_REDIS_URL: {{ include "wellbe-local.redisUrl" . | quote }}
   WELLBE_INGESTION_WORKER_URL: "http://ingestion-worker:{{ .Values.ingestionWorker.port }}"
+  WELLBE_CORS_ALLOW_ORIGINS: {{ .Values.api.config.corsAllowOrigins | toJson | quote }}

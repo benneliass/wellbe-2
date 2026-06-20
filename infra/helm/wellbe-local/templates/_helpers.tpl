@@ -33,3 +33,22 @@ divergent host/port. Source: redis-service name + .Values.redis.port.
 {{- define "wellbe-local.redisUrl" -}}
 redis://wellbe-redis:{{ .Values.redis.port }}/0
 {{- end }}
+
+{{/*
+Shared pod scheduling block. Emits imagePullSecrets and nodeSelector from
+values so every pod spec (deployments, statefulset, jobs) can pin scheduling
+and registry auth from a single source of truth. When the values are empty
+(the kind/local default) this renders nothing, keeping local behavior intact.
+Used by remote targets (e.g. the k3s homeserver) to pull from ghcr and keep
+all workloads off a specific node.
+*/}}
+{{- define "wellbe-local.podScheduling" -}}
+{{- with .Values.imagePullSecrets }}
+imagePullSecrets:
+{{ toYaml . | trim | indent 2 }}
+{{- end }}
+{{- with .Values.scheduling.nodeSelector }}
+nodeSelector:
+{{ toYaml . | trim | indent 2 }}
+{{- end }}
+{{- end }}

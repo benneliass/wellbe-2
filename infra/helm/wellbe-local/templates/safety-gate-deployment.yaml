@@ -14,6 +14,7 @@ spec:
       labels:
         app: safety-gate
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:
         - name: safety-gate
           image: {{ .Values.safetyGate.image }}

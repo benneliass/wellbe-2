@@ -14,6 +14,7 @@ spec:
       labels:
         app: zitadel
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       enableServiceLinks: false
       containers:
         - name: zitadel

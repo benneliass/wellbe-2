@@ -9,10 +9,27 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation
     "helm.sh/hook-weight": "1"
 spec:
-  backoffLimit: 3
+  backoffLimit: 6
   template:
     spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       restartPolicy: OnFailure
+      initContainers:
+        # Gate alembic on Postgres accepting TCP. Postgres opens 5432 only after
+        # its entrypoint finishes the init scripts, so a reachable port means the
+        # DB is ready. This keeps the post-install hook robust when Postgres is
+        # slow to start (e.g. pulling a large image on a fresh node); instant
+        # no-op once the port is already open (local kind).
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z wellbe-postgres 5432; do
+                echo "waiting for postgres..."
+                sleep 2
+              done
       containers:
         - name: migrate
           image: {{ .Values.migration.image }}
