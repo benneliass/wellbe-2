@@ -16,6 +16,21 @@ spec:
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       enableServiceLinks: false
+      initContainers:
+        # zitadel's `start-from-init` hard-fails (exit 1) if Postgres is not
+        # reachable at boot, which crashloops on cold starts until backoff
+        # happens to land after Postgres is up. Gate on the TCP port instead so
+        # the container starts cleanly the first time (matches the migration job).
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z wellbe-postgres 5432; do
+                echo "waiting for postgres..."
+                sleep 2
+              done
       containers:
         - name: zitadel
           image: {{ .Values.zitadel.image }}

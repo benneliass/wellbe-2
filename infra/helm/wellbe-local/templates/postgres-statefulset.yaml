@@ -7,6 +7,17 @@ metadata:
 spec:
   serviceName: wellbe-postgres
   replicas: 1
+  # Spell out the StatefulSet fields Kubernetes would otherwise default in.
+  # Without these the live object gains volumeMode/updateStrategy/etc and ArgoCD
+  # (which does not normalize volumeClaimTemplates) reports a perpetual OutOfSync.
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
   selector:
     matchLabels:
       app: postgres
@@ -53,6 +64,7 @@ spec:
         name: postgres-data
       spec:
         accessModes: ["ReadWriteOnce"]
+        volumeMode: Filesystem
         resources:
           requests:
             storage: {{ .Values.postgres.storage }}
