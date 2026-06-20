@@ -1,0 +1,167 @@
+name: Build images
+
+# Build and push all WellBe component images to GHCR so the homeserver k3s
+# cluster can fetch them. ArgoCD + argocd-image-updater (in the home-server
+# GitOps repo) watch GHCR for new semver tags and roll the cluster forward.
+#
+# Tagging: every build is tagged 0.1.<run_number> (a monotonic semver that
+# argocd-image-updater tracks with its `semver` strategy) plus a moving
+# `latest`. Only images whose inputs changed are rebuilt on push; a manual
+# run (workflow_dispatch) rebuilds everything.
+#
+# Loop-safety: argocd-image-updater writes the resolved tags back to
+# infra/helm/wellbe-local/.argocd-source-wellbe.yaml. That path is intentionally
+# excluded from the push trigger below so a write-back never re-triggers a build.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "db/**"
+      - "infra/local/Dockerfile.postgres"
+      - ".github/workflows/build-images.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: benneliass
+  VERSION: 0.1.${{ github.run_number }}
+  # Baked into the web client bundle at build time (NEXT_PUBLIC_* are inlined),
+  # so they target the homeserver ingress + dev workspace identity.
+  WEB_API_URL: http://wellbe-api.192.168.1.164.nip.io
+  DEV_PATIENT_ID: de7a0000-0000-4000-8000-000000000001
+
+jobs:
+  changes:
+    name: Detect changed images
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            backend_shared:
+              - 'backend/packages/**'
+              - 'backend/pyproject.toml'
+              - 'backend/uv.lock'
+            api:
+              - 'backend/apps/api/**'
+            audit-service:
+              - 'backend/apps/audit-service/**'
+            continuity-worker:
+              - 'backend/apps/continuity-worker/**'
+            ingestion-worker:
+              - 'backend/apps/ingestion-worker/**'
+            processing-worker:
+              - 'backend/apps/processing-worker/**'
+            safety-gate:
+              - 'backend/apps/safety-gate/**'
+            vault-writer:
+              - 'backend/apps/vault-writer/**'
+            migrations:
+              - 'db/**'
+            postgres:
+              - 'infra/local/Dockerfile.postgres'
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'package-lock.json'
+      - id: set
+        name: Build matrix of images to build
+        env:
+          ALL: ${{ github.event_name == 'workflow_dispatch' }}
+          BACKEND_SHARED: ${{ steps.f.outputs.backend_shared }}
+          C_API: ${{ steps.f.outputs.api }}
+          C_AUDIT: ${{ steps.f.outputs.audit-service }}
+          C_CONTINUITY: ${{ steps.f.outputs.continuity-worker }}
+          C_INGESTION: ${{ steps.f.outputs.ingestion-worker }}
+          C_PROCESSING: ${{ steps.f.outputs.processing-worker }}
+          C_SAFETY: ${{ steps.f.outputs.safety-gate }}
+          C_VAULT: ${{ steps.f.outputs.vault-writer }}
+          C_MIGRATIONS: ${{ steps.f.outputs.migrations }}
+          C_POSTGRES: ${{ steps.f.outputs.postgres }}
+          C_WEB: ${{ steps.f.outputs.web }}
+        run: |
+          set -euo pipefail
+          include='[]'
+          add() { include=$(echo "$include" | jq -c --argjson o "$1" '. + [$o]'); }
+
+          backend() { [ "$ALL" = "true" ] || [ "$BACKEND_SHARED" = "true" ] || [ "$1" = "true" ]; }
+          one()     { [ "$ALL" = "true" ] || [ "$1" = "true" ]; }
+
+          backend "$C_API"        && add '{"name":"wellbe-api","file":"backend/apps/api/Dockerfile","context":"."}' || true
+          backend "$C_AUDIT"      && add '{"name":"wellbe-audit-service","file":"backend/apps/audit-service/Dockerfile","context":"."}' || true
+          backend "$C_CONTINUITY" && add '{"name":"wellbe-continuity-worker","file":"backend/apps/continuity-worker/Dockerfile","context":"."}' || true
+          backend "$C_INGESTION"  && add '{"name":"wellbe-ingestion-worker","file":"backend/apps/ingestion-worker/Dockerfile","context":"."}' || true
+          backend "$C_PROCESSING" && add '{"name":"wellbe-processing-worker","file":"backend/apps/processing-worker/Dockerfile","context":"."}' || true
+          backend "$C_SAFETY"     && add '{"name":"wellbe-safety-gate","file":"backend/apps/safety-gate/Dockerfile","context":"."}' || true
+          backend "$C_VAULT"      && add '{"name":"wellbe-vault-writer","file":"backend/apps/vault-writer/Dockerfile","context":"."}' || true
+          one "$C_MIGRATIONS"     && add '{"name":"wellbe-migrations","file":"db/Dockerfile.migrations","context":"."}' || true
+          one "$C_POSTGRES"       && add '{"name":"wellbe-postgres","file":"infra/local/Dockerfile.postgres","context":"infra/local"}' || true
+          one "$C_WEB"            && add '{"name":"wellbe-web","file":"apps/web/Dockerfile","context":".","web":"true"}' || true
+
+          echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
+          echo "Images to build: $include"
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: changes
+    if: needs.changes.outputs.matrix != '{"include":[]}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Web build args
+        id: webargs
+        run: |
+          if [ "${{ matrix.web }}" = "true" ]; then
+            {
+              echo 'args<<EOF'
+              echo "NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=${DEV_PATIENT_ID}"
+              echo "NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=${DEV_PATIENT_ID}"
+              echo "NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE=controller"
+              echo "NEXT_PUBLIC_WELLBE_API_URL=${WEB_API_URL}"
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo 'args=' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          platforms: linux/amd64
+          push: true
+          build-args: ${{ steps.webargs.outputs.args }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.name }}:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.name }}:latest
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max
