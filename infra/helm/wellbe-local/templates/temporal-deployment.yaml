@@ -16,6 +16,24 @@ spec:
         app: temporal
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
+      initContainers:
+        # Gate Temporal's auto-setup on Postgres accepting TCP. The auto-setup
+        # image creates the temporal/temporal_visibility databases and schema
+        # exactly ONCE at container start; if it runs before Postgres is reachable
+        # that step is silently skipped and Temporal stays permanently broken
+        # ("database \"temporal\" does not exist") until a manual restart. Postgres
+        # opens 5432 only after its entrypoint finishes the init scripts, so a
+        # reachable port means the DB is ready. Instant no-op once it's already up.
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z wellbe-postgres 5432; do
+                echo "waiting for postgres..."
+                sleep 2
+              done
       containers:
         - name: temporal
           image: {{ .Values.temporal.image }}
