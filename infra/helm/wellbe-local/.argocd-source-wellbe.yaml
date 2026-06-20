@@ -1,0 +1,35 @@
+helm:
+  parameters:
+  - name: api.image
+    value: ghcr.io/benneliass/wellbe-api:0.1.5
+    forcestring: true
+  - name: devSeed.image
+    value: ghcr.io/benneliass/wellbe-api:0.1.5
+    forcestring: true
+  - name: web.image
+    value: ghcr.io/benneliass/wellbe-web:0.1.4
+    forcestring: true
+  - name: vaultWriter.image
+    value: ghcr.io/benneliass/wellbe-vault-writer:0.1.5
+    forcestring: true
+  - name: ingestionWorker.image
+    value: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.5
+    forcestring: true
+  - name: processingWorker.image
+    value: ghcr.io/benneliass/wellbe-processing-worker:0.1.5
+    forcestring: true
+  - name: safetyGate.image
+    value: ghcr.io/benneliass/wellbe-safety-gate:0.1.5
+    forcestring: true
+  - name: auditService.image
+    value: ghcr.io/benneliass/wellbe-audit-service:0.1.5
+    forcestring: true
+  - name: continuityWorker.image
+    value: ghcr.io/benneliass/wellbe-continuity-worker:0.1.5
+    forcestring: true
+  - name: migration.image
+    value: ghcr.io/benneliass/wellbe-migrations:0.1.5
+    forcestring: true
+  - name: postgres.image
+    value: ghcr.io/benneliass/wellbe-postgres:0.1.4
+    forcestring: true
