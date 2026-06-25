@@ -29,3 +29,20 @@ exclude = "/tests/"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["packages", "apps"]
+# importlib mode: app/package test trees reuse basenames (test_service.py,
+# test_main.py, ...) which the default prepend importer cannot disambiguate.
+# pythonpath: apps are workspace roots, so uv does not editable-install them
+# (only the depended-on packages get .pth entries); add their src dirs so tests
+# can import wellbe_api, wellbe_vault_writer, etc.
+addopts = "--import-mode=importlib"
+pythonpath = [
+    "apps/api/src",
+    "apps/audit-service/src",
+    "apps/continuity-worker/src",
+    "apps/ingestion-worker/src",
+    "apps/notification-worker/src",
+    "apps/processing-worker/src",
+    "apps/safety-gate/src",
+    "apps/temporal-worker/src",
+    "apps/vault-writer/src",
+]
