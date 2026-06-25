@@ -77,7 +77,7 @@ logger = logging.getLogger("wellbe.dev_seed")
 # Bump this whenever the committed dataset or the seeding flow changes. On the next
 # run the marker mismatch triggers a one-time reset + re-seed of the dev workspace
 # so the cluster reflects the new dataset (rather than the idempotent no-op).
-SEED_REVISION = "2-genesis-driven"
+SEED_REVISION = "3-genesis-driven"
 
 # The dev identity is a real federated identity, just like any user's. It is one
 # selectable workspace — never auto-entered. The web "Dev workspace" sign-in uses
@@ -538,10 +538,25 @@ async def _reset_dev_data() -> None:
     factory = create_session_factory(engine)
     try:
         async with factory() as session:
-            stmt = "TRUNCATE TABLE " + ", ".join(_RESET_TABLES) + " RESTART IDENTITY CASCADE"
-            await session.execute(text(stmt))
+            # Only truncate tables that actually exist, so schema drift between the
+            # seed image and the migrated DB never fails the whole reset. The table
+            # list is a trusted in-module constant (no injection surface).
+            literals = ",".join(f"'{t}'" for t in _RESET_TABLES)
+            result = await session.execute(
+                text(
+                    f"SELECT n FROM unnest(ARRAY[{literals}]) AS n "
+                    "WHERE to_regclass(n) IS NOT NULL"
+                )
+            )
+            existing = [row[0] for row in result]
+            if not existing:
+                logger.info("no dev data tables present; reset is a no-op")
+                return
+            await session.execute(
+                text("TRUNCATE TABLE " + ", ".join(existing) + " RESTART IDENTITY CASCADE")
+            )
             await session.commit()
-        logger.info("dev workspace data reset (%d table groups)", len(_RESET_TABLES))
+        logger.info("dev workspace data reset (%d tables)", len(existing))
     finally:
         await engine.dispose()
 
@@ -572,13 +587,12 @@ async def seed() -> None:
     if current == SEED_REVISION:
         logger.info("dev workspace already at revision %s; seed is a no-op", SEED_REVISION)
         return
-    if current is not None:
-        logger.info(
-            "seed revision changed (%s -> %s); resetting dev workspace",
-            current,
-            SEED_REVISION,
-        )
-        await _reset_dev_data()
+    # Any other state — no marker yet, or an older revision — means the workspace is
+    # not at the committed dataset (e.g. legacy/hand-seeded data). Reset first so the
+    # seed reproduces the dataset exactly. On a truly fresh cluster the tables are
+    # empty and the reset is a harmless no-op.
+    logger.info("seed revision %s -> %s; resetting dev workspace", current, SEED_REVISION)
+    await _reset_dev_data()
 
     async with httpx.AsyncClient(base_url=base_url, timeout=30.0) as client:
         await _wait_for_api(client)
