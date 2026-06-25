@@ -1,8 +1,9 @@
 """Tests for the local Dev-workspace seed (wellbe_api.dev_seed).
 
-These lock in the two properties the cluster relies on: the committed dataset is
-well-formed against the live capture/thread contracts, and the seed is safe to
-re-run (deterministic capture keys + a hard dev-only gate). No network is used.
+These lock in the properties the cluster relies on: the committed dataset is
+well-formed against the live capture/thread contracts, the user-action plan only
+walks valid lifecycle edges, and the seed is safe to re-run (deterministic capture
+keys + a hard dev-only gate). No network is used.
 """
 
 from __future__ import annotations
@@ -30,18 +31,45 @@ def test_capture_dataset_matches_contract() -> None:
             assert str(payload.get("value") or "").strip()
 
 
-def test_thread_walks_are_valid_lifecycle_edges() -> None:
-    """Every seeded walk must be a path of structurally allowed transitions
-    starting from the create-time ``draft`` status."""
-    for spec in dev_seed.THREADS:
-        assert (spec["title"] or "").strip()  # type: ignore[union-attr]
+def test_candidate_plan_is_well_formed() -> None:
+    """Every plan rule has a known action; confirms carry a walk, others do not."""
+    for rule in dev_seed.CANDIDATE_PLAN:
+        assert (rule.get("match") or "").strip()  # type: ignore[union-attr]
+        assert rule["action"] in {"confirm", "dismiss", "leave"}
+        if rule["action"] == "confirm":
+            assert isinstance(rule.get("walk"), list)
+        else:
+            assert "walk" not in rule
+
+
+def test_confirm_walks_are_valid_lifecycle_edges() -> None:
+    """Every confirm walk must be a path of structurally allowed transitions
+    starting from a freshly-created (``draft``) thread — the status a candidate
+    confirmation produces."""
+    for rule in dev_seed.CANDIDATE_PLAN:
+        if rule["action"] != "confirm":
+            continue
         current = HealthThreadStatus.DRAFT
-        for target_value in spec["walk"]:  # type: ignore[union-attr]
+        for target_value in rule["walk"]:  # type: ignore[union-attr]
             target = HealthThreadStatus(target_value)
             assert target in ALLOWED_TRANSITIONS[current], (
                 f"{current} -> {target} is not an allowed edge"
             )
             current = target
+
+
+def test_investigation_and_packet_reference_confirmed_threads() -> None:
+    """Investigation/visit-packet thread keys must be confirmable in the plan, so
+    they actually resolve to threads at seed time (no dangling references)."""
+    confirmable = {
+        str(r["match"]).lower()
+        for r in dev_seed.CANDIDATE_PLAN
+        if r["action"] == "confirm"
+    }
+    for key in dev_seed.INVESTIGATION["link_threads"]:  # type: ignore[union-attr]
+        assert key.lower() in confirmable
+    for key in dev_seed.VISIT_PACKET["link_threads"]:  # type: ignore[union-attr]
+        assert key.lower() in confirmable
 
 
 def test_capture_idempotency_keys_are_deterministic_and_unique() -> None:
