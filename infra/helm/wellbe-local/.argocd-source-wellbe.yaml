@@ -1,10 +1,10 @@
 helm:
   parameters:
   - name: api.image
-    value: ghcr.io/benneliass/wellbe-api:0.1.8
+    value: ghcr.io/benneliass/wellbe-api:0.1.9
     forcestring: true
   - name: devSeed.image
-    value: ghcr.io/benneliass/wellbe-api:0.1.8
+    value: ghcr.io/benneliass/wellbe-api:0.1.9
     forcestring: true
   - name: web.image
     value: ghcr.io/benneliass/wellbe-web:0.1.7
