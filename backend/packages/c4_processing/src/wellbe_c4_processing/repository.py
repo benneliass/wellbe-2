@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -52,7 +53,7 @@ class ProcessingRepository:
         text_span_start: int | None = None,
         text_span_end: int | None = None,
         source_text_excerpt_hash: str | None = None,
-        quality_metadata: dict | None = None,
+        quality_metadata: dict[str, Any] | None = None,
         is_negated: bool = False,
         is_historical: bool = False,
         is_hypothetical: bool = False,
@@ -66,7 +67,7 @@ class ProcessingRepository:
         DO NOTHING and returns ``None`` when the fact already exists, allowing
         callers to skip re-linking evidence and re-emitting events on redelivery.
         """
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         stmt = (
             pg_insert(ExtractedFactRow)
             .values(
@@ -127,9 +128,9 @@ class ProcessingRepository:
         signal_direction: str | None = None,
         aggregation_method: str | None = None,
         observation_window: str | None = None,
-        quality_metadata: dict | None = None,
+        quality_metadata: dict[str, Any] | None = None,
     ) -> uuid.UUID:
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         row = HealthSignalRow(
             id=id,
             patient_id=patient_id,

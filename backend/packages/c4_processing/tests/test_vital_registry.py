@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from wellbe_c4_processing.vital_registry import (
     VITAL_REGISTRY_VERSION,
     classify_vital,

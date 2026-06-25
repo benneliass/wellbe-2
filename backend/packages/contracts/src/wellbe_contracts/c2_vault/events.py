@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -46,7 +47,7 @@ class RawContextEvent(BaseModel):
     encoding: str | None = None
     language: str | None = None
     original_filename_hash: str | None = None
-    source_metadata: dict | None = None
+    source_metadata: dict[str, Any] | None = None
     adapter_name: str
     adapter_version: str
     ingestor_version: str
@@ -83,7 +84,7 @@ class VaultWriteRequest(BaseModel):
     encoding: str | None = None
     language: str | None = None
     original_filename_hash: str | None = None
-    source_metadata: dict | None = None
+    source_metadata: dict[str, Any] | None = None
 
 
 class VaultWriteResponse(BaseModel):

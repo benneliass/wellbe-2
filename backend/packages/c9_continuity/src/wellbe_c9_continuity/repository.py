@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -42,8 +43,8 @@ class ContinuityRepository:
         idempotency_key: str,
         due_at: datetime | None = None,
         due_precision: DuePrecision = DuePrecision.UNKNOWN,
-        source_ref: dict | None = None,
-        evidence_refs: list | None = None,
+        source_ref: dict[str, Any] | None = None,
+        evidence_refs: list[Any] | None = None,
         blocks_c9_closure_request: bool = False,
         normal_test_safety_net: bool = False,
         symptoms_persist_state: SymptomsPersistState = SymptomsPersistState.UNKNOWN,
@@ -196,7 +197,7 @@ class ContinuityRepository:
         action_type: TimerActionType,
         c7_transition_id: uuid.UUID | None = None,
         c7_rejection_code: str | None = None,
-        payload: dict | None = None,
+        payload: dict[str, Any] | None = None,
     ) -> bool:
         """Append a timer action. Idempotent on (item, epoch, action)."""
         stmt = (
@@ -228,8 +229,8 @@ class ContinuityRepository:
         patient_id: uuid.UUID,
         event_type: str,
         idempotency_key: str,
-        event_payload: dict | None = None,
-        actor: dict | None = None,
+        event_payload: dict[str, Any] | None = None,
+        actor: dict[str, Any] | None = None,
     ) -> None:
         stmt = (
             pg_insert(PendingItemEventRow)

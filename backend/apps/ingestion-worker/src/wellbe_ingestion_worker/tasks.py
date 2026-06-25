@@ -18,7 +18,7 @@ from wellbe_c3_ingestion import (
 from wellbe_contracts.c3_ingestion import AdapterInput
 
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
-dramatiq.set_broker(RedisBroker(url=_redis_url))
+dramatiq.set_broker(RedisBroker(url=_redis_url))  # type: ignore[no-untyped-call]
 
 
 def _build_registry() -> AdapterRegistry:

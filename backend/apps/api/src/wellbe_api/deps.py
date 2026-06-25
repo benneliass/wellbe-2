@@ -13,7 +13,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 import redis.asyncio as aioredis
 from fastapi import Depends, FastAPI, Header
@@ -204,7 +204,7 @@ async def audit_ref(
     principal: Principal,
     summary: str,
     visibility: list[str] | None = None,
-    extra: dict | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> AuditRefV2:
     """Emit a durable C13 audit event through the outbox and return its ref.
 

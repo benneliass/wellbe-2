@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c5_evidence.repository import EvidenceRepository
@@ -70,11 +72,11 @@ class CorrectionService:
         correction_type: CorrectionType,
         target: CorrectionTargetRef,
         raw_correction_event_id: uuid.UUID,
-        actor_ref: dict,
+        actor_ref: dict[str, Any],
         actor_authority: ActorAuthority = ActorAuthority.CONTROLLER,
-        proposed_payload: dict | None = None,
+        proposed_payload: dict[str, Any] | None = None,
         rationale: str | None = None,
-        effective_at=None,
+        effective_at: datetime | None = None,
         supersedes_correction_id: uuid.UUID | None = None,
         idempotency_key: str | None = None,
         correlation_id: str = "c11",
@@ -192,7 +194,7 @@ class CorrectionService:
         self,
         *,
         correction_id: uuid.UUID,
-        controller_actor: dict,
+        controller_actor: dict[str, Any],
         correlation_id: str = "c11",
         trace_id: str = "c11",
     ) -> CorrectionResult:

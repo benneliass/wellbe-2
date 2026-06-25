@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import Boolean, Float, Integer, Text, ForeignKey, CheckConstraint
+from sqlalchemy import Boolean, CheckConstraint, Float, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base
 
 
@@ -14,7 +14,8 @@ class EdgeTypeRow(Base):
     __tablename__ = "edge_types"
     __table_args__ = (
         CheckConstraint(
-            "category IN ('causal', 'correlation', 'temporal', 'therapeutic', 'adverse', 'contradiction', 'refinement')",
+            "category IN ('causal', 'correlation', 'temporal', 'therapeutic', "
+            "'adverse', 'contradiction', 'refinement')",
             name="ck_edge_type_category",
         ),
         {"schema": "graph"},
@@ -29,7 +30,9 @@ class KgNodeRow(Base):
     __tablename__ = "kg_nodes"
     __table_args__ = (
         CheckConstraint(
-            "node_type IN ('ConditionHypothesis', 'Symptom', 'Medication', 'LabResult', 'Procedure', 'VitalSign', 'Allergy', 'Immunization', 'SocialFactor', 'FamilyHistory', 'Other', 'Investigation', 'Theory')",
+            "node_type IN ('ConditionHypothesis', 'Symptom', 'Medication', "
+            "'LabResult', 'Procedure', 'VitalSign', 'Allergy', 'Immunization', "
+            "'SocialFactor', 'FamilyHistory', 'Other', 'Investigation', 'Theory')",
             name="ck_node_type",
         ),
         CheckConstraint(
@@ -49,7 +52,9 @@ class KgNodeRow(Base):
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list
     )
     embedding_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    node_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB(), nullable=True)
+    node_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB(), nullable=True
+    )
     first_seen_at: Mapped[datetime] = mapped_column(nullable=False)
     last_seen_at: Mapped[datetime] = mapped_column(nullable=False)
     schema_version: Mapped[int] = mapped_column(Integer(), nullable=False, default=1)
@@ -89,7 +94,7 @@ class KgEdgeRow(Base):
     )
     potential_score: Mapped[float] = mapped_column(Float(), nullable=False)
     score_version: Mapped[int] = mapped_column(Integer(), nullable=False, default=1)
-    score_inputs: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    score_inputs: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
     needs_rescore: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
     thread_ids: Mapped[list[uuid.UUID]] = mapped_column(
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list

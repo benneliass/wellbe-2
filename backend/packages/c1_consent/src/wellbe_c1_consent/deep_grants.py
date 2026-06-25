@@ -4,6 +4,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Any
 
 
 class RoleType(StrEnum):
@@ -116,7 +117,7 @@ class GrantScopeInstance:
 class GrantCapability:
     capability: Capability
     allowed: bool
-    constraints: dict = field(default_factory=dict)
+    constraints: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

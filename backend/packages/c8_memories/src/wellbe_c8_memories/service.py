@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c5_evidence.repository import EvidenceRepository
@@ -22,6 +23,7 @@ from wellbe_contracts.c11_correction import CorrectionTargetKind
 from wellbe_events import emit_event
 
 from wellbe_c8_memories.errors import MemoryNotFoundError, VisibleWithoutEvidenceError
+from wellbe_c8_memories.models import MemoryEntryRow
 from wellbe_c8_memories.repository import MemoryRepository
 
 # Source-ref kinds that participate in correction resolution at read time, mapped
@@ -57,9 +59,9 @@ class MemoryService:
         thread_id: uuid.UUID,
         memory_type: MemoryType,
         source_refs: list[MemorySourceRef],
-        created_by_actor: dict,
+        created_by_actor: dict[str, Any],
         title: str | None = None,
-        payload: dict | None = None,
+        payload: dict[str, Any] | None = None,
         authorship_mode: AuthorshipMode | None = None,
         make_visible: bool = False,
         evidence_raw_event_ids: list[uuid.UUID] | None = None,
@@ -67,7 +69,7 @@ class MemoryService:
         idempotency_key: str | None = None,
         correlation_id: str = "c8",
         trace_id: str = "c8",
-    ):
+    ) -> MemoryEntryRow:
         """Create a memory entry.
 
         For derived memory types (clinical/pattern), ``make_visible`` requires
@@ -127,7 +129,7 @@ class MemoryService:
     async def _make_visible(
         self,
         *,
-        row,
+        row: MemoryEntryRow,
         memory_type: MemoryType,
         patient_id: uuid.UUID,
         evidence_raw_event_ids: list[uuid.UUID],
@@ -168,10 +170,10 @@ class MemoryService:
         self,
         *,
         memory_entry_id: uuid.UUID,
-        controller_actor: dict,
+        controller_actor: dict[str, Any],
         correlation_id: str = "c8",
         trace_id: str = "c8",
-    ):
+    ) -> MemoryEntryRow:
         """Controller confirms a pending (e.g. derived Equity) entry -> visible."""
         row = await self._repo.get(memory_entry_id)
         if row is None:
@@ -210,7 +212,7 @@ class MemoryService:
         for entry in entries:
             ref_rows = await self._repo.source_refs_for(entry.memory_entry_id)
             refs = [await self._repo.to_source_ref(r) for r in ref_rows]
-            overlays: list[dict] = []
+            overlays: list[dict[str, Any]] = []
             stale = False
             for ref in refs:
                 target_kind = _CORRECTABLE.get(ref.source_ref_type)

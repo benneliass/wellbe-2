@@ -8,11 +8,6 @@ from wellbe_c4_processing.extractor import (
     TextFactExtractor,
     compute_quality_flag,
 )
-from wellbe_c4_processing.vital_registry import (
-    VITAL_REGISTRY_VERSION,
-    VitalConcept,
-    classify_vital,
-)
 from wellbe_c4_processing.investigation_extractor import (
     ExternalClaimExtractor,
     ExternalClaimResult,
@@ -21,6 +16,11 @@ from wellbe_c4_processing.investigation_extractor import (
 )
 from wellbe_c4_processing.models import ExtractedFactRow, HealthSignalRow
 from wellbe_c4_processing.repository import ProcessingRepository
+from wellbe_c4_processing.vital_registry import (
+    VITAL_REGISTRY_VERSION,
+    VitalConcept,
+    classify_vital,
+)
 
 __all__ = [
     "DispatchDecision",

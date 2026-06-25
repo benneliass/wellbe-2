@@ -20,7 +20,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-
 # Bump on any *reclassification* (a key that used to be lab_result becoming a
 # vital, or a concept key changing). Additive aliases do not require a bump.
 VITAL_REGISTRY_VERSION = "vital-registry-v1"

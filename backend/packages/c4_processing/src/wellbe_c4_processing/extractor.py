@@ -6,12 +6,14 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from typing import Any
 
 from wellbe_contracts.c4_processing import (
     FactType,
     QualityFlag,
     SubjectType,
 )
+
 from wellbe_c4_processing.vital_registry import VITAL_REGISTRY_VERSION, classify_vital
 
 PIPELINE_VERSION = "0.1.0"
@@ -29,7 +31,7 @@ class ExtractionResult:
     normalized_key: str
     extraction_confidence: float
     quality_flag: QualityFlag
-    quality_metadata: dict = field(default_factory=dict)
+    quality_metadata: dict[str, Any] = field(default_factory=dict)
     code_system: str | None = None
     code: str | None = None
     text_span_start: int | None = None
@@ -237,7 +239,7 @@ class StructuredObservationExtractor:
         occurrence_token = _occurrence_token(occurrence)
         normalized_key = f"{kind}:{concept}:{occurrence_token}"
 
-        quality_metadata: dict = {
+        quality_metadata: dict[str, Any] = {
             "method": "structured_capture",
             "contract_version": STRUCTURED_CONTRACT_VERSION,
             "normalization_status": "raw_only",

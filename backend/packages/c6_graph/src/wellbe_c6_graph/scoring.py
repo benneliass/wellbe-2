@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 
 from wellbe_contracts.c5_evidence import EvidenceLinkType
 
@@ -37,7 +38,7 @@ class ScoreInput:
 class ScoreResult:
     potential_score: float
     score_version: int
-    score_inputs: dict
+    score_inputs: dict[str, Any]
 
 
 class PotentialScoreComputer:
@@ -75,10 +76,7 @@ class PotentialScoreComputer:
                 weighted_sum += weight * inp.confidence
                 max_possible += weight
 
-        if max_possible > 0:
-            raw_score = weighted_sum / max_possible
-        else:
-            raw_score = 0.0
+        raw_score = weighted_sum / max_possible if max_possible > 0 else 0.0
 
         if has_contradiction:
             raw_score = max(0.0, raw_score - CONTRADICTION_PENALTY)

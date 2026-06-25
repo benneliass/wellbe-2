@@ -11,7 +11,6 @@ import asyncio
 import uuid
 
 import pytest
-
 from wellbe_c6_graph.constants import (
     FORBIDDEN_PERSONAL_EDGE_CODES,
     PERSONAL_NODE_TYPES,

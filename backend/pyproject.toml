@@ -21,6 +21,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.13"
 strict = true
 ignore_missing_imports = true
+# Strict typing targets source. Test trees are excluded: multiple packages have
+# identically-named test modules (e.g. tests/test_service.py) which mypy's flat
+# module discovery cannot disambiguate, and pytest already exercises them.
+exclude = "/tests/"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 
 class InvalidSourceQualityTierError(ValueError):
@@ -26,7 +26,7 @@ class ExternalEvidenceSourceInput:
     publisher: str | None = None
     publication_date: date | None = None
     version_label: str | None = None
-    source_metadata: dict | None = None
+    source_metadata: dict[str, Any] | None = None
 
 
 class ExternalEvidenceIngestionService:

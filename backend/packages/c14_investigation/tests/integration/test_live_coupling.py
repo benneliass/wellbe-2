@@ -13,6 +13,9 @@ import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy import text
+from wellbe_c7_thread.service import ThreadService
+from wellbe_c14_investigation.errors import ClosureBlockedByThreadError
+from wellbe_c14_investigation.service import InvestigationService
 from wellbe_contracts.c7_thread import HealthThreadStatus, ThreadActor, ThreadActorType
 from wellbe_contracts.c14_investigation import (
     INVESTIGATION_CREATED,
@@ -21,10 +24,6 @@ from wellbe_contracts.c14_investigation import (
     ThreadRelationship,
 )
 from wellbe_db import create_engine, create_session_factory
-
-from wellbe_c7_thread.service import ThreadService
-from wellbe_c14_investigation.errors import ClosureBlockedByThreadError
-from wellbe_c14_investigation.service import InvestigationService
 
 DATABASE_URL = os.environ.get("WELLBE_DATABASE_URL")
 

@@ -3,12 +3,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import redis.asyncio as aioredis
 from sqlalchemy import select, update
-
 from wellbe_db import AsyncSessionFactory
+
 from wellbe_events.models import OutboxEventRow
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class RedisStreamPublisher:
             await session.execute(
                 update(OutboxEventRow)
                 .where(OutboxEventRow.id.in_(ids))
-                .values(delivered_at=datetime.now(timezone.utc))
+                .values(delivered_at=datetime.now(UTC))
             )
             await session.commit()
 

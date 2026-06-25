@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 import redis.asyncio as aioredis
@@ -36,7 +37,7 @@ class ConsentService:
         cache_key = f"{_SCOPE_CACHE_PREFIX}:{actor_id}:{resource_type}:{action}:{resource_key}"
         cached = await self._redis.get(cache_key)
         if cached is not None:
-            return cached == b"1"
+            return bool(cached == b"1")
 
         now = datetime.now(UTC)
         stmt = select(ConsentScopeRow.id).where(
@@ -78,7 +79,7 @@ class ConsentService:
         grant_token_hash: str | None = None,
         policy_version: int = 1,
         created_by: UUID,
-        metadata: dict | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> ShareGrantRow:
         row = ShareGrantRow(
             grantor_id=grantor_id,

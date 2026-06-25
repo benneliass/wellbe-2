@@ -12,7 +12,9 @@ class VaultWriterSettings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: SecretStr
+    database_url: SecretStr = SecretStr(
+        "postgresql+asyncpg://wellbe:wellbe_dev@localhost:5432/wellbe"
+    )
     s3_endpoint: str = "http://localhost:9000"
     s3_access_key: str = "minioadmin"
     s3_secret_key: str = "minioadmin"

@@ -17,6 +17,7 @@ Authoritative decision: docs/decisions/continuity-pending-ledger-durable-timers.
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -131,8 +132,8 @@ class PendingItem(BaseModel):
     timer_epoch: int = 0
     version: int = 1
     workflow_id: str | None = None
-    source_ref: dict = Field(default_factory=dict)
-    evidence_refs: list[dict] = Field(default_factory=list)
+    source_ref: dict[str, Any] = Field(default_factory=dict)
+    evidence_refs: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class TimerFireResult(BaseModel):

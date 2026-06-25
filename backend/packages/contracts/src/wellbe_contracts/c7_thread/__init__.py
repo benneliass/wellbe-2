@@ -11,6 +11,7 @@ Authoritative decision: docs/decisions/health-thread-state-machine-enforcement.m
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -263,7 +264,7 @@ class ThreadStateChangedPayload(BaseModel):
     trace_id: str
     evidence_refs: list[ThreadEvidenceRef] = Field(default_factory=list)
     safety_flags: list[str] = Field(default_factory=list)
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 __all__ = [

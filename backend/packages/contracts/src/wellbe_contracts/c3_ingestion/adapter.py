@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -15,7 +15,7 @@ class AdapterInput(BaseModel):
     captured_at: AwareDatetime
     actor_id: ActorId
     patient_id: PatientId
-    metadata: Optional[dict] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ValidationResult(BaseModel):
@@ -27,21 +27,21 @@ class NormalizedPayload(BaseModel):
     data: bytes
     mime_type: str
     byte_size: int
-    encoding: Optional[str] = None
-    language: Optional[str] = None
+    encoding: str | None = None
+    language: str | None = None
 
 
 class AdapterProvenance(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     source_type: str
-    source_id: Optional[str] = None
-    external_source_id: Optional[str] = None
+    source_id: str | None = None
+    external_source_id: str | None = None
     captured_at: AwareDatetime
     adapter_name: str
     adapter_version: str
-    source_metadata: Optional[dict] = None
-    original_filename_hash: Optional[str] = None
+    source_metadata: dict[str, Any] | None = None
+    original_filename_hash: str | None = None
     mime_type: str
-    encoding: Optional[str] = None
-    language: Optional[str] = None
+    encoding: str | None = None
+    language: str | None = None

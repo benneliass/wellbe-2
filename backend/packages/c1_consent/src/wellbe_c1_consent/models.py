@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
@@ -50,7 +51,7 @@ class ShareGrantRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     grantee_type: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     resource_selector: Mapped[str | None] = mapped_column(Text)
-    thread_ids: Mapped[list] = mapped_column(JSONB, default=list)
+    thread_ids: Mapped[list[Any]] = mapped_column(JSONB, default=list)
     actions: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False)
     data_categories: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False)
     purpose: Mapped[str | None] = mapped_column(Text)
@@ -64,7 +65,7 @@ class ShareGrantRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     policy_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_by: Mapped[uuid.UUID] = mapped_column(nullable=False)
     last_accessed_at: Mapped[datetime | None] = mapped_column()
-    grant_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    grant_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
 
 
 class RevocationLogRow(UUIDPrimaryKeyMixin, Base):
@@ -138,8 +139,8 @@ class OnboardingSessionRow(UUIDPrimaryKeyMixin, Base):
     )
     status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
     consent_version: Mapped[str] = mapped_column(Text, nullable=False)
-    choices: Mapped[dict] = mapped_column(JSONB, default=dict)
-    baseline: Mapped[dict] = mapped_column(JSONB, default=dict)
+    choices: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    baseline: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
     finalized_at: Mapped[datetime | None] = mapped_column(_TZ)
@@ -180,7 +181,7 @@ class WorkspaceRow(Base):
         ForeignKey("access.role_bindings.id"), nullable=False
     )
     policy_profile_id: Mapped[uuid.UUID | None] = mapped_column()
-    default_expiry_policy: Mapped[dict] = mapped_column(JSONB, default=dict)
+    default_expiry_policy: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="active")
     created_at: Mapped[datetime] = mapped_column(_TZ, server_default=func.now())
 

@@ -131,7 +131,7 @@ class AuditEventCreateV1(BaseModel):
 
 
 class AuditEventV1(AuditEventCreateV1):
-    schema_version: Literal["c12.audit_event.v1"] = "c12.audit_event.v1"
+    schema_version: Literal["c12.audit_event.v1"] = "c12.audit_event.v1"  # type: ignore[assignment]
     event_id: str
     recorded_at: datetime
     time_skew_ms: int

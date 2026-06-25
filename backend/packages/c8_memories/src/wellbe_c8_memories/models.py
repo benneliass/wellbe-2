@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Numeric, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -25,7 +26,7 @@ class MemoryEntryRow(Base):
     display_intent: Mapped[str] = mapped_column(
         Text(), nullable=False, default="memory_surface"
     )
-    payload: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
     source_version_hash: Mapped[str | None] = mapped_column(Text(), nullable=True)
     source_projection_version: Mapped[int] = mapped_column(
         BigInteger(), nullable=False, default=0
@@ -33,8 +34,10 @@ class MemoryEntryRow(Base):
     c10_gate_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )
-    created_by_actor: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
-    accepted_by_controller_actor: Mapped[dict | None] = mapped_column(
+    created_by_actor: Mapped[dict[str, Any]] = mapped_column(
+        JSONB(), nullable=False, default=dict
+    )
+    accepted_by_controller_actor: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB(), nullable=True
     )
     accepted_at: Mapped[datetime | None] = mapped_column(

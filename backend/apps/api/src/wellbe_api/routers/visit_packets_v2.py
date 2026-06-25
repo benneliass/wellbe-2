@@ -15,14 +15,18 @@ from fastapi import APIRouter, Header
 from wellbe_contracts.c10_safety import C10Decision, C10ReasonCode
 from wellbe_contracts.c13_api import ProblemCode
 from wellbe_contracts.visit_packet import (
+    AbsenceReason,
     ExportPacketResponse,
     GenerateVisitPacketRequest,
+    PacketLayer,
+    PacketSection,
     PacketSourceRef,
     PacketStatus,
     SharedPacketView,
     ShareLinkStatus,
     SharePacketRequest,
     SharePacketResponse,
+    StatementClassification,
     UpdatePacketRequest,
     VisitPacketStatementV2,
     VisitPacketV2,
@@ -43,14 +47,16 @@ _RESOURCE = "visit_packet"
 def _statement_v2(row: StatementRow) -> VisitPacketStatementV2:
     return VisitPacketStatementV2(
         statement_id=str(row.id),
-        layer=row.layer,
-        section=row.section,
+        layer=PacketLayer(row.layer),
+        section=PacketSection(row.section),
         ordinal=row.ordinal,
         text=row.text,
-        classification=row.classification,
+        classification=StatementClassification(row.classification),
         source_refs=[PacketSourceRef(**sr) for sr in (row.source_refs or [])],
         absent=row.absent,
-        absence_reason=row.absence_reason,
+        absence_reason=(
+            AbsenceReason(row.absence_reason) if row.absence_reason else None
+        ),
         included=row.included,
     )
 

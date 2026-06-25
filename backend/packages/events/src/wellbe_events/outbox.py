@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +15,7 @@ class OutboxWriter:
     async def emit(
         self,
         event_type: str,
-        payload: dict,
+        payload: dict[str, Any],
         correlation_id: str,
         trace_id: str,
     ) -> uuid.UUID:
@@ -32,7 +33,7 @@ class OutboxWriter:
 async def emit_event(
     session: AsyncSession,
     event_type: str,
-    payload: dict,
+    payload: dict[str, Any],
     correlation_id: str,
     trace_id: str,
 ) -> uuid.UUID:

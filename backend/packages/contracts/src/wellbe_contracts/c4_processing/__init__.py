@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import Annotated, Optional
+from enum import StrEnum
+from typing import Annotated, Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -25,7 +25,7 @@ FactId = Annotated[UUID, Field(description="Unique identifier for an ExtractedFa
 SignalId = Annotated[UUID, Field(description="Unique identifier for a HealthSignal")]
 
 
-class FactType(str, Enum):
+class FactType(StrEnum):
     SYMPTOM = "symptom"
     FINDING = "finding"
     MEDICATION = "medication"
@@ -40,20 +40,20 @@ class FactType(str, Enum):
     OTHER = "other"
 
 
-class QualityFlag(str, Enum):
+class QualityFlag(StrEnum):
     CLEAN = "clean"
     LOW_CONFIDENCE = "low_confidence"
     REQUIRES_REVIEW = "requires_review"
     PARTIAL = "partial"
 
 
-class SubjectType(str, Enum):
+class SubjectType(StrEnum):
     PATIENT = "patient"
     FAMILY_MEMBER = "family_member"
     OTHER = "other"
 
 
-class SignalType(str, Enum):
+class SignalType(StrEnum):
     PAIN_LEVEL = "pain_level"
     MOOD_SCORE = "mood_score"
     FATIGUE = "fatigue"
@@ -70,7 +70,7 @@ class SignalType(str, Enum):
     OTHER = "other"
 
 
-class SignalDirection(str, Enum):
+class SignalDirection(StrEnum):
     IMPROVING = "improving"
     WORSENING = "worsening"
     STABLE = "stable"
@@ -99,12 +99,12 @@ class ExtractedFact(BaseModel):
     fact_type: FactType
     entity_label: str
     normalized_key: str
-    code_system: Optional[str] = None
-    code: Optional[str] = None
+    code_system: str | None = None
+    code: str | None = None
 
-    text_span_start: Optional[int] = None
-    text_span_end: Optional[int] = None
-    source_text_excerpt_hash: Optional[str] = None
+    text_span_start: int | None = None
+    text_span_end: int | None = None
+    source_text_excerpt_hash: str | None = None
 
     extraction_confidence: float = Field(ge=0.0, le=1.0)
     extraction_model: str
@@ -112,7 +112,7 @@ class ExtractedFact(BaseModel):
     pipeline_version: str
 
     quality_flag: QualityFlag
-    quality_metadata: Optional[dict] = None
+    quality_metadata: dict[str, Any] | None = None
 
     is_negated: bool = False
     is_historical: bool = False
@@ -143,11 +143,11 @@ class HealthSignal(BaseModel):
 
     signal_type: SignalType
     signal_value: float
-    signal_unit: Optional[str] = None
-    signal_direction: Optional[SignalDirection] = None
+    signal_unit: str | None = None
+    signal_direction: SignalDirection | None = None
 
-    aggregation_method: Optional[str] = None
-    observation_window: Optional[str] = None
+    aggregation_method: str | None = None
+    observation_window: str | None = None
 
     extraction_confidence: float = Field(ge=0.0, le=1.0)
     extraction_model: str
@@ -155,7 +155,7 @@ class HealthSignal(BaseModel):
     pipeline_version: str
 
     quality_flag: QualityFlag
-    quality_metadata: Optional[dict] = None
+    quality_metadata: dict[str, Any] | None = None
 
     captured_at_start: AwareDatetime
     captured_at_end: AwareDatetime

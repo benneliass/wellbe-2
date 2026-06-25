@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from wellbe_c4_processing.dispatcher import (
     DispatchRoute,
     decide_route,

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from wellbe_contracts.c11_correction import (
@@ -56,7 +57,7 @@ class CandidateCorrection:
     effective_at: datetime | None
     applied_at: datetime | None
     supersedes_correction_id: UUID | None
-    proposed_payload: dict = field(default_factory=dict)
+    proposed_payload: dict[str, Any] = field(default_factory=dict)
 
 
 def _aware(dt: datetime | None) -> datetime:
@@ -67,7 +68,7 @@ def _aware(dt: datetime | None) -> datetime:
     return dt
 
 
-def _sort_key(c: CandidateCorrection) -> tuple:
+def _sort_key(c: CandidateCorrection) -> tuple[Any, ...]:
     # Higher authority, higher semantic rank, later effective, later applied win.
     # correction_id ascending is the final deterministic tie-break, so we negate
     # everything else and keep the id ascending.

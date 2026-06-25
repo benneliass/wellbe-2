@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wellbe_c6_graph.constants import validate_personal_edge_type
-from wellbe_c6_graph.models import KgNodeRow, KgEdgeRow
+from wellbe_c6_graph.models import KgEdgeRow, KgNodeRow
 
 
 class GraphRepository:
@@ -22,10 +23,10 @@ class GraphRepository:
         normalized_key: str,
         display_label: str,
         thread_ids: list[uuid.UUID] | None = None,
-        node_metadata: dict | None = None,
+        node_metadata: dict[str, Any] | None = None,
     ) -> KgNodeRow:
         """Insert or update a knowledge graph node (upsert on patient_id + normalized_key)."""
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         stmt = select(KgNodeRow).where(
             KgNodeRow.patient_id == patient_id,
@@ -89,13 +90,13 @@ class GraphRepository:
         edge_type: str,
         potential_score: float,
         patient_id: uuid.UUID,
-        score_inputs: dict | None = None,
+        score_inputs: dict[str, Any] | None = None,
         thread_ids: list[uuid.UUID] | None = None,
     ) -> KgEdgeRow:
         # Defense in depth: reject diagnostic verbs and external-only edge types
         # before they can reach the personal graph (mirrors the DB CHECK constraints).
         validate_personal_edge_type(edge_type)
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         edge = KgEdgeRow(
             id=uuid.uuid4(),
             from_node_id=from_node_id,
@@ -117,7 +118,7 @@ class GraphRepository:
 
     async def mark_needs_rescore(self, node_id: uuid.UUID) -> int:
         """Mark all edges connected to a node as needing rescore."""
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         stmt = (
             update(KgEdgeRow)
             .where(
@@ -126,7 +127,8 @@ class GraphRepository:
             .values(needs_rescore=True, updated_at=now)
         )
         result = await self._session.execute(stmt)
-        return result.rowcount
+        rowcount: int = result.rowcount  # type: ignore[attr-defined]
+        return rowcount
 
     async def edges_for_node(
         self, node_id: uuid.UUID, direction: str = "outgoing"
@@ -167,7 +169,7 @@ class GraphRepository:
         """
         stmt = select(KgNodeRow).where(
             KgNodeRow.patient_id == patient_id,
-            KgNodeRow.thread_ids.any(thread_id),
+            KgNodeRow.thread_ids.any(thread_id),  # type: ignore[arg-type]
         )
         if node_types:
             stmt = stmt.where(KgNodeRow.node_type.in_(node_types))
@@ -247,7 +249,7 @@ class GraphRepository:
             return []
         stmt = select(KgEdgeRow).where(
             KgEdgeRow.patient_id == patient_id,
-            KgEdgeRow.thread_ids.any(thread_id),
+            KgEdgeRow.thread_ids.any(thread_id),  # type: ignore[arg-type]
             KgEdgeRow.from_node_id.in_(node_ids),
             KgEdgeRow.to_node_id.in_(node_ids),
         )

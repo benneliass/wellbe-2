@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from wellbe_api.config import ApiSettings
 from wellbe_api.deps import UnauthenticatedError, lifespan
@@ -58,7 +59,7 @@ app.add_exception_handler(ProblemError, problem_error_handler)
 
 
 @app.exception_handler(UnauthenticatedError)
-async def _unauth_handler(_request: object, exc: UnauthenticatedError):  # noqa: ANN202
+async def _unauth_handler(_request: object, exc: UnauthenticatedError) -> JSONResponse:
     return unauthenticated_response(exc.correlation_id)
 
 

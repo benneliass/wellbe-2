@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import enum
-from datetime import datetime
-from typing import Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -20,25 +19,25 @@ class ConsentScope(BaseModel):
 
     subject_id: PatientId
     resource_type: str
-    resource_id: Optional[UUID] = None
+    resource_id: UUID | None = None
     action: str
     data_category: str
     purpose: str
     grant_source: str
     valid_from: AwareDatetime
-    valid_until: Optional[AwareDatetime] = None
-    revoked_at: Optional[AwareDatetime] = None
+    valid_until: AwareDatetime | None = None
+    revoked_at: AwareDatetime | None = None
     policy_version: str
 
 
-class ShareGrantStatus(str, enum.Enum):
+class ShareGrantStatus(enum.StrEnum):
     PENDING = "pending"
     ACTIVE = "active"
     EXPIRED = "expired"
     REVOKED = "revoked"
 
 
-class GranteeType(str, enum.Enum):
+class GranteeType(enum.StrEnum):
     USER = "user"
     CLINICIAN = "clinician"
     EMAIL_INVITE = "email_invite"
@@ -50,27 +49,27 @@ class ShareGrant(BaseModel):
 
     id: GrantId
     grantor_id: PatientId
-    grantee_user_id: Optional[UUID] = None
-    grantee_identifier_hash: Optional[str] = None
+    grantee_user_id: UUID | None = None
+    grantee_identifier_hash: str | None = None
     grantee_type: GranteeType
     status: ShareGrantStatus
-    resource_selector: Optional[str] = None
+    resource_selector: str | None = None
     thread_ids: list[UUID]
     actions: list[str]
     data_categories: list[str]
     purpose: str
-    expires_at: Optional[AwareDatetime] = None
-    accepted_at: Optional[AwareDatetime] = None
-    revoked_at: Optional[AwareDatetime] = None
-    revoked_by: Optional[UUID] = None
-    revocation_reason: Optional[str] = None
+    expires_at: AwareDatetime | None = None
+    accepted_at: AwareDatetime | None = None
+    revoked_at: AwareDatetime | None = None
+    revoked_by: UUID | None = None
+    revocation_reason: str | None = None
     consent_snapshot_id: ConsentSnapshotId
-    grant_token_hash: Optional[str] = None
+    grant_token_hash: str | None = None
     policy_version: str
     created_at: AwareDatetime
     created_by: UUID
-    last_accessed_at: Optional[AwareDatetime] = None
-    metadata: Optional[dict] = None
+    last_accessed_at: AwareDatetime | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class RevocationEvent(BaseModel):

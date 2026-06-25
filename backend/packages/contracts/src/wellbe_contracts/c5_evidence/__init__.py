@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import Annotated, Optional
+from enum import StrEnum
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,7 +28,7 @@ CorrectionId = Annotated[UUID, Field(description="Unique identifier for a C11 co
 # ---------------------------------------------------------------------------
 
 
-class EvidenceLinkType(str, Enum):
+class EvidenceLinkType(StrEnum):
     """Relationship between a derived object and its raw source event.
 
     primary       — the main evidence supporting the derived claim
@@ -43,7 +43,7 @@ class EvidenceLinkType(str, Enum):
     CONTEXTUAL = "contextual"
 
 
-class EvidenceSourceType(str, Enum):
+class EvidenceSourceType(StrEnum):
     """The type of derived object the evidence link points FROM."""
 
     EXTRACTED_FACT = "extracted_fact"
@@ -57,7 +57,7 @@ class EvidenceSourceType(str, Enum):
     HEALTH_THREAD = "health_thread"
 
 
-class ConfidenceBasis(str, Enum):
+class ConfidenceBasis(StrEnum):
     EXTRACTION_MODEL = "extraction_model"
     USER_CONFIRMATION = "user_confirmation"
     CLINICAL_SOURCE = "clinical_source"
@@ -82,8 +82,8 @@ class EvidenceRef(BaseModel):
     link_type: EvidenceLinkType
     confidence: float = Field(ge=0.0, le=1.0)
     confidence_basis: ConfidenceBasis = ConfidenceBasis.EXTRACTION_MODEL
-    relevance_span_start: Optional[int] = None
-    relevance_span_end: Optional[int] = None
+    relevance_span_start: int | None = None
+    relevance_span_end: int | None = None
 
 
 class EvidenceLink(BaseModel):
@@ -106,12 +106,12 @@ class EvidenceLink(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     confidence_basis: ConfidenceBasis
 
-    relevance_span_start: Optional[int] = None
-    relevance_span_end: Optional[int] = None
+    relevance_span_start: int | None = None
+    relevance_span_end: int | None = None
 
     linked_at: AwareDatetime
     linked_by: str  # "user" | "system" | "pipeline" | "correction_service"
-    correction_id: Optional[CorrectionId] = None
+    correction_id: CorrectionId | None = None
 
     schema_version: int = 1
     created_at: AwareDatetime
@@ -150,7 +150,7 @@ class EvidenceCorrectedPayload(BaseModel):
     source_type: EvidenceSourceType
     source_id: UUID
     patient_id: PatientId
-    old_link_type: Optional[EvidenceLinkType] = None
+    old_link_type: EvidenceLinkType | None = None
     new_link_type: EvidenceLinkType
     correlation_id: str
     trace_id: str

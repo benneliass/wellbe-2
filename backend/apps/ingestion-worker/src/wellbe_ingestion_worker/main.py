@@ -3,8 +3,10 @@ from __future__ import annotations
 import base64
 import json
 import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Any
 
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
@@ -31,7 +33,7 @@ class IngestRequest(BaseModel):
     actor_id: uuid.UUID
     consent_snapshot_id: uuid.UUID
     captured_at: datetime
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
     share_grant_id: uuid.UUID | None = None
     correlation_id: str | None = None
     trace_id: str | None = None
@@ -49,10 +51,10 @@ _settings: IngestionWorkerSettings | None = None
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     global _service, _settings
     _settings = IngestionWorkerSettings()
-    broker = RedisBroker(url=_settings.redis_url)
+    broker = RedisBroker(url=_settings.redis_url)  # type: ignore[no-untyped-call]
     dramatiq.set_broker(broker)
     registry = AdapterRegistry()
     registry.register(ManualTextAdapter())

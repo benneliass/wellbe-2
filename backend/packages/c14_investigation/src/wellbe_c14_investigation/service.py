@@ -9,6 +9,7 @@ events. C14 raises safety flags but never mutates thread state directly.
 from __future__ import annotations
 
 import uuid
+from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_contracts.c7_thread import ThreadClosureSnapshot
@@ -48,13 +49,12 @@ _CLOSURE_RELEVANT_RELATIONSHIPS = (
 )
 
 
-class ClosureSnapshotProvider:
-    """Protocol-ish: anything exposing get_closure_snapshot(thread_id)."""
+class ClosureSnapshotProvider(Protocol):
+    """Structural type: anything exposing get_closure_snapshot(thread_id)."""
 
     async def get_closure_snapshot(
         self, thread_id: uuid.UUID
-    ) -> ThreadClosureSnapshot:  # pragma: no cover
-        raise NotImplementedError
+    ) -> ThreadClosureSnapshot: ...
 
 
 class InvestigationService:

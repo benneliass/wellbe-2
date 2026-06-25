@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
@@ -49,7 +50,7 @@ class RawContextEventRow(UUIDPrimaryKeyMixin, Base):
     encoding: Mapped[str | None] = mapped_column(Text, nullable=True)
     language: Mapped[str | None] = mapped_column(Text, nullable=True)
     original_filename_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
-    source_metadata: Mapped[dict | None] = mapped_column(JSONB, server_default="{}")
+    source_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, server_default="{}")
     adapter_name: Mapped[str] = mapped_column(Text)
     adapter_version: Mapped[str] = mapped_column(Text)
     ingestor_version: Mapped[str] = mapped_column(Text, server_default="0.1.0")

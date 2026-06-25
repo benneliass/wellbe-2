@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import UTC, timedelta
 from typing import Any
 
 from temporalio import activity, workflow
@@ -99,22 +99,25 @@ async def store_ocr_results(
     result: OCRResult,
 ) -> dict[str, Any]:
     """Store OCR text as extracted facts via C4 pipeline and create evidence links via C5."""
-    import asyncio
-    import json
-
-    from wellbe_c4_processing import TextFactExtractor, ProcessingRepository, PIPELINE_VERSION
-    from wellbe_c5_evidence import EvidenceService
-    from wellbe_contracts.c4_processing import FACT_EXTRACTED, FactExtractedPayload, DOCUMENT_OCR_COMPLETED, DocumentOCRCompletedPayload
-    from wellbe_contracts.c5_evidence import EvidenceLinkType, EvidenceRef, ConfidenceBasis
-    from wellbe_events import emit_event
-    from wellbe_db import create_session_factory
 
     import os
+
+    from wellbe_c4_processing import PIPELINE_VERSION, ProcessingRepository, TextFactExtractor
+    from wellbe_c5_evidence import EvidenceService
+    from wellbe_contracts.c4_processing import (
+        DOCUMENT_OCR_COMPLETED,
+        FACT_EXTRACTED,
+        DocumentOCRCompletedPayload,
+        FactExtractedPayload,
+    )
+    from wellbe_contracts.c5_evidence import ConfidenceBasis, EvidenceLinkType, EvidenceRef
+    from wellbe_db import create_engine, create_session_factory
+    from wellbe_events import emit_event
     database_url = os.environ.get(
         "WELLBE_DATABASE_URL",
         "postgresql+asyncpg://wellbe:wellbe_dev@localhost:5432/wellbe",
     )
-    session_factory = create_session_factory(database_url)
+    session_factory = create_session_factory(create_engine(database_url))
 
     extractor = TextFactExtractor()
     patient_id = uuid.UUID(input.patient_id)
@@ -128,8 +131,7 @@ async def store_ocr_results(
         evidence_service = EvidenceService(session)
 
         for extraction in results:
-            import hashlib
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             fact_id = uuid.uuid4()
             await repo.insert_fact(
@@ -149,7 +151,7 @@ async def store_ocr_results(
                     "ocr_confidence": result.confidence,
                     **extraction.quality_metadata,
                 },
-                captured_at=datetime.now(timezone.utc),
+                captured_at=datetime.now(UTC),
                 correlation_id=input.correlation_id,
                 trace_id=input.trace_id,
                 text_span_start=extraction.text_span_start,
@@ -251,8 +253,6 @@ class DocumentOCRWorkflow:
         if result is None or result.confidence < 0.3:
             from wellbe_contracts.c4_processing import (
                 DOCUMENT_OCR_FAILED,
-                DocumentOCRFailedPayload,
-                QualityFlag,
             )
             return {
                 "status": "failed",

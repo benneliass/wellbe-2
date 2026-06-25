@@ -9,7 +9,7 @@ docs/decisions/graph-query-api-contract.md.
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Query
 from wellbe_c6_graph.constants import PERSONAL_EDGE_CODES
@@ -61,7 +61,7 @@ def _node_v2(row: KgNodeRow) -> GraphNodeV2:
 
 def _edge_v2(row: KgEdgeRow) -> GraphEdgeV2:
     inputs = row.score_inputs if isinstance(row.score_inputs, dict) else {}
-    attributes: dict = {}
+    attributes: dict[str, Any] = {}
     # Compact provenance summary only; full provenance via a separate scoped
     # endpoint (not inlined) per the approved contract.
     src_ref = inputs.get("source_ref_id") or inputs.get("evidence_link_id")

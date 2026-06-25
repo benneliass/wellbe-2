@@ -21,8 +21,12 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from wellbe_c7_thread.models import HealthThreadRow, ThreadStateTransitionRow
 from wellbe_c7_thread.repository import ThreadRepository
+from wellbe_c9_continuity.models import PendingItemRow
 from wellbe_c9_continuity.repository import ContinuityRepository
 from wellbe_contracts.delta import DeltaCategory, DeltaEventV2, DeltaSourceRef
 
@@ -52,7 +56,7 @@ class DeltaResult:
     note: str = ""
 
 
-def _pending_event(item, since: datetime) -> DeltaEventV2:
+def _pending_event(item: PendingItemRow, since: datetime) -> DeltaEventV2:
     created = _as_utc(item.created_at)
     updated = _as_utc(item.updated_at)
     status = str(item.status)
@@ -86,7 +90,9 @@ def _pending_event(item, since: datetime) -> DeltaEventV2:
     )
 
 
-def _transition_event(transition, thread_title: str) -> DeltaEventV2:
+def _transition_event(
+    transition: ThreadStateTransitionRow, thread_title: str
+) -> DeltaEventV2:
     return DeltaEventV2(
         id=f"transition:{transition.id}",
         category=DeltaCategory.LIFECYCLE,
@@ -102,7 +108,7 @@ def _transition_event(transition, thread_title: str) -> DeltaEventV2:
     )
 
 
-def _new_thread_event(thread) -> DeltaEventV2:
+def _new_thread_event(thread: HealthThreadRow) -> DeltaEventV2:
     return DeltaEventV2(
         id=f"thread:{thread.id}",
         category=DeltaCategory.NEW_FACT,
@@ -116,12 +122,16 @@ def _new_thread_event(thread) -> DeltaEventV2:
     )
 
 
-def _sort_key(e: DeltaEventV2) -> tuple:
+def _sort_key(e: DeltaEventV2) -> tuple[Any, ...]:
     return (_CATEGORY_RANK[e.category], _as_utc(e.occurred_at).timestamp())
 
 
 async def build_digest(
-    *, session, patient_id: uuid.UUID, since: datetime | None, limit: int = 50
+    *,
+    session: AsyncSession,
+    patient_id: uuid.UUID,
+    since: datetime | None,
+    limit: int = 50,
 ) -> DeltaResult:
     now = datetime.now(UTC)
     if since is None:

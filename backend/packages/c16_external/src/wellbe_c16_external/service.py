@@ -15,6 +15,7 @@ is topical relatedness, separate from C5/C6 ``potential_score``.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_contracts.c16_external import (
@@ -61,7 +62,7 @@ class ExternalEvidenceService:
         url: str | None = None,
         doi: str | None = None,
         publisher: str | None = None,
-        source_metadata: dict | None = None,
+        source_metadata: dict[str, Any] | None = None,
     ) -> ExternalSource:
         row = await self._repo.create_source(
             source_type=source_type.value,
@@ -110,8 +111,8 @@ class ExternalEvidenceService:
         claim_kind: ExternalClaimKind,
         correlation_id: str,
         trace_id: str,
-        population_context: dict | None = None,
-        evidence_attributes: dict | None = None,
+        population_context: dict[str, Any] | None = None,
+        evidence_attributes: dict[str, Any] | None = None,
     ) -> ExternalClaim:
         source = await self._repo.get_source(source_id)
         if source is None:

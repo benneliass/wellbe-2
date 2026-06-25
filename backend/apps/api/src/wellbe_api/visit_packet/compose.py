@@ -17,7 +17,9 @@ visible "known absence" statement rather than silently omitting it.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c7_thread.repository import ThreadRepository
 from wellbe_c9_continuity.repository import ContinuityRepository
 from wellbe_contracts.visit_packet import (
@@ -32,13 +34,13 @@ from wellbe_api.visit_packet.models import StatementRow
 _CLOSED_STATUSES = {"closed", "archived"}
 
 
-def _ref(ref_type: str, source_id: str, label: str) -> dict:
+def _ref(ref_type: str, source_id: str, label: str) -> dict[str, Any]:
     return {"ref_type": ref_type, "source_id": source_id, "label": label}
 
 
 async def compose_statements(
     *,
-    session,
+    session: AsyncSession,
     packet_id: uuid.UUID,
     patient_id: uuid.UUID,
     thread_ids: list[uuid.UUID],
@@ -57,7 +59,7 @@ async def compose_statements(
         section: PacketSection,
         text: str,
         classification: StatementClassification,
-        source_refs: list[dict],
+        source_refs: list[dict[str, Any]],
         absent: bool = False,
         absence_reason: AbsenceReason | None = None,
     ) -> None:

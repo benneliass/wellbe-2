@@ -14,11 +14,20 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Numeric, SmallInteger, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Numeric,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base
 
 SOURCE_QUALITY_TIERS = (1, 2, 3, 4, 5)
@@ -54,7 +63,9 @@ class ExternalEvidenceSourceRow(Base):
     retraction_status: Mapped[str] = mapped_column(Text(), nullable=False, default="not_retracted")
     assigned_by: Mapped[str] = mapped_column(Text(), nullable=False)
     assigned_at: Mapped[datetime] = mapped_column(nullable=False)
-    source_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB(), nullable=True)
+    source_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB(), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
@@ -102,9 +113,11 @@ class RelevanceLinkRow(Base):
     edge_type: Mapped[str] = mapped_column(Text(), nullable=False, default="relevance_link")
     relevance_score: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
     relevance_score_version: Mapped[str] = mapped_column(Text(), nullable=False)
-    relevance_inputs: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    relevance_inputs: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
     source_quality_tier_snapshot: Mapped[int] = mapped_column(SmallInteger(), nullable=False)
     context_only: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
     created_by_actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    created_under_grant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    created_under_grant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(nullable=False)

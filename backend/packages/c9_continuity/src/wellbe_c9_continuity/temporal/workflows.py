@@ -80,7 +80,7 @@ class PendingItemWorkflow:
                 return None
             # else: rescheduled — loop re-arms with the new delay
 
-        return await workflow.execute_activity(
+        result: FireTimerOutput = await workflow.execute_activity(
             FIRE_TIMER_ACTIVITY,
             FireTimerInput(
                 pending_item_id=self._input.pending_item_id,
@@ -93,3 +93,4 @@ class PendingItemWorkflow:
             start_to_close_timeout=timedelta(seconds=60),
             retry_policy=RetryPolicy(maximum_attempts=5),
         )
+        return result

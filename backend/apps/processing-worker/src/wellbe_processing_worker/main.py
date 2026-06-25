@@ -6,7 +6,8 @@ import asyncio
 import json
 import logging
 import uuid
-from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from typing import Any
 
@@ -22,9 +23,10 @@ logger = logging.getLogger(__name__)
 
 async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
     """Background task: poll outbox for raw_context.received and dispatch to extractor."""
-    from wellbe_processing_worker.tasks import _extract_facts
-    from wellbe_events.models import OutboxEventRow
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events.models import OutboxEventRow
+
+    from wellbe_processing_worker.tasks import _extract_facts
 
     engine = create_engine(settings.database_url)
     session_factory = create_session_factory(engine)
@@ -147,8 +149,8 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
     """
     from wellbe_c9_continuity.genesis import ThreadGenesisService
     from wellbe_contracts.genesis import GENESIS_INPUT_READY, GenesisInputReadyPayload
-    from wellbe_events.models import OutboxEventRow
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events.models import OutboxEventRow
 
     engine = create_engine(settings.database_url)
     session_factory = create_session_factory(engine)
@@ -197,7 +199,7 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     import wellbe_processing_worker.tasks  # noqa: F401 — registers Dramatiq actors
     tasks = [
         asyncio.create_task(_dispatch_outbox_loop(settings)),
@@ -209,10 +211,8 @@ async def lifespan(app: FastAPI):
         for task in tasks:
             task.cancel()
         for task in tasks:
-            try:
+            with suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
 
 settings = ProcessingWorkerSettings()
@@ -224,12 +224,12 @@ _engine = create_async_engine(settings.database_url, pool_pre_ping=True)
 def _valid_uuid(value: str) -> uuid.UUID:
     try:
         return uuid.UUID(value)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid UUID: {value}")
+    except ValueError as err:
+        raise HTTPException(status_code=400, detail=f"Invalid UUID: {value}") from err
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.service_name}
 
 

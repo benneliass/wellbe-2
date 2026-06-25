@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,8 +39,8 @@ class MemoryRepository:
         lifecycle_state: MemoryLifecycleState,
         idempotency_key: str,
         title: str | None,
-        payload: dict,
-        created_by_actor: dict,
+        payload: dict[str, Any],
+        created_by_actor: dict[str, Any],
         c10_gate_id: uuid.UUID | None = None,
     ) -> MemoryEntryRow:
         row = MemoryEntryRow(

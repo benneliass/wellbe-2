@@ -3,9 +3,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
-
 from wellbe_c4_processing.extractor import (
-    ExtractionResult,
     TextFactExtractor,
     compute_quality_flag,
 )

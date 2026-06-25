@@ -20,6 +20,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,8 +70,8 @@ class OnboardingState:
     controller_patient_id: uuid.UUID
     status: str  # 'none' | 'pending' | 'active'
     consent_version: str
-    choices: dict
-    baseline: dict
+    choices: dict[str, Any]
+    baseline: dict[str, Any]
     personal_workspace_id: uuid.UUID | None
     display_name: str | None
 
@@ -150,7 +151,11 @@ class OnboardingService:
         ).scalar_one()
 
     async def save_draft(
-        self, account: AccountRow, *, choices: dict | None = None, baseline: dict | None = None
+        self,
+        account: AccountRow,
+        *,
+        choices: dict[str, Any] | None = None,
+        baseline: dict[str, Any] | None = None,
     ) -> OnboardingSessionRow:
         sess = await self.start(account)
         if sess.status != "pending":

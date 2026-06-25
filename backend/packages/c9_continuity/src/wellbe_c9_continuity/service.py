@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c7_thread.errors import (
@@ -39,6 +40,7 @@ from wellbe_c9_continuity.errors import (
     OutOfOrderThreadEventError,
     PendingItemNotFoundError,
 )
+from wellbe_c9_continuity.models import PendingItemRow
 from wellbe_c9_continuity.repository import ContinuityRepository
 
 # Closure-like target statuses. C9 never requests these on the basis of a single
@@ -69,8 +71,8 @@ class ContinuityService:
         status: PendingItemStatus = PendingItemStatus.ACTIVE,
         due_at: datetime | None = None,
         due_precision: DuePrecision = DuePrecision.UNKNOWN,
-        source_ref: dict | None = None,
-        evidence_refs: list | None = None,
+        source_ref: dict[str, Any] | None = None,
+        evidence_refs: list[Any] | None = None,
         blocks_c9_closure_request: bool = False,
         normal_test_safety_net: bool = False,
         symptoms_persist_state: SymptomsPersistState = SymptomsPersistState.UNKNOWN,
@@ -79,7 +81,7 @@ class ContinuityService:
         idempotency_key: str | None = None,
         correlation_id: str = "c9",
         trace_id: str = "c9",
-    ):
+    ) -> PendingItemRow:
         pending_item_id = pending_item_id or uuid.uuid4()
         idem = idempotency_key or f"c9:{pending_item_id}"
         # An item with no due date must use a non-timer status (ledger CHECK).
@@ -130,10 +132,10 @@ class ContinuityService:
         patient_id: uuid.UUID,
         thread_id: uuid.UUID,
         status_version: int | None = None,
-        evidence_refs: list | None = None,
+        evidence_refs: list[Any] | None = None,
         correlation_id: str = "c9",
         trace_id: str = "c9",
-    ):
+    ) -> PendingItemRow:
         """Create/maintain a normal-test safety-net item that blocks C9 closure.
 
         Used when a normal result links to an unresolved/persistent-symptom thread
@@ -337,7 +339,7 @@ class ContinuityService:
     async def _request_transition(
         self,
         *,
-        row,
+        row: PendingItemRow,
         timer_epoch: int,
         target_status: HealthThreadStatus,
         guard_context: TransitionGuardContext,
@@ -423,7 +425,12 @@ class ContinuityService:
         )
 
     async def _emit(
-        self, event_type: str, row, correlation_id: str, trace_id: str, extra=None
+        self,
+        event_type: str,
+        row: PendingItemRow,
+        correlation_id: str,
+        trace_id: str,
+        extra: dict[str, Any] | None = None,
     ) -> None:
         payload = {
             "pending_item_id": str(row.pending_item_id),

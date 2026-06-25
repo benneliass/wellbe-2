@@ -12,6 +12,7 @@ Authoritative decision: docs/decisions/correction-service-layered-provenance.md
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -139,7 +140,7 @@ class Correction(BaseModel):
     actor_authority: ActorAuthority
     raw_correction_event_id: UUID
     rationale: str | None = None
-    proposed_payload: dict = Field(default_factory=dict)
+    proposed_payload: dict[str, Any] = Field(default_factory=dict)
     supersedes_correction_id: UUID | None = None
     effective_at: AwareDatetime | None = None
     applied_at: AwareDatetime | None = None
@@ -156,7 +157,7 @@ class ResolvedOverlay(BaseModel):
     resolved_state: str  # 'base' | 'overlaid' | 'withdrawn' | 'stale' | 'augmented'
     active_correction_id: UUID | None
     inactive_correction_ids: list[UUID] = Field(default_factory=list)
-    resolved_value: dict | None = None
+    resolved_value: dict[str, Any] | None = None
     resolution_rule_version: str = RESOLUTION_RULE_VERSION
     explanation_code: str = "no_applied_corrections"
 

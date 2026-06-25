@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -27,7 +28,7 @@ class PacketRow(Base):
     patient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False, default="draft")
-    thread_ids: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    thread_ids: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
     time_window_start: Mapped[datetime | None] = mapped_column(nullable=True)
     time_window_end: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
@@ -48,7 +49,7 @@ class StatementRow(Base):
     ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     classification: Mapped[str] = mapped_column(String, nullable=False)
-    source_refs: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    source_refs: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
     absent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     absence_reason: Mapped[str | None] = mapped_column(String, nullable=True)
     included: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

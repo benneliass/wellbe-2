@@ -9,6 +9,8 @@ pointers and resolved overlay state.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
+from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -48,7 +50,7 @@ class RequestCorrectionRequest(BaseModel):
     correction_type: CorrectionType
     target: CorrectionTargetRequest
     raw_correction_event_id: uuid.UUID
-    proposed_payload: dict | None = None
+    proposed_payload: dict[str, Any] | None = None
     rationale: str | None = None
 
 
@@ -94,7 +96,7 @@ async def thread_memories(
             memory_entry_id=str(e.memory_entry_id),
             memory_type=str(e.memory_type),
             lifecycle_state=str(e.lifecycle_state),
-            title=e.title,
+            title=e.title or "",
             thread_id=str(thread_id),
             source_refs=[ref.model_dump(mode="json") for ref in e.source_refs],
             resolved_overlays=list(e.resolved_overlays),
@@ -159,7 +161,7 @@ async def request_correction(
     return _correction_to_v2(row, targets)
 
 
-def _correction_to_v2(row: object, targets: list[object]) -> CorrectionV2:
+def _correction_to_v2(row: object, targets: Sequence[object]) -> CorrectionV2:
     return CorrectionV2(
         correction_id=str(row.correction_id),  # type: ignore[attr-defined]
         status=row.status,  # type: ignore[attr-defined]

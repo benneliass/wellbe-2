@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, SmallInteger, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -20,7 +21,7 @@ class CorrectionRow(Base):
     status: Mapped[str] = mapped_column(Text(), nullable=False)
     correction_type: Mapped[str] = mapped_column(Text(), nullable=False)
     actor_authority: Mapped[str] = mapped_column(Text(), nullable=False)
-    actor_ref: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
+    actor_ref: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
     grant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     role_binding_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
@@ -29,8 +30,10 @@ class CorrectionRow(Base):
         UUID(as_uuid=True), nullable=False
     )
     rationale: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    proposed_payload: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
-    accepted_by_controller_actor: Mapped[dict | None] = mapped_column(
+    proposed_payload: Mapped[dict[str, Any]] = mapped_column(
+        JSONB(), nullable=False, default=dict
+    )
+    accepted_by_controller_actor: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB(), nullable=True
     )
     accepted_at: Mapped[datetime | None] = mapped_column(

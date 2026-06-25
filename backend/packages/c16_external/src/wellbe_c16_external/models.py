@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, SmallInteger, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -35,8 +36,8 @@ class ExternalClaimRow(Base):
     )
     claim_text: Mapped[str] = mapped_column(Text(), nullable=False)
     claim_kind: Mapped[str] = mapped_column(Text(), nullable=False)
-    population_context: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
-    evidence_attributes: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    population_context: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
+    evidence_attributes: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

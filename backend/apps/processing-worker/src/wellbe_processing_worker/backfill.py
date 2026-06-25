@@ -30,7 +30,8 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 
@@ -41,13 +42,14 @@ _SUPERSEDED_REASON = "wel-185-structured-typing-backfill"
 
 async def backfill_lab_captures(
     *, patient_id: str | None = None, dry_run: bool = False
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Reprocess ``capture_type=lab`` raw events and supersede stale Other nodes."""
     from wellbe_c2_vault.models import RawContextEventRow
     from wellbe_c4_processing.models import ExtractedFactRow
     from wellbe_c6_graph.models import KgNodeRow
     from wellbe_contracts.c2_vault import RawContextEvent
     from wellbe_db import create_engine, create_session_factory
+
     from wellbe_processing_worker.config import ProcessingWorkerSettings
     from wellbe_processing_worker.tasks import _extract_facts
 
@@ -55,7 +57,7 @@ async def backfill_lab_captures(
     engine = create_engine(settings.database_url)
     session_factory = create_session_factory(engine)
 
-    summary: dict[str, object] = {
+    summary: dict[str, Any] = {
         "lab_events": 0,
         "reprocessed": 0,
         "superseded_nodes": 0,
@@ -97,7 +99,7 @@ async def backfill_lab_captures(
             logger.info("reprocessed raw_event=%s patient=%s", ev.id, ev.patient_id)
 
         # 3. Supersede the stale Other nodes that originated from these events.
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         async with session_factory() as session:
             for ev in events:
                 other_facts = list(

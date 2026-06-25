@@ -15,7 +15,7 @@ Implements docs/decisions/graph-query-api-contract.md:
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -26,7 +26,7 @@ class GraphNodeV2(BaseModel):
     label: str
     status: str
     # Compact, allowlisted attributes only (no raw source text).
-    attributes: dict = Field(default_factory=dict)
+    attributes: dict[str, Any] = Field(default_factory=dict)
 
 
 class GraphEdgeV2(BaseModel):
@@ -37,7 +37,7 @@ class GraphEdgeV2(BaseModel):
     relation: str
     # Evidence weight in [0,1] — NOT a diagnostic probability.
     evidence_weight: float
-    attributes: dict = Field(default_factory=dict)
+    attributes: dict[str, Any] = Field(default_factory=dict)
 
 
 class GraphPageInfo(BaseModel):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,8 +13,8 @@ class OutboxEvent(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     event_type: str
-    payload: dict
+    payload: dict[str, Any]
     created_at: AwareDatetime
-    delivered_at: Optional[AwareDatetime] = None
+    delivered_at: AwareDatetime | None = None
     correlation_id: str
     trace_id: str

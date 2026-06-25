@@ -4,6 +4,7 @@ import asyncio
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from functools import partial
+from typing import Any
 
 import boto3
 
@@ -16,7 +17,7 @@ class S3BlobStore:
         secret_key: str,
         bucket: str,
         retention_days: int = 365,
-        client: object | None = None,
+        client: Any = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._bucket = bucket
@@ -48,7 +49,7 @@ class S3BlobStore:
                 + timedelta(days=self._retention_days),
             )
         )
-        return resp.get("VersionId", "")
+        return str(resp.get("VersionId", ""))
 
     async def get_blob(self, key: str) -> bytes:
         resp = await asyncio.to_thread(

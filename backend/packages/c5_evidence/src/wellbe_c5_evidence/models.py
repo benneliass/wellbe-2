@@ -3,10 +3,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Float, Integer, Text, CheckConstraint, ForeignKey, UniqueConstraint
+from sqlalchemy import CheckConstraint, Float, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base
 
 
@@ -22,11 +21,13 @@ class EvidenceLinkRow(Base):
             name="ck_evidence_link_type",
         ),
         CheckConstraint(
-            "source_type IN ('extracted_fact', 'health_signal', 'memory_entry', 'ai_summary', 'ai_response', 'health_thread')",
+            "source_type IN ('extracted_fact', 'health_signal', 'memory_entry', "
+            "'ai_summary', 'ai_response', 'health_thread')",
             name="ck_evidence_source_type",
         ),
         CheckConstraint(
-            "confidence_basis IN ('extraction_model', 'user_confirmation', 'clinical_source', 'system_computed', 'correction_service')",
+            "confidence_basis IN ('extraction_model', 'user_confirmation', "
+            "'clinical_source', 'system_computed', 'correction_service')",
             name="ck_evidence_confidence_basis",
         ),
         CheckConstraint(

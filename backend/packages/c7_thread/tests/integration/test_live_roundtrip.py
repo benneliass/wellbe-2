@@ -19,6 +19,8 @@ import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy import text
+from wellbe_c7_thread.errors import ClosureSafetyError, VersionConflictError
+from wellbe_c7_thread.service import ThreadService
 from wellbe_contracts.c7_thread import (
     THREAD_STATE_CHANGED,
     HealthThreadStatus,
@@ -27,9 +29,6 @@ from wellbe_contracts.c7_thread import (
     TransitionGuardContext,
 )
 from wellbe_db import create_engine, create_session_factory
-
-from wellbe_c7_thread.errors import ClosureSafetyError, VersionConflictError
-from wellbe_c7_thread.service import ThreadService
 
 DATABASE_URL = os.environ.get("WELLBE_DATABASE_URL")
 
@@ -117,7 +116,10 @@ async def test_live_transition_chain_and_outbox(session_factory):
         async with session_factory() as session:
             status = (
                 await session.execute(
-                    text("SELECT status, status_version FROM thread.health_threads WHERE id = :tid"),
+                    text(
+                        "SELECT status, status_version FROM thread.health_threads "
+                        "WHERE id = :tid"
+                    ),
                     {"tid": thread_id},
                 )
             ).one()
@@ -126,7 +128,10 @@ async def test_live_transition_chain_and_outbox(session_factory):
 
             tcount = (
                 await session.execute(
-                    text("SELECT count(*) FROM thread.thread_state_transitions WHERE thread_id = :tid"),
+                    text(
+                        "SELECT count(*) FROM thread.thread_state_transitions "
+                        "WHERE thread_id = :tid"
+                    ),
                     {"tid": thread_id},
                 )
             ).scalar_one()

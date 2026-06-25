@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import pytest
-
-from wellbe_contracts.c5_evidence import EvidenceLinkType
-
 from wellbe_c6_graph.scoring import (
-    CONTRADICTION_PENALTY,
     PotentialScoreComputer,
     ScoreInput,
 )
+from wellbe_contracts.c5_evidence import EvidenceLinkType
 
 
 @pytest.fixture
@@ -54,6 +51,7 @@ class TestPotentialScoreComputer:
                 edge_category="correlation",
             )
         ])
+        assert primary_only.score_inputs["evidence_count"] == 1
         with_corroboration = scorer.compute([
             ScoreInput(
                 link_type=EvidenceLinkType.PRIMARY,

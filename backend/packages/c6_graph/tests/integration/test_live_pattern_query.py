@@ -20,9 +20,8 @@ import uuid
 import pytest
 import pytest_asyncio
 from sqlalchemy import text
-from wellbe_db import create_engine, create_session_factory
-
 from wellbe_c6_graph.repository import GraphRepository
+from wellbe_db import create_engine, create_session_factory
 
 DATABASE_URL = os.environ.get("WELLBE_DATABASE_URL")
 

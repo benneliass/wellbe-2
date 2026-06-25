@@ -26,7 +26,9 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c6_graph.models import KgEdgeRow, KgNodeRow
 from wellbe_c6_graph.repository import GraphRepository
 from wellbe_contracts.c10_safety import (
@@ -146,9 +148,10 @@ def _build_candidate(
         caveat = _CONTRADICTION_CAVEAT
         alts: list[str] = []
     else:
-        phrase = _RELATION_PHRASE.get(edge.edge_type)
-        if phrase is None:
+        resolved = _RELATION_PHRASE.get(edge.edge_type)
+        if resolved is None:
             return None
+        phrase = resolved
         caveat = _BASE_CAVEAT
         alts = _alt_explanations(edge.edge_type)
 
@@ -180,7 +183,7 @@ def _build_candidate(
     )
 
 
-def _rank_key(c: PatternCandidateV2, last_seen: dict[str, float]) -> tuple:
+def _rank_key(c: PatternCandidateV2, last_seen: dict[str, float]) -> tuple[Any, ...]:
     # Contradictions first (they must never be buried), then temporal ("often
     # follows") candidates, then by evidence weight and recency.
     temporal_boost = 1 if c.relation_code == "temporal_sequence" else 0
@@ -309,7 +312,7 @@ def gate_candidates(
 
 
 async def detect_patterns(
-    *, session, patient_id: uuid.UUID, correlation_id: str, limit: int = 50
+    *, session: AsyncSession, patient_id: uuid.UUID, correlation_id: str, limit: int = 50
 ) -> PatternResult:
     """Full pipeline: read graph -> build candidates -> C10 gate."""
     repo = GraphRepository(session)

@@ -5,7 +5,7 @@ import enum
 from pydantic import BaseModel, ConfigDict
 
 
-class SourceTypeCode(str, enum.Enum):
+class SourceTypeCode(enum.StrEnum):
     MANUAL_TEXT = "manual_text"
     PHOTO = "photo"
     PDF = "pdf"
@@ -15,7 +15,7 @@ class SourceTypeCode(str, enum.Enum):
     ENVIRONMENTAL = "environmental"
 
 
-class SourceTypeStatus(str, enum.Enum):
+class SourceTypeStatus(enum.StrEnum):
     ACTIVE = "active"
     DEPRECATED = "deprecated"
 

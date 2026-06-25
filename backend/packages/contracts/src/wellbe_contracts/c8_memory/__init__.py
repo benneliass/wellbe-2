@@ -14,6 +14,7 @@ Authoritative decision: docs/decisions/six-memories-store-structure.md
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -121,7 +122,7 @@ class MemoryEntry(BaseModel):
     authorship_mode: AuthorshipMode
     lifecycle_state: MemoryLifecycleState
     title: str | None = None
-    payload: dict = Field(default_factory=dict)  # non-authoritative metadata only
+    payload: dict[str, Any] = Field(default_factory=dict)  # non-authoritative metadata only
     c10_gate_id: UUID | None = None
     created_at: AwareDatetime | None = None
     visible_at: AwareDatetime | None = None
@@ -137,7 +138,7 @@ class ResolvedMemoryEntry(BaseModel):
     title: str | None
     source_refs: list[MemorySourceRef]
     # For each correctable source ref, the resolved overlay (from the C11 seam).
-    resolved_overlays: list[dict] = Field(default_factory=list)
+    resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
 
 

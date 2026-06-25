@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
@@ -28,10 +29,10 @@ class PendingItemRow(Base):
         DateTime(timezone=True), nullable=True
     )
     due_precision: Mapped[str] = mapped_column(Text(), nullable=False, default="unknown")
-    owner_ref: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
-    contact_ref: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
-    source_ref: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
-    evidence_refs: Mapped[list] = mapped_column(JSONB(), nullable=False, default=list)
+    owner_ref: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
+    contact_ref: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
+    source_ref: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
+    evidence_refs: Mapped[list[Any]] = mapped_column(JSONB(), nullable=False, default=list)
     investigation_ids: Mapped[list[uuid.UUID]] = mapped_column(
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list
     )
@@ -79,8 +80,8 @@ class PendingItemEventRow(Base):
     )
     patient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     event_type: Mapped[str] = mapped_column(Text(), nullable=False)
-    event_payload: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
-    actor: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
+    event_payload: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
+    actor: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     idempotency_key: Mapped[str] = mapped_column(Text(), nullable=False, unique=True)
 
@@ -114,5 +115,5 @@ class TimerActionRow(Base):
         UUID(as_uuid=True), nullable=True
     )
     c7_rejection_code: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    payload: Mapped[dict] = mapped_column(JSONB(), nullable=False, default=dict)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB(), nullable=False, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

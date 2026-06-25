@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +35,7 @@ class ExternalEvidenceRepository:
         url: str | None = None,
         doi: str | None = None,
         publisher: str | None = None,
-        source_metadata: dict | None = None,
+        source_metadata: dict[str, Any] | None = None,
     ) -> ExternalEvidenceSourceRow:
         now = _naive_utcnow()
         row = ExternalEvidenceSourceRow(
@@ -68,8 +69,8 @@ class ExternalEvidenceRepository:
         source_id: uuid.UUID,
         claim_text: str,
         claim_kind: str,
-        population_context: dict | None = None,
-        evidence_attributes: dict | None = None,
+        population_context: dict[str, Any] | None = None,
+        evidence_attributes: dict[str, Any] | None = None,
     ) -> ExternalClaimRow:
         row = ExternalClaimRow(
             id=uuid.uuid4(),
@@ -97,7 +98,7 @@ class ExternalEvidenceRepository:
         external_claim_id: uuid.UUID | None,
         relevance_score: float,
         relevance_score_version: str,
-        relevance_inputs: dict,
+        relevance_inputs: dict[str, Any],
         source_quality_tier_snapshot: int,
         thread_id: uuid.UUID | None,
         created_by_actor_id: uuid.UUID | None,

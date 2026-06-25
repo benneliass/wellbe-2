@@ -21,7 +21,10 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from wellbe_c7_thread.models import HealthThreadRow
 from wellbe_c7_thread.repository import ThreadRepository
+from wellbe_c9_continuity.models import PendingItemRow
 from wellbe_c9_continuity.repository import ContinuityRepository
 from wellbe_contracts.ask import AskCitation, AskMode
 from wellbe_contracts.c10_safety import (
@@ -135,7 +138,9 @@ def _tokens(text: str) -> set[str]:
     return {w for w in words if len(w) >= 3 and w not in _STOPWORDS}
 
 
-async def _retrieve(session, patient_id: uuid.UUID, question: str):
+async def _retrieve(
+    session: AsyncSession, patient_id: uuid.UUID, question: str
+) -> tuple[list[HealthThreadRow], dict[uuid.UUID, list[PendingItemRow]]]:
     """Closed-corpus retrieval over the user's own threads + pending items."""
     q_tokens = _tokens(question)
     summary_intent = bool(_SUMMARY_INTENT.search(question))
@@ -149,7 +154,7 @@ async def _retrieve(session, patient_id: uuid.UUID, question: str):
         if t.status not in _CLOSED_STATUSES
     ]
 
-    scored: list[tuple[int, object]] = []
+    scored: list[tuple[int, HealthThreadRow]] = []
     for t in threads:
         overlap = len(q_tokens & _tokens(t.title))
         if overlap > 0 or summary_intent:
@@ -157,7 +162,7 @@ async def _retrieve(session, patient_id: uuid.UUID, question: str):
     scored.sort(key=lambda x: x[0], reverse=True)
     matched_threads = [t for _, t in scored[:6]]
 
-    pendings_by_thread: dict[uuid.UUID, list] = {}
+    pendings_by_thread: dict[uuid.UUID, list[PendingItemRow]] = {}
     for t in matched_threads:
         items = await continuity_repo.items_for_thread(
             patient_id=patient_id, thread_id=t.id
@@ -243,7 +248,11 @@ def _no_sources_result() -> AskResult:
     )
 
 
-def compose_answer(question, matched_threads, pendings_by_thread) -> AskResult:
+def compose_answer(
+    question: str,
+    matched_threads: list[HealthThreadRow],
+    pendings_by_thread: dict[uuid.UUID, list[PendingItemRow]],
+) -> AskResult:
     """Deterministically summarise retrieved evidence; every claim is sourced."""
     if not matched_threads:
         return _no_sources_result()
@@ -397,7 +406,11 @@ def gate_answer(
 
 
 async def answer_question(
-    *, session, patient_id: uuid.UUID, question: str, correlation_id: str
+    *,
+    session: AsyncSession,
+    patient_id: uuid.UUID,
+    question: str,
+    correlation_id: str,
 ) -> AskResult:
     """Full pipeline: intent -> retrieve -> compose -> C10 gate."""
     intent = classify_intent(question)

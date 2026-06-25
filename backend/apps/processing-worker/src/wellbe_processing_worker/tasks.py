@@ -5,28 +5,33 @@ import hashlib
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import dramatiq
-from dramatiq.brokers.redis import RedisBroker
-
-from wellbe_contracts.c2_vault import RawContextEvent, RAW_CONTEXT_RECEIVED
 import wellbe_c2_vault.models  # noqa: F401 — ensure vault tables registered in Base.metadata
+from dramatiq.brokers.redis import RedisBroker
+from wellbe_contracts.c2_vault import RawContextEvent
 from wellbe_contracts.c4_processing import (
     FACT_EXTRACTED,
-    HEALTH_SIGNAL_CREATED,
     FactExtractedPayload,
 )
 from wellbe_contracts.c5_evidence import (
     ConfidenceBasis,
+    EvidenceLinkedPayload,
     EvidenceLinkType,
     EvidenceRef,
-    EvidenceLinkedPayload,
-    EVIDENCE_LINKED,
 )
 
+if TYPE_CHECKING:
+    from wellbe_c4_processing.extractor import (
+        ExtractionResult,
+        FactExtractor,
+        StructuredObservationExtractor,
+    )
+
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
-dramatiq.set_broker(RedisBroker(url=_redis_url))
+dramatiq.set_broker(RedisBroker(url=_redis_url))  # type: ignore[no-untyped-call]
 
 
 @dramatiq.actor(max_retries=3, min_backoff=1000, max_backoff=30_000)
@@ -37,15 +42,16 @@ def extract_facts_task(event_json: str) -> None:
 
 async def _extract_facts(event_json: str) -> None:
     from wellbe_c4_processing import (
+        PIPELINE_VERSION,
         ProcessingRepository,
         StructuredObservationExtractor,
         TextFactExtractor,
-        PIPELINE_VERSION,
     )
-    from wellbe_c4_processing.dispatcher import decide_route, DispatchRoute
+    from wellbe_c4_processing.dispatcher import DispatchRoute, decide_route
     from wellbe_c5_evidence import EvidenceService
-    from wellbe_events import emit_event
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events import emit_event
+
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
@@ -69,18 +75,21 @@ async def _extract_facts(event_json: str) -> None:
     if not raw_text and event.blob_ref is None:
         raw_text = source_metadata.get("text", "")
 
+    extractor: FactExtractor | StructuredObservationExtractor
     if capture_type == "lab":
-        extractor: object = StructuredObservationExtractor()
-        results = extractor.extract_lab(
+        structured = StructuredObservationExtractor()
+        results = structured.extract_lab(
             test_name=source_metadata.get("test_name", ""),
             value=source_metadata.get("value", ""),
             unit=source_metadata.get("unit"),
             reference_range=source_metadata.get("reference_range"),
             occurrence=event.captured_at,
         )
+        extractor = structured
     else:
-        extractor = TextFactExtractor()
-        results = await extractor.extract(raw_text, event.patient_id)
+        text_extractor = TextFactExtractor()
+        results = await text_extractor.extract(raw_text, event.patient_id)
+        extractor = text_extractor
 
     # Payloads for facts that were newly persisted in this run. On at-least-once
     # re-delivery, already-existing facts are skipped here so we do not re-link
@@ -106,7 +115,11 @@ async def _extract_facts(event_json: str) -> None:
                 pipeline_version=PIPELINE_VERSION,
                 quality_flag=result.quality_flag.value,
                 quality_metadata=result.quality_metadata,
-                captured_at=event.captured_at.replace(tzinfo=None) if event.captured_at.tzinfo else event.captured_at,
+                captured_at=(
+                    event.captured_at.replace(tzinfo=None)
+                    if event.captured_at.tzinfo
+                    else event.captured_at
+                ),
                 correlation_id=event.correlation_id,
                 trace_id=event.trace_id,
                 code_system=result.code_system,
@@ -193,15 +206,16 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
         GenesisInputReadyPayload,
         GraphResolutionStatus,
     )
-    from wellbe_events import emit_event
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events import emit_event
+
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
     session_factory = create_session_factory(create_engine(settings.database_url))
 
     def _aware(value: datetime) -> datetime:
-        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
 
     async with session_factory() as session:
         repo = ProcessingRepository(session)
@@ -262,7 +276,9 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
         await session.commit()
 
 
-def _deterministic_fact_id(raw_event_id: uuid.UUID, result: object) -> uuid.UUID:
+def _deterministic_fact_id(
+    raw_event_id: uuid.UUID, result: ExtractionResult
+) -> uuid.UUID:
     """Derive a stable fact id from the raw event and the fact's natural key.
 
     Re-processing the same raw context event yields the same fact id, which makes
@@ -310,8 +326,9 @@ def create_graph_node_task(fact_extracted_json: str) -> None:
 
 async def _create_graph_node(fact_extracted_json: str) -> None:
     from wellbe_c6_graph import GraphRepository
-    from wellbe_events import emit_event
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events import emit_event
+
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
@@ -356,8 +373,9 @@ def score_graph_edges_task(evidence_linked_json: str) -> None:
 
 async def _score_graph_edges(evidence_linked_json: str) -> None:
     from wellbe_c6_graph import GraphRepository, PotentialScoreComputer, ScoreInput
-    from wellbe_events import emit_event
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_events import emit_event
+
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
     settings = ProcessingWorkerSettings()
@@ -383,7 +401,7 @@ async def _score_graph_edges(evidence_linked_json: str) -> None:
             edge.score_version = result.score_version
             edge.score_inputs = result.score_inputs
             edge.needs_rescore = False
-            edge.updated_at = datetime.now(timezone.utc)
+            edge.updated_at = datetime.now(UTC)
 
             await emit_event(
                 session=session,

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
-
 from wellbe_c4_processing.extractor import (
     STRUCTURED_CONTRACT_VERSION,
     StructuredObservationExtractor,
@@ -128,7 +127,7 @@ class TestIdempotencyAndOccurrence:
         (fact,) = extractor.extract_lab(
             test_name="LDL cholesterol",
             value="160",
-            occurrence=datetime(2026, 6, 18, 23, 30, tzinfo=timezone.utc),
+            occurrence=datetime(2026, 6, 18, 23, 30, tzinfo=UTC),
         )
         assert fact.normalized_key == "lab:ldl_cholesterol:2026-06-18"
 

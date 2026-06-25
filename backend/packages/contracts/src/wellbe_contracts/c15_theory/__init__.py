@@ -13,7 +13,7 @@ from __future__ import annotations
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from wellbe_contracts.primitives import AwareDatetime, PatientId
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from typing import Any
 
 import httpx
 import jwt
@@ -16,27 +17,30 @@ class ZitadelTokenVerifier:
         self._jwks_client: PyJWKClient | None = None
         self._jwks_fetched_at: float = 0
 
-    async def verify_token(self, token: str) -> dict:
+    async def verify_token(self, token: str) -> dict[str, Any]:
         jwks_client = await self._get_jwks_client()
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        options: dict = {}
+        options: dict[str, Any] = {}
         if self._audience is None:
             options["verify_aud"] = False
 
-        claims: dict = jwt.decode(
+        claims: dict[str, Any] = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             issuer=self._issuer,
             audience=self._audience,
-            options=options,
+            options=options,  # type: ignore[arg-type]
         )
         return claims
 
     async def _get_jwks_client(self) -> PyJWKClient:
         now = time.monotonic()
-        if self._jwks_client is not None and (now - self._jwks_fetched_at) < self.JWKS_REFRESH_INTERVAL:
+        if (
+            self._jwks_client is not None
+            and (now - self._jwks_fetched_at) < self.JWKS_REFRESH_INTERVAL
+        ):
             return self._jwks_client
 
         oidc_url = f"{self._issuer}/.well-known/openid-configuration"

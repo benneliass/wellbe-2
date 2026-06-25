@@ -15,6 +15,7 @@ controller and is fully idempotent, so a refresh/redelivery never double-creates
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -44,8 +45,8 @@ class OnboardingStateV1(BaseModel):
     consent_version: str = CORE_CONSENT_VERSION
     personal_workspace_id: str | None = None
     display_name: str | None = None
-    choices: dict = Field(default_factory=dict)
-    baseline: dict = Field(default_factory=dict)
+    choices: dict[str, Any] = Field(default_factory=dict)
+    baseline: dict[str, Any] = Field(default_factory=dict)
     core_consent: list[ConsentPurposeV1] = Field(default_factory=list)
 
 
@@ -55,14 +56,14 @@ class StartOnboardingRequest(BaseModel):
 
 
 class SaveDraftRequest(BaseModel):
-    choices: dict | None = None
-    baseline: dict | None = None
+    choices: dict[str, Any] | None = None
+    baseline: dict[str, Any] | None = None
 
 
 class FinalizeRequest(BaseModel):
     accept_core_consent: bool = False
-    choices: dict | None = None
-    baseline: dict | None = None
+    choices: dict[str, Any] | None = None
+    baseline: dict[str, Any] | None = None
 
 
 def _core_consent() -> list[ConsentPurposeV1]:

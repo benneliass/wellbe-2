@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -37,7 +37,7 @@ class EvidenceRepository:
         of the same logical link the insert is a no-op and ``None`` is returned, so
         callers can avoid re-emitting an ``evidence.linked`` event for a duplicate.
         """
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         stmt = (
             pg_insert(EvidenceLinkRow)
             .values(

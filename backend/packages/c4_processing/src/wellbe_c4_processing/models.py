@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import Float, Integer, Boolean, Text, CheckConstraint, ForeignKey
+from sqlalchemy import Boolean, CheckConstraint, Float, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from wellbe_db import Base
 
 
@@ -52,7 +52,7 @@ class ExtractedFactRow(Base):
     pipeline_version: Mapped[str] = mapped_column(Text(), nullable=False)
 
     quality_flag: Mapped[str] = mapped_column(Text(), nullable=False)
-    quality_metadata: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    quality_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
 
     is_negated: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
     is_historical: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
@@ -101,7 +101,7 @@ class HealthSignalRow(Base):
     pipeline_version: Mapped[str] = mapped_column(Text(), nullable=False)
 
     quality_flag: Mapped[str] = mapped_column(Text(), nullable=False)
-    quality_metadata: Mapped[dict | None] = mapped_column(JSONB(), nullable=True)
+    quality_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
 
     captured_at_start: Mapped[datetime] = mapped_column(nullable=False)
     captured_at_end: Mapped[datetime] = mapped_column(nullable=False)

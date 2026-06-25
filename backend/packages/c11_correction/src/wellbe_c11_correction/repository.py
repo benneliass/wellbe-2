@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,9 +37,9 @@ class CorrectionRepository:
         status: CorrectionStatus,
         correction_type: CorrectionType,
         actor_authority: ActorAuthority,
-        actor_ref: dict,
+        actor_ref: dict[str, Any],
         raw_correction_event_id: uuid.UUID,
-        proposed_payload: dict,
+        proposed_payload: dict[str, Any],
         idempotency_key: str,
         rationale: str | None = None,
         effective_at: datetime | None = None,
@@ -118,7 +119,7 @@ class CorrectionRepository:
         *,
         row: CorrectionRow,
         actor_authority: ActorAuthority,
-        accepted_by_controller_actor: dict | None = None,
+        accepted_by_controller_actor: dict[str, Any] | None = None,
     ) -> None:
         """Transition a pending proposal to applied (C11 lifecycle row only)."""
         now = _naive_utcnow()

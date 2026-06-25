@@ -26,6 +26,7 @@ from wellbe_contracts.c10_safety import (
     UrgencyClass,
     UrgencyContext,
     UrgencySource,
+    WorkspaceType,
 )
 from wellbe_contracts.c15_theory import TheorySafetyLevel
 
@@ -105,7 +106,7 @@ def evaluate_theory_output(
         upstream_run_id=request_id,
         actor_id=str(actor_id) if actor_id else str(patient_id),
         workspace_id=str(patient_id),
-        workspace_type="individual",
+        workspace_type=WorkspaceType.INDIVIDUAL,
         active_role_type="owner",
         purpose_code="theory_evaluation",
         access_decision_id=str(uuid.uuid4()),

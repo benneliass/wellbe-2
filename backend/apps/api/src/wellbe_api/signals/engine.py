@@ -26,6 +26,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c6_graph.models import KgNodeRow
 from wellbe_c6_graph.repository import GraphRepository
 from wellbe_contracts.c10_safety import (
@@ -251,7 +252,7 @@ _SIGNAL_NODE_TYPES = ["VitalSign", "LabResult", "Symptom", "SocialFactor", "Othe
 
 
 async def summarize_signals(
-    *, session, patient_id: uuid.UUID, correlation_id: str
+    *, session: AsyncSession, patient_id: uuid.UUID, correlation_id: str
 ) -> SignalsResult:
     """Full pipeline: read patient nodes -> coverage summary -> C10 gate."""
     repo = GraphRepository(session)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
+from typing import Any
 
 from wellbe_contracts.c4_processing import QualityFlag
 
@@ -16,7 +17,7 @@ class TheoryClaimResult:
     extraction_confidence: float
     quality_flag: QualityFlag
     diagnostic_assertion: bool = False
-    quality_metadata: dict = field(default_factory=dict)
+    quality_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
