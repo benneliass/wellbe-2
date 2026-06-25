@@ -36,10 +36,14 @@ kind load docker-image wellbe-web:local --name "$KIND_CLUSTER"
 
 echo "=== Deploying via Helm ==="
 # No --wait here: we monitor the web rollout explicitly so the gate fails fast on
-# web instead of blocking on the whole stack.
+# web instead of blocking on the whole stack. Helm still blocks on chart hooks
+# (e.g. the alembic-migrate Job); a fresh kind runner must pull the heavy custom
+# Postgres image (AGE + Timescale) before that hook can run, which can exceed the
+# default 5m hook timeout — so give hooks a longer window.
 helm upgrade --install "$RELEASE_NAME" "$CHART_DIR" \
   --namespace "$NAMESPACE" \
-  --create-namespace
+  --create-namespace \
+  --timeout 12m
 
 # The web image uses the immutable tag wellbe-web:local. Helm sees no spec change
 # across rebuilds, so it would keep the old pod running even though a fresh image
