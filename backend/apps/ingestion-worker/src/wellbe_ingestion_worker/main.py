@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -24,6 +25,9 @@ from wellbe_contracts.c3_ingestion import AdapterInput
 
 from wellbe_ingestion_worker.config import IngestionWorkerSettings
 from wellbe_ingestion_worker.tasks import ingest_task
+from wellbe_platform.oplog import log_op
+
+logger = logging.getLogger(__name__)
 
 
 class IngestRequest(BaseModel):
@@ -84,8 +88,14 @@ async def ingest_sync(req: IngestRequest) -> VaultWriteResponse:
     adapter_input = _build_adapter_input(req)
     correlation_id = req.correlation_id or uuid.uuid4().hex
     trace_id = req.trace_id or uuid.uuid4().hex
+    log_op(
+        logger,
+        "op.start",
+        "ingest.sync",
+        fields={"source_type": req.source_type, "correlation_id": correlation_id},
+    )
     try:
-        return await _service.ingest(
+        result = await _service.ingest(
             adapter_input=adapter_input,
             consent_snapshot_id=req.consent_snapshot_id,
             correlation_id=correlation_id,
@@ -94,9 +104,28 @@ async def ingest_sync(req: IngestRequest) -> VaultWriteResponse:
             client_idempotency_key=req.idempotency_key,
         )
     except IngestionValidationError as exc:
+        log_op(
+            logger,
+            "op.skip",
+            "ingest.sync",
+            fields={"reason": "validation", "source_type": req.source_type},
+        )
         raise HTTPException(status_code=422, detail=exc.errors) from exc
     except KeyError as exc:
+        log_op(
+            logger,
+            "op.fail",
+            "ingest.sync",
+            fields={"reason": "unknown_source", "source_type": req.source_type},
+        )
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    log_op(
+        logger,
+        "op.ok",
+        "ingest.sync",
+        fields={"source_type": req.source_type, "correlation_id": correlation_id},
+    )
+    return result
 
 
 @app.post("/ingest/async", response_model=AsyncIngestResponse)
@@ -120,6 +149,12 @@ async def ingest_async(req: IngestRequest) -> AsyncIngestResponse:
     }
 
     ingest_task.send(json.dumps(payload))
+    log_op(
+        logger,
+        "op.ok",
+        "ingest.async",
+        fields={"source_type": req.source_type, "correlation_id": correlation_id},
+    )
     return AsyncIngestResponse(task_id=task_id)
 
 

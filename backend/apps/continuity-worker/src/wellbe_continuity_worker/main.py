@@ -24,6 +24,7 @@ from temporalio.worker.workflow_sandbox import (
 from wellbe_c9_continuity.temporal.activities import fire_timer_activity
 from wellbe_c9_continuity.temporal.workflows import PendingItemWorkflow
 from wellbe_contracts.c9_continuity import TASK_QUEUE
+from wellbe_platform.oplog import log_op
 
 # The workflow module itself is deterministic (it only uses pure DTOs + the
 # activity-by-name), but importing it runs the wellbe_c9_continuity package
@@ -50,11 +51,11 @@ logger = logging.getLogger("wellbe.continuity_worker")
 async def main() -> None:
     temporal_host = os.environ.get("WELLBE_TEMPORAL_HOST", "temporal:7233")
     namespace = os.environ.get("WELLBE_TEMPORAL_NAMESPACE", "default")
-    logger.info(
-        "Connecting continuity worker to Temporal at %s (namespace=%s, queue=%s)",
-        temporal_host,
-        namespace,
-        TASK_QUEUE,
+    log_op(
+        logger,
+        "op.start",
+        "continuity.connect",
+        fields={"host": temporal_host, "namespace": namespace, "queue": TASK_QUEUE},
     )
     client = await Client.connect(temporal_host, namespace=namespace)
 
@@ -70,7 +71,7 @@ async def main() -> None:
         activities=[fire_timer_activity],
         workflow_runner=runner,
     )
-    logger.info("Continuity worker started on task queue %s", TASK_QUEUE)
+    log_op(logger, "op.ok", "continuity.worker", fields={"queue": TASK_QUEUE})
     await worker.run()
 
 

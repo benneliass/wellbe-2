@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
+from wellbe_platform.oplog import log_op
 from wellbe_processing_worker.config import ProcessingWorkerSettings
 
 logger = logging.getLogger(__name__)
@@ -73,17 +74,25 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
 
                                 vault_resp = await vault_client.get(f"/vault/events/{event_id}")
                                 if vault_resp.status_code == 404:
-                                    logger.warning(
-                                        "vault event %s not found (404); skipping", event_id
+                                    log_op(
+                                        logger,
+                                        "op.skip",
+                                        "outbox.dispatch",
+                                        fields={"reason": "vault_404", "event_id": event_id},
                                     )
                                     ids.append(row.id)
                                     continue
                                 if vault_resp.status_code != 200:
                                     # Transient upstream error — retry on the next poll.
-                                    logger.warning(
-                                        "vault fetch for %s returned %s; will retry",
-                                        event_id,
-                                        vault_resp.status_code,
+                                    log_op(
+                                        logger,
+                                        "op.retry",
+                                        "outbox.dispatch",
+                                        fields={
+                                            "reason": "vault_status",
+                                            "status": vault_resp.status_code,
+                                            "event_id": event_id,
+                                        },
                                     )
                                     continue
 
@@ -118,7 +127,13 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
                                 ids.append(row.id)
                             except Exception:
                                 # Do NOT mark delivered — leave undelivered for retry.
-                                logger.exception("error dispatching event %s; will retry", row.id)
+                                log_op(
+                                    logger,
+                                    "op.retry",
+                                    "outbox.dispatch",
+                                    fields={"reason": "exception", "row_id": row.id},
+                                    exc_info=True,
+                                )
 
                         if ids:
                             await session.execute(
@@ -127,10 +142,21 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
                                 .values(delivered_at=datetime.utcnow())
                             )
                             await session.commit()
-                            logger.info("dispatched %d outbox events", len(ids))
+                            log_op(
+                                logger,
+                                "op.ok",
+                                "outbox.dispatch",
+                                fields={"count": len(ids)},
+                            )
 
             except Exception:
-                logger.exception("outbox dispatch loop error")
+                log_op(
+                    logger,
+                    "op.fail",
+                    "outbox.dispatch",
+                    fields={"reason": "loop_exception"},
+                    exc_info=True,
+                )
 
             await asyncio.sleep(2.0)
     finally:
@@ -180,8 +206,12 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
                         ids.append(row.id)
                     except Exception:
                         # Leave undelivered for retry; do not mark delivered.
-                        logger.exception(
-                            "error running genesis for event %s; will retry", row.id
+                        log_op(
+                            logger,
+                            "op.retry",
+                            "genesis.dispatch",
+                            fields={"reason": "exception", "row_id": row.id},
+                            exc_info=True,
                         )
 
                 if ids:
@@ -191,9 +221,15 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
                         .values(delivered_at=datetime.utcnow())
                     )
                     await claim_session.commit()
-                    logger.info("ran genesis for %d events", len(ids))
+                    log_op(logger, "op.ok", "genesis.dispatch", fields={"count": len(ids)})
         except Exception:
-            logger.exception("genesis dispatch loop error")
+            log_op(
+                logger,
+                "op.fail",
+                "genesis.dispatch",
+                fields={"reason": "loop_exception"},
+                exc_info=True,
+            )
 
         await asyncio.sleep(2.0)
 
