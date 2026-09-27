@@ -255,3 +255,37 @@
     animation: none !important;
   }
 }
+
+/*
+ * Evidence provenance tokens (--wb-evidence-*) — who stands behind a piece of
+ * text (WEL-144; ui_vision.md "Color and State"). Tint + fg pairs are AA.
+ */
+:root {
+  --wb-evidence-patient-entered-tint: #eef6f5;
+  --wb-evidence-patient-entered-fg: #1f5a50;
+  --wb-evidence-patient-entered-border: #cfe3df;
+  --wb-evidence-ai-summarized-tint: #f1f5f9;
+  --wb-evidence-ai-summarized-fg: #475569;
+  --wb-evidence-ai-summarized-border: #e2e8f0;
+  --wb-evidence-clinician-reviewed-tint: #ecfdf3;
+  --wb-evidence-clinician-reviewed-fg: #166534;
+  --wb-evidence-clinician-reviewed-border: #bbe5c8;
+  --wb-evidence-corrected-tint: #fff7e6;
+  --wb-evidence-corrected-fg: #8a4b16;
+  --wb-evidence-corrected-border: #f3dcb5;
+}
+
+[data-theme="dark"] {
+  --wb-evidence-patient-entered-tint: #16302b;
+  --wb-evidence-patient-entered-fg: #8fd6c6;
+  --wb-evidence-patient-entered-border: #24463f;
+  --wb-evidence-ai-summarized-tint: #1f2625;
+  --wb-evidence-ai-summarized-fg: #b4bfbc;
+  --wb-evidence-ai-summarized-border: #2c3433;
+  --wb-evidence-clinician-reviewed-tint: #14301f;
+  --wb-evidence-clinician-reviewed-fg: #8fd6a8;
+  --wb-evidence-clinician-reviewed-border: #22472f;
+  --wb-evidence-corrected-tint: #3a2914;
+  --wb-evidence-corrected-fg: #f0b478;
+  --wb-evidence-corrected-border: #563d1e;
+}

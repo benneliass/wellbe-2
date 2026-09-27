@@ -39,11 +39,52 @@ export { StatePill } from "./components/StatePill";
 export type { StatePillProps } from "./components/StatePill";
 export { DisclosureRegion } from "./components/DisclosureRegion";
 export type { DisclosureRegionProps } from "./components/DisclosureRegion";
+
+// Evidence primitives (WEL-144), Journey Rail (WEL-139), Story lanes (WEL-146)
+export { EVIDENCE_TOKENS } from "./tokens";
+export type { EvidenceToken, EvidenceTokenMeta } from "./tokens";
+export type {
+  SourceComponent,
+  SourceKind,
+  ReviewMarkerValue,
+  ConfidenceLevel,
+  CorrectionState,
+  CorrectionInfo,
+  EvidenceSource,
+} from "./evidence/types";
 export {
-  SourceMarker,
-  ReviewMarker,
-  ConfidenceMeter,
-  CorrectionMarker,
-  bucketConfidence,
-} from "./components/markers";
-export type { ReviewMarkerValue, ConfidenceLevel } from "./components/markers";
+  looksLikeRawId,
+  resolveDisplayLabel,
+  containsBannedPhrasing,
+  BANNED_CANDIDATE_PHRASES,
+  SOURCE_COMPONENT_LABEL,
+} from "./evidence/format";
+export { SourceMarker } from "./evidence/SourceMarker";
+export type { SourceMarkerProps } from "./evidence/SourceMarker";
+export { ConfidenceMeter, bucketConfidence, CONFIDENCE_COPY } from "./evidence/ConfidenceMeter";
+export type { ConfidenceMeterProps } from "./evidence/ConfidenceMeter";
+export { ReviewMarker, ReviewMarkerList, REVIEW_MARKER_LABELS } from "./evidence/ReviewMarker";
+export type { ReviewMarkerProps, ReviewMarkerListProps } from "./evidence/ReviewMarker";
+export { CorrectionMarker } from "./evidence/CorrectionMarker";
+export type { CorrectionMarkerProps } from "./evidence/CorrectionMarker";
+export { EvidenceDrawer } from "./evidence/EvidenceDrawer";
+export type { EvidenceDrawerProps } from "./evidence/EvidenceDrawer";
+export {
+  JourneyRail,
+  mapThreadStatusToStage,
+  stageTone,
+  traveledStages,
+  JOURNEY_STAGE_LABELS,
+  THREAD_STATUS_LABELS,
+} from "./evidence/JourneyRail";
+export type { JourneyRailProps, JourneyStage, HealthThreadStatus } from "./evidence/JourneyRail";
+export { StoryLanes, laneForAuthorship, STORY_LANE_COPY, LIFECYCLE_LABELS } from "./evidence/StoryLanes";
+export type {
+  StoryLanesProps,
+  StoryEntry,
+  StoryLane,
+  AuthorshipMode,
+  MemoryLifecycleState,
+} from "./evidence/StoryLanes";
+export { RelevanceCandidateCard, CANDIDATE_COPY } from "./evidence/RelevanceCandidateCard";
+export type { RelevanceCandidateCardProps } from "./evidence/RelevanceCandidateCard";

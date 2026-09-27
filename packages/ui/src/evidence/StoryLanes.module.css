@@ -1,0 +1,135 @@
+.lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-size: var(--wb-text-base, 1rem);
+  line-height: 1.6;
+  color: var(--wb-text, #0f172a);
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.laneHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.laneTitle {
+  margin: 0;
+  font-size: var(--wb-text-lg, 1.125rem);
+  font-weight: 700;
+}
+
+.laneDescription,
+.empty {
+  margin: 0;
+  color: var(--wb-text-muted, #475569);
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg, 12px);
+  border: 1px solid var(--wb-border, #e2e8f0);
+  background: var(--wb-surface, #ffffff);
+  transition: opacity var(--wb-motion-base, 240ms) var(--wb-ease, ease);
+}
+
+/* Voice: quote styling with a distinct left border and the user's own typography. */
+.entry[data-lane="voice"] {
+  border: none;
+  border-left: 4px solid var(--wb-evidence-patient-entered-fg, #1f5a50);
+  border-radius: 0 var(--r-lg, 12px) var(--r-lg, 12px) 0;
+  background: var(--wb-evidence-patient-entered-tint, #eef6f5);
+}
+
+.quote {
+  margin: 0;
+  font-family: var(--wb-font-serif, Georgia, serif);
+  font-size: var(--wb-text-lg, 1.125rem);
+  white-space: pre-wrap;
+}
+
+.quote p {
+  margin: 0;
+}
+
+.summary {
+  margin: 0;
+}
+
+.entry[data-lane="shared_in"] {
+  background: var(--wb-surface-muted, #f1f5f9);
+  border-style: dashed;
+}
+
+.origin {
+  margin: 0;
+  font-weight: 600;
+  color: var(--wb-text-muted, #475569);
+}
+
+.hybridQuote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--wb-evidence-patient-entered-fg, #1f5a50);
+  font-family: var(--wb-font-serif, Georgia, serif);
+}
+
+.quoteLabel {
+  font-family: var(--wb-font-sans, inherit);
+  font-weight: 600;
+  color: var(--wb-evidence-patient-entered-fg, #1f5a50);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.date,
+.lifecycle {
+  font-size: var(--wb-text-sm, 0.875rem);
+  color: var(--wb-text-muted, #475569);
+  font-variant-numeric: tabular-nums;
+}
+
+.lifecycle {
+  font-style: italic;
+}
+
+.entry[data-lifecycle="draft"],
+.entry[data-lifecycle="not_current"] {
+  opacity: 0.8;
+}
+
+.entry[data-lifecycle="superseded_by_correction"] .quote,
+.entry[data-lifecycle="superseded_by_correction"] .summary {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: var(--wb-text-muted, #475569);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

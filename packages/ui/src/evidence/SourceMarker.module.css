@@ -1,0 +1,31 @@
+.source {
+  --marker-tint: var(--wb-surface, #ffffff);
+  --marker-fg: var(--wb-text, #0f172a);
+  font-weight: 500;
+}
+
+.source svg {
+  color: var(--teal-600, #0d6e6d);
+}
+
+/* External references are kept visually apart from personal data. */
+.source[data-component="c16"] {
+  --marker-tint: var(--wb-surface-muted, #f1f5f9);
+  border-style: dashed;
+}
+
+.source[data-component="c16"] svg {
+  color: var(--wb-text-muted, #475569);
+}
+
+.external {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  color: var(--wb-text-muted, #475569);
+}
+
+.sep {
+  color: var(--wb-text-muted, #475569);
+}
