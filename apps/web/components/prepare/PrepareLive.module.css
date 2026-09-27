@@ -194,3 +194,84 @@
 .source svg {
   color: var(--fg3);
 }
+
+h2.previewTitle {
+  margin: 0 0 3px;
+}
+h3.sectionHead,
+label.sectionHead {
+  display: block;
+  margin-top: 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.focusAnchor {
+  outline: none;
+}
+
+.approveNote {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px 14px;
+  background: var(--accent-soft);
+  border-radius: 11px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--teal-600);
+  margin-bottom: 20px;
+}
+.approveNote svg {
+  color: var(--teal-500);
+  flex: none;
+  margin-top: 2px;
+}
+
+ul.stmtList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.stmtActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex: none;
+}
+.editBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.offLabel {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--fg2);
+}
+
+.stepFoot {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .stmt {
+    flex-direction: column;
+  }
+  .stmtActions {
+    flex-direction: row;
+    align-items: center;
+  }
+}

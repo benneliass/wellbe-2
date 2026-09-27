@@ -1,10 +1,99 @@
 {
   "components": {
     "schemas": {
+      "CaptureContextV1": {
+        "description": "Optional, patient-authored follow-up answers for a symptom or note capture.\n\nEvery field is the person's own words and is optional; capture never requires\nany of them. Answers are stored verbatim in the raw record (raw stays raw) with\nper-field character spans in ``source_metadata.patient_context`` so readers can\nrecover each structured answer without re-parsing.",
+        "properties": {
+          "change_from_normal": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change From Normal"
+          },
+          "daily_impact": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Impact"
+          },
+          "main_concern": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Main Concern"
+          },
+          "medications_access": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medications Access"
+          },
+          "onset": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset"
+          },
+          "prior_care": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Care"
+          }
+        },
+        "title": "CaptureContextV1",
+        "type": "object"
+      },
       "CaptureRequestV1": {
         "properties": {
           "capture_type": {
             "$ref": "#/components/schemas/CaptureType"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaptureContextV1"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "occurred_at": {
             "anyOf": [

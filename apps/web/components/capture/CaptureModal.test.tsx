@@ -63,6 +63,87 @@ describe("CaptureModal", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("keeps extra detail collapsed and sends no context by default", async () => {
+    render(<CaptureModal onClose={vi.fn()} />);
+
+    const toggle = screen.getByRole("button", { name: /add more detail/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByLabelText(/different from your normal/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/describe the symptom/i), {
+      target: { value: "tired" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0]![1].body).not.toHaveProperty("context");
+  });
+
+  it("sends only the optional answers the person filled in, trimmed and verbatim", async () => {
+    render(<CaptureModal onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/describe the symptom/i), {
+      target: { value: "knee pain" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /add more detail/i }));
+    expect(screen.getByRole("button", { name: /hide extra detail/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(screen.getByText("Your words")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/different from your normal/i), {
+      target: { value: "  I can't run anymore  " },
+    });
+    fireEvent.change(screen.getByLabelText(/worries you most/i), {
+      target: { value: "Is it a tear?" },
+    });
+    fireEvent.change(screen.getByLabelText(/visits, tests or referrals/i), {
+      target: { value: "   " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    const body = post.mock.calls[0]![1].body;
+    expect(body.payload.description).toBe("knee pain");
+    expect(body.context).toEqual({
+      change_from_normal: "I can't run anymore",
+      main_concern: "Is it a tear?",
+    });
+  });
+
+  it("never requires the extra detail — a filled prompt with an empty story is still blocked", () => {
+    render(<CaptureModal onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /add more detail/i }));
+    fireEvent.change(screen.getByLabelText(/when did it start/i), {
+      target: { value: "yesterday" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
+    expect(post).not.toHaveBeenCalled();
+    expect(screen.getByText(/describe what you're feeling/i)).toBeInTheDocument();
+  });
+
+  it("offers extra detail on notes but not on lab results or documents", () => {
+    render(<CaptureModal onClose={vi.fn()} initialType="note" />);
+    expect(screen.getByRole("button", { name: /add more detail/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /lab/i }));
+    expect(screen.queryByRole("button", { name: /add more detail/i })).not.toBeInTheDocument();
+  });
+
+  it("does not send context for a lab capture even if prompts were filled earlier", async () => {
+    render(<CaptureModal onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /add more detail/i }));
+    fireEvent.change(screen.getByLabelText(/when did it start/i), {
+      target: { value: "last week" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /lab/i }));
+    fireEvent.change(screen.getByLabelText(/test name/i), { target: { value: "LDL" } });
+    fireEvent.change(screen.getByLabelText(/^value$/i), { target: { value: "3.1" } });
+    fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0]![1].body.capture_type).toBe("lab");
+    expect(post.mock.calls[0]![1].body).not.toHaveProperty("context");
+  });
+
   it("reuses the same Idempotency-Key when retried after a failure", async () => {
     const onClose = vi.fn();
     post.mockResolvedValueOnce({ data: null, error: { detail: "boom" } });

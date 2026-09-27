@@ -136,8 +136,21 @@ class UpdateStatementInclusion(BaseModel):
     included: bool
 
 
+class UpdateStatementText(BaseModel):
+    """Reword a patient-prep statement (the user's own words).
+
+    Only ``patient_prep`` statements are editable. Source-backed summary
+    statements are never rewritten in place — the user deselects them or files a
+    correction instead, so a packet claim can't drift from its source.
+    """
+
+    statement_id: str
+    text: str = Field(min_length=1, max_length=2000)
+
+
 class UpdatePacketRequest(BaseModel):
     inclusions: list[UpdateStatementInclusion] = Field(default_factory=list)
+    edits: list[UpdateStatementText] = Field(default_factory=list)
 
 
 class SharePacketRequest(BaseModel):
@@ -158,6 +171,25 @@ class SharePacketResponse(BaseModel):
     passcode_required: bool
     expires_at: datetime
     c10_decision: str
+
+
+class ShareLinkSummaryV2(BaseModel):
+    """Owner-facing view of one share link (never carries the token or passcode)."""
+
+    schema_version: Literal["c13.visit_packet.share_link.v2"] = "c13.visit_packet.share_link.v2"
+    share_link_id: str
+    packet_id: str
+    packet_title: str
+    recipient_name: str
+    purpose: str
+    info_scope: str
+    # ``expired`` is derived at read time from ``expires_at``; a revoked link
+    # stays ``revoked`` even after its expiry passes.
+    status: ShareLinkStatus
+    passcode_required: bool
+    created_at: datetime
+    expires_at: datetime
+    revoked_at: datetime | None = None
 
 
 class ExportPacketResponse(BaseModel):
@@ -197,9 +229,11 @@ __all__ = [
     "SharePacketResponse",
     "SharedPacketView",
     "ShareLinkStatus",
+    "ShareLinkSummaryV2",
     "StatementClassification",
     "UpdatePacketRequest",
     "UpdateStatementInclusion",
+    "UpdateStatementText",
     "VisitPacketStatementV2",
     "VisitPacketV2",
 ]
