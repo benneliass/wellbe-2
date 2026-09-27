@@ -1,22 +1,22 @@
 import "@wellbe/ui/tokens.css";
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { JetBrains_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
+import { Figtree, JetBrains_Mono, Noto_Sans } from "next/font/google";
 import { Providers } from "./providers";
 
-const jakarta = Plus_Jakarta_Sans({
+const figtree = Figtree({
   subsets: ["latin"],
-  variable: "--font-jakarta",
+  variable: "--font-figtree",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const newsreader = Newsreader({
+const notoSans = Noto_Sans({
   subsets: ["latin"],
-  variable: "--font-newsreader",
+  variable: "--font-noto-sans",
   display: "swap",
-  weight: ["400"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -31,6 +31,13 @@ export const metadata: Metadata = {
   description: "Your personal health continuity workspace.",
 };
 
+// viewport-fit=cover exposes env(safe-area-inset-*) to the fixed mobile bottom nav.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // suppressHydrationWarning tolerates attributes injected into <html>/<body>
@@ -39,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // applies one level deep, so genuine app-level mismatches are still reported.
     <html
       lang="en"
-      className={`${jakarta.variable} ${jetbrains.variable} ${newsreader.variable}`}
+      className={`${figtree.variable} ${notoSans.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
       <head>

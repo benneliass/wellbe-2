@@ -2,7 +2,7 @@
   margin-bottom: 20px;
 }
 .head {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -38,7 +38,7 @@ a.row:hover {
 .title {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--fg1);
   overflow: hidden;

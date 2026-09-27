@@ -19,7 +19,7 @@
   margin: 4px 0;
 }
 .center p {
-  font-size: 14px;
+  font-size: var(--text-body);
   color: var(--fg3);
   max-width: 420px;
 }
@@ -34,7 +34,7 @@
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 .passInput:focus {
   outline: none;
@@ -64,7 +64,7 @@
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--teal-600);
   background: var(--accent-soft);
@@ -89,7 +89,7 @@
   border-radius: 11px;
 }
 .stmt p {
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--fg1);
   margin: 0 0 8px;
@@ -101,7 +101,7 @@
   align-items: center;
 }
 .chip {
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   color: var(--teal-600);
   background: var(--accent-soft);
@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   color: var(--fg3);
 }
 
@@ -124,7 +124,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg3);
   margin-top: 22px;
   padding-top: 16px;

@@ -14,13 +14,13 @@
 .btn[data-size="md"] {
   height: 40px;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .btn[data-size="sm"] {
   height: 34px;
   padding: 0 13px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .btn[data-full="true"] {
@@ -67,13 +67,13 @@
   height: 38px;
   padding: 0 13px;
   gap: 7px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 .btn[data-variant="ghost"][data-size="sm"] {
   height: 32px;
   padding: 0 11px;
   gap: 7px;
-  font-size: 12.5px;
+  font-size: var(--text-xs);
 }
 .btn[data-variant="ghost"] svg {
   color: var(--fg3);

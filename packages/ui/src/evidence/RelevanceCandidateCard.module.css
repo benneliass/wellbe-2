@@ -1,0 +1,79 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--wb-border, #e2e8f0);
+  border-radius: var(--r-lg, 12px);
+  background: var(--wb-surface, #ffffff);
+  color: var(--wb-text, #0f172a);
+  font-size: var(--wb-text-base, 1rem);
+  line-height: 1.55;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--wb-text-sm, 0.875rem);
+  font-weight: 700;
+  color: var(--teal-600, #0d6e6d);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--wb-text-lg, 1.125rem);
+  font-weight: 600;
+}
+
+.thread {
+  font-weight: 700;
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.facts dt {
+  font-size: var(--wb-text-sm, 0.875rem);
+  font-weight: 700;
+  color: var(--wb-text-muted, #475569);
+}
+
+.facts dd {
+  margin: 2px 0 0;
+}
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--wb-border, #e2e8f0);
+  padding-top: 12px;
+}

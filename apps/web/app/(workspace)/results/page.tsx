@@ -1,17 +1,19 @@
 import { PageBody } from "@/components/shell/AppShell";
 import { TopBar } from "@/components/shell/TopBar";
-import { ComingSoon } from "@/components/placeholder/ComingSoon";
+import { ResultsLive } from "@/components/results/ResultsLive";
 
-export default function ResultsPage() {
+export default async function ResultsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ document?: string | string[] }>;
+}) {
+  const { document } = await searchParams;
+  const documentId = Array.isArray(document) ? document[0] : document;
   return (
     <>
       <TopBar title="Results" breadcrumb="Results" backHref="/" />
       <PageBody>
-        <ComingSoon
-          icon="flask-conical"
-          title="Your results view is on the way"
-          description="When this is ready, you'll see your labs and test results over time — what changed from your normal, what's still open, and which thread each one belongs to."
-        />
+        <ResultsLive documentId={documentId || undefined} />
       </PageBody>
     </>
   );

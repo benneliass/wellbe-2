@@ -6,5 +6,9 @@ export default async function SharedPacketPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  return <SharedPacketView token={token} />;
+  return (
+    <main id="main">
+      <SharedPacketView token={token} />
+    </main>
+  );
 }

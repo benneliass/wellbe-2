@@ -17,7 +17,7 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--fg2);
   margin-left: 4px;

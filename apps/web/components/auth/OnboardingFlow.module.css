@@ -126,7 +126,7 @@
   margin-bottom: var(--sp-4);
 }
 .field span {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg2);
 }
@@ -197,7 +197,7 @@
 }
 
 .error {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--danger);
   margin: 0 0 var(--sp-4);
 }
@@ -208,6 +208,6 @@
   justify-content: center;
   gap: var(--sp-2);
   margin-top: var(--sp-6);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }

@@ -1,0 +1,144 @@
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Compact marker chip shared by SourceMarker / ReviewMarker / ConfidenceMeter /
+ * CorrectionMarker. Tone comes from --marker-* set per data-evidence value; the
+ * fallbacks keep markers legible if the evidence tokens are not loaded.
+ */
+.marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 2px 10px;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid var(--marker-border, var(--wb-border, #e2e8f0));
+  background: var(--marker-tint, var(--wb-surface-muted, #f1f5f9));
+  color: var(--marker-fg, var(--wb-text-muted, #475569));
+  font-family: inherit;
+  font-size: var(--wb-text-sm, 0.875rem);
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.marker svg {
+  flex: none;
+}
+
+.interactive {
+  cursor: pointer;
+  transition:
+    border-color var(--wb-motion-fast, 150ms) var(--wb-ease, ease),
+    background-color var(--wb-motion-fast, 150ms) var(--wb-ease, ease);
+}
+
+.interactive:hover {
+  border-color: var(--wb-accent, #0ea5a4);
+}
+
+.interactive:focus-visible,
+.link:focus-visible,
+.focusable:focus-visible {
+  outline: 2px solid var(--wb-accent, #0ea5a4);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .interactive {
+    min-height: 44px;
+  }
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: var(--teal-600, #0d6e6d);
+  font: inherit;
+  font-size: var(--wb-text-sm, 0.875rem);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.markerList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marker[data-evidence="patient_entered"] {
+  --marker-tint: var(--wb-evidence-patient-entered-tint, #eef6f5);
+  --marker-fg: var(--wb-evidence-patient-entered-fg, #1f5a50);
+  --marker-border: var(--wb-evidence-patient-entered-border, #cfe3df);
+}
+
+.marker[data-evidence="ai_summarized"] {
+  --marker-tint: var(--wb-evidence-ai-summarized-tint, #f1f5f9);
+  --marker-fg: var(--wb-evidence-ai-summarized-fg, #475569);
+  --marker-border: var(--wb-evidence-ai-summarized-border, #e2e8f0);
+}
+
+.marker[data-evidence="not_reviewed"] {
+  --marker-tint: var(--wb-surface, #ffffff);
+  --marker-fg: var(--wb-evidence-ai-summarized-fg, #475569);
+  --marker-border: var(--border-strong, #cbd5e1);
+  border-style: dashed;
+}
+
+.marker[data-evidence="clinician_reviewed"] {
+  --marker-tint: var(--wb-evidence-clinician-reviewed-tint, #ecfdf3);
+  --marker-fg: var(--wb-evidence-clinician-reviewed-fg, #166534);
+  --marker-border: var(--wb-evidence-clinician-reviewed-border, #bbe5c8);
+}
+
+.marker[data-evidence="corrected"] {
+  --marker-tint: var(--wb-evidence-corrected-tint, #fff7e6);
+  --marker-fg: var(--wb-evidence-corrected-fg, #8a4b16);
+  --marker-border: var(--wb-evidence-corrected-border, #f3dcb5);
+}
+
+.marker[data-evidence="attention"] {
+  --marker-tint: var(--wb-state-attention-tint, #fbeede);
+  --marker-fg: var(--wb-state-attention-fg, #8a4b16);
+  --marker-border: transparent;
+}
+
+.marker[data-evidence="urgent"] {
+  --marker-tint: var(--wb-state-urgent-tint, #fbe3e0);
+  --marker-fg: var(--wb-state-urgent-fg, #9b2820);
+  --marker-border: transparent;
+}

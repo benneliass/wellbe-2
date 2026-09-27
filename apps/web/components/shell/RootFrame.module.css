@@ -1,0 +1,10 @@
+@media (max-width: 767px) {
+  /* The launcher is a fixed-height canvas; scroll it inside a frame that stops
+     above the fixed bottom nav so nothing hides behind it. */
+  .withNav {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    padding-bottom: calc(var(--wb-bottom-nav-h) + env(safe-area-inset-bottom));
+  }
+}

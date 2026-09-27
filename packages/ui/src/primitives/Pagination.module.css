@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg2);
   transition: background 0.15s, border-color 0.15s, color 0.15s;

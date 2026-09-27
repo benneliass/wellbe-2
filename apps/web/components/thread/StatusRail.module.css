@@ -51,13 +51,13 @@
   padding-bottom: 16px;
 }
 .label {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
   line-height: 1.2;
 }
 .meta {
-  font-size: 12px;
+  font-size: var(--text-xs);
   margin-top: 2px;
 }
 .meta[data-state="done"] {

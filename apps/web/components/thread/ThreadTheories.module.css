@@ -6,7 +6,7 @@
 }
 .muted {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg3);
 }
 .theories {
@@ -33,13 +33,13 @@
 }
 .theoryLabel {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--fg1);
 }
 .latest {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }
 .actions {
@@ -57,7 +57,7 @@
 }
 .formTitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--fg1);
 }
@@ -71,7 +71,7 @@
 }
 .legend {
   padding: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--fg2);
 }
@@ -100,12 +100,12 @@
   margin: 0;
 }
 .optionLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
 }
 .optionHint {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg3);
 }
 .evidence {
@@ -119,13 +119,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg1);
   cursor: pointer;
 }
 .textarea {
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-sm);
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -137,7 +137,7 @@
 }
 .error {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg1);
   padding: 8px 10px;
   border-radius: 10px;
@@ -145,7 +145,7 @@
 }
 .note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg3);
 }
 .history {
@@ -165,12 +165,12 @@
   gap: 2px;
 }
 .historyTitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
 }
 .rationale {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }
 @media (prefers-reduced-motion: reduce) {

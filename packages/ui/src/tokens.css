@@ -9,8 +9,9 @@
  *      the foundation. Existing components (StatePill, markers, DisclosureRegion)
  *      keep working, and the safety-gated StateToken contract is preserved.
  *
- * The Plus Jakarta Sans font is loaded via next/font (see app/layout.tsx) and
- * exposed as --font-jakarta; we do NOT @import it here.
+ * Figtree (headings), Noto Sans (body) and JetBrains Mono (code/ids) are loaded
+ * via next/font (see app/layout.tsx) and exposed as --font-figtree,
+ * --font-noto-sans and --font-jetbrains; we do NOT @import them here.
  */
 
 :root {
@@ -107,25 +108,33 @@
   --sp-12: 48px;
   --sp-16: 64px;
 
-  /* type families */
-  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* type families — Figtree headings, Noto Sans body (loaded via next/font in
+     app/layout.tsx as --font-figtree / --font-noto-sans); mono is for code/ids only. */
+  --font-heading: var(--font-figtree), "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--font-noto-sans), "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-body);
   --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  /* brand serif wordmark (Newsreader) — loaded via next/font as --font-newsreader */
-  --font-serif-brand: var(--font-newsreader), "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  /* legacy brand-serif alias (wordmarks, graph titles) now resolves to the heading face */
+  --font-serif-brand: var(--font-heading);
+  /* dates, scores, and trends align in columns */
+  --font-numeric: tabular-nums;
 
-  /* type scale (px) */
+  /* type scale (px) — body copy >= 16px, meta text >= 14px (ui_vision.md Typography) */
   --text-display: 40px;
   --text-h1: 30px;
   --text-h2: 24px;
   --text-h3: 20px;
-  --text-h4: 17px;
-  --text-body: 15px;
-  --text-sm: 13px;
-  --text-xs: 12px;
-  --text-2xs: 11px;
+  --text-h4: 18px;
+  --text-body: 16px;
+  --text-sm: 14px;
+  --text-xs: 13px;
+  --text-2xs: 12px;
   --lh-tight: 1.2;
   --lh-snug: 1.35;
-  --lh-normal: 1.55;
+  --lh-normal: 1.6;
+  --lh-relaxed: 1.7;
+  /* comfortable measure for long explanations */
+  --measure: 68ch;
 
   /* ============ SEMANTIC (--wb-*) — mapped onto the foundation ============ */
   /* surfaces + text */
@@ -141,7 +150,9 @@
   /* typography */
   --wb-font-sans: var(--font-sans);
   --wb-font-serif: ui-serif, Georgia, "Times New Roman", serif; /* patient voice / quotes */
-  --wb-text-xs: 0.75rem;
+  --wb-font-heading: var(--font-heading);
+  --wb-font-mono: var(--font-mono);
+  --wb-text-xs: 0.8125rem;
   --wb-text-sm: 0.875rem;
   --wb-text-base: 1rem;
   --wb-text-lg: 1.125rem;
@@ -157,10 +168,15 @@
   --wb-radius: var(--r-lg);
   --wb-radius-sm: var(--r-sm);
 
-  /* motion */
+  /* motion — micro-interactions stay within 150-300ms */
   --wb-motion-fast: 150ms;
   --wb-motion-base: 240ms;
+  --wb-motion-slow: 300ms;
   --wb-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* mobile bottom navigation (shell) */
+  --wb-bottom-nav-h: 64px;
+  --wb-touch-target: 44px;
 
   /* state tokens — subtle tint + readable on-color, AA contrast (safety contract) */
   --wb-state-stable-tint: #e6f1ee;
@@ -171,6 +187,23 @@
   --wb-state-attention-fg: #8a4b16;
   --wb-state-urgent-tint: #fbe3e0;
   --wb-state-urgent-fg: #9b2820;
+
+  /* state.* — semantic health-adaptive tokens (health-adaptive-safety-language.md).
+     Solid marks for small elements (rail, pill dot, icon, card border); pair with
+     the matching -tint / -fg and always with a text label. Amber is reserved for
+     needs_attention; red for Safety Gate-approved urgent guidance only. */
+  --state-stable: var(--teal-600);
+  --state-stable-tint: var(--wb-state-stable-tint);
+  --state-stable-fg: var(--wb-state-stable-fg);
+  --state-watch: var(--slate-500b);
+  --state-watch-tint: var(--wb-state-watch-tint);
+  --state-watch-fg: var(--wb-state-watch-fg);
+  --state-needs-attention: #b45309;
+  --state-needs-attention-tint: var(--wb-state-attention-tint);
+  --state-needs-attention-fg: var(--wb-state-attention-fg);
+  --state-urgent: #b91c1c;
+  --state-urgent-tint: var(--wb-state-urgent-tint);
+  --state-urgent-fg: var(--wb-state-urgent-fg);
 }
 
 [data-theme="dark"] {
@@ -191,6 +224,11 @@
   --wb-state-attention-fg: #f0b478;
   --wb-state-urgent-tint: #3a1c19;
   --wb-state-urgent-fg: #f0a59c;
+
+  --state-stable: #5bb9aa;
+  --state-watch: #9aa6a3;
+  --state-needs-attention: #f0b478;
+  --state-urgent: #f0a59c;
 }
 
 /*
@@ -211,8 +249,43 @@
   :root {
     --wb-motion-fast: 0ms;
     --wb-motion-base: 0ms;
+    --wb-motion-slow: 0ms;
   }
   * {
     animation: none !important;
   }
+}
+
+/*
+ * Evidence provenance tokens (--wb-evidence-*) — who stands behind a piece of
+ * text (WEL-144; ui_vision.md "Color and State"). Tint + fg pairs are AA.
+ */
+:root {
+  --wb-evidence-patient-entered-tint: #eef6f5;
+  --wb-evidence-patient-entered-fg: #1f5a50;
+  --wb-evidence-patient-entered-border: #cfe3df;
+  --wb-evidence-ai-summarized-tint: #f1f5f9;
+  --wb-evidence-ai-summarized-fg: #475569;
+  --wb-evidence-ai-summarized-border: #e2e8f0;
+  --wb-evidence-clinician-reviewed-tint: #ecfdf3;
+  --wb-evidence-clinician-reviewed-fg: #166534;
+  --wb-evidence-clinician-reviewed-border: #bbe5c8;
+  --wb-evidence-corrected-tint: #fff7e6;
+  --wb-evidence-corrected-fg: #8a4b16;
+  --wb-evidence-corrected-border: #f3dcb5;
+}
+
+[data-theme="dark"] {
+  --wb-evidence-patient-entered-tint: #16302b;
+  --wb-evidence-patient-entered-fg: #8fd6c6;
+  --wb-evidence-patient-entered-border: #24463f;
+  --wb-evidence-ai-summarized-tint: #1f2625;
+  --wb-evidence-ai-summarized-fg: #b4bfbc;
+  --wb-evidence-ai-summarized-border: #2c3433;
+  --wb-evidence-clinician-reviewed-tint: #14301f;
+  --wb-evidence-clinician-reviewed-fg: #8fd6a8;
+  --wb-evidence-clinician-reviewed-border: #22472f;
+  --wb-evidence-corrected-tint: #3a2914;
+  --wb-evidence-corrected-fg: #f0b478;
+  --wb-evidence-corrected-border: #563d1e;
 }

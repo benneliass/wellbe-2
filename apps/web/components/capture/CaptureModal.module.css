@@ -1,5 +1,5 @@
 .label {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg2);
   margin-bottom: 10px;
@@ -56,11 +56,11 @@
   gap: 1px;
 }
 .typeText b {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg1);
 }
 .typeText span {
-  font-size: 11.5px;
+  font-size: var(--text-2xs);
   color: var(--fg3);
 }
 .check {
@@ -78,7 +78,7 @@
   flex: 1;
 }
 .field label {
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--fg2);
 }
@@ -87,7 +87,7 @@
   border-radius: 9px;
   padding: 10px 12px;
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg1);
   resize: vertical;
   outline: none;
@@ -101,7 +101,7 @@
   border-radius: 9px;
   padding: 10px 12px;
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg1);
   outline: none;
   background: #fff;
@@ -126,7 +126,7 @@
   border-radius: 9px;
   background: #fff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg2);
   text-align: center;
@@ -178,7 +178,7 @@
   border: 1px solid var(--border);
 }
 .dropText {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }
 .dropText b {
@@ -186,11 +186,11 @@
   font-weight: 600;
 }
 .dropHint {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg3);
 }
 .dropFile {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
   word-break: break-all;
@@ -207,7 +207,7 @@
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg1);
   background: #fff;
 }
@@ -218,7 +218,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--fg2);
 }
 .note svg {
@@ -228,7 +228,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--danger, #c0392b);
 }
 .error svg {
@@ -250,7 +250,7 @@
   gap: 8px;
   padding: 18px 8px 8px;
   text-align: center;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg2);
 }
 .saved b {
