@@ -5,6 +5,8 @@ metadata:
   name: web
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "3" | nindent 4 }}
 spec:
   replicas: {{ .Values.web.replicas }}
   selector:
@@ -20,6 +22,7 @@ spec:
         - name: web
           image: {{ .Values.web.image }}
           imagePullPolicy: {{ .Values.web.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.web.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.web.port }}
           env:

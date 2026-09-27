@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
     app: continuity-worker
+  annotations:
+    {{- include "wellbe-local.syncWave" "1" | nindent 4 }}
 spec:
   replicas: {{ .Values.continuityWorker.replicas }}
   selector:
@@ -22,6 +24,7 @@ spec:
         - name: continuity-worker
           image: {{ .Values.continuityWorker.image }}
           imagePullPolicy: {{ .Values.continuityWorker.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.continuityWorker.resources | nindent 10 }}
           envFrom:
             - configMapRef:
                 name: continuity-worker-config

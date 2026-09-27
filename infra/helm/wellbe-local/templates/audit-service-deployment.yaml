@@ -4,6 +4,8 @@ metadata:
   name: audit-service
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "0" | nindent 4 }}
 spec:
   replicas: {{ .Values.auditService.replicas }}
   selector:
@@ -19,6 +21,7 @@ spec:
         - name: audit-service
           image: {{ .Values.auditService.image }}
           imagePullPolicy: {{ .Values.auditService.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.auditService.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.auditService.port }}
           envFrom:

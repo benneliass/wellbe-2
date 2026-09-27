@@ -4,6 +4,8 @@ metadata:
   name: processing-worker
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "1" | nindent 4 }}
 spec:
   replicas: {{ .Values.processingWorker.replicas }}
   selector:
@@ -19,6 +21,7 @@ spec:
         - name: processing-worker
           image: {{ .Values.processingWorker.image }}
           imagePullPolicy: {{ .Values.processingWorker.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.processingWorker.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.processingWorker.port }}
           envFrom:

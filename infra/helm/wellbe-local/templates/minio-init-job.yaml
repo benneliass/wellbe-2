@@ -27,6 +27,7 @@ spec:
       containers:
         - name: mc
           image: minio/mc:latest
+          {{- include "wellbe-local.resources" .Values.jobResources | nindent 10 }}
           command:
             - sh
             - -c

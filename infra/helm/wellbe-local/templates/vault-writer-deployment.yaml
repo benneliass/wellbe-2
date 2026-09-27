@@ -4,6 +4,8 @@ metadata:
   name: vault-writer
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "0" | nindent 4 }}
 spec:
   replicas: {{ .Values.vaultWriter.replicas }}
   selector:
@@ -19,6 +21,7 @@ spec:
         - name: vault-writer
           image: {{ .Values.vaultWriter.image }}
           imagePullPolicy: {{ .Values.vaultWriter.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.vaultWriter.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.vaultWriter.port }}
           envFrom:

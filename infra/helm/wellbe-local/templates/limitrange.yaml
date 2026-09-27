@@ -1,0 +1,21 @@
+{{- with .Values.defaultContainerResources }}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: wellbe-container-defaults
+  labels:
+    {{- include "wellbe-local.labels" $ | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-3" | nindent 4 }}
+spec:
+  limits:
+    - type: Container
+      {{- with .requests }}
+      defaultRequest:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .limits }}
+      default:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

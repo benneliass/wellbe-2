@@ -4,6 +4,8 @@ metadata:
   name: postgres
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-2" | nindent 4 }}
 spec:
   serviceName: wellbe-postgres
   replicas: 1
@@ -31,6 +33,7 @@ spec:
         - name: postgres
           image: {{ .Values.postgres.image }}
           imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.postgres.resources | nindent 10 }}
           ports:
             - containerPort: 5432
           env:

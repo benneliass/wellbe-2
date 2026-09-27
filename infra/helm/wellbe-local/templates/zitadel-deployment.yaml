@@ -4,6 +4,8 @@ metadata:
   name: zitadel
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-1" | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -34,6 +36,7 @@ spec:
       containers:
         - name: zitadel
           image: {{ .Values.zitadel.image }}
+          {{- include "wellbe-local.resources" .Values.zitadel.resources | nindent 10 }}
           args:
             - start-from-init
             - --masterkey

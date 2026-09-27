@@ -4,6 +4,8 @@ metadata:
   name: safety-gate
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "0" | nindent 4 }}
 spec:
   replicas: {{ .Values.safetyGate.replicas }}
   selector:
@@ -19,6 +21,7 @@ spec:
         - name: safety-gate
           image: {{ .Values.safetyGate.image }}
           imagePullPolicy: {{ .Values.safetyGate.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.safetyGate.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.safetyGate.port }}
           envFrom:

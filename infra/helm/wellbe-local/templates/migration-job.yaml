@@ -34,6 +34,7 @@ spec:
         - name: migrate
           image: {{ .Values.migration.image }}
           imagePullPolicy: {{ .Values.migration.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.jobResources | nindent 10 }}
           env:
             - name: DATABASE_URL
               value: {{ include "wellbe-local.databaseUrl" . | quote }}

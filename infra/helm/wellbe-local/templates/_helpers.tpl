@@ -52,3 +52,24 @@ nodeSelector:
 {{ toYaml . | trim | indent 2 }}
 {{- end }}
 {{- end }}
+
+{{/*
+Container resources block. Pass a component's `resources` map; renders nothing
+when it is empty (the kind/local default), so local behavior is unchanged.
+Remote targets set requests/limits so WellBe cannot starve a shared node.
+*/}}
+{{- define "wellbe-local.resources" -}}
+{{- with . }}
+resources:
+{{ toYaml . | trim | indent 2 }}
+{{- end }}
+{{- end }}
+
+{{/*
+ArgoCD sync wave for staged startup on shared clusters. ArgoCD applies each
+wave and waits for it to become healthy before starting the next, so data
+stores come up before the services that depend on them. Plain Helm ignores it.
+*/}}
+{{- define "wellbe-local.syncWave" -}}
+argocd.argoproj.io/sync-wave: {{ . | quote }}
+{{- end }}

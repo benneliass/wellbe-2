@@ -11,6 +11,11 @@
 #     all WellBe workloads OFF the control-plane node home-server (192.168.1.200).
 #   * Ingress uses Traefik + nip.io hosts anchored at the Traefik LB 192.168.1.164
 #     so the stack is reachable on the LAN without extra DNS.
+#   * Every container has requests/limits. home-server-worker is shared with the
+#     media, GPU, and monitoring stacks and has ~1 CPU of unreserved requests, so
+#     WellBe reserves little (~0.5 CPU total) and is hard-capped by limits. Pods
+#     carry no PriorityClass (priority 0), so WellBe is evicted before any other
+#     service under node pressure.
 
 namespace: wellbe
 
@@ -41,6 +46,40 @@ postgres:
   image: ghcr.io/benneliass/wellbe-postgres:0.1.4
   imagePullPolicy: IfNotPresent
   storage: 5Gi
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {cpu: "1", memory: 1Gi}
+
+redis:
+  resources:
+    requests: {cpu: 10m, memory: 32Mi}
+    limits: {cpu: 200m, memory: 128Mi}
+
+minio:
+  resources:
+    requests: {cpu: 20m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+temporal:
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {cpu: 500m, memory: 768Mi}
+
+zitadel:
+  resources:
+    requests: {cpu: 30m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+# Init containers (wait-for-postgres/minio) and anything else without explicit
+# resources inherit these namespace defaults.
+defaultContainerResources:
+  requests: {cpu: 10m, memory: 16Mi}
+  limits: {cpu: 100m, memory: 64Mi}
+
+# Migration, bucket-init, and dev-seed hook jobs.
+jobResources:
+  requests: {cpu: 50m, memory: 128Mi}
+  limits: {cpu: 500m, memory: 512Mi}
 
 migration:
   image: ghcr.io/benneliass/wellbe-migrations:0.1.4
@@ -49,26 +88,44 @@ migration:
 continuityWorker:
   image: ghcr.io/benneliass/wellbe-continuity-worker:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 20m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 384Mi}
 
 vaultWriter:
   image: ghcr.io/benneliass/wellbe-vault-writer:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 20m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 384Mi}
 
 ingestionWorker:
   image: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 20m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 384Mi}
 
 processingWorker:
   image: ghcr.io/benneliass/wellbe-processing-worker:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 30m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
 
 safetyGate:
   image: ghcr.io/benneliass/wellbe-safety-gate:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 20m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 384Mi}
 
 api:
   image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 50m, memory: 160Mi}
+    limits: {cpu: 500m, memory: 640Mi}
   config:
     corsAllowOrigins:
       - "https://wellbe.tail9c487a.ts.net"
@@ -76,11 +133,17 @@ api:
 auditService:
   image: ghcr.io/benneliass/wellbe-audit-service:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 20m, memory: 96Mi}
+    limits: {cpu: 300m, memory: 384Mi}
 
 web:
   enabled: true
   image: ghcr.io/benneliass/wellbe-web:0.1.4
   imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 25m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
 
 devSeed:
   enabled: true

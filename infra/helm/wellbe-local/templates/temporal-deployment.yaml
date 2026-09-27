@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
     app: temporal
+  annotations:
+    {{- include "wellbe-local.syncWave" "-1" | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -38,6 +40,7 @@ spec:
         - name: temporal
           image: {{ .Values.temporal.image }}
           imagePullPolicy: {{ .Values.temporal.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.temporal.resources | nindent 10 }}
           env:
             # Postgres-backed persistence. Credentials come from the SAME canonical
             # postgres.* values as every other consumer (single source of truth),

@@ -4,6 +4,8 @@ metadata:
   name: ingestion-worker
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "1" | nindent 4 }}
 spec:
   replicas: {{ .Values.ingestionWorker.replicas }}
   selector:
@@ -19,6 +21,7 @@ spec:
         - name: ingestion-worker
           image: {{ .Values.ingestionWorker.image }}
           imagePullPolicy: {{ .Values.ingestionWorker.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.ingestionWorker.resources | nindent 10 }}
           ports:
             - containerPort: {{ .Values.ingestionWorker.port }}
           envFrom:
