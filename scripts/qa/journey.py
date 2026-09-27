@@ -541,6 +541,65 @@ def run(j: Journey) -> None:
     if j.ctx.get("investigation"):
         j.step("investigation/theory linked into thread graph", theory_graph)
 
+    def theory_evaluation() -> str:
+        iid, theory = j.ctx["investigation"], j.ctx["theory"]
+        theory_id = theory["theory_id"]
+        inv_threads = set(j.call("GET", f"/v2/investigations/{iid}")["health_thread_ids"])
+        tid = j.ctx["threads"].get("headache")
+        assert tid in inv_threads, f"headache thread not in investigation: {inv_threads}"
+
+        memories = items_of(j.call("GET", f"/v2/threads/{tid}/memories"), "memories")
+        facts = [
+            ref["source_ref_id"]
+            for m in memories if "headache" in str(m.get("title", "")).lower()
+            for ref in m.get("source_refs", [])
+            if ref.get("source_ref_type") == "c4_extracted_fact"
+        ]
+        assert facts, f"no headache fact to cite on thread memories: {memories}"
+        evidence = [{"kind": "fact", "id": facts[0]}]
+        version = theory.get("version", 1)
+        path = f"/v2/theories/{theory_id}/evaluate"
+        rationale = "Headaches continued on days my iron was fine."
+
+        no_ev = j.call("POST", path, expect=422, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": [],
+            "expected_version": version})
+        assert no_ev["code"] == "theory_evidence_required", no_ev
+        stale = j.call("POST", path, expect=409, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": evidence,
+            "expected_version": version + 5})
+        assert stale["code"] == "version_conflict", stale
+
+        out = j.call("POST", path, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": evidence,
+            "expected_version": version})
+        updated, ev = out["theory"], out["evaluation"]
+        assert updated["status"] == "not_supported_by_current_data", updated
+        assert updated["version"] == version + 1, updated
+        assert updated["assessment_label"] == "You marked this theory as weakened", updated
+        assert updated["not_diagnosis"] is True
+        assert ev["evidence_refs"] == evidence, ev
+
+        history = j.call("GET", f"/v2/theories/{theory_id}/evaluations")
+        assert history and history[0]["evaluation_id"] == ev["evaluation_id"], history
+        listed = j.call("GET", f"/v2/investigations/{iid}/theories")
+        mine = next(t for t in listed if t["theory_id"] == theory_id)
+        assert mine["latest_evaluation"]["assessment"] == "weakened", mine
+
+        g = j.call("GET", f"/v2/graph/threads/{tid}")
+        theory_nodes = {n["id"] for n in g.get("nodes", []) if n.get("type") == "Theory"}
+        against = [e for e in g.get("edges", [])
+                   if e.get("relation") == "evidence_against" and e.get("target") in theory_nodes]
+        assert against, (
+            f"no evidence_against edge to the theory on thread graph: "
+            f"theory_nodes={theory_nodes} edges={[e.get('relation') for e in g.get('edges', [])]}"
+        )
+        return (f"marked weakened citing fact {facts[0][:8]}; 422 without evidence, 409 on "
+                f"stale version; {len(against)} evidence_against edge(s) on thread graph")
+
+    if j.ctx.get("theory") and j.ctx.get("threads", {}).get("headache"):
+        j.step("user evaluates theory (weakened) with cited evidence", theory_evaluation)
+
     # ------------------------------------------------------------ visit packets
     def visit_packet() -> str:
         tids = list(j.ctx["threads"].values())
