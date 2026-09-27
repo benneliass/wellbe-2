@@ -255,10 +255,10 @@ class TestConsumeLoop:
             raise RuntimeError("poison")
 
         caplog.set_level(logging.DEBUG, logger=main.logger.name)
-        store = await _run_one_poll(monkeypatch, [_row(attempts=7)], handler)
+        store = await _run_one_poll(monkeypatch, [_row(attempts=11)], handler)
         [update_sql] = store["updates"]
         assert "dead_lettered_at=now()" in update_sql
-        assert store["params"][0]["attempts"] == 8
+        assert store["params"][0]["attempts"] == 12
         assert store["params"][0]["last_error"] == "RuntimeError: poison"
         records = [r for r in caplog.records if r.name == main.logger.name]
         assert [r.levelno for r in records] == [logging.ERROR]

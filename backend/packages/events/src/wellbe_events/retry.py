@@ -35,7 +35,7 @@ MAX_ERROR_CHARS = 2000
 
 @dataclass(frozen=True)
 class RetryPolicy:
-    max_attempts: int = 8
+    max_attempts: int = 12
     max_delay_seconds: float = 300.0
     jitter_ratio: float = 0.1
     transient_delay_seconds: float = 5.0
