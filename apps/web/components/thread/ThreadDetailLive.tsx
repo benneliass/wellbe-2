@@ -14,6 +14,7 @@ import detail from "./ThreadDetail.module.css";
 import rec from "@/components/records/RecordList.module.css";
 import styles from "./ThreadDetailLive.module.css";
 import { describePendingItem, openPendingItems } from "@/lib/pending";
+import { cleanTheoryLabel } from "@/lib/theory-label";
 import { ThreadTheories } from "./ThreadTheories";
 
 /**
@@ -59,7 +60,9 @@ export function ThreadDetailLive({ id }: { id: string }) {
   const updated = formatShortDate(data.updated_at);
   const nodes = graph.data?.nodes ?? [];
   const edges = graph.data?.edges ?? [];
-  const labelById = new Map(nodes.map((n) => [n.id, n.label]));
+  const nodeLabel = (n: { type: string; label: string }) =>
+    n.type === "Theory" ? cleanTheoryLabel(n.label) : n.label;
+  const labelById = new Map(nodes.map((n) => [n.id, nodeLabel(n)]));
   const loops = openPendingItems((pending.data ?? []).filter((p) => p.primary_thread_id === id));
   const askHref = `/ask?q=${encodeURIComponent(`What is going on with my ${data.title.toLowerCase()}?`)}`;
 
@@ -140,7 +143,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
                             <Icon name="activity" size={15} />
                           </span>
                           <span className={rec.rowMain}>
-                            <span className={rec.rowTitle}>{n.label}</span>
+                            <span className={rec.rowTitle}>{nodeLabel(n)}</span>
                             <span className={rec.rowSub}>
                               {nodeTypeLabel(n.type)}
                               {first ? ` · first noted ${first}` : ""}

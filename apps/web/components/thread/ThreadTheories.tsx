@@ -15,6 +15,7 @@ import {
   type TheoryAssessment,
   type TheoryV2,
 } from "@/lib/theories";
+import { THEORY_QUESTION_FRAME, cleanTheoryLabel } from "@/lib/theory-label";
 import { Panel } from "./Panel";
 import styles from "./ThreadTheories.module.css";
 
@@ -75,6 +76,7 @@ function InvestigationTheories({
       {!isLoading && theories.length === 0 && (
         <p className={styles.muted}>No theories in this investigation yet.</p>
       )}
+      {theories.length > 0 && <p className={styles.frame}>{THEORY_QUESTION_FRAME}</p>}
       <ul className={styles.theories}>
         {theories.map((t) => (
           <TheoryItem
@@ -106,7 +108,7 @@ function TheoryItem({
   return (
     <li className={styles.theory}>
       <div className={styles.theoryHead}>
-        <p className={styles.theoryLabel}>{theory.label}</p>
+        <p className={styles.theoryLabel}>{cleanTheoryLabel(theory.label)}</p>
         {theory.assessment && (
           <Chip tone={ASSESSMENT_TONE[theory.assessment] ?? "neutral"} size="sm">
             {ASSESSMENTS.find((a) => a.value === theory.assessment)?.label ?? theory.assessment}

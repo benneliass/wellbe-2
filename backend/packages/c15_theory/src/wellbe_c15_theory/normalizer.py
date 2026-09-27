@@ -30,6 +30,31 @@ _DIAGNOSTIC_ASSERTION_PATTERNS = (
 )
 
 
+QUESTION_FRAME = "Could my data be related to:"
+
+# Matches the frame this module adds (with or without the colon), repeated.
+_FRAME_RE = re.compile(r"^(?:\s*could\s+my\s+data\s+be\s+related\s+to\b\s*:?\s*)+", re.I)
+
+
+def strip_question_frame(text: str) -> str:
+    """Remove the 'Could my data be related to:' frame from a stored label.
+
+    The frame is a UI concern; labels persisted before it moved to the UI still
+    carry it (sometimes twice), so readers strip it. Text the user phrased as
+    their own question is left untouched.
+    """
+    stripped = text.strip()
+    core = _FRAME_RE.sub("", stripped)
+    if core == stripped:
+        return stripped
+    return core.rstrip("?").strip() or stripped
+
+
+def theory_display_label(normalized_question: str | None, theory_text: str) -> str:
+    """The clean label stored on a theory's graph node (no question frame)."""
+    return strip_question_frame(normalized_question or theory_text)[:200]
+
+
 def _matched_pattern(text: str) -> str | None:
     for pattern in _DIAGNOSTIC_ASSERTION_PATTERNS:
         if pattern.search(text):
@@ -39,7 +64,7 @@ def _matched_pattern(text: str) -> str | None:
 
 def normalize_theory_text(text: str) -> TheoryTextNormalization:
     """Reframe free text into a safe question, or block a diagnostic assertion."""
-    stripped = text.strip()
+    stripped = strip_question_frame(text)
     matched = _matched_pattern(stripped)
     if matched is not None:
         return TheoryTextNormalization(
@@ -54,7 +79,7 @@ def normalize_theory_text(text: str) -> TheoryTextNormalization:
         question = stripped
     else:
         core = stripped.rstrip(".")
-        question = f"Could my data be related to: {core}?"
+        question = f"{QUESTION_FRAME} {core}?"
 
     return TheoryTextNormalization(
         blocked=False,

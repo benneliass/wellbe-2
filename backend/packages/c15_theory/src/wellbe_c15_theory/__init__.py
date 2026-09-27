@@ -18,7 +18,11 @@ from wellbe_c15_theory.errors import (
     TheoryRationaleRequiredError,
     TheoryVersionConflictError,
 )
-from wellbe_c15_theory.normalizer import normalize_theory_text
+from wellbe_c15_theory.normalizer import (
+    normalize_theory_text,
+    strip_question_frame,
+    theory_display_label,
+)
 from wellbe_c15_theory.repository import TheoryRepository
 from wellbe_c15_theory.service import (
     TheoryService,
@@ -31,6 +35,8 @@ __all__ = [
     "TheoryService",
     "TheoryRepository",
     "normalize_theory_text",
+    "strip_question_frame",
+    "theory_display_label",
     "status_from_personal_evidence",
     "TheoryError",
     "TheoryNotFoundError",

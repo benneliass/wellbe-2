@@ -9,6 +9,12 @@
   font-size: var(--text-sm);
   color: var(--fg3);
 }
+.frame {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--fg2);
+}
 .theories {
   list-style: none;
   margin: 0;

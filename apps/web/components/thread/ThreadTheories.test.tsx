@@ -74,6 +74,19 @@ describe("ThreadTheories", () => {
     expect(await screen.findByText(THEORY.label)).toBeInTheDocument();
   });
 
+  it("shows the question framing once and never inside a stored label", async () => {
+    get.mockImplementation(async (path: string) => ({
+      data:
+        path === "/v2/investigations/{investigation_id}/theories"
+          ? [{ ...THEORY, label: "Could my data be related to: Could my data be related to: screen time?" }]
+          : responses(path),
+      error: null,
+    }));
+    renderWithClient(<ThreadTheories threadId={THREAD} />);
+    expect(await screen.findByText("screen time")).toBeInTheDocument();
+    expect(screen.getAllByText(/could my data be related to/i)).toHaveLength(1);
+  });
+
   it("requires a mark, cited evidence and a rationale before saving", async () => {
     const form = await openForm();
     const save = within(form).getByRole("button", { name: /save evaluation/i });

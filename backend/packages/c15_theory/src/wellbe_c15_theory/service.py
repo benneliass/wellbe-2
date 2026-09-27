@@ -51,7 +51,7 @@ from wellbe_c15_theory.errors import (
 )
 from wellbe_c15_theory.evidence import EvidenceStore, SqlEvidenceStore, resolve_evidence
 from wellbe_c15_theory.models import TheoryEvaluationRow
-from wellbe_c15_theory.normalizer import normalize_theory_text
+from wellbe_c15_theory.normalizer import normalize_theory_text, theory_display_label
 from wellbe_c15_theory.repository import TheoryRepository
 from wellbe_c15_theory.status_rules import status_from_personal_evidence
 
@@ -104,7 +104,9 @@ class TheoryService:
             node_id = await self._repo.create_projection_node(
                 patient_id=patient_id,
                 theory_id=tid,
-                display_label=normalization.normalized_question[:200],
+                display_label=theory_display_label(
+                    normalization.normalized_question, theory_text
+                ),
             )
             await self._repo.set_projection_node(tid, node_id)
 
@@ -155,7 +157,9 @@ class TheoryService:
             theory_node_id = await self._repo.create_projection_node(
                 patient_id=theory.patient_id,
                 theory_id=theory_id,
-                display_label=(theory.normalized_question or theory.theory_text)[:200],
+                display_label=theory_display_label(
+                    theory.normalized_question, theory.theory_text
+                ),
             )
             await self._repo.set_projection_node(theory_id, theory_node_id)
 
@@ -342,7 +346,9 @@ class TheoryService:
             theory_node_id = await self._repo.create_projection_node(
                 patient_id=patient_id,
                 theory_id=theory_id,
-                display_label=(theory.normalized_question or theory.theory_text)[:200],
+                display_label=theory_display_label(
+                    theory.normalized_question, theory.theory_text
+                ),
             )
             await self._repo.set_projection_node(theory_id, theory_node_id)
 

@@ -20,6 +20,7 @@ from wellbe_c6_graph.constants import PERSONAL_EDGE_CODES
 from wellbe_c6_graph.models import KgEdgeRow, KgNodeRow
 from wellbe_c6_graph.repository import GraphRepository
 from wellbe_c7_thread.repository import ThreadRepository
+from wellbe_c15_theory.normalizer import strip_question_frame
 from wellbe_contracts.c6_graph import (
     GraphEdgeV2,
     GraphNodeV2,
@@ -59,10 +60,13 @@ def _node_v2(row: KgNodeRow, *, in_thread: bool = True) -> GraphNodeV2:
     }
     if isinstance(meta, dict) and "source_type" in meta:
         attributes["source_type"] = meta["source_type"]
+    label = row.display_label
+    if row.node_type == "Theory":
+        label = strip_question_frame(label)
     return GraphNodeV2(
         id=str(row.id),
         type=row.node_type,
-        label=row.display_label,
+        label=label,
         status=row.status,
         attributes=attributes,
     )

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import pytest
-from wellbe_c15_theory.normalizer import normalize_theory_text
+from wellbe_c15_theory.normalizer import (
+    normalize_theory_text,
+    strip_question_frame,
+    theory_display_label,
+)
 from wellbe_contracts.c15_theory import TheorySafetyLevel
 
 
@@ -44,3 +48,33 @@ def test_existing_question_is_preserved() -> None:
     result = normalize_theory_text("Is my fatigue linked to low iron?")
     assert result.blocked is False
     assert result.normalized_question == "Is my fatigue linked to low iron?"
+
+
+def test_reframing_is_idempotent() -> None:
+    once = normalize_theory_text("my headaches and screen time")
+    assert once.normalized_question == "Could my data be related to: my headaches and screen time?"
+    twice = normalize_theory_text(once.normalized_question or "")
+    assert twice.normalized_question == once.normalized_question
+
+
+@pytest.mark.parametrize(
+    ("stored", "clean"),
+    [
+        ("Could my data be related to: screen time?", "screen time"),
+        (
+            "Could my data be related to: Could my data be related to: screen time?",
+            "screen time",
+        ),
+        ("could my data be related to screen time?", "screen time"),
+        ("Is my fatigue linked to low iron?", "Is my fatigue linked to low iron?"),
+        ("Could my data be related tomatoes?", "Could my data be related tomatoes?"),
+        ("Could my data be related to:", "Could my data be related to:"),
+    ],
+)
+def test_strip_question_frame(stored: str, clean: str) -> None:
+    assert strip_question_frame(stored) == clean
+
+
+def test_display_label_has_no_frame_and_is_bounded() -> None:
+    assert theory_display_label("Could my data be related to: sleep?", "sleep") == "sleep"
+    assert theory_display_label(None, "x" * 500) == "x" * 200

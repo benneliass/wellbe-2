@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 
 from wellbe_c14_investigation.models import InvestigationRow
 from wellbe_c15_theory.models import TheoryRow
+from wellbe_c15_theory.normalizer import strip_question_frame
 from wellbe_contracts.c13_api import (
     AuditRefV2,
     InvestigationV2,
@@ -121,7 +122,7 @@ def theory_to_v2(
         theory_id=str(row.id),
         investigation_id=str(row.linked_investigation_id) if row.linked_investigation_id else "",
         health_thread_id="",
-        label=row.theory_text,
+        label=strip_question_frame(row.theory_text),
         proposed_by={
             "actor_id": str(row.created_by_actor_id) if row.created_by_actor_id else None,
         },

@@ -74,3 +74,15 @@ def test_edge_mapping_carries_relation_and_compact_provenance():
     # Compact provenance summary only — a source ref id, not the full inputs.
     assert out.attributes.get("source_ref_id") == "ev-123"
     assert "internal_debug" not in out.attributes
+
+
+def test_theory_node_label_drops_stored_question_frame():
+    legacy = _node(
+        node_type="Theory",
+        display_label="Could my data be related to: Could my data be related to: screen time?",
+    )
+    assert _node_v2(legacy).label == "screen time"
+    # Non-theory labels are passed through untouched.
+    assert _node_v2(_node(display_label="Could my data be related to: x?")).label.startswith(
+        "Could"
+    )

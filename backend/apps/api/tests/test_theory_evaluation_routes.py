@@ -238,3 +238,12 @@ def test_list_evaluations_and_get_theory(env) -> None:
     assert got.status_code == 200
     assert got.json()["version"] == 1
     assert got.json()["latest_evaluation"] is None
+
+
+def test_theory_label_strips_a_stored_question_frame() -> None:
+    from wellbe_api.mappers import theory_to_v2
+
+    row = _theory_row(theory_text="Could my data be related to: screen time?")
+    assert theory_to_v2(row).label == "screen time"  # type: ignore[arg-type]
+    own = _theory_row()
+    assert theory_to_v2(own).label == "Could screen time relate to my headaches?"  # type: ignore[arg-type]
