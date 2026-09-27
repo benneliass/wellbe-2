@@ -10,6 +10,7 @@ from sqlalchemy import select, update
 from wellbe_db import AsyncSessionFactory
 
 from wellbe_events.models import OutboxEventRow
+from wellbe_events.retry import claimable
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class RedisStreamPublisher:
         async with self._session_factory() as session:
             stmt = (
                 select(OutboxEventRow)
-                .where(OutboxEventRow.delivered_at.is_(None))
+                .where(claimable())
                 .order_by(OutboxEventRow.created_at)
                 .limit(batch_size)
             )
