@@ -182,6 +182,27 @@ def test_build_ingest_document() -> None:
     assert raw == b"%PDF-1.4 fake"
     assert meta["mime_type"] == "application/pdf"
     assert "original_filename_hash" in meta
+    assert meta["original_filename"] == "labs.pdf"
+
+
+def test_build_ingest_document_stores_display_name_not_path() -> None:
+    content = base64.b64encode(b"%PDF-1.4 fake").decode()
+    body = capture_v1.CaptureRequestV1(
+        capture_type="document",
+        payload={"content_base64": content, "filename": "/home/me/Downloads/../Blood\ttest.pdf"},
+    )
+    _, _, meta = capture_v1._build_ingest(body, "corr")
+    assert meta["original_filename"] == "Blood test.pdf"
+
+
+def test_build_ingest_document_without_usable_filename_keeps_fallback() -> None:
+    content = base64.b64encode(b"%PDF-1.4 fake").decode()
+    body = capture_v1.CaptureRequestV1(
+        capture_type="document",
+        payload={"content_base64": content, "filename": "..\u0000"},
+    )
+    _, _, meta = capture_v1._build_ingest(body, "corr")
+    assert "original_filename" not in meta
 
 
 # --- stubbed happy path ---

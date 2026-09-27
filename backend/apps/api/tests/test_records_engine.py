@@ -261,7 +261,11 @@ def test_unknown_stored_status_falls_back_to_derivation() -> None:
 
 def test_needs_ocr_detail_explains_missing_text_recognition() -> None:
     *_, detail = engine.document_status(
-        added_at=_NOW, extracted_total=0, now=_NOW, stored="needs_ocr", stored_detail="ocr_unavailable"
+        added_at=_NOW,
+        extracted_total=0,
+        now=_NOW,
+        stored="needs_ocr",
+        stored_detail="ocr_unavailable",
     )
     assert "text recognition" in detail
 

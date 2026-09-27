@@ -74,8 +74,7 @@ _SOURCES = (
         publisher="NHS",
         title="When to call 999",
         url=(
-            "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/"
-            "when-to-call-999/"
+            "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-call-999/"
         ),
     ),
     TriageSourceV2(

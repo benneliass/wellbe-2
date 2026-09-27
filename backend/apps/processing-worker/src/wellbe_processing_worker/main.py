@@ -116,7 +116,9 @@ def _make_raw_context_handler(
             raise
         if not has_text:
             detail = "ocr_unavailable" if tesseract_version() is None else "no_readable_text"
-            await tracker.mark(doc_id, patient_id, DocumentProcessingStatus.NEEDS_OCR, detail=detail)
+            await tracker.mark(
+                doc_id, patient_id, DocumentProcessingStatus.NEEDS_OCR, detail=detail
+            )
             return "dispatched"
         await tracker.finish(doc_id, patient_id, detail_if_empty="no_facts_found")
         return "dispatched"

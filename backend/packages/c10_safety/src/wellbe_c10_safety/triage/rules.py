@@ -304,7 +304,9 @@ RULES: tuple[RedFlagRule, ...] = (
         route=_URGENT,
         label="A seizure or fit",
         source_ids=("medlineplus-emergencies", "cdc-flu-warning-signs"),
-        patterns=(_p(r"seizures?", r"seizing", r"convuls\w*", r"(?:having|had|has) a fit", r"fitting"),),
+        patterns=(
+            _p(r"seizures?", r"seizing", r"convuls\w*", r"(?:having|had|has) a fit", r"fitting"),
+        ),
     ),
     RedFlagRule(
         rule_id="U-BLEED-01",
@@ -600,7 +602,8 @@ RULES: tuple[RedFlagRule, ...] = (
             _p(
                 r"(?:leg|calf|thigh|arm) (?:is |feels |looks |has been )?(?:very )?(?:swollen|red|"
                 r"painful|sore|hot|warm|tender)",
-                r"(?:swollen|swelling|red|painful|sore|hot|tender) (?:[\w']+ )?(?:leg|calf|thigh|arm)",
+                r"(?:swollen|swelling|red|painful|sore|hot|tender) (?:[\w']+ )?"
+                r"(?:leg|calf|thigh|arm)",
                 r"(?:pain|swelling|redness) in (?:my |one |the )?(?:leg|calf|thigh|arm)",
             ),
         ),

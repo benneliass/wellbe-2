@@ -18,7 +18,35 @@ from wellbe_contracts.triage import TriageGuidanceV2
 # Locale configuration: only numbers named in the approved decision's sources.
 # Anything else falls back to the generalized "your local emergency number".
 _EU_112 = frozenset(
-    "AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE".split()
+    [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+    ]
 )
 EMERGENCY_NUMBERS: dict[str, str] = {
     "US": "911",
@@ -79,8 +107,7 @@ TEMPLATES: dict[str, GuidanceTemplate] = {
                 "anything; the aim is to connect you with people who can help now."
             ),
             backstop=(
-                "Your answers are still here. You can save your check-in whenever "
-                "you're ready."
+                "Your answers are still here. You can save your check-in whenever you're ready."
             ),
         ),
         GuidanceTemplate(
@@ -157,8 +184,10 @@ BANNED_COPY_PATTERNS: dict[str, re.Pattern[str]] = {
         r"depression|psychosis)\b"
     ),
     # Medication directive.
-    "medication_directive": _c(r"\b(?:stop|start|change|take|increase|decrease)\s+(?:your\s+)?"
-                               r"(?:medication|medicine|dose|pills|tablets)\b"),
+    "medication_directive": _c(
+        r"\b(?:stop|start|change|take|increase|decrease)\s+(?:your\s+)?"
+        r"(?:medication|medicine|dose|pills|tablets)\b"
+    ),
     # Unsupported reassurance / false closure.
     "unsupported_reassurance": _c(
         r"\b(?:don't|do not)\s+worry\b|\bnothing\s+to\s+worry\b|\bnot\s+serious\b|"

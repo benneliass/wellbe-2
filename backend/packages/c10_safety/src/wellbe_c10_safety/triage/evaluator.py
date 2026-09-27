@@ -76,19 +76,13 @@ def _match(
         if answers.onset in rule.onset_in and answers.impact in rule.impact_in:
             return _Hit(rule, "impact")
         return None
-    if rule.also_requires and not any(
-        affirmed(p, s) for p in rule.also_requires for s in segs
-    ):
+    if rule.also_requires and not any(affirmed(p, s) for p in rule.also_requires for s in segs):
         return None
     onset_qualifies = answers.onset in rule.qualifier_onset
     for seg in segs:
         if not any(affirmed(p, seg) for p in rule.patterns):
             continue
-        if (
-            not rule.qualifiers
-            or onset_qualifies
-            or any(affirmed(q, seg) for q in rule.qualifiers)
-        ):
+        if not rule.qualifiers or onset_qualifies or any(affirmed(q, seg) for q in rule.qualifiers):
             return _Hit(rule, seg.answer_field)
     return None
 
@@ -120,7 +114,9 @@ def evaluate_triage(
     now: datetime | None = None,
 ) -> TriageEvaluateResponseV2:
     hits = match_rules(request)
-    route = max((h.rule.route for h in hits), key=_ROUTE_RANK.__getitem__, default=TriageRoute.ROUTINE)
+    route = max(
+        (h.rule.route for h in hits), key=_ROUTE_RANK.__getitem__, default=TriageRoute.ROUTINE
+    )
     region = (request.context.region or default_region or "").upper() or None
     guidance = render(_template_for(route, hits), region=region)
 
@@ -183,7 +179,12 @@ def ruleset_fingerprint() -> str:
     ]
     templates = [vars(t) for t in TEMPLATES.values()]
     blob = json.dumps(
-        {"version": RULESET_VERSION, "rules": rules, "templates": templates, "pregnancy": PREGNANCY_MENTION.pattern},
+        {
+            "version": RULESET_VERSION,
+            "rules": rules,
+            "templates": templates,
+            "pregnancy": PREGNANCY_MENTION.pattern,
+        },
         sort_keys=True,
     )
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()

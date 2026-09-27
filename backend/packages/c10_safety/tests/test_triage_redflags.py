@@ -166,7 +166,9 @@ def test_conservative_negation_edges_still_match(text: str, rule_id: str) -> Non
 
 
 def test_is_negated_window_is_bounded() -> None:
-    clause = segments_for("what", "not really sure what started this whole thing with chest pain")[0]
+    clause = segments_for("what", "not really sure what started this whole thing with chest pain")[
+        0
+    ]
     start = clause.text.index("chest pain")
     # The cue is part of a pseudo-negation ("not ... sure") far outside the window.
     assert not is_negated(clause.text, start, start + len("chest pain"))
@@ -323,8 +325,10 @@ def test_generic_default_when_no_region() -> None:
     assert "Call your local emergency number now" in result.guidance.action
 
 
-@pytest.mark.parametrize(("region", "number"), [("US", "911"), ("gb", "999"), ("AU", "000"),
-                                                ("DE", "112"), ("FR", "112")])
+@pytest.mark.parametrize(
+    ("region", "number"),
+    [("US", "911"), ("gb", "999"), ("AU", "000"), ("DE", "112"), ("FR", "112")],
+)
 def test_region_substitutes_emergency_number(region: str, number: str) -> None:
     result = _eval("chest pain", context={"region": region})
     assert result.jurisdiction == region.upper()

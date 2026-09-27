@@ -90,9 +90,7 @@ class DbDocumentStatusTracker:
         status = (
             DocumentProcessingStatus.PROCESSED if facts > 0 else DocumentProcessingStatus.NEEDS_OCR
         )
-        await self.mark(
-            event_id, patient_id, status, detail=None if facts > 0 else detail_if_empty
-        )
+        await self.mark(event_id, patient_id, status, detail=None if facts > 0 else detail_if_empty)
         return status
 
 

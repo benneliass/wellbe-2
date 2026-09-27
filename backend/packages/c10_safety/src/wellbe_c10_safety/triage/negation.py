@@ -102,6 +102,5 @@ def is_negated(clause: str, start: int, end: int) -> bool:
 def affirmed(pattern: re.Pattern[str], segment: Segment) -> bool:
     """True when ``pattern`` matches ``segment`` at least once without negation."""
     return any(
-        not is_negated(segment.text, m.start(), m.end())
-        for m in pattern.finditer(segment.text)
+        not is_negated(segment.text, m.start(), m.end()) for m in pattern.finditer(segment.text)
     )

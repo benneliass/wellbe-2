@@ -57,9 +57,7 @@ class TriageContextV2(BaseModel):
 
 
 class TriageEvaluateRequestV2(BaseModel):
-    schema_version: Literal["c13.triage.evaluate.request.v2"] = (
-        "c13.triage.evaluate.request.v2"
-    )
+    schema_version: Literal["c13.triage.evaluate.request.v2"] = "c13.triage.evaluate.request.v2"
     answers: TriageAnswersV2
     context: TriageContextV2 = Field(default_factory=TriageContextV2)
 
