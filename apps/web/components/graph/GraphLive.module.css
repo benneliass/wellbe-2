@@ -704,7 +704,7 @@
 
 /* calm entrance: subtle scale-in when a node mounts (also new/expanded nodes) */
 .node {
-  animation: wb-nodeIn 320ms var(--wb-ease);
+  animation: wb-nodeIn var(--wb-motion-slow) var(--wb-ease);
 }
 @keyframes wb-nodeIn {
   from {
@@ -731,7 +731,7 @@
   transform-box: fill-box;
   transform-origin: center;
   pointer-events: none;
-  animation: wb-ripple 620ms var(--wb-ease) forwards;
+  animation: wb-ripple var(--wb-motion-slow) var(--wb-ease) forwards;
 }
 @keyframes wb-ripple {
   from {

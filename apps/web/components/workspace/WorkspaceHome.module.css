@@ -21,7 +21,7 @@
   border: none;
   background: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg2);
 }
@@ -31,7 +31,7 @@
   box-shadow: var(--shadow-xs);
 }
 .count {
-  font-size: 11px;
+  font-size: var(--text-2xs);
   background: rgba(15, 23, 42, 0.06);
   color: var(--fg2);
   border-radius: 999px;
@@ -62,7 +62,7 @@
   box-shadow: var(--shadow-lg);
 }
 .filterHead {
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -78,7 +78,7 @@
   border: none;
   background: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
   text-align: left;
@@ -116,7 +116,7 @@
   border: none;
   border-top: 1px solid var(--border);
   background: none;
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--teal-600);
   cursor: pointer;
@@ -126,7 +126,7 @@
 }
 .empty {
   color: var(--fg2);
-  font-size: 14px;
+  font-size: var(--text-body);
   padding: 24px 4px;
 }
 

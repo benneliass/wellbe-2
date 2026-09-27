@@ -60,18 +60,36 @@ export interface NavItem {
   icon: string;
   label: string;
   href: string;
+  /** Opens the capture modal instead of navigating. */
+  action?: "capture";
   /** Not yet built — rendered but inert. */
   disabled?: boolean;
 }
 
-export const NAV_ITEMS: NavItem[] = [
+/** The five primary destinations (ui_vision.md → Primary Navigation). */
+export const PRIMARY_NAV: NavItem[] = [
   { id: "home", icon: "home", label: "Home", href: "/" },
   { id: "threads", icon: "list", label: "Threads", href: "/workspace" },
+  { id: "capture", icon: "plus-circle", label: "Capture", href: "#", action: "capture" },
+  { id: "packets", icon: "share", label: "Packets", href: "/prepare" },
   { id: "memory", icon: "book", label: "Memory", href: "/memory" },
+];
+
+/** Supporting areas, reachable from the rail's "More" group. */
+export const SECONDARY_NAV: NavItem[] = [
   { id: "results", icon: "bar-chart-3", label: "Results", href: "/results" },
   { id: "documents", icon: "file-text", label: "Documents", href: "/documents" },
   { id: "appointments", icon: "calendar", label: "Appointments", href: "/appointments" },
 ];
+
+export const NAV_ITEMS: NavItem[] = [...PRIMARY_NAV, ...SECONDARY_NAV];
+
+export function isNavActive(item: NavItem, pathname: string): boolean {
+  if (item.action || item.href === "#") return false;
+  if (item.id === "threads") return pathname.startsWith("/workspace") || pathname.startsWith("/threads");
+  if (item.href === "/") return pathname === "/";
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
 
 export interface CaptureType {
   id: string;

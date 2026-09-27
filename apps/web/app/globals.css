@@ -11,8 +11,14 @@ body {
   height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
-  font-family: var(--wb-font-sans);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
   background: var(--bg-app);
   color: var(--fg1);
   line-height: var(--lh-normal);
@@ -22,10 +28,37 @@ body {
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
+  font-family: var(--font-heading);
   font-weight: 700;
+  line-height: var(--lh-tight);
   letter-spacing: -0.01em;
+}
+
+p,
+li,
+dd,
+blockquote {
+  line-height: var(--lh-normal);
+}
+
+/* Numbers that align in columns: dates, scores, trends, counts. */
+time,
+data,
+table,
+[data-numeric] {
+  font-variant-numeric: var(--font-numeric);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
 }
 
 a {
@@ -36,4 +69,36 @@ a {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  /* 16px form text on mobile keeps iOS from zooming on focus and meets the body
+     minimum; !important because component modules set smaller desktop sizes. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

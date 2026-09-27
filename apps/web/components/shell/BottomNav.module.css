@@ -1,0 +1,105 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+  padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom)
+    max(8px, env(safe-area-inset-left));
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: var(--wb-bottom-nav-h);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--wb-touch-target);
+  min-height: var(--wb-touch-target);
+  padding: 6px 2px;
+  border: none;
+  background: none;
+  border-radius: var(--r-md);
+  color: var(--fg2);
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color var(--wb-motion-fast) var(--wb-ease), background var(--wb-motion-fast) var(--wb-ease);
+}
+
+.item:hover {
+  color: var(--fg1);
+}
+
+.item[aria-current="page"] {
+  color: var(--teal-600);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  transition: background var(--wb-motion-fast) var(--wb-ease);
+}
+
+.item[aria-current="page"] .icon {
+  background: var(--accent-soft);
+}
+
+.item[data-capture="true"] .icon {
+  background: var(--accent);
+  color: var(--fg-on-accent);
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .bar[data-variant="shell"] {
+    display: none;
+  }
+
+  /* Vertical dock on the left edge, clear of the launcher's centred content. */
+  .bar[data-variant="dock"] {
+    left: 24px;
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-md);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+  }
+
+  .bar[data-variant="dock"] .list {
+    grid-template-columns: 72px;
+    grid-auto-rows: 60px;
+    height: auto;
+    gap: 4px;
+  }
+}
