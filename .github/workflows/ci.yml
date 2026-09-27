@@ -126,4 +126,9 @@ jobs:
             kubectl logs -n "$ns" "$pod" --all-containers --prefix --tail=300
             echo "::endgroup::"
           done
+          for deploy in $(kubectl get deploy -n "$ns" -o name); do
+            echo "::group::logs $deploy"
+            kubectl logs -n "$ns" "$deploy" --all-containers --prefix --tail=200
+            echo "::endgroup::"
+          done
           exit 0

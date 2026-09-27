@@ -21,7 +21,8 @@ spec:
   template:
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
-      restartPolicy: OnFailure
+      # Never: failed pods are kept, so their logs survive the backoff limit.
+      restartPolicy: Never
       containers:
         - name: dev-seed
           image: {{ .Values.devSeed.image }}

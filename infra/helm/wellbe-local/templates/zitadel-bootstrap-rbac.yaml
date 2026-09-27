@@ -1,12 +1,15 @@
 {{- if .Values.auth.zitadel.firstInstance.bootstrapMachine.enabled }}
 # Lets the zitadel pod's bootstrap-pat-writer sidecar create the one Secret that
 # carries the first-instance machine PAT (see zitadel-deployment.yaml).
+# Wave -3: the zitadel Deployment (wave -1) cannot create pods until these exist.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: zitadel-bootstrap
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-3" | nindent 4 }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -14,6 +17,8 @@ metadata:
   name: zitadel-bootstrap
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-3" | nindent 4 }}
 rules:
   # `create` cannot be narrowed by resourceNames; the sidecar only ever posts one.
   - apiGroups: [""]
@@ -26,6 +31,8 @@ metadata:
   name: zitadel-bootstrap
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-3" | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

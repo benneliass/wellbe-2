@@ -4,6 +4,8 @@ metadata:
   name: postgres-init
   labels:
     {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    {{- include "wellbe-local.syncWave" "-3" | nindent 4 }}
 data:
   01_extensions.sql: |
     CREATE EXTENSION IF NOT EXISTS vector;
