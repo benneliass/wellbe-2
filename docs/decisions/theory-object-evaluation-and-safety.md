@@ -65,3 +65,27 @@ _From report §4.5 (verbatim DDL in the archived report)._
 ---
 
 _This record is append-only once approved. To supersede: create a new record at docs/decisions/<new-slug>.md and add a link here: "Superseded by: [docs/decisions/<new-slug>.md]"_
+
+---
+
+## Amendment — 2026-09-27: user-authored theory evaluation
+
+**Status:** Approved (owner, 2026-09-27). Additive only — nothing above is changed or superseded.
+
+**What changes.** The user can evaluate their own theory: they mark it **supported**, **weakened**, **ruled out**, **under review**, or reopen it (**open**), and **must** cite at least one piece of their own evidence plus a short rationale. The system never auto-decides a user evaluation.
+
+**How it fits G1 (no diagnostic statuses).** The user's mark is a separate, user-attributed `assessment`; it is **not** a new status. It maps onto the existing taxonomy, which is unchanged (the `c15.theories.status` CHECK is untouched):
+
+| User mark | Stored status |
+|---|---|
+| open | `unreviewed` |
+| under_review | `needs_more_data` |
+| supported | `partially_supported` |
+| weakened | `not_supported_by_current_data` |
+| ruled_out | `contradicted_by_current_data` |
+
+Copy is always attributed to the user ("You marked this theory as ruled out"), never phrased as a system finding, and every response still carries `not_diagnosis: true`. A user mark never lowers `safety_level`; theories withheld as `blocked_due_to_diagnostic_claim` cannot be evaluated.
+
+**Evidence (G2/G3).** Each cited ref (a C5 evidence link, C4 fact, or C2 capture) must belong to the same patient **and** to a thread linked to the theory's investigation, otherwise the request is rejected (422 `theory_evidence_not_found` / `theory_evidence_unrelated`). External sources cannot be cited. In C6, the cited facts' graph nodes get `evidence_for` (supported) or `evidence_against` (weakened / ruled out) edges to the Theory node, marked `source: user_evaluation`. The graph shows the user's *current* view: edges from an earlier user evaluation that the latest one no longer cites are removed (open / under review removes them all), while the immutable evaluation log in `c15.theory_evaluations` keeps the full history. Edges written by the system evaluator are never touched.
+
+**Mechanics.** Evaluations are recorded in the existing `c15.theory_evaluations` log (`evaluation_kind = 'user'`), with a DB CHECK requiring rationale + ≥1 evidence ref for user rows. `c15.theories.version` provides optimistic concurrency (`expected_version`, 409 on conflict). Writes are controller-only, audited (`c13.theory.evaluated`), idempotent (`Idempotency-Key`), and emit `c15.theory.evaluated.v1`. No AI-rendered copy is produced, so no C10 pass is needed for this path; any future AI copy about evaluations must go through C10.

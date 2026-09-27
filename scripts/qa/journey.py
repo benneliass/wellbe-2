@@ -21,6 +21,7 @@ import traceback
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -139,6 +140,26 @@ def _pdf_with_text(text: str) -> bytes:
     return bytes(out)
 
 
+def _image_only_pdf(text: str) -> bytes | None:
+    """A 'scanned' PDF: the text exists only as pixels (no text layer), so the
+    worker must OCR it. None when Pillow (>=10.1) is not installed on the runner."""
+    try:
+        import io
+
+        from PIL import Image, ImageDraw, ImageFont
+
+        font = ImageFont.load_default(size=56)
+    except (ImportError, TypeError):
+        return None
+    img = Image.new("RGB", (120 + 34 * len(text), 200), color="white")
+    ImageDraw.Draw(img).text((60, 60), text, fill="black", font=font)
+    buf = io.BytesIO()
+    img.save(buf, format="PDF", resolution=200.0)
+    return buf.getvalue()
+
+
+SCANNED_LAB = "Folate: 2.1 ng/mL (ref 3-17)"
+
 CAPTURES: list[tuple[str, dict[str, Any], str | None]] = [
     ("symptom", {"description": "Throbbing headache behind my eyes since this morning.",
                  "severity": "moderate"}, "headache"),
@@ -241,8 +262,20 @@ def run(j: Journey) -> None:
                                         "filename": "labs.pdf"}},
                       headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
         ids.append(body["capture_id"])
+        scan_pdf = _image_only_pdf(SCANNED_LAB)
+        if scan_pdf is not None:
+            scan = base64.b64encode(scan_pdf).decode()
+            body = j.call("POST", "/v1/capture", expect=201,
+                          json={"capture_type": "document",
+                                "payload": {"content_base64": scan,
+                                            "mime_type": "application/pdf",
+                                            "filename": "scanned-labs.pdf"}},
+                          headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
+            ids.append(body["capture_id"])
+            j.ctx["scanned_capture"] = body["capture_id"]
         j.ctx["capture_ids"] = ids
-        return f"{len(ids)} captures (symptom/lab/note/document)"
+        return f"{len(ids)} captures (symptom/lab/note/document" + (
+            "/scanned document)" if scan_pdf is not None else ")")
 
     j.step("capture every type", capture_all)
 
@@ -416,6 +449,54 @@ def run(j: Journey) -> None:
         items = j.wait_for("pending items after waiting_for_result", poll, timeout=30)
         open_items = [i for i in items if i.get("status") not in ("resolved", "cancelled")]
         assert open_items, f"no open pending item: {items}"
+        opened = open_items[0]
+        # Time-aware: a result wait is dated by policy (transition + 7 days).
+        assert opened.get("status") == "scheduled", f"not scheduled: {opened}"
+        assert opened.get("due_precision") == "relative_policy", opened
+        due_in = datetime.fromisoformat(opened["due_at"]) - datetime.now(UTC)
+        assert timedelta(days=6, hours=23) < due_in <= timedelta(days=7, minutes=10), (
+            f"due_at not ~now+7d: {opened.get('due_at')}"
+        )
+        j.ctx["opened_pending_item"] = opened
+        return f"opened '{opened.get('title')}' scheduled, due {opened['due_at'][:10]}"
+
+    if j.ctx.get("waiting_thread"):
+        j.step("pending item opens on waiting_for_result, dated now+7d", pending)
+
+    # Checked while the item is still open: reminders for settled items are
+    # intentionally suppressed, so resolving first could race the consumer.
+    def notifications() -> str:
+        opened = j.ctx["opened_pending_item"]
+
+        def poll() -> Any:
+            body = j.call("GET", "/v2/notifications", params={"limit": 50})
+            found = [
+                n for n in items_of(body, "notifications")
+                if n.get("kind") == "pending_item_created"
+                and n.get("pending_item_id") == opened["pending_item_id"]
+            ]
+            return found or None
+
+        found = j.wait_for("'created' notification for the waiting thread", poll, timeout=60)
+        note = found[0]
+        assert note.get("thread_id") == j.ctx["waiting_thread"], note
+        assert note["title"] == f"New follow-up: {opened['title']}", note["title"]
+        read = j.call("POST", f"/v2/notifications/{note['notification_id']}/read")
+        assert read.get("read_at"), f"mark read did not set read_at: {read}"
+        body = j.call("GET", "/v2/notifications", params={"limit": 50})
+        again = [n for n in items_of(body, "notifications")
+                 if n["notification_id"] == note["notification_id"]]
+        assert again and again[0].get("read_at"), f"not read after mark: {again}"
+        r = j.client.post(f"/v2/notifications/{uuid.uuid4()}/read", headers=j.headers())
+        assert r.status_code == 404, f"unknown notification not 404: {r.status_code}"
+        done = j.call("POST", "/v2/notifications/read-all")
+        assert done.get("unread_count") == 0, done
+        return f"'{note['title']}' listed; mark read + read-all ok"
+
+    if j.ctx.get("opened_pending_item"):
+        j.step("in-app notification for the opened follow-up", notifications)
+
+    def pending_resolves() -> str:
         tid = j.ctx["waiting_thread"]
         t = j.call("GET", f"/v1/threads/{tid}")
         j.call("POST", f"/v1/threads/{tid}/transition",
@@ -429,10 +510,10 @@ def run(j: Journey) -> None:
             return done or None
 
         j.wait_for("pending item resolved after leaving waiting_for_result", resolved, timeout=30)
-        return f"opened '{open_items[0].get('title')}', resolved when result came in"
+        return "resolved when the result came in"
 
-    if j.ctx.get("waiting_thread"):
-        j.step("pending item opens on waiting_for_result and resolves after", pending)
+    if j.ctx.get("opened_pending_item"):
+        j.step("pending item resolves after leaving waiting_for_result", pending_resolves)
 
     def memories() -> str:
         out = []
@@ -467,6 +548,21 @@ def run(j: Journey) -> None:
         return f"document lab surfaced: {found[0]['title']}"
 
     j.step("document (PDF) capture is extracted", document_facts)
+
+    def scanned_document_facts() -> str:
+        def poll() -> Any:
+            tn = j.call("GET", "/v1/things-noticed")
+            return [i for i in items_of(tn, "things_noticed")
+                    if "folate" in str(i).lower()] or None
+
+        found = j.wait_for("Folate from the scanned (image-only) PDF via local OCR", poll)
+        return f"OCR'd lab surfaced: {found[0]['title']}"
+
+    if j.ctx.get("scanned_capture"):
+        j.step("scanned (image-only PDF) capture is OCR'd and extracted", scanned_document_facts)
+    else:
+        print("  SKIP  scanned (image-only PDF) OCR step: Pillow>=10.1 not installed "
+              "(run with `uv run --with httpx --with pillow scripts/qa/journey.py ...`)")
 
     def delta() -> str:
         body = j.call("GET", "/v2/delta")
@@ -540,6 +636,65 @@ def run(j: Journey) -> None:
 
     if j.ctx.get("investigation"):
         j.step("investigation/theory linked into thread graph", theory_graph)
+
+    def theory_evaluation() -> str:
+        iid, theory = j.ctx["investigation"], j.ctx["theory"]
+        theory_id = theory["theory_id"]
+        inv_threads = set(j.call("GET", f"/v2/investigations/{iid}")["health_thread_ids"])
+        tid = j.ctx["threads"].get("headache")
+        assert tid in inv_threads, f"headache thread not in investigation: {inv_threads}"
+
+        memories = items_of(j.call("GET", f"/v2/threads/{tid}/memories"), "memories")
+        facts = [
+            ref["source_ref_id"]
+            for m in memories if "headache" in str(m.get("title", "")).lower()
+            for ref in m.get("source_refs", [])
+            if ref.get("source_ref_type") == "c4_extracted_fact"
+        ]
+        assert facts, f"no headache fact to cite on thread memories: {memories}"
+        evidence = [{"kind": "fact", "id": facts[0]}]
+        version = theory.get("version", 1)
+        path = f"/v2/theories/{theory_id}/evaluate"
+        rationale = "Headaches continued on days my iron was fine."
+
+        no_ev = j.call("POST", path, expect=422, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": [],
+            "expected_version": version})
+        assert no_ev["code"] == "theory_evidence_required", no_ev
+        stale = j.call("POST", path, expect=409, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": evidence,
+            "expected_version": version + 5})
+        assert stale["code"] == "version_conflict", stale
+
+        out = j.call("POST", path, json={
+            "to_status": "weakened", "rationale": rationale, "evidence_refs": evidence,
+            "expected_version": version})
+        updated, ev = out["theory"], out["evaluation"]
+        assert updated["status"] == "not_supported_by_current_data", updated
+        assert updated["version"] == version + 1, updated
+        assert updated["assessment_label"] == "You marked this theory as weakened", updated
+        assert updated["not_diagnosis"] is True
+        assert ev["evidence_refs"] == evidence, ev
+
+        history = j.call("GET", f"/v2/theories/{theory_id}/evaluations")
+        assert history and history[0]["evaluation_id"] == ev["evaluation_id"], history
+        listed = j.call("GET", f"/v2/investigations/{iid}/theories")
+        mine = next(t for t in listed if t["theory_id"] == theory_id)
+        assert mine["latest_evaluation"]["assessment"] == "weakened", mine
+
+        g = j.call("GET", f"/v2/graph/threads/{tid}")
+        theory_nodes = {n["id"] for n in g.get("nodes", []) if n.get("type") == "Theory"}
+        against = [e for e in g.get("edges", [])
+                   if e.get("relation") == "evidence_against" and e.get("target") in theory_nodes]
+        assert against, (
+            f"no evidence_against edge to the theory on thread graph: "
+            f"theory_nodes={theory_nodes} edges={[e.get('relation') for e in g.get('edges', [])]}"
+        )
+        return (f"marked weakened citing fact {facts[0][:8]}; 422 without evidence, 409 on "
+                f"stale version; {len(against)} evidence_against edge(s) on thread graph")
+
+    if j.ctx.get("theory") and j.ctx.get("threads", {}).get("headache"):
+        j.step("user evaluates theory (weakened) with cited evidence", theory_evaluation)
 
     # ------------------------------------------------------------ visit packets
     def visit_packet() -> str:

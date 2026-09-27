@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Icon } from "@wellbe/ui";
 import type { ThreadStatus, ThreadSummary } from "@/lib/types";
 import { STATUS_META } from "@/lib/meta";
+import type { PendingItemV2 } from "@/lib/pending";
+import { OpenLoops } from "./OpenLoops";
 import { SummaryStrip } from "./SummaryStrip";
 import { ThreadCard } from "./ThreadCard";
 import styles from "./WorkspaceHome.module.css";
@@ -30,9 +32,11 @@ const FILTERABLE: ThreadStatus[] = [
 export function WorkspaceHome({
   threads,
   pendingCount,
+  pendingItems = [],
 }: {
   threads: ThreadSummary[];
   pendingCount: number;
+  pendingItems?: PendingItemV2[];
 }) {
   const [tab, setTab] = useState<TabId>("all");
   const [sort, setSort] = useState<SortMode>("recent");
@@ -89,6 +93,7 @@ export function WorkspaceHome({
   return (
     <div>
       <SummaryStrip threads={threads} pendingCount={pendingCount} />
+      <OpenLoops items={pendingItems} />
 
       <div className={styles.bar}>
         <div className={styles.tabs} role="tablist">

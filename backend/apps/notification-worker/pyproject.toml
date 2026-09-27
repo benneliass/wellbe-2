@@ -2,12 +2,20 @@
 name = "wellbe-notification-worker"
 version = "0.1.0"
 requires-python = ">=3.13"
-description = "C12 Notification/Audit Worker: append-only audit trail sink and notification dispatcher."
+description = "C12 Notification Worker: in-app notifications from C9 pending-item outbox events."
 dependencies = [
     "wellbe-platform",
     "wellbe-contracts",
+    "wellbe-db",
+    "wellbe-events",
+    "wellbe-c9-continuity",
+    "wellbe-c12-audit",
 ]
 
 [tool.uv.sources]
 wellbe-platform = { workspace = true }
 wellbe-contracts = { workspace = true }
+wellbe-db = { workspace = true }
+wellbe-events = { workspace = true }
+wellbe-c9-continuity = { workspace = true }
+wellbe-c12-audit = { workspace = true }

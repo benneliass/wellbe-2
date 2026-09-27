@@ -22,4 +22,5 @@ export const queryKeys = {
   threads: ["threads"] as const,
   thread: (id: string) => ["threads", id] as const,
   pendingItems: ["pending-items"] as const,
+  notifications: ["notifications"] as const,
 };

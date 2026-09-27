@@ -214,10 +214,6 @@
 .input svg {
   color: var(--fg3);
 }
-.chev {
-  margin-left: auto;
-}
-
 .note {
   display: flex;
   align-items: center;
@@ -242,4 +238,32 @@
 .footBtns {
   display: flex;
   gap: 8px;
+}
+.savedFoot {
+  display: flex;
+  margin-left: auto;
+}
+.saved {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 8px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--fg2);
+}
+.saved b {
+  font-size: 16px;
+  color: var(--fg1);
+}
+.savedIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--teal-600);
 }

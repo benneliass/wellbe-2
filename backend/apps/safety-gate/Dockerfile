@@ -5,10 +5,11 @@ WORKDIR /app
 RUN pip install uv
 
 COPY backend/pyproject.toml ./pyproject.toml
+COPY backend/uv.lock ./uv.lock
 COPY backend/packages/ ./packages/
 COPY backend/apps/safety-gate/ ./apps/safety-gate/
 
-RUN uv sync --package wellbe-safety-gate --no-dev
+RUN uv sync --frozen --package wellbe-safety-gate --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/apps/safety-gate/src"

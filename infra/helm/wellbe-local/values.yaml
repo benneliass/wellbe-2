@@ -43,10 +43,14 @@ redis:
   image: redis:7-alpine
   port: 6379
 
+# MinIO stopped publishing images to Docker Hub (minio/minio and minio/mc now
+# fail with "pull access denied"), so pull Chainguard's free builds, pinned by
+# digest (multi-arch: amd64 CI runners + arm64 Macs). Same pins as homeserver.
 minio:
-  image: minio/minio:latest
-  # Bucket-init hook image. Must include a shell (the job runs `sh -c`).
-  mcImage: minio/mc:latest
+  image: cgr.dev/chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+  # Bucket-init hook image. Must include a shell (the job runs `sh -c`); the
+  # -dev variant of minio-client carries one.
+  mcImage: cgr.dev/chainguard/minio-client:latest-dev@sha256:f0dd93b48af1f8a641edcd3c64661c8dbe05189bd2ef2f8cea216eb18af10bf8
   rootUser: wellbe_minio
   rootPassword: wellbe_minio_dev
   buckets:
@@ -54,7 +58,7 @@ minio:
     - wellbe-documents
 
 zitadel:
-  image: ghcr.io/zitadel/zitadel:latest
+  image: ghcr.io/zitadel/zitadel:v4.19.1@sha256:f98935f56505ec6fa3e6523261cd1b8ace0c622e16da4a45acd493cb472f003f
   masterkey: "MasterkeyNeedsToHave32Characters"
   externalPort: 8090
   externalDomain: localhost
@@ -75,6 +79,14 @@ temporal:
   db: temporal
   visibilityDb: temporal_visibility
 
+# C9 follow-up windows (owner decision). The processing-worker dates new waiting
+# items with them; the continuity-worker sweeper applies the overdue grace.
+# Migration 024 backfilled existing items with these same defaults.
+c9Policy:
+  resultWindowDays: 7
+  referralWindowDays: 28
+  overdueGraceDays: 2
+
 continuityWorker:
   image: wellbe-continuity-worker:local
   imagePullPolicy: Never
@@ -82,6 +94,23 @@ continuityWorker:
   config:
     temporalHost: "temporal:7233"
     temporalNamespace: "default"
+    logLevel: "INFO"
+    environment: "dev"
+    # "sweeper" (periodic ledger sweep, no Temporal needed) or "temporal"
+    # (per-item durable-timer workflow). Exactly one mechanism owns C9 timers;
+    # see docs/decisions/c9-due-reminders-sweeper.md.
+    timerMechanism: "sweeper"
+    sweepIntervalSeconds: 60
+
+# C12 in-app notification worker: sole consumer of c9.pending_item.created /
+# .due / .overdue outbox events. In-app only (no push/email/messaging).
+notificationWorker:
+  enabled: true
+  image: wellbe-notification-worker:local
+  imagePullPolicy: Never
+  replicas: 1
+  config:
+    pollIntervalSeconds: 5
     logLevel: "INFO"
     environment: "dev"
 
@@ -192,3 +221,55 @@ devSeed:
   image: wellbe-api:local
   imagePullPolicy: Never
   patientId: "de7a0000-0000-4000-8000-000000000001"
+
+# ---------------------------------------------------------------------------
+# Authentication (OIDC via the in-chart ZITADEL). Kept in its own top-level key
+# so it never collides with the component blocks above. See
+# docs/runbooks/auth-oidc.md for the bootstrap -> fill values -> flip procedure.
+# ---------------------------------------------------------------------------
+auth:
+  # dev-headers: the API trusts X-Wellbe-* identity headers and the web app uses
+  #              the built-in dev identities (local kind, CI smoke).
+  # oidc:        the API requires a ZITADEL JWT access token and ignores identity
+  #              headers; the web app signs in with Authorization Code + PKCE.
+  #              Requires devSeed.enabled=false (the seed drives the API with dev
+  #              headers) — enforced at render time.
+  mode: dev-headers
+  oidc:
+    # Exact `iss` of ZITADEL tokens (its external URL, no trailing slash).
+    issuer: ""
+    # Accepted access-token audiences: the ZITADEL project id and/or web client id.
+    audience: []
+    # Public (PKCE) client id of the wellbe-web app — published to the browser.
+    webClientId: ""
+    # Fetch JWKS from the in-cluster Service instead of the external URL (pods may
+    # not resolve MagicDNS names). The Host header makes ZITADEL resolve the
+    # instance by its external domain. Empty = discovery via `issuer`.
+    jwksUrl: ""
+    jwksHostHeader: ""
+  zitadel:
+    # Overrides for zitadel.externalDomain/externalPort when non-empty.
+    externalDomain: ""
+    externalPort: ""
+    # true = TLS is terminated in front of ZITADEL (tailscale proxy): runs with
+    # --tlsMode external and advertises https URLs.
+    externalSecure: false
+    # Tailscale operator ingress exposing ZITADEL on https://<hostname>.<tailnet>.ts.net
+    # (same shape as the home-server repo's helm/tailscale-ingress entries).
+    tailscaleIngress:
+      enabled: false
+      hostname: wellbe-auth
+    # Applied ONLY when ZITADEL initializes a fresh (empty) database.
+    firstInstance:
+      orgName: ""
+      # ZITADEL v4 defaults new instances to the separately deployed Login V2 UI,
+      # which this chart does not run; false keeps the built-in login at /ui/login.
+      loginV2Required: false
+      # Machine user (IAM owner) whose PAT is written into Secret `secretName`
+      # for scripts/ops/zitadel_bootstrap.py. Fresh database only.
+      bootstrapMachine:
+        enabled: false
+        username: wellbe-bootstrap
+        patExpirationDate: "2030-01-01T00:00:00Z"
+        secretName: zitadel-bootstrap-pat
+        writerImage: curlimages/curl:8.11.1

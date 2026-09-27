@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
-import { clearSession } from "@/lib/session";
+import { signOut as endSession } from "@/lib/auth";
 import { useSession } from "@/lib/useSession";
 import styles from "./WorkspaceSwitcher.module.css";
 
@@ -62,9 +62,9 @@ export function WorkspaceSwitcher({
   const activeName = session?.displayName || active?.display_name || "Your workspace";
   const initials = toInitials(session?.displayName || "You");
 
-  function signOut() {
-    clearSession();
+  async function signOut() {
     setOpen(false);
+    await endSession();
     router.replace("/");
   }
 

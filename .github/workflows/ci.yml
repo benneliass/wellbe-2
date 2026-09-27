@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install tesseract (OCR tests)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
@@ -20,9 +23,13 @@ jobs:
       - name: Install Python 3.13
         run: uv python install 3.13
 
+      - name: Lockfile up to date
+        working-directory: backend
+        run: uv lock --check
+
       - name: Install dependencies
         working-directory: backend
-        run: uv sync --all-packages
+        run: uv sync --all-packages --locked
 
       - name: Lint (ruff)
         working-directory: backend
@@ -63,6 +70,12 @@ jobs:
     needs: [frontend]
     runs-on: ubuntu-latest
     steps:
+      # ~10 images (incl. the multi-GB TimescaleDB base) are built and then
+      # copied again into the kind node; reclaim preinstalled SDK space first.
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -78,5 +91,39 @@ jobs:
           config: infra/local/kind-cluster.yaml
       - name: Install ingress-nginx
         run: bash infra/k8s/setup-ingress.sh
+      # The chart runs postgres/migrations/api/workers as kind-loaded `:local`
+      # images (imagePullPolicy: Never); without them the hooks never start.
+      - name: Build + load backend images into kind
+        run: bash infra/k8s/build-images.sh desktop
       - name: Deploy web + run Home smoke against ingress
         run: npm run deploy:smoke
+      - name: Dump cluster diagnostics
+        if: failure()
+        run: |
+          set +e
+          ns=wellbe
+          echo "::group::kubectl get pods -A"
+          kubectl get pods -A -o wide
+          echo "::endgroup::"
+          echo "::group::jobs + events ($ns)"
+          kubectl get jobs -n "$ns" -o wide
+          kubectl get events -n "$ns" --sort-by=.lastTimestamp
+          echo "::endgroup::"
+          for job in $(kubectl get jobs -n "$ns" -o name); do
+            echo "::group::describe $job"
+            kubectl describe -n "$ns" "$job"
+            echo "::endgroup::"
+            echo "::group::logs $job (all containers)"
+            kubectl logs -n "$ns" "$job" --all-containers --prefix --tail=300
+            echo "::endgroup::"
+          done
+          for pod in $(kubectl get pods -n "$ns" --no-headers \
+              | awk '{split($2, r, "/")} $3 != "Completed" && ($3 != "Running" || r[1] != r[2]) {print $1}'); do
+            echo "::group::describe pod/$pod"
+            kubectl describe pod -n "$ns" "$pod"
+            echo "::endgroup::"
+            echo "::group::logs pod/$pod"
+            kubectl logs -n "$ns" "$pod" --all-containers --prefix --tail=300
+            echo "::endgroup::"
+          done
+          exit 0

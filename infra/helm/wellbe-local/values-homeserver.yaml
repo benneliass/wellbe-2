@@ -71,6 +71,9 @@ temporal:
     limits: {cpu: 500m, memory: 768Mi}
 
 zitadel:
+  image: ghcr.io/zitadel/zitadel:v4.19.1@sha256:f98935f56505ec6fa3e6523261cd1b8ace0c622e16da4a45acd493cb472f003f
+  # Set together with the ZITADEL DB re-init (docs/runbooks/auth-oidc.md step 2A).
+  # masterkeySecret: {name: zitadel-masterkey}
   resources:
     requests: {cpu: 30m, memory: 128Mi}
     limits: {cpu: 500m, memory: 512Mi}
@@ -97,6 +100,15 @@ continuityWorker:
     requests: {cpu: 20m, memory: 96Mi}
     limits: {cpu: 300m, memory: 384Mi}
 
+# New image: `latest` bootstraps the first rollout before argocd-image-updater
+# has written a semver tag for it to .argocd-source-wellbe.yaml.
+notificationWorker:
+  image: ghcr.io/benneliass/wellbe-notification-worker:latest
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 300m, memory: 384Mi}
+
 vaultWriter:
   image: ghcr.io/benneliass/wellbe-vault-writer:0.1.4
   imagePullPolicy: IfNotPresent
@@ -114,9 +126,13 @@ ingestionWorker:
 processingWorker:
   image: ghcr.io/benneliass/wellbe-processing-worker:0.1.4
   imagePullPolicy: IfNotPresent
+  # Local OCR (tesseract, one document/page at a time) runs in this pod's cgroup:
+  # ~200Mi worker baseline + up to ~150Mi decoded image (50MP cap) + ~150-300Mi
+  # tesseract child at 300 DPI ≈ 650Mi peak, so 1Gi leaves headroom. Tesseract is
+  # single-threaded (OMP_THREAD_LIMIT=1); a full core keeps pages at a few seconds.
   resources:
-    requests: {cpu: 30m, memory: 128Mi}
-    limits: {cpu: 500m, memory: 512Mi}
+    requests: {cpu: 50m, memory: 192Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
 
 safetyGate:
   image: ghcr.io/benneliass/wellbe-safety-gate:0.1.4
@@ -154,3 +170,31 @@ devSeed:
   enabled: true
   image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
+
+# ---------------------------------------------------------------------------
+# Authentication — see docs/runbooks/auth-oidc.md. ZITADEL is exposed on the
+# tailnet now; the API/web stay on dev-headers until the orchestrator has run
+# scripts/ops/zitadel_bootstrap.py and filled in the ids below.
+# ---------------------------------------------------------------------------
+auth:
+  mode: dev-headers
+  # --- flip to OIDC (runbook step 5): uncomment, fill ids, and set devSeed.enabled: false
+  # mode: oidc
+  # oidc:
+  #   issuer: "https://wellbe-auth.tail9c487a.ts.net"
+  #   audience: ["<PROJECT_ID>", "<WEB_CLIENT_ID>"]
+  #   webClientId: "<WEB_CLIENT_ID>"
+  #   jwksUrl: "http://zitadel:8090/oauth/v2/keys"
+  #   jwksHostHeader: "wellbe-auth.tail9c487a.ts.net"
+  zitadel:
+    externalDomain: wellbe-auth.tail9c487a.ts.net
+    externalPort: "443"
+    externalSecure: true
+    tailscaleIngress:
+      enabled: true
+      hostname: wellbe-auth
+    firstInstance:
+      orgName: WellBe
+      loginV2Required: false
+      bootstrapMachine:
+        enabled: true

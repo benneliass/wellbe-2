@@ -25,6 +25,7 @@ from wellbe_contracts.c7_thread import (
 from wellbe_contracts.c9_continuity import (
     C9_PENDING_ITEM_CREATED,
     C9_PENDING_ITEM_DUE,
+    C9_PENDING_ITEM_OVERDUE,
     C9_THREAD_TRANSITION_ACCEPTED,
     C9_TIMER_NO_OP_C7_REJECTED,
     C9_TIMER_NO_OP_STALE,
@@ -43,6 +44,7 @@ from wellbe_c9_continuity.errors import (
     PendingItemNotFoundError,
 )
 from wellbe_c9_continuity.models import PendingItemRow
+from wellbe_c9_continuity.policy import DuePolicy, default_policy
 from wellbe_c9_continuity.repository import ContinuityRepository
 
 # Closure-like target statuses. C9 never requests these on the basis of a single
@@ -68,10 +70,11 @@ class ContinuityService:
     guard metadata. A stale/guard rejection is a terminal no-op for the timer epoch.
     """
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession, policy: DuePolicy | None = None) -> None:
         self._session = session
         self._repo = ContinuityRepository(session)
         self._threads = ThreadService(session)
+        self._policy = policy or default_policy()
 
     async def create_pending_item(
         self,
@@ -245,16 +248,22 @@ class ContinuityService:
                 for item in await self._repo.items_for_thread(
                     patient_id=payload.patient_id, thread_id=payload.thread_id
                 ):
-                    if item.item_type == item_type.value and item.status not in _TERMINAL:
-                        await self._repo.bump_timer_epoch(row=item)
-                        await self._repo.set_status(row=item, status=PendingItemStatus.RESOLVED)
-                        logger.info(
-                            "c9 resolved %s item %s (thread %s left %s)",
-                            item_type.value,
-                            item.pending_item_id,
-                            payload.thread_id,
-                            status.value,
-                        )
+                    if item.item_type != item_type.value or item.status in _TERMINAL:
+                        continue
+                    # Lock so a concurrent due/overdue sweep cannot interleave: the
+                    # epoch bump makes any in-flight timer for this item stale.
+                    locked = await self._repo.get_for_update(item.pending_item_id)
+                    if locked is None or locked.status in _TERMINAL:
+                        continue
+                    await self._repo.bump_timer_epoch(row=locked)
+                    await self._repo.set_status(row=locked, status=PendingItemStatus.RESOLVED)
+                    logger.info(
+                        "c9 resolved %s item %s (thread %s left %s)",
+                        item_type.value,
+                        locked.pending_item_id,
+                        payload.thread_id,
+                        status.value,
+                    )
 
         # Entering a waiting state opens the follow-up the user is waiting on.
         waiting = _WAITING_STATES.get(payload.to_status)
@@ -267,12 +276,22 @@ class ContinuityService:
                 i.item_type == item_type.value and i.status not in _TERMINAL for i in items
             ):
                 thread = await ThreadRepository(self._session).get(payload.thread_id)
+                opened_at = await self._repo.transition_time(
+                    thread_id=payload.thread_id, transition_seq=payload.transition_seq
+                ) or utcnow()
+                due_at = self._policy.due_at(item_type, opened_at)
                 row = await self.create_pending_item(
                     patient_id=payload.patient_id,
                     primary_thread_id=payload.thread_id,
                     item_type=item_type,
                     title=f"{title}: {thread.title}" if thread is not None else title,
-                    status=PendingItemStatus.ACTIVE,
+                    status=(
+                        PendingItemStatus.SCHEDULED if due_at else PendingItemStatus.ACTIVE
+                    ),
+                    due_at=due_at,
+                    due_precision=(
+                        DuePrecision.RELATIVE_POLICY if due_at else DuePrecision.UNKNOWN
+                    ),
                     source_ref={
                         "kind": "thread_transition",
                         "transition_seq": payload.transition_seq,
@@ -288,10 +307,11 @@ class ContinuityService:
                     trace_id=trace_id,
                 )
                 logger.info(
-                    "c9 opened %s item %s for thread %s",
+                    "c9 opened %s item %s for thread %s (due %s)",
                     item_type.value,
                     row.pending_item_id,
                     payload.thread_id,
+                    due_at.isoformat() if due_at else "unknown",
                 )
 
         # On closure, cancel non-applicable timers but keep history.
@@ -299,14 +319,13 @@ class ContinuityService:
             for item in await self._repo.items_for_thread(
                 patient_id=payload.patient_id, thread_id=payload.thread_id
             ):
-                if (
-                    item.status not in ("resolved", "cancelled", "superseded")
-                    and not item.normal_test_safety_net
-                ):
-                    await self._repo.bump_timer_epoch(row=item)
-                    await self._repo.set_status(
-                        row=item, status=PendingItemStatus.CANCELLED
-                    )
+                if item.status in _TERMINAL or item.normal_test_safety_net:
+                    continue
+                locked = await self._repo.get_for_update(item.pending_item_id)
+                if locked is None or locked.status in _TERMINAL:
+                    continue
+                await self._repo.bump_timer_epoch(row=locked)
+                await self._repo.set_status(row=locked, status=PendingItemStatus.CANCELLED)
 
         # Update last-observed thread context on all active items (stale guard).
         for item in await self._repo.items_for_thread(
@@ -365,7 +384,10 @@ class ContinuityService:
             action_type=TimerActionType.FIRED,
         )
         await self._repo.set_status(row=row, status=PendingItemStatus.DUE)
-        await self._emit(C9_PENDING_ITEM_DUE, row, correlation_id, trace_id)
+        await self._emit(
+            C9_PENDING_ITEM_DUE, row, correlation_id, trace_id,
+            extra=_timer_event_fields(row, timer_epoch),
+        )
 
         if requested_target_status is None:
             return TimerFireResult(
@@ -402,6 +424,86 @@ class ContinuityService:
             correlation_id=correlation_id,
             trace_id=trace_id,
         )
+
+    async def fire_overdue_timer(
+        self,
+        *,
+        pending_item_id: uuid.UUID,
+        timer_epoch: int,
+        correlation_id: str = "c9",
+        trace_id: str = "c9",
+    ) -> TimerFireResult:
+        """Second timer phase: a due item that stayed open past the grace period.
+
+        Same race-safe protocol as ``fire_timer``: re-read FOR UPDATE and treat a
+        superseded epoch, a terminal item, or an item no longer ``due`` as a
+        no-op. Never requests a C7 transition — overdue is a reminder only.
+        """
+        row = await self._repo.get_for_update(pending_item_id)
+        if row is None:
+            raise PendingItemNotFoundError(pending_item_id)
+
+        if timer_epoch != row.timer_epoch or row.status != PendingItemStatus.DUE.value:
+            await self._repo.record_timer_action(
+                pending_item_id=pending_item_id,
+                patient_id=row.patient_id,
+                timer_epoch=timer_epoch,
+                action_type=TimerActionType.NO_OP_STALE,
+                payload={"phase": "overdue"},
+            )
+            await self._emit(
+                C9_TIMER_NO_OP_STALE, row, correlation_id, trace_id,
+                extra={"timer_epoch": timer_epoch, "phase": "overdue"},
+            )
+            return TimerFireResult(
+                pending_item_id=pending_item_id,
+                timer_epoch=timer_epoch,
+                action=TimerActionType.NO_OP_STALE,
+            )
+
+        await self._repo.record_timer_action(
+            pending_item_id=pending_item_id,
+            patient_id=row.patient_id,
+            timer_epoch=timer_epoch,
+            action_type=TimerActionType.FIRED,
+            payload={"phase": "overdue"},
+        )
+        await self._repo.set_status(row=row, status=PendingItemStatus.OVERDUE)
+        await self._emit(
+            C9_PENDING_ITEM_OVERDUE, row, correlation_id, trace_id,
+            extra=_timer_event_fields(row, timer_epoch),
+        )
+        return TimerFireResult(
+            pending_item_id=pending_item_id,
+            timer_epoch=timer_epoch,
+            action=TimerActionType.FIRED,
+        )
+
+    async def advance_due_item(
+        self,
+        *,
+        pending_item_id: uuid.UUID,
+        timer_epoch: int,
+        correlation_id: str = "c9-sweeper",
+        trace_id: str = "c9-sweeper",
+    ) -> TimerFireResult:
+        """Sweeper entry for scheduled -> due (reminder only, no C7 request).
+
+        Runs ``fire_timer`` and, when it fires, bumps the epoch to arm the overdue
+        phase: ``timer_actions`` is unique per (item, epoch, action), and a stale
+        due-phase fire can then never be mistaken for the overdue phase.
+        """
+        result = await self.fire_timer(
+            pending_item_id=pending_item_id,
+            timer_epoch=timer_epoch,
+            correlation_id=correlation_id,
+            trace_id=trace_id,
+        )
+        if result.action == TimerActionType.FIRED:
+            row = await self._repo.get_for_update(pending_item_id)
+            if row is not None:
+                await self._repo.bump_timer_epoch(row=row)
+        return result
 
     async def _request_transition(
         self,
@@ -513,6 +615,14 @@ class ContinuityService:
             correlation_id=correlation_id,
             trace_id=trace_id,
         )
+
+
+def _timer_event_fields(row: PendingItemRow, timer_epoch: int) -> dict[str, Any]:
+    return {
+        "item_type": row.item_type,
+        "due_at": row.due_at.isoformat() if row.due_at else None,
+        "timer_epoch": timer_epoch,
+    }
 
 
 def utcnow() -> datetime:

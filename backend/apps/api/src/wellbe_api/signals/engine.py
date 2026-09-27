@@ -22,6 +22,7 @@ The composed copy is gated by C10 (fail-closed) before release.
 
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -59,6 +60,24 @@ _POLICY_VERSION = "signals-c10-v1"
 _FRESH_WINDOW = timedelta(days=90)
 
 
+def _keyword_regex(keywords: tuple[str, ...]) -> re.Pattern[str] | None:
+    """Compile label keywords into one word-boundary-aware pattern.
+
+    A keyword matches as a whole word (an optional plural ``s``/``es`` is allowed),
+    so ``hb`` matches "Hb 13.2" but not "HbA1c". A trailing ``*`` makes it a
+    word-start prefix instead (``inflam*`` matches "inflammation").
+    """
+    if not keywords:
+        return None
+    parts = []
+    for kw in keywords:
+        if kw.endswith("*"):
+            parts.append(rf"\b{re.escape(kw[:-1])}")
+        else:
+            parts.append(rf"\b{re.escape(kw)}(?:e?s)?\b")
+    return re.compile("|".join(parts), re.IGNORECASE)
+
+
 @dataclass(frozen=True)
 class _AreaDef:
     id: str
@@ -66,24 +85,43 @@ class _AreaDef:
     node_types: tuple[str, ...]
     # Optional label keywords; when set, a node must also match one to contribute.
     keywords: tuple[str, ...] = ()
+    # Labels matching any of these never contribute to this area.
+    exclude: tuple[str, ...] = ()
+    kw_re: re.Pattern[str] | None = field(init=False, repr=False, compare=False)
+    ex_re: re.Pattern[str] | None = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "kw_re", _keyword_regex(self.keywords))
+        object.__setattr__(self, "ex_re", _keyword_regex(self.exclude))
 
 
-# Fixed area set from the decision's initial system set. Mapping is conservative
-# and explicit; a node may legitimately contribute to more than one area (e.g. a
-# lipid panel informs both cardiovascular and metabolic coverage).
+# Fixed area set from the decision's initial system set (+ the 2026-09-27
+# 'Blood & nutrition' amendment). Mapping is conservative and explicit; a node may
+# legitimately contribute to more than one area (e.g. a lipid panel informs both
+# cardiovascular and metabolic coverage; ferritin informs both inflammation and
+# blood & nutrition coverage).
 _AREAS: tuple[_AreaDef, ...] = (
     _AreaDef("cardiovascular", "Cardiovascular", ("VitalSign", "LabResult"),
              ("blood pressure", "bp", "heart rate", "pulse", "hr",
               "cholesterol", "lipid", "ldl", "hdl")),
     _AreaDef("metabolic", "Metabolic", ("LabResult", "VitalSign"),
-             ("glucose", "a1c", "hba1c", "insulin", "triglyceride",
+             ("glucose", "a1c", "hba1c", "glycated", "glycosylated", "insulin", "triglyceride",
               "cholesterol", "lipid", "weight", "bmi")),
     _AreaDef("sleep", "Sleep", ("VitalSign", "Symptom", "SocialFactor", "Other"),
-             ("sleep", "insomnia", "rem", "apnea")),
+             ("sleep*", "insomnia", "rem", "apnea")),
     _AreaDef("activity", "Activity", ("SocialFactor", "VitalSign", "Other"),
-             ("steps", "activity", "exercise", "walk", "workout", "active")),
+             ("steps", "activity", "exercise", "walk*", "workout", "active")),
     _AreaDef("inflammation", "Inflammation", ("LabResult",),
-             ("crp", "esr", "wbc", "ferritin", "inflam", "sed rate")),
+             ("crp", "esr", "wbc", "ferritin", "inflam*", "sed rate")),
+    _AreaDef("blood_nutrition", "Blood & nutrition", ("LabResult",),
+             ("hemoglobin", "haemoglobin", "hgb", "hb", "hematocrit", "haematocrit",
+              "hct", "mcv", "rbc", "red blood cell", "platelet", "plt",
+              "ferritin", "iron", "transferrin", "tibc",
+              "b12", "cobalamin", "folate", "folic",
+              "vitamin d", "vitamin d2", "vitamin d3", "25-oh*", "25(oh)*",
+              "25-hydroxy*", "zinc", "magnesium"),
+             # Glycated haemoglobin (HbA1c) is a metabolic marker, not blood count.
+             exclude=("a1c", "hba1c", "glycated", "glycosylated")),
     _AreaDef("vitals", "Vitals", ("VitalSign",)),
 )
 
@@ -97,10 +135,12 @@ class SignalsResult:
 def _matches(area: _AreaDef, node: KgNodeRow) -> bool:
     if node.node_type not in area.node_types:
         return False
-    if not area.keywords:
+    label = node.display_label or ""
+    if area.ex_re is not None and area.ex_re.search(label):
+        return False
+    if area.kw_re is None:
         return True
-    label = (node.display_label or "").lower()
-    return any(kw in label for kw in area.keywords)
+    return area.kw_re.search(label) is not None
 
 
 def _as_utc(dt: datetime) -> datetime:

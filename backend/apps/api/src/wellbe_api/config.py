@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,3 +34,30 @@ class ApiSettings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+
+    # How the boundary authenticates callers.
+    #   dev-headers — trusts X-Wellbe-* identity headers (local kind, tests, CI).
+    #   oidc        — requires a ZITADEL-issued JWT access token; identity headers
+    #                 are ignored and the actor is resolved from identity.accounts.
+    auth_mode: Literal["dev-headers", "oidc"] = "dev-headers"
+    # Exact `iss` claim value, e.g. https://wellbe-auth.tail9c487a.ts.net
+    oidc_issuer: str = ""
+    # Accepted `aud` values, comma-separated (ZITADEL puts the project id and the
+    # client id in access-token audiences; either is sufficient).
+    oidc_audience: str = ""
+    # Optional explicit JWKS URL (skips discovery), e.g. the in-cluster Service
+    # http://zitadel:8090/oauth/v2/keys. Pair with oidc_jwks_host_header so ZITADEL
+    # resolves its instance from the external domain.
+    oidc_jwks_url: str = ""
+    oidc_jwks_host_header: str = ""
+    oidc_algorithms: str = "RS256"
+    oidc_leeway_seconds: int = 30
+    oidc_jwks_cache_ttl_seconds: int = 3600
+
+    @property
+    def oidc_audiences(self) -> list[str]:
+        return [a.strip() for a in self.oidc_audience.split(",") if a.strip()]
+
+    @property
+    def oidc_algorithm_list(self) -> list[str]:
+        return [a.strip() for a in self.oidc_algorithms.split(",") if a.strip()]

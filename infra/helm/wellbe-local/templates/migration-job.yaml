@@ -9,7 +9,9 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation
     "helm.sh/hook-weight": "1"
 spec:
-  backoffLimit: 6
+  # Fail the hook (and the Helm/Argo sync) instead of retrying forever.
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
   template:
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}

@@ -11,6 +11,7 @@ dependencies = [
     "asyncpg>=0.30",
     "redis>=5.0",
     "httpx>=0.27",
+    "pyjwt[crypto]>=2.9",
     "wellbe-platform",
     "wellbe-contracts",
     "wellbe-db",
@@ -25,6 +26,7 @@ dependencies = [
     "wellbe-c8-memories",
     "wellbe-c9-continuity",
     "wellbe-c11-correction",
+    "wellbe-c12-audit",
 ]
 
 [tool.uv.sources]
@@ -42,3 +44,4 @@ wellbe-c16-external = { workspace = true }
 wellbe-c8-memories = { workspace = true }
 wellbe-c9-continuity = { workspace = true }
 wellbe-c11-correction = { workspace = true }
+wellbe-c12-audit = { workspace = true }

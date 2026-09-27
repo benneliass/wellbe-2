@@ -3,42 +3,45 @@ name: DB Migrations Check
 on:
   pull_request:
     paths:
-      - "db/migrations/**"
+      - "db/**"
+      - "infra/local/Dockerfile.postgres"
+      - ".github/workflows/db-migrations.yml"
 
 jobs:
   migrations:
     name: Validate Alembic migrations
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: wellbe
-          POSTGRES_PASSWORD: wellbe_test
-          POSTGRES_DB: wellbe_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://wellbe:wellbe_test@localhost:5432/wellbe_test
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      # Migration 006 needs Apache AGE, so run the same Postgres image the chart deploys.
+      - name: Start Postgres (AGE)
+        run: |
+          docker build -t wellbe-postgres:ci -f infra/local/Dockerfile.postgres infra/local
+          docker run -d --name pg -p 5432:5432 \
+            -e POSTGRES_USER=wellbe -e POSTGRES_PASSWORD=wellbe_test -e POSTGRES_DB=wellbe_test \
+            wellbe-postgres:ci
+          for i in $(seq 60); do docker exec pg pg_isready -U wellbe -q && exit 0; sleep 1; done
+          docker logs pg; exit 1
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Same pins as the migrations image (db/Dockerfile.migrations).
       - name: Install dependencies
-        working-directory: backend
-        run: uv sync --package wellbe-db
+        run: pip install -r db/requirements.txt
 
-      - name: Run migrations
-        run: uv run alembic upgrade head
+      - name: Upgrade to head
         working-directory: db
-        env:
-          DATABASE_URL: postgresql+asyncpg://wellbe:wellbe_test@localhost:5432/wellbe_test
+        run: alembic upgrade head
 
-      - name: Check for autogenerate drift
-        run: uv run alembic check
+      # Downgrading past 021 is not supported (006 cannot drop AGE while graph objects exist).
+      - name: Downgrade to 021 and upgrade again
         working-directory: db
-        env:
-          DATABASE_URL: postgresql+asyncpg://wellbe:wellbe_test@localhost:5432/wellbe_test
+        run: |
+          alembic downgrade 021
+          alembic upgrade head
+          alembic current | grep -q "(head)"

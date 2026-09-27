@@ -37,9 +37,11 @@ kind load docker-image wellbe-web:local --name "$KIND_CLUSTER"
 echo "=== Deploying via Helm ==="
 # No --wait here: we monitor the web rollout explicitly so the gate fails fast on
 # web instead of blocking on the whole stack. Helm still blocks on chart hooks
-# (e.g. the alembic-migrate Job); a fresh kind runner must pull the heavy custom
-# Postgres image (AGE + Timescale) before that hook can run, which can exceed the
-# default 5m hook timeout — so give hooks a longer window.
+# (minio-init, alembic-migrate, dev-workspace-seed), which wait for MinIO and
+# Postgres to start on a cold node — so give hooks a longer window than the
+# default 5m. The backend/data `:local` images must already be kind-loaded
+# (infra/k8s/build-images.sh); the hook Jobs' activeDeadlineSeconds make a
+# stuck hook fail before this timeout.
 helm upgrade --install "$RELEASE_NAME" "$CHART_DIR" \
   --namespace "$NAMESPACE" \
   --create-namespace \

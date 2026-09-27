@@ -28,6 +28,16 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.web.port | quote }}
+            # Runtime auth config served to the browser by /auth-config.js (read
+            # per request, so the same image serves dev-headers and oidc targets).
+            - name: NEXT_PUBLIC_WELLBE_AUTH_MODE
+              value: {{ ternary "oidc" "dev" (eq .Values.auth.mode "oidc") | quote }}
+            {{- if eq .Values.auth.mode "oidc" }}
+            - name: NEXT_PUBLIC_WELLBE_OIDC_ISSUER
+              value: {{ .Values.auth.oidc.issuer | quote }}
+            - name: NEXT_PUBLIC_WELLBE_OIDC_CLIENT_ID
+              value: {{ .Values.auth.oidc.webClientId | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /

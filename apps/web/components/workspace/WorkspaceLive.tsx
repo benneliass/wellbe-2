@@ -3,6 +3,8 @@
 import { StateNote } from "@/components/placeholder/StateNote";
 import { useSession } from "@/lib/useSession";
 import { usePendingItems, useThreads } from "@/lib/hooks";
+import { ThingsNoticed } from "./ThingsNoticed";
+import { openPendingItems } from "@/lib/pending";
 import { WorkspaceHome } from "./WorkspaceHome";
 
 /**
@@ -40,17 +42,26 @@ export function WorkspaceLive() {
   }
 
   const threads = threadsQuery.data ?? [];
-  const pendingCount = pendingQuery.data?.length ?? 0;
+  const pendingItems = openPendingItems(pendingQuery.data ?? []);
+  const pendingCount = pendingItems.length;
 
   if (threads.length === 0) {
     return (
-      <StateNote
-        icon="folder"
-        title="Nothing to carry forward yet"
-        description="When you log something or a concern opens, it will show up here as a thread."
-      />
+      <>
+        <ThingsNoticed />
+        <StateNote
+          icon="folder"
+          title="Nothing to carry forward yet"
+          description="When you log something or a concern opens, it will show up here as a thread."
+        />
+      </>
     );
   }
 
-  return <WorkspaceHome threads={threads} pendingCount={pendingCount} />;
+  return (
+    <>
+      <ThingsNoticed />
+      <WorkspaceHome threads={threads} pendingCount={pendingCount} pendingItems={pendingItems} />
+    </>
+  );
 }

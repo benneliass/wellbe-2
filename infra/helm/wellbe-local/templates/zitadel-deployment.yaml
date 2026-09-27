@@ -1,3 +1,5 @@
+{{- $z := .Values.auth.zitadel }}
+{{- $bm := $z.firstInstance.bootstrapMachine }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,6 +20,12 @@ spec:
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       enableServiceLinks: false
+      {{- if $bm.enabled }}
+      serviceAccountName: zitadel-bootstrap
+      volumes:
+        - name: bootstrap
+          emptyDir: {}
+      {{- end }}
       initContainers:
         # zitadel's `start-from-init` hard-fails (exit 1) if Postgres is not
         # reachable at boot, which crashloops on cold starts until backoff
@@ -39,11 +47,23 @@ spec:
           {{- include "wellbe-local.resources" .Values.zitadel.resources | nindent 10 }}
           args:
             - start-from-init
+            {{- if .Values.zitadel.masterkeySecret }}
+            - --masterkeyFromEnv
+            {{- else }}
             - --masterkey
             - {{ .Values.zitadel.masterkey | quote }}
+            {{- end }}
             - --tlsMode
-            - disabled
+            - {{ ternary "external" "disabled" $z.externalSecure }}
           env:
+            {{- with .Values.zitadel.masterkeySecret }}
+            # Created out of band (never in git); must be exactly 32 characters.
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key | default "masterkey" }}
+            {{- end }}
             - name: ZITADEL_DATABASE_POSTGRES_HOST
               value: "wellbe-postgres"
             - name: ZITADEL_DATABASE_POSTGRES_PORT
@@ -63,11 +83,32 @@ spec:
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE
               value: "disable"
             - name: ZITADEL_EXTERNALSECURE
-              value: "false"
+              value: {{ $z.externalSecure | toString | quote }}
             - name: ZITADEL_EXTERNALPORT
-              value: {{ .Values.zitadel.externalPort | quote }}
+              value: {{ $z.externalPort | default .Values.zitadel.externalPort | quote }}
             - name: ZITADEL_EXTERNALDOMAIN
-              value: {{ .Values.zitadel.externalDomain | quote }}
+              value: {{ $z.externalDomain | default .Values.zitadel.externalDomain | quote }}
+            # FirstInstance / DefaultInstance settings only apply when ZITADEL
+            # initializes an empty database; they are inert on an existing instance.
+            - name: ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED
+              value: {{ $z.firstInstance.loginV2Required | toString | quote }}
+            {{- with $z.firstInstance.orgName }}
+            - name: ZITADEL_FIRSTINSTANCE_ORG_NAME
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if $bm.enabled }}
+            - name: ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME
+              value: {{ $bm.username | quote }}
+            - name: ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME
+              value: "WellBe bootstrap"
+            - name: ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE
+              value: {{ $bm.patExpirationDate | quote }}
+            - name: ZITADEL_FIRSTINSTANCE_PATPATH
+              value: /zitadel-bootstrap/pat.txt
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /zitadel-bootstrap
+            {{- end }}
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -84,3 +125,38 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 15
             timeoutSeconds: 5
+        {{- if $bm.enabled }}
+        # Copies the first-instance PAT into a Secret, once. On an existing
+        # instance ZITADEL never writes the file and this container just idles.
+        - name: bootstrap-pat-writer
+          image: {{ $bm.writerImage }}
+          {{- include "wellbe-local.resources" .Values.jobResources | nindent 10 }}
+          securityContext:
+            runAsUser: 0
+          env:
+            - name: SECRET_NAME
+              value: {{ $bm.secretName | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              SA=/var/run/secrets/kubernetes.io/serviceaccount
+              until [ -s /zitadel-bootstrap/pat.txt ]; do sleep 10; done
+              PAT=$(base64 < /zitadel-bootstrap/pat.txt | tr -d '\n')
+              BODY='{"apiVersion":"v1","kind":"Secret","metadata":{"name":"'"$SECRET_NAME"'"},"type":"Opaque","data":{"pat":"'"$PAT"'"}}'
+              CODE=$(curl -sS -o /tmp/resp -w '%{http_code}' --cacert "$SA/ca.crt" \
+                -H "Authorization: Bearer $(cat "$SA/token")" -H 'Content-Type: application/json' \
+                -X POST "https://kubernetes.default.svc/api/v1/namespaces/$(cat "$SA/namespace")/secrets" \
+                -d "$BODY")
+              case "$CODE" in
+                201) echo "secret $SECRET_NAME created" ;;
+                409) echo "secret $SECRET_NAME already exists; left unchanged" ;;
+                *) cat /tmp/resp; exit 1 ;;
+              esac
+              exec sleep 2147483647
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /zitadel-bootstrap
+              readOnly: true
+        {{- end }}

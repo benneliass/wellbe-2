@@ -56,17 +56,40 @@ async def problem_error_handler(_request: Request, exc: Exception) -> JSONRespon
     return exc.to_response()
 
 
-def unauthenticated_response(correlation_id: str) -> JSONResponse:
+def unauthenticated_response(
+    correlation_id: str, *, code: str = "unauthenticated", bearer: bool = False
+) -> JSONResponse:
     """401 in RFC 9457 shape. Auth is outside the stable ProblemCode registry, so
     this uses a free-form code rather than polluting the contract enum."""
+    detail = (
+        "A valid bearer access token is required to call this endpoint."
+        if code == "invalid_token"
+        else "A resolved principal is required to call this endpoint."
+    )
     return JSONResponse(
         status_code=401,
+        headers={"WWW-Authenticate": 'Bearer error="invalid_token"'} if bearer else None,
         content={
-            "type": f"{_PROBLEM_BASE}unauthenticated",
+            "type": f"{_PROBLEM_BASE}{code.replace('_', '-')}",
             "title": "Authentication required",
             "status": 401,
-            "code": "unauthenticated",
-            "detail": "A resolved principal is required to call this endpoint.",
+            "code": code,
+            "detail": detail,
+            "correlation_id": correlation_id,
+        },
+    )
+
+
+def onboarding_required_response(correlation_id: str) -> JSONResponse:
+    """403 for an authenticated identity that has not finished onboarding."""
+    return JSONResponse(
+        status_code=403,
+        content={
+            "type": f"{_PROBLEM_BASE}onboarding-required",
+            "title": "Onboarding required",
+            "status": 403,
+            "code": "onboarding_required",
+            "detail": "This identity has no active WellBe account yet; finish onboarding first.",
             "correlation_id": correlation_id,
         },
     )

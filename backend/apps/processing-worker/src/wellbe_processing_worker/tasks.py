@@ -66,13 +66,14 @@ async def _extract_facts(event_json: str) -> None:
     event = RawContextEvent.model_validate(data)
 
     decision = decide_route(event.source_type, event.mime_type)
-    # A document whose text layer was already read (digital PDF) is extracted
-    # here; only image-only documents need the (not yet available) OCR workflow.
+    # Documents arrive with their text already resolved by the dispatch loop:
+    # the PDF text layer, or local OCR (ocr.py) for scans/photos, with OCR
+    # provenance in ``_ocr``. A document with no text at all is not extracted.
     has_text_layer = decision.route == DispatchRoute.TEMPORAL_OCR and bool(data.get("_raw_text"))
     if decision.route != DispatchRoute.DRAMATIQ_TEXT and not has_text_layer:
         logger.warning(
-            "capture %s not extracted: route=%s (source_type=%s, mime=%s) has no consumer; "
-            "image-only documents need OCR, which is not deployed",
+            "capture %s not extracted: route=%s (source_type=%s, mime=%s) has no text "
+            "(no text layer and OCR produced nothing, or no consumer for this route)",
             event.id,
             decision.route.value,
             event.source_type,
@@ -115,6 +116,11 @@ async def _extract_facts(event_json: str) -> None:
             ]
             if labs:
                 results = [r for r in results if r.fact_type.value != "other"] + labs
+            ocr = data.get("_ocr")
+            if isinstance(ocr, dict):
+                from wellbe_processing_worker.ocr import apply_ocr_provenance
+
+                results = apply_ocr_provenance(results, ocr)
 
     # Payloads for facts that were newly persisted in this run. On at-least-once
     # re-delivery, already-existing facts are skipped here so we do not re-link

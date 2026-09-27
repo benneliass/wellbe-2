@@ -11,7 +11,9 @@ class DispatchRoute(StrEnum):
     TEMPORAL_DOCUMENT = "temporal_document"
 
 
-_OCR_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/tiff", "application/pdf"})
+_OCR_MIME_TYPES = frozenset(
+    {"image/jpeg", "image/png", "image/tiff", "image/heic", "image/heif", "application/pdf"}
+)
 _FHIR_SOURCE_TYPES = frozenset({"fhir"})
 _STRUCTURED_SOURCE_TYPES = frozenset({"manual_text", "sms", "device"})
 

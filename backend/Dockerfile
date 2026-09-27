@@ -5,10 +5,10 @@ WORKDIR /app
 RUN pip install uv
 
 FROM base AS deps
-COPY backend/pyproject.toml backend/uv.lock* ./
+COPY backend/pyproject.toml backend/uv.lock ./
 COPY backend/packages/ ./packages/
 COPY backend/apps/ ./apps/
-RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
+RUN uv sync --frozen --no-dev
 
 FROM base AS runtime
 COPY --from=deps /app/.venv /app/.venv

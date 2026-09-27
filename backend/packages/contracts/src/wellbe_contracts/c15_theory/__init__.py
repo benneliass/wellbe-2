@@ -13,7 +13,7 @@ from __future__ import annotations
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from wellbe_contracts.primitives import AwareDatetime, PatientId
 
@@ -24,6 +24,8 @@ from wellbe_contracts.primitives import AwareDatetime, PatientId
 THEORY_CREATED = "theory.created.v1"
 THEORY_EVALUATED = "theory.evaluated.v1"
 THEORY_SAFETY_LEVEL_CHANGED = "theory.safety_level_changed.v1"
+# A user-authored evaluation (the user marks the theory; the system never decides).
+THEORY_USER_EVALUATED = "c15.theory.evaluated.v1"
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -145,6 +147,90 @@ def is_theory_edge_allowed(from_status: TheoryStatus, to_status: TheoryStatus) -
 
 
 # ---------------------------------------------------------------------------
+# User evaluation (owner decision 2026-09-27)
+# ---------------------------------------------------------------------------
+
+
+class TheoryAssessment(StrEnum):
+    """The USER's own mark on a theory, always attributed to them.
+
+    This is a user-authored label, not a finding: it maps onto the existing
+    non-diagnostic ``TheoryStatus`` taxonomy (G1 is unchanged — no status is ever
+    ``ruled_out``/``confirmed``) and is shown as "You marked this theory as …".
+    """
+
+    OPEN = "open"
+    UNDER_REVIEW = "under_review"
+    SUPPORTED = "supported"
+    WEAKENED = "weakened"
+    RULED_OUT = "ruled_out"
+
+
+ASSESSMENT_TO_STATUS: dict[TheoryAssessment, TheoryStatus] = {
+    TheoryAssessment.OPEN: TheoryStatus.UNREVIEWED,
+    TheoryAssessment.UNDER_REVIEW: TheoryStatus.NEEDS_MORE_DATA,
+    TheoryAssessment.SUPPORTED: TheoryStatus.PARTIALLY_SUPPORTED,
+    TheoryAssessment.WEAKENED: TheoryStatus.NOT_SUPPORTED_BY_CURRENT_DATA,
+    TheoryAssessment.RULED_OUT: TheoryStatus.CONTRADICTED_BY_CURRENT_DATA,
+}
+
+# Direction of the personal evidence edges a user evaluation projects into C6.
+# open/under_review cite evidence for the record but project no directional edge.
+ASSESSMENT_EVIDENCE_DIRECTION: dict[TheoryAssessment, EvidenceDirection | None] = {
+    TheoryAssessment.OPEN: None,
+    TheoryAssessment.UNDER_REVIEW: None,
+    TheoryAssessment.SUPPORTED: EvidenceDirection.FOR,
+    TheoryAssessment.WEAKENED: EvidenceDirection.AGAINST,
+    TheoryAssessment.RULED_OUT: EvidenceDirection.AGAINST,
+}
+
+ASSESSMENT_LABEL: dict[TheoryAssessment, str] = {
+    TheoryAssessment.OPEN: "You reopened this theory",
+    TheoryAssessment.UNDER_REVIEW: "You marked this theory as under review",
+    TheoryAssessment.SUPPORTED: "You marked this theory as supported",
+    TheoryAssessment.WEAKENED: "You marked this theory as weakened",
+    TheoryAssessment.RULED_OUT: "You marked this theory as ruled out",
+}
+
+RATIONALE_MAX_LENGTH = 2000
+MAX_EVIDENCE_REFS = 50
+
+
+class TheoryEvidenceRefKind(StrEnum):
+    """What a user-cited evidence reference points at (all personal, same patient)."""
+
+    EVIDENCE_LINK = "evidence_link"  # C5 evidence.evidence_links.id
+    FACT = "fact"  # C4 processing.extracted_facts.id
+    CAPTURE = "capture"  # C2 vault.raw_context_events.id
+
+
+class TheoryEvidenceRef(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    kind: TheoryEvidenceRefKind
+    id: UUID
+
+
+class TheoryUserEvaluation(BaseModel):
+    """One immutable user evaluation of a theory."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    evaluation_id: UUID
+    theory_id: UUID
+    patient_id: PatientId
+    actor_id: UUID
+    evaluation_version: int
+    assessment: TheoryAssessment
+    from_status: TheoryStatus
+    to_status: TheoryStatus
+    rationale: str
+    evidence_refs: list[TheoryEvidenceRef]
+    evidence_node_ids: list[UUID] = Field(default_factory=list)
+    created_at: AwareDatetime
+
+
+# ---------------------------------------------------------------------------
 # Core types
 # ---------------------------------------------------------------------------
 
@@ -235,6 +321,24 @@ class TheoryEvaluatedPayload(BaseModel):
     trace_id: str
 
 
+class TheoryUserEvaluatedPayload(BaseModel):
+    schema_version: int = 1
+    theory_id: UUID
+    patient_id: PatientId
+    investigation_id: UUID | None = None
+    evaluation_id: UUID
+    evaluation_version: int
+    actor_id: UUID
+    assessment: TheoryAssessment
+    from_status: TheoryStatus
+    to_status: TheoryStatus
+    theory_version: int
+    evidence_refs: list[TheoryEvidenceRef]
+    evidence_node_ids: list[UUID]
+    correlation_id: str
+    trace_id: str
+
+
 class TheorySafetyLevelChangedPayload(BaseModel):
     schema_version: int = 1
     theory_id: UUID
@@ -249,6 +353,17 @@ __all__ = [
     "THEORY_CREATED",
     "THEORY_EVALUATED",
     "THEORY_SAFETY_LEVEL_CHANGED",
+    "THEORY_USER_EVALUATED",
+    "TheoryAssessment",
+    "ASSESSMENT_TO_STATUS",
+    "ASSESSMENT_EVIDENCE_DIRECTION",
+    "ASSESSMENT_LABEL",
+    "RATIONALE_MAX_LENGTH",
+    "MAX_EVIDENCE_REFS",
+    "TheoryEvidenceRefKind",
+    "TheoryEvidenceRef",
+    "TheoryUserEvaluation",
+    "TheoryUserEvaluatedPayload",
     "TheoryStatus",
     "TheorySafetyLevel",
     "TheoryType",

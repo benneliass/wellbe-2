@@ -28,6 +28,10 @@ class TestDecideRoute:
         decision = decide_route("photo", "image/png")
         assert decision.route == DispatchRoute.TEMPORAL_OCR
 
+    def test_image_heic_routes_to_temporal_ocr(self):
+        decision = decide_route("pdf", "image/heic")
+        assert decision.route == DispatchRoute.TEMPORAL_OCR
+
     def test_pdf_routes_to_temporal_ocr(self):
         decision = decide_route("pdf", "application/pdf")
         assert decision.route == DispatchRoute.TEMPORAL_OCR

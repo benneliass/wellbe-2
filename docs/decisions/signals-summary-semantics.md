@@ -348,3 +348,20 @@ Grounded only in the recorded research:
 ---
 
 _This record is append-only once approved. To supersede: create a new record at docs/decisions/<new-slug>.md and add a link here: "Superseded by: [docs/decisions/<new-slug>.md]"_
+
+---
+
+## Amendment — 2026-09-27: add a 'Blood & nutrition' area
+
+**Status:** Approved (owner, 2026-09-27). Additive only — nothing above is changed or superseded.
+
+**What changes.** The live area set gains a seventh coverage area, `blood_nutrition` / **"Blood & nutrition"**, alongside cardiovascular, metabolic, sleep, activity, inflammation and vitals. It is sourced from `LabResult` graph nodes whose label names a blood-count or nutrition marker: haemoglobin/hemoglobin (Hb, HGB), haematocrit (HCT), MCV, RBC, platelets, ferritin, iron, transferrin, TIBC, vitamin B12/cobalamin, folate/folic acid, vitamin D (25-OH), zinc and magnesium. `areas_total` becomes 7; the UI renders whatever areas the API returns and never hard-codes a count.
+
+**Why.** These are among the most commonly captured routine labs; without an area they were either invisible on Home or (ferritin) only surfaced under inflammation, under-reporting what is actually current in the user's records.
+
+**Matching rules.**
+- Keywords match on **word boundaries** (optional plural allowed), not raw substrings, so `hb` matches "Hb 13.2" but not "HbA1c", and short abbreviations no longer match inside unrelated words. A keyword may be marked as a word-start prefix (e.g. `inflam*`) where the stem is intentional. This applies to every area.
+- Glycated haemoglobin (HbA1c / "haemoglobin A1c" / "glycated haemoglobin") is **excluded** from Blood & nutrition and counts under metabolic.
+- **Ferritin counts in both** inflammation and Blood & nutrition. A node may contribute to more than one area (as lipids already do for cardiovascular and metabolic); this is coverage, not double-weighting, because no aggregate score is computed.
+
+**Unchanged semantics (explicitly re-affirmed).** Per-area status remains strictly coverage/recency (`recent_data` / `stale_data` / `no_data`). No reference ranges are applied and no "low/normal/deficient" or in-range verdict is shown for any blood or nutrition marker. Missing/stale data is an explicit unknown, never green; the denominator counts only areas with fresh data; the aggregate line is suppressed when nothing is fresh; and the composed copy still passes the C10 gate (fail-closed) before release.

@@ -29,7 +29,7 @@ const SIGNED_OUT: SignalsSummary = {
   headline: "Your health signals",
   coverage_label: "Sign in to see what's current in your records",
   areas_with_data: 0,
-  areas_total: 6,
+  areas_total: 7,
   areas: [],
   note: "",
   suppressed: true,
