@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, Icon } from "@wellbe/ui";
 import type { ThreadStatus, ThreadSummary } from "@/lib/types";
 import { STATUS_META } from "@/lib/meta";
@@ -33,10 +33,13 @@ export function WorkspaceHome({
   threads,
   pendingCount,
   pendingItems = [],
+  afterLoops,
 }: {
   threads: ThreadSummary[];
   pendingCount: number;
   pendingItems?: PendingItemV2[];
+  /** Rendered between the open loops and the thread list (e.g. Things noticed). */
+  afterLoops?: ReactNode;
 }) {
   const [tab, setTab] = useState<TabId>("all");
   const [sort, setSort] = useState<SortMode>("recent");
@@ -94,6 +97,7 @@ export function WorkspaceHome({
     <div>
       <SummaryStrip threads={threads} pendingCount={pendingCount} />
       <OpenLoops items={pendingItems} />
+      {afterLoops}
 
       <div className={styles.bar}>
         <div className={styles.tabs} role="tablist">

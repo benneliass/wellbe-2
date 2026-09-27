@@ -9,6 +9,29 @@
   color: var(--fg3);
   margin: 0 0 8px;
 }
+.group + .group,
+.group + .fold {
+  margin-top: 14px;
+}
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--fg2);
+}
+.groupHead svg {
+  color: var(--teal-500);
+}
+.group[data-group="attention"] .groupHead svg {
+  color: var(--amber-500);
+}
+.count {
+  font-weight: 500;
+  color: var(--fg3);
+}
 .list {
   list-style: none;
   margin: 0;
@@ -31,17 +54,44 @@
 a.row:hover {
   background: var(--slate-50);
 }
-.row svg {
+.row > svg {
   color: var(--fg3);
   flex: none;
 }
-.title {
+.text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.title {
   font-size: var(--text-body);
   font-weight: 600;
   color: var(--fg1);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.next {
+  font-size: var(--text-xs);
+  color: var(--fg2);
+}
+.fold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--teal-600);
+}
+.fold:hover {
+  text-decoration: underline;
+}
+.head + .fold {
+  margin-top: 0;
 }

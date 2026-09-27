@@ -1,9 +1,11 @@
 /* The orb, headline and gaps scale with viewport height so the column fits
    common laptop screens; the pills keep their fixed size and never shrink.
    `vh` is the fallback; `dvh` (below) keeps mobile browser chrome from hiding
-   the Ask bar. */
+   the Ask bar. The orb budget also leaves room for the continuity strip
+   (--strip-space) under the Ask bar. */
 .launch {
-  --orb: clamp(80px, 54vh - 230px, 310px);
+  --strip-space: 40px;
+  --orb: clamp(80px, 54vh - 230px - var(--strip-space), 310px);
   --gap-xs: clamp(4px, 1vh, 12px);
   --gap-sm: clamp(8px, 2vh, 20px);
   --gap-md: clamp(12px, 2.6vh, 36px);
@@ -22,7 +24,7 @@
 }
 @supports (height: 1dvh) {
   .launch {
-    --orb: clamp(80px, 54dvh - 230px, 310px);
+    --orb: clamp(80px, 54dvh - 230px - var(--strip-space), 310px);
     --gap-xs: clamp(4px, 1dvh, 12px);
     --gap-sm: clamp(8px, 2dvh, 20px);
     --gap-md: clamp(12px, 2.6dvh, 36px);
@@ -508,6 +510,59 @@
   background: linear-gradient(180deg, #0e6e6c, #0a5251);
 }
 
+/* Continuity line under the Ask bar. Its height is fixed (reserved while loading)
+   so the centered column never shifts; long lines ellipsize instead of wrapping. */
+.continuity {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  width: min(680px, 100%);
+  min-height: 32px;
+  margin-top: var(--gap-xs);
+}
+.continuityLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+  height: 32px;
+  padding: 0 6px 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  color: var(--fg2);
+  font-size: var(--wb-text-sm);
+  line-height: 1;
+  text-decoration: none;
+  transition: background var(--wb-motion-fast) var(--wb-ease);
+}
+.continuityLink:hover {
+  background: rgba(255, 255, 255, 0.62);
+}
+.continuityLink:focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 2px;
+}
+.continuityText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.continuityGo {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--teal-600);
+  font-weight: 600;
+}
+
 .foot {
   display: flex;
   align-items: center;
@@ -550,6 +605,23 @@
 @media (max-height: 860px) {
   .launch {
     --pill-h: 192px;
+  }
+}
+/* Short laptop screens (e.g. 1024x583): the orb may go a little smaller and the
+   OR divider tightens so the strip fits without pushing the footnote off-screen. */
+@media (max-height: 640px) {
+  .launch {
+    --orb: clamp(60px, 54vh - 230px - var(--strip-space), 310px);
+  }
+  .or {
+    margin: var(--gap-xs) 0;
+  }
+}
+@supports (height: 1dvh) {
+  @media (max-height: 640px) {
+    .launch {
+      --orb: clamp(60px, 54dvh - 230px - var(--strip-space), 310px);
+    }
   }
 }
 @media (max-width: 1023px) {
@@ -637,10 +709,22 @@
   .ask input {
     font-size: var(--wb-text-base);
   }
+  /* Narrow screens scroll, so the strip may wrap rather than truncate. */
+  .continuityLink {
+    height: auto;
+    min-height: 32px;
+    padding: 5px 5px 5px 14px;
+    border-radius: 18px;
+    line-height: 1.35;
+  }
+  .continuityText {
+    white-space: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .full,
+  .continuityLink,
   .pill,
   .signals,
   .signalsChev,

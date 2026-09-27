@@ -366,6 +366,8 @@ def _candidate_row(**overrides) -> SimpleNamespace:
         promoted_thread_id=None,
         created_at=now,
         updated_at=now,
+        snoozed_until=None,
+        ignored_at=None,
     )
     base.update(overrides)
     return SimpleNamespace(**base)
@@ -420,6 +422,41 @@ class TestCandidateService:
         result = await candidate_service.promote(uuid.uuid4(), thread_id=thread_id)
         assert result.status is CandidateStatus.PROMOTED
         assert result.promoted_thread_id == thread_id
+
+    @pytest.mark.asyncio
+    async def test_ignore_holds_candidate_pending_until_seen_again(self, candidate_service):
+        at = datetime(2026, 9, 27, 12, 0, tzinfo=UTC)
+        candidate_service._repo.set_hold.return_value = _candidate_row(
+            ignored_at=at.replace(tzinfo=None)
+        )
+        result = await candidate_service.ignore(uuid.uuid4(), now=at)
+        kwargs = candidate_service._repo.set_hold.await_args.kwargs
+        assert kwargs["ignored_at"] == at
+        assert kwargs["snoozed_until"] is None
+        assert result.status is CandidateStatus.PENDING
+        assert result.ignored_at == at
+
+    @pytest.mark.asyncio
+    async def test_snooze_sets_until_and_clears_ignore(self, candidate_service):
+        until = datetime(2026, 10, 4, 9, 0, tzinfo=UTC)
+        candidate_service._repo.set_hold.return_value = _candidate_row(
+            snoozed_until=until.replace(tzinfo=None)
+        )
+        result = await candidate_service.snooze(uuid.uuid4(), until=until)
+        kwargs = candidate_service._repo.set_hold.await_args.kwargs
+        assert kwargs == {
+            "candidate_id": kwargs["candidate_id"],
+            "snoozed_until": until,
+            "ignored_at": None,
+        }
+        assert result.status is CandidateStatus.PENDING
+        assert result.snoozed_until == until
+
+    @pytest.mark.asyncio
+    async def test_hold_on_missing_candidate_raises(self, candidate_service):
+        candidate_service._repo.set_hold.return_value = None
+        with pytest.raises(CandidateNotFoundError):
+            await candidate_service.ignore(uuid.uuid4())
 
     def test_promotion_due_on_repeat_signal(self):
         pending = ThreadCandidateFactory(seen_count=3)

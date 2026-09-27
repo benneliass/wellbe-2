@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 
@@ -162,6 +162,114 @@ def test_dismiss_not_pending_returns_409(monkeypatch: pytest.MonkeyPatch) -> Non
 
     resp = _client().post(f"/v1/things-noticed/{_CANDIDATE_ID}/dismiss", headers=_AUTH)
     assert resp.status_code == 409
+
+
+class _PendingRepo:
+    status = "pending"
+
+    def __init__(self, _session: Any) -> None: ...
+
+    async def get(self, _cid: uuid.UUID) -> Any:
+        return SimpleNamespace(
+            user_id=uuid.UUID(_ACTOR),
+            status=self.status,
+            display_title="Knee pain",
+            concern_key={"concern_type": "symptom"},
+        )
+
+
+def test_ignore_keeps_candidate_pending(monkeypatch: pytest.MonkeyPatch) -> None:
+    ignored_at = datetime.now(UTC)
+
+    class _FakeService:
+        def __init__(self, _session: Any) -> None: ...
+
+        async def ignore(self, _cid: uuid.UUID) -> ThreadCandidate:
+            return _candidate().model_copy(update={"ignored_at": ignored_at})
+
+    monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _PendingRepo)
+    monkeypatch.setattr(things_noticed_v1, "GenesisCandidateService", _FakeService)
+    _override_session()
+
+    resp = _client().post(f"/v1/things-noticed/{_CANDIDATE_ID}/ignore", headers=_AUTH)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["status"] == "pending"
+    assert body["ignored_at"] is not None
+    assert body["snoozed_until"] is None
+
+
+def test_ignore_not_pending_returns_409(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _DismissedRepo(_PendingRepo):
+        status = "dismissed"
+
+    monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _DismissedRepo)
+    _override_session()
+
+    resp = _client().post(f"/v1/things-noticed/{_CANDIDATE_ID}/ignore", headers=_AUTH)
+    assert resp.status_code == 409
+
+
+def test_snooze_hides_until_the_chosen_date(monkeypatch: pytest.MonkeyPatch) -> None:
+    until = datetime.now(UTC) + timedelta(days=7)
+    captured: dict[str, Any] = {}
+
+    class _FakeService:
+        def __init__(self, _session: Any) -> None: ...
+
+        async def snooze(self, _cid: uuid.UUID, *, until: datetime) -> ThreadCandidate:
+            captured["until"] = until
+            return _candidate().model_copy(update={"snoozed_until": until})
+
+    monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _PendingRepo)
+    monkeypatch.setattr(things_noticed_v1, "GenesisCandidateService", _FakeService)
+    _override_session()
+
+    resp = _client().post(
+        f"/v1/things-noticed/{_CANDIDATE_ID}/snooze",
+        headers=_AUTH,
+        json={"until": until.isoformat()},
+    )
+    assert resp.status_code == 200, resp.text
+    assert captured["until"] == until
+    body = resp.json()
+    assert body["status"] == "pending"
+    assert datetime.fromisoformat(body["snoozed_until"]) == until
+
+
+@pytest.mark.parametrize(
+    "until",
+    [
+        (datetime.now(UTC) - timedelta(hours=1)).isoformat(),
+        (datetime.now(UTC) + timedelta(days=400)).isoformat(),
+        "2026-10-04T09:00:00",  # naive: the moment is ambiguous
+    ],
+)
+def test_snooze_rejects_past_far_or_naive_dates(
+    monkeypatch: pytest.MonkeyPatch, until: str
+) -> None:
+    monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _PendingRepo)
+    _override_session()
+
+    resp = _client().post(
+        f"/v1/things-noticed/{_CANDIDATE_ID}/snooze", headers=_AUTH, json={"until": until}
+    )
+    assert resp.status_code == 422
+
+
+def test_snooze_not_owned_returns_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _OtherRepo(_PendingRepo):
+        async def get(self, _cid: uuid.UUID) -> Any:
+            return SimpleNamespace(user_id=uuid.uuid4(), status="pending")
+
+    monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _OtherRepo)
+    _override_session()
+
+    until = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+    resp = _client().post(
+        f"/v1/things-noticed/{_CANDIDATE_ID}/snooze", headers=_AUTH, json={"until": until}
+    )
+    assert resp.status_code == 404
 
 
 def test_confirm_happy_path_creates_thread_and_promotes(

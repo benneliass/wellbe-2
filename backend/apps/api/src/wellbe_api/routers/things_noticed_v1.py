@@ -2,8 +2,13 @@
 
 A candidate is the calm, lossless destination for weak/ambiguous concern signals
 that genesis is not confident enough to open as a Health Thread (genesis Stories
-C0/B1). This surface lets the controller see what WellBe noticed and act on it:
-dismiss it, or confirm it into a Health Thread.
+C0/B1). This surface lets the controller see what WellBe noticed and act on it,
+mirroring the relevance-candidate card actions:
+
+- accept        -> ``confirm``: opens a Health Thread (terminal, ``promoted``);
+- reject        -> ``dismiss``: not related, never resurfaced (terminal, ``dismissed``);
+- ignore for now -> ``ignore``: stays pending, hidden until it is seen again;
+- remind later  -> ``snooze``: stays pending, hidden until a chosen moment.
 
 Personal-first and never-alarm: every read/write is scoped to the calling
 controller, a candidate that is not theirs is invisible (404, not 403, so the
@@ -14,10 +19,10 @@ user-initiated thread (never a system auto-create) so the user stays in control.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import AwareDatetime, BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c7_thread import ThreadService
 from wellbe_c9_continuity.genesis import GenesisCandidateService
@@ -50,6 +55,27 @@ class ThingNoticedV1(BaseModel):
     promoted_thread_id: str | None = None
     source_capture_count: int = 0
     source_fact_count: int = 0
+    snoozed_until: datetime | None = None
+    ignored_at: datetime | None = None
+
+
+_MAX_SNOOZE = timedelta(days=365)
+
+
+class SnoozeThingNoticedV1(BaseModel):
+    """Remind me later: hide the candidate until ``until`` (future, within a year)."""
+
+    until: AwareDatetime
+
+    @field_validator("until")
+    @classmethod
+    def _within_window(cls, value: datetime) -> datetime:
+        now = datetime.now(UTC)
+        if value <= now:
+            raise ValueError("until must be in the future")
+        if value - now > _MAX_SNOOZE:
+            raise ValueError("until must be within a year")
+        return value
 
 
 class ConfirmResponseV1(BaseModel):
@@ -77,6 +103,8 @@ def _to_v1(candidate: ThreadCandidate) -> ThingNoticedV1:
         ),
         source_capture_count=len(candidate.source_capture_ids),
         source_fact_count=len(candidate.source_fact_ids),
+        snoozed_until=candidate.snoozed_until,
+        ignored_at=candidate.ignored_at,
     )
 
 
@@ -144,6 +172,55 @@ async def dismiss_thing_noticed(
         principal=principal,
         summary="Thing noticed dismissed",
         extra={"candidate_id": str(candidate_id)},
+    )
+    await session.commit()
+    return _to_v1(candidate)
+
+
+@router.post("/things-noticed/{candidate_id}/ignore", response_model=ThingNoticedV1)
+async def ignore_thing_noticed(
+    candidate_id: uuid.UUID, principal: PrincipalDep, session: SessionDep
+) -> ThingNoticedV1:
+    """Ignore for now: no decision; it comes back if it is noticed again."""
+    await require_access(
+        principal, session, action="write", resource_type=_RESOURCE, resource_id=candidate_id
+    )
+    row = await _load_owned_candidate(session, principal, candidate_id)
+    _require_pending(row, principal)
+    svc = GenesisCandidateService(session)
+    candidate = await svc.ignore(candidate_id)
+    await audit_ref(
+        session,
+        event_type="c13.things_noticed.ignored",
+        principal=principal,
+        summary="Thing noticed ignored for now",
+        extra={"candidate_id": str(candidate_id)},
+    )
+    await session.commit()
+    return _to_v1(candidate)
+
+
+@router.post("/things-noticed/{candidate_id}/snooze", response_model=ThingNoticedV1)
+async def snooze_thing_noticed(
+    candidate_id: uuid.UUID,
+    body: SnoozeThingNoticedV1,
+    principal: PrincipalDep,
+    session: SessionDep,
+) -> ThingNoticedV1:
+    """Remind me later: hidden until ``until``, then it reappears unchanged."""
+    await require_access(
+        principal, session, action="write", resource_type=_RESOURCE, resource_id=candidate_id
+    )
+    row = await _load_owned_candidate(session, principal, candidate_id)
+    _require_pending(row, principal)
+    svc = GenesisCandidateService(session)
+    candidate = await svc.snooze(candidate_id, until=body.until)
+    await audit_ref(
+        session,
+        event_type="c13.things_noticed.snoozed",
+        principal=principal,
+        summary="Thing noticed snoozed",
+        extra={"candidate_id": str(candidate_id), "until": body.until.isoformat()},
     )
     await session.commit()
     return _to_v1(candidate)
