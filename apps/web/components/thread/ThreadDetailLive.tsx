@@ -14,6 +14,7 @@ import detail from "./ThreadDetail.module.css";
 import rec from "@/components/records/RecordList.module.css";
 import styles from "./ThreadDetailLive.module.css";
 import { describePendingItem, openPendingItems } from "@/lib/pending";
+import { ThreadTheories } from "./ThreadTheories";
 
 /**
  * Live thread detail for real (non-demo) thread ids: the /v1/threads/{id}
@@ -160,6 +161,8 @@ export function ThreadDetailLive({ id }: { id: string }) {
                 </>
               )}
             </Panel>
+
+            <ThreadTheories threadId={id} />
           </div>
 
           <aside className={detail.side}>

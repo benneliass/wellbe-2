@@ -31,6 +31,9 @@ class TheoryRow(Base):
     supersedes_theory_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )
+    version: Mapped[int] = mapped_column(
+        Integer(), nullable=False, default=1, server_default="1"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -68,6 +71,16 @@ class TheoryEvaluationRow(Base):
         JSONB(), nullable=False, default=dict
     )
     evaluator_actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    evaluation_kind: Mapped[str] = mapped_column(
+        Text(), nullable=False, default="system", server_default="system"
+    )
+    assessment: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    from_status: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    rationale: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    evidence_refs: Mapped[list[dict[str, object]]] = mapped_column(
+        JSONB(), nullable=False, default=list
+    )
+    idempotency_key: Mapped[str | None] = mapped_column(Text(), nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

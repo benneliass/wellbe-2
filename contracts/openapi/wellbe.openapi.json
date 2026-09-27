@@ -1045,6 +1045,57 @@
         "title": "DeltaSourceRef",
         "type": "object"
       },
+      "EvaluateTheoryRequest": {
+        "description": "The user's own evaluation. ``to_status`` is the user's mark, never a diagnosis.",
+        "properties": {
+          "evidence_refs": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRefRequest"
+            },
+            "maxItems": 50,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "rationale": {
+            "maxLength": 2000,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/TheoryAssessment"
+          }
+        },
+        "required": [
+          "to_status",
+          "rationale",
+          "expected_version"
+        ],
+        "title": "EvaluateTheoryRequest",
+        "type": "object"
+      },
+      "EvidenceRefRequest": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TheoryEvidenceRefKind"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "EvidenceRefRequest",
+        "type": "object"
+      },
       "EvidenceTier": {
         "description": "Qualitative evidence strength for an *observed* pattern \u2014 not disease truth.",
         "enum": [
@@ -2902,6 +2953,171 @@
         "title": "SupportedSchemaVersionsV2",
         "type": "object"
       },
+      "TheoryAssessment": {
+        "description": "The USER's own mark on a theory, always attributed to them.\n\nThis is a user-authored label, not a finding: it maps onto the existing\nnon-diagnostic ``TheoryStatus`` taxonomy (G1 is unchanged \u2014 no status is ever\n``ruled_out``/``confirmed``) and is shown as \"You marked this theory as \u2026\".",
+        "enum": [
+          "open",
+          "under_review",
+          "supported",
+          "weakened",
+          "ruled_out"
+        ],
+        "title": "TheoryAssessment",
+        "type": "string"
+      },
+      "TheoryEvaluationResultV2": {
+        "additionalProperties": false,
+        "properties": {
+          "evaluation": {
+            "$ref": "#/components/schemas/TheoryEvaluationV2"
+          },
+          "schema_version": {
+            "const": "c13.theory_evaluation_result.v2",
+            "default": "c13.theory_evaluation_result.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "theory": {
+            "$ref": "#/components/schemas/TheoryV2"
+          }
+        },
+        "required": [
+          "theory",
+          "evaluation"
+        ],
+        "title": "TheoryEvaluationResultV2",
+        "type": "object"
+      },
+      "TheoryEvaluationV2": {
+        "additionalProperties": false,
+        "description": "One immutable, user-authored evaluation. The user decides; never a diagnosis.",
+        "properties": {
+          "assessment": {
+            "title": "Assessment",
+            "type": "string"
+          },
+          "assessment_label": {
+            "title": "Assessment Label",
+            "type": "string"
+          },
+          "audit_refs": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRefV2"
+            },
+            "title": "Audit Refs",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evaluated_by": {
+            "additionalProperties": true,
+            "title": "Evaluated By",
+            "type": "object"
+          },
+          "evaluation_id": {
+            "title": "Evaluation Id",
+            "type": "string"
+          },
+          "evaluation_version": {
+            "title": "Evaluation Version",
+            "type": "integer"
+          },
+          "evidence_node_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Node Ids",
+            "type": "array"
+          },
+          "evidence_refs": {
+            "items": {
+              "$ref": "#/components/schemas/TheoryEvidenceRefV2"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "from_status": {
+            "title": "From Status",
+            "type": "string"
+          },
+          "not_diagnosis": {
+            "const": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.theory_evaluation.v2",
+            "default": "c13.theory_evaluation.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "theory_id": {
+            "title": "Theory Id",
+            "type": "string"
+          },
+          "to_status": {
+            "title": "To Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evaluation_id",
+          "theory_id",
+          "evaluation_version",
+          "assessment",
+          "assessment_label",
+          "from_status",
+          "to_status",
+          "rationale",
+          "evaluated_by",
+          "not_diagnosis",
+          "created_at"
+        ],
+        "title": "TheoryEvaluationV2",
+        "type": "object"
+      },
+      "TheoryEvidenceRefKind": {
+        "description": "What a user-cited evidence reference points at (all personal, same patient).",
+        "enum": [
+          "evidence_link",
+          "fact",
+          "capture"
+        ],
+        "title": "TheoryEvidenceRefKind",
+        "type": "string"
+      },
+      "TheoryEvidenceRefV2": {
+        "additionalProperties": false,
+        "description": "A user-cited personal evidence pointer (C5 link, C4 fact, or C2 capture id).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "evidence_link",
+              "fact",
+              "capture"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "TheoryEvidenceRefV2",
+        "type": "object"
+      },
       "TheoryType": {
         "enum": [
           "symptom_cause",
@@ -2916,6 +3132,28 @@
       "TheoryV2": {
         "additionalProperties": false,
         "properties": {
+          "assessment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment"
+          },
+          "assessment_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Label"
+          },
           "audit_refs": {
             "items": {
               "$ref": "#/components/schemas/AuditRefV2"
@@ -2974,6 +3212,16 @@
             "title": "Label",
             "type": "string"
           },
+          "latest_evaluation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TheoryEvaluationV2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "missing_data": {
             "items": {
               "additionalProperties": true,
@@ -3025,6 +3273,11 @@
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "version": {
+            "default": 1,
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
@@ -8408,6 +8661,388 @@
         "summary": "Get Signals",
         "tags": [
           "v2-signals"
+        ]
+      }
+    },
+    "/v2/theories/{theory_id}": {
+      "get": {
+        "operationId": "get_theory_v2_theories__theory_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "theory_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Theory Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TheoryV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Theory",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/theories/{theory_id}/evaluate": {
+      "post": {
+        "description": "The USER marks a theory, citing their own evidence. The system never decides.",
+        "operationId": "evaluate_theory_v2_theories__theory_id__evaluate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "theory_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Theory Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateTheoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TheoryEvaluationResultV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Theory",
+        "tags": [
+          "v2-investigations"
+        ]
+      }
+    },
+    "/v2/theories/{theory_id}/evaluations": {
+      "get": {
+        "operationId": "list_theory_evaluations_v2_theories__theory_id__evaluations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "theory_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Theory Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TheoryEvaluationV2"
+                  },
+                  "title": "Response List Theory Evaluations V2 Theories  Theory Id  Evaluations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Theory Evaluations",
+        "tags": [
+          "v2-investigations"
         ]
       }
     },

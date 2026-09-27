@@ -32,6 +32,12 @@ class ProblemCode(StrEnum):
     RENDER_TOKEN_INVALID = "render_token_invalid"
     POLICY_UNAVAILABLE = "policy_unavailable"
     AUDIT_REF_UNAVAILABLE = "audit_ref_unavailable"
+    VERSION_CONFLICT = "version_conflict"
+    THEORY_EVIDENCE_REQUIRED = "theory_evidence_required"
+    THEORY_RATIONALE_REQUIRED = "theory_rationale_required"
+    THEORY_EVIDENCE_NOT_FOUND = "theory_evidence_not_found"
+    THEORY_EVIDENCE_UNRELATED = "theory_evidence_unrelated"
+    THEORY_NOT_LINKED_TO_INVESTIGATION = "theory_not_linked_to_investigation"
 
 
 class SourceQualityTierV2(StrEnum):
@@ -107,6 +113,35 @@ class InvestigationV2(StrictBaseModel):
     audit_refs: list[AuditRefV2] = Field(default_factory=list)
 
 
+class TheoryEvidenceRefV2(StrictBaseModel):
+    """A user-cited personal evidence pointer (C5 link, C4 fact, or C2 capture id)."""
+
+    kind: Literal["evidence_link", "fact", "capture"]
+    id: str
+
+
+class TheoryEvaluationV2(StrictBaseModel):
+    """One immutable, user-authored evaluation. The user decides; never a diagnosis."""
+
+    schema_version: Literal["c13.theory_evaluation.v2"] = "c13.theory_evaluation.v2"
+    evaluation_id: str
+    theory_id: str
+    evaluation_version: int
+    # The user's own mark: open / under_review / supported / weakened / ruled_out.
+    assessment: str
+    # Attributed, non-diagnostic copy, e.g. "You marked this theory as ruled out".
+    assessment_label: str
+    from_status: str
+    to_status: str
+    rationale: str
+    evidence_refs: list[TheoryEvidenceRefV2] = Field(default_factory=list)
+    evidence_node_ids: list[str] = Field(default_factory=list)
+    evaluated_by: dict[str, Any]
+    not_diagnosis: Literal[True]
+    created_at: datetime
+    audit_refs: list[AuditRefV2] = Field(default_factory=list)
+
+
 class TheoryV2(StrictBaseModel):
     schema_version: Literal["c13.theory.v2"] = "c13.theory.v2"
     theory_id: str
@@ -125,7 +160,20 @@ class TheoryV2(StrictBaseModel):
     not_diagnosis: Literal[True]
     created_at: datetime
     updated_at: datetime
+    # Optimistic-concurrency token for POST /v2/theories/{id}/evaluate.
+    version: int = 1
+    assessment: str | None = None
+    assessment_label: str | None = None
+    latest_evaluation: TheoryEvaluationV2 | None = None
     audit_refs: list[AuditRefV2] = Field(default_factory=list)
+
+
+class TheoryEvaluationResultV2(StrictBaseModel):
+    schema_version: Literal["c13.theory_evaluation_result.v2"] = (
+        "c13.theory_evaluation_result.v2"
+    )
+    theory: TheoryV2
+    evaluation: TheoryEvaluationV2
 
 
 class ExternalSourceRefV2(StrictBaseModel):
@@ -416,6 +464,9 @@ __all__ = [
     "SourceQualityTierV2",
     "SourceRefV2",
     "SupportedSchemaVersionsV2",
+    "TheoryEvaluationResultV2",
+    "TheoryEvaluationV2",
+    "TheoryEvidenceRefV2",
     "TheoryV2",
     "WorkspaceV2",
 ]

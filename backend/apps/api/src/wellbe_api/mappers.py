@@ -17,7 +17,15 @@ from wellbe_contracts.c13_api import (
     InvestigationV2,
     RelevanceLinkV2,
     SourceQualityTierV2,
+    TheoryEvaluationV2,
+    TheoryEvidenceRefV2,
     TheoryV2,
+)
+from wellbe_contracts.c15_theory import (
+    ASSESSMENT_EVIDENCE_DIRECTION,
+    ASSESSMENT_LABEL,
+    EvidenceDirection,
+    TheoryUserEvaluation,
 )
 from wellbe_contracts.c16_external import RelevanceLinkResult
 
@@ -67,11 +75,48 @@ def investigation_to_v2(
     )
 
 
+def theory_evaluation_to_v2(
+    ev: TheoryUserEvaluation,
+    *,
+    audit_refs: list[AuditRefV2] | None = None,
+) -> TheoryEvaluationV2:
+    return TheoryEvaluationV2(
+        evaluation_id=str(ev.evaluation_id),
+        theory_id=str(ev.theory_id),
+        evaluation_version=ev.evaluation_version,
+        assessment=ev.assessment.value,
+        assessment_label=ASSESSMENT_LABEL[ev.assessment],
+        from_status=ev.from_status.value,
+        to_status=ev.to_status.value,
+        rationale=ev.rationale,
+        evidence_refs=[
+            TheoryEvidenceRefV2(kind=r.kind.value, id=str(r.id)) for r in ev.evidence_refs
+        ],
+        evidence_node_ids=[str(n) for n in ev.evidence_node_ids],
+        evaluated_by={"actor_id": str(ev.actor_id), "role": "user"},
+        not_diagnosis=True,
+        created_at=ev.created_at,
+        audit_refs=audit_refs or [],
+    )
+
+
 def theory_to_v2(
     row: TheoryRow,
     *,
+    latest_evaluation: TheoryUserEvaluation | None = None,
     audit_refs: list[AuditRefV2] | None = None,
 ) -> TheoryV2:
+    evidence_for: list[dict[str, object]] = []
+    evidence_against: list[dict[str, object]] = []
+    latest_v2 = None
+    if latest_evaluation is not None:
+        latest_v2 = theory_evaluation_to_v2(latest_evaluation)
+        refs = [r.model_dump() for r in latest_v2.evidence_refs]
+        direction = ASSESSMENT_EVIDENCE_DIRECTION[latest_evaluation.assessment]
+        if direction is EvidenceDirection.FOR:
+            evidence_for = [{**r, "cited_by": "user"} for r in refs]
+        elif direction is EvidenceDirection.AGAINST:
+            evidence_against = [{**r, "cited_by": "user"} for r in refs]
     return TheoryV2(
         theory_id=str(row.id),
         investigation_id=str(row.linked_investigation_id) if row.linked_investigation_id else "",
@@ -82,9 +127,15 @@ def theory_to_v2(
         },
         status=row.status,
         safety_level=row.safety_level,
+        evidence_for=evidence_for,
+        evidence_against=evidence_against,
         not_diagnosis=True,
         created_at=row.created_at,
         updated_at=row.updated_at,
+        version=row.version or 1,
+        assessment=latest_v2.assessment if latest_v2 else None,
+        assessment_label=latest_v2.assessment_label if latest_v2 else None,
+        latest_evaluation=latest_v2,
         audit_refs=audit_refs or [],
     )
 
