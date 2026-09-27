@@ -2,7 +2,9 @@ FROM python:3.13-slim
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app/db
 
-RUN pip install alembic psycopg2-binary sqlalchemy
+# SQLAlchemy 2.1 makes psycopg (v3) the default postgresql:// driver; stay on the
+# 2.0 line the services use so the psycopg2 driver below is the one loaded.
+RUN pip install "alembic>=1.13,<2" "psycopg2-binary>=2.9,<3" "sqlalchemy>=2.0,<2.1"
 
 COPY db/alembic.ini ./alembic.ini
 COPY db/migrations/ ./migrations/
