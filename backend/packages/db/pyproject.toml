@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 description = "Database session factory, per-service Postgres role helpers, Alembic migration utilities."
 dependencies = [
-    "sqlalchemy>=2.0",
+    "sqlalchemy[asyncio]>=2.0,<2.1",
     "asyncpg>=0.30",
     "alembic>=1.14",
     "wellbe-platform",
