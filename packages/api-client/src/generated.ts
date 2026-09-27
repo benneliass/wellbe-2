@@ -3650,6 +3650,7 @@ export interface operations {
                 max_edges?: number;
                 node_types?: string[] | null;
                 edge_types?: string[] | null;
+                include_neighbors?: boolean;
             };
             header?: {
                 "x-wellbe-actor-id"?: string | null;

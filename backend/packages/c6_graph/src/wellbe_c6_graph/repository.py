@@ -264,6 +264,32 @@ class GraphRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def edges_touching_nodes(
+        self,
+        *,
+        patient_id: uuid.UUID,
+        node_ids: list[uuid.UUID],
+        edge_types: list[str] | None = None,
+        limit: int = 200,
+    ) -> list[KgEdgeRow]:
+        """The patient's edges with at least one endpoint in ``node_ids``, strongest first.
+
+        Used for a bounded 1-hop expansion around a thread's nodes. Anchored to the
+        authenticated patient only (not the thread), so callers must decide whether
+        the principal may see out-of-thread neighbours before using the result.
+        """
+        if not node_ids:
+            return []
+        stmt = select(KgEdgeRow).where(
+            KgEdgeRow.patient_id == patient_id,
+            KgEdgeRow.from_node_id.in_(node_ids) | KgEdgeRow.to_node_id.in_(node_ids),
+        )
+        if edge_types:
+            stmt = stmt.where(KgEdgeRow.edge_type.in_(edge_types))
+        stmt = stmt.order_by(KgEdgeRow.potential_score.desc()).limit(limit)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def tag_nodes_with_thread(
         self, *, patient_id: uuid.UUID, node_ids: list[uuid.UUID], thread_id: uuid.UUID
     ) -> int:

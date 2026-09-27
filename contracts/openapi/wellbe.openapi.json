@@ -7031,6 +7031,16 @@
             }
           },
           {
+            "in": "query",
+            "name": "include_neighbors",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Include Neighbors",
+              "type": "boolean"
+            }
+          },
+          {
             "in": "header",
             "name": "x-wellbe-actor-id",
             "required": false,

@@ -129,6 +129,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
                     {nodes.map((n) => {
                       const seen = n.attributes?.first_seen_at;
                       const first = typeof seen === "string" ? formatShortDate(seen) : "";
+                      const elsewhere = n.attributes?.in_thread === false;
                       return (
                         <li key={n.id} className={rec.row}>
                           <span className={rec.rowIcon}>
@@ -139,6 +140,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
                             <span className={rec.rowSub}>
                               {nodeTypeLabel(n.type)}
                               {first ? ` · first noted ${first}` : ""}
+                              {elsewhere ? " · elsewhere in your records" : ""}
                             </span>
                           </span>
                         </li>
