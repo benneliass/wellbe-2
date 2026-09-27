@@ -1,0 +1,288 @@
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4px 0 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--fg1);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--fg2);
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--bg-surface);
+}
+
+.problem p {
+  margin: 0;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headline {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.note {
+  margin: 0;
+  color: var(--fg2);
+  max-width: 60ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 4px;
+}
+
+.actions > button {
+  min-height: 44px;
+}
+
+.saved {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--wb-state-stable-fg);
+}
+
+.textLink {
+  color: var(--teal-600);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.textLink:focus-visible,
+.thread:focus-visible,
+.expand:focus-visible,
+.tableWrap:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--r-sm);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.date {
+  color: var(--fg2);
+  font-variant-numeric: tabular-nums;
+}
+
+.value {
+  margin: 0;
+}
+
+.num {
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  color: var(--fg2);
+}
+
+.range {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  color: var(--fg1);
+}
+
+.range > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.range[data-position="outside"] {
+  background: var(--wb-state-watch-tint);
+  color: var(--wb-state-watch-fg);
+}
+
+.range[data-position="within"] {
+  background: var(--wb-state-stable-tint);
+  color: var(--wb-state-stable-fg);
+}
+
+.rangeText {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.change {
+  margin: 0;
+  color: var(--fg2);
+  font-variant-numeric: tabular-nums;
+}
+
+.source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+  color: var(--fg2);
+}
+
+.threads {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.thread {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--teal-600);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.thread:hover span {
+  text-decoration: underline;
+}
+
+.expand {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--teal-600);
+  cursor: pointer;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.caption {
+  text-align: left;
+  padding: 10px 12px 4px;
+  color: var(--fg2);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--fg2);
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.numCell {
+  font-weight: 600;
+}
+
+.position {
+  color: var(--fg2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tableWrap {
+    animation: reveal 180ms ease-out;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
