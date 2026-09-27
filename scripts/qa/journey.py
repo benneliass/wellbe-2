@@ -139,6 +139,26 @@ def _pdf_with_text(text: str) -> bytes:
     return bytes(out)
 
 
+def _image_only_pdf(text: str) -> bytes | None:
+    """A 'scanned' PDF: the text exists only as pixels (no text layer), so the
+    worker must OCR it. None when Pillow (>=10.1) is not installed on the runner."""
+    try:
+        import io
+
+        from PIL import Image, ImageDraw, ImageFont
+
+        font = ImageFont.load_default(size=56)
+    except (ImportError, TypeError):
+        return None
+    img = Image.new("RGB", (120 + 34 * len(text), 200), color="white")
+    ImageDraw.Draw(img).text((60, 60), text, fill="black", font=font)
+    buf = io.BytesIO()
+    img.save(buf, format="PDF", resolution=200.0)
+    return buf.getvalue()
+
+
+SCANNED_LAB = "Folate: 2.1 ng/mL (ref 3-17)"
+
 CAPTURES: list[tuple[str, dict[str, Any], str | None]] = [
     ("symptom", {"description": "Throbbing headache behind my eyes since this morning.",
                  "severity": "moderate"}, "headache"),
@@ -241,8 +261,20 @@ def run(j: Journey) -> None:
                                         "filename": "labs.pdf"}},
                       headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
         ids.append(body["capture_id"])
+        scan_pdf = _image_only_pdf(SCANNED_LAB)
+        if scan_pdf is not None:
+            scan = base64.b64encode(scan_pdf).decode()
+            body = j.call("POST", "/v1/capture", expect=201,
+                          json={"capture_type": "document",
+                                "payload": {"content_base64": scan,
+                                            "mime_type": "application/pdf",
+                                            "filename": "scanned-labs.pdf"}},
+                          headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
+            ids.append(body["capture_id"])
+            j.ctx["scanned_capture"] = body["capture_id"]
         j.ctx["capture_ids"] = ids
-        return f"{len(ids)} captures (symptom/lab/note/document)"
+        return f"{len(ids)} captures (symptom/lab/note/document" + (
+            "/scanned document)" if scan_pdf is not None else ")")
 
     j.step("capture every type", capture_all)
 
@@ -467,6 +499,21 @@ def run(j: Journey) -> None:
         return f"document lab surfaced: {found[0]['title']}"
 
     j.step("document (PDF) capture is extracted", document_facts)
+
+    def scanned_document_facts() -> str:
+        def poll() -> Any:
+            tn = j.call("GET", "/v1/things-noticed")
+            return [i for i in items_of(tn, "things_noticed")
+                    if "folate" in str(i).lower()] or None
+
+        found = j.wait_for("Folate from the scanned (image-only) PDF via local OCR", poll)
+        return f"OCR'd lab surfaced: {found[0]['title']}"
+
+    if j.ctx.get("scanned_capture"):
+        j.step("scanned (image-only PDF) capture is OCR'd and extracted", scanned_document_facts)
+    else:
+        print("  SKIP  scanned (image-only PDF) OCR step: Pillow>=10.1 not installed "
+              "(run with `uv run --with httpx --with pillow scripts/qa/journey.py ...`)")
 
     def delta() -> str:
         body = j.call("GET", "/v2/delta")

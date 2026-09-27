@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import io
 import json
 import logging
 import os
@@ -45,18 +44,6 @@ def _is_pdf(vault_event: dict[str, Any]) -> bool:
     )
 
 
-def _pdf_text_layer(content: bytes) -> str:
-    """Text layer of a digital PDF ("" for image-only/unreadable documents)."""
-    from pypdf import PdfReader
-
-    try:
-        reader = PdfReader(io.BytesIO(content))
-        return "\n".join((page.extract_text() or "") for page in reader.pages).strip()
-    except Exception:
-        logger.warning("could not read PDF text layer", exc_info=True)
-        return ""
-
-
 class VaultFetchError(RuntimeError):
     """The vault could not serve an event right now; the outbox row is retried."""
 
@@ -72,6 +59,7 @@ def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
     failures (e.g. vault unreachable) so the outbox retry policy backs off and
     eventually dead-letters instead of silently dropping data.
     """
+    from wellbe_processing_worker.ocr import extract_document_text
     from wellbe_processing_worker.tasks import _extract_facts
 
     async def fetch(path: str, what: str) -> httpx.Response:
@@ -107,13 +95,10 @@ def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
             text_content = content_resp.content.decode("utf-8", errors="replace")
         if not text_content and _is_pdf(vault_event):
             content_resp = await fetch(content_path, "document")
-            text_content = _pdf_text_layer(content_resp.content)
-            logger.info(
-                "document %s: %d bytes, text layer %d chars",
-                event_id,
-                len(content_resp.content),
-                len(text_content),
-            )
+            document = await extract_document_text(content_resp.content, event_id)
+            text_content = document.text
+            if document.ocr is not None:
+                vault_event["_ocr"] = document.ocr.provenance()
         vault_event["_raw_text"] = text_content
 
         await _extract_facts(json.dumps(vault_event))

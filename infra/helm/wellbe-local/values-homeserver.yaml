@@ -114,9 +114,13 @@ ingestionWorker:
 processingWorker:
   image: ghcr.io/benneliass/wellbe-processing-worker:0.1.4
   imagePullPolicy: IfNotPresent
+  # Local OCR (tesseract, one document/page at a time) runs in this pod's cgroup:
+  # ~200Mi worker baseline + up to ~150Mi decoded image (50MP cap) + ~150-300Mi
+  # tesseract child at 300 DPI ≈ 650Mi peak, so 1Gi leaves headroom. Tesseract is
+  # single-threaded (OMP_THREAD_LIMIT=1); a full core keeps pages at a few seconds.
   resources:
-    requests: {cpu: 30m, memory: 128Mi}
-    limits: {cpu: 500m, memory: 512Mi}
+    requests: {cpu: 50m, memory: 192Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
 
 safetyGate:
   image: ghcr.io/benneliass/wellbe-safety-gate:0.1.4
