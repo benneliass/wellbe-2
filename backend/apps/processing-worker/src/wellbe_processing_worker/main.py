@@ -10,13 +10,24 @@ import os
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import select, text, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from wellbe_c9_continuity.errors import OutOfOrderThreadEventError
+from wellbe_events.retry import (
+    BacklogStats,
+    RetryPolicy,
+    backlog_summary,
+    claimable,
+    decide_failure,
+    failure_values,
+    format_error,
+    log_failure,
+)
 
 from wellbe_processing_worker.config import ProcessingWorkerSettings
 
@@ -46,196 +57,231 @@ def _pdf_text_layer(content: bytes) -> str:
         return ""
 
 
-async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
-    """Background task: poll outbox for raw_context.received and dispatch to extractor."""
-    from wellbe_db import create_engine, create_session_factory
-    from wellbe_events.models import OutboxEventRow
+class VaultFetchError(RuntimeError):
+    """The vault could not serve an event right now; the outbox row is retried."""
 
+
+OutboxHandler = Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]]
+
+
+def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
+    """Handler for raw_context.received: fetch the vault event and run extraction.
+
+    Returns normally for terminal outcomes (processed, or permanently
+    unprocessable) so the row is marked delivered. Raises for transient
+    failures (e.g. vault unreachable) so the outbox retry policy backs off and
+    eventually dead-letters instead of silently dropping data.
+    """
     from wellbe_processing_worker.tasks import _extract_facts
 
-    engine = create_engine(settings.database_url)
-    session_factory = create_session_factory(engine)
+    async def fetch(path: str, what: str) -> httpx.Response:
+        resp = await vault_client.get(path)
+        if resp.status_code != 200:
+            raise VaultFetchError(f"{what} fetch {path} returned {resp.status_code}")
+        return resp
+
+    async def handle(
+        session: AsyncSession, payload: dict[str, Any], row_id: uuid.UUID
+    ) -> str | None:
+        event_id = payload.get("event_id") if isinstance(payload, dict) else None
+        if event_id is None:
+            # Malformed event with no vault ref — can never be processed.
+            return "skipped: no event_id"
+
+        vault_resp = await vault_client.get(f"/vault/events/{event_id}")
+        if vault_resp.status_code == 404:
+            logger.warning("vault event %s not found (404); skipping", event_id)
+            return "skipped: vault 404"
+        if vault_resp.status_code != 200:
+            raise VaultFetchError(f"vault event {event_id} returned {vault_resp.status_code}")
+
+        vault_event = vault_resp.json()
+        source_metadata = vault_event.get("source_metadata") or {}
+        text_content = source_metadata.get("text", "")
+        # The captured text lives in the raw blob, not in source_metadata (raw
+        # stays raw). Fetch it so the extractor has real input; without this the
+        # C4 pipeline runs on empty text and produces no facts.
+        content_path = f"/vault/events/{event_id}/content"
+        if not text_content and vault_event.get("source_type") == "manual_text":
+            content_resp = await fetch(content_path, "content")
+            text_content = content_resp.content.decode("utf-8", errors="replace")
+        if not text_content and _is_pdf(vault_event):
+            content_resp = await fetch(content_path, "document")
+            text_content = _pdf_text_layer(content_resp.content)
+            logger.info(
+                "document %s: %d bytes, text layer %d chars",
+                event_id,
+                len(content_resp.content),
+                len(text_content),
+            )
+        vault_event["_raw_text"] = text_content
+
+        await _extract_facts(json.dumps(vault_event))
+        return "dispatched"
+
+    return handle
+
+
+async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
+    """Background task: poll outbox for raw_context.received and dispatch to extractor."""
     vault_client = httpx.AsyncClient(base_url=settings.vault_writer_url, timeout=30.0)
-
     try:
-        while True:
-            try:
-                async with session_factory() as session:
-                    stmt = (
-                        select(OutboxEventRow)
-                        .where(OutboxEventRow.delivered_at.is_(None))
-                        .where(OutboxEventRow.event_type == "raw_context.received")
-                        .order_by(OutboxEventRow.created_at)
-                        .limit(20)
-                        # Claim rows so a second poller instance cannot pick up the
-                        # same undelivered events concurrently. Combined with the
-                        # idempotent C4/C5 writes, this prevents duplicate processing.
-                        .with_for_update(skip_locked=True)
-                    )
-                    result = await session.execute(stmt)
-                    rows = result.scalars().all()
-
-                    if rows:
-                        # Only events that reach a terminal state (processed, or
-                        # permanently unprocessable) are marked delivered. Transient
-                        # failures (e.g. vault unreachable) are intentionally left
-                        # undelivered so the next poll retries them — marking them
-                        # delivered on error silently drops data and breaks the
-                        # at-least-once guarantee.
-                        ids = []
-                        for row in rows:
-                            try:
-                                event_id = (
-                                    row.payload.get("event_id")
-                                    if isinstance(row.payload, dict)
-                                    else None
-                                )
-                                if event_id is None:
-                                    # Malformed event with no vault ref — can never be
-                                    # processed; mark delivered to avoid a poison-pill loop.
-                                    ids.append(row.id)
-                                    continue
-
-                                vault_resp = await vault_client.get(f"/vault/events/{event_id}")
-                                if vault_resp.status_code == 404:
-                                    logger.warning(
-                                        "vault event %s not found (404); skipping", event_id
-                                    )
-                                    ids.append(row.id)
-                                    continue
-                                if vault_resp.status_code != 200:
-                                    # Transient upstream error — retry on the next poll.
-                                    logger.warning(
-                                        "vault fetch for %s returned %s; will retry",
-                                        event_id,
-                                        vault_resp.status_code,
-                                    )
-                                    continue
-
-                                vault_event = vault_resp.json()
-                                source_metadata = vault_event.get("source_metadata") or {}
-                                text_content = source_metadata.get("text", "")
-                                # The captured text lives in the raw blob, not in
-                                # source_metadata (raw stays raw). Fetch it so the
-                                # extractor has real input; without this the C4
-                                # pipeline runs on empty text and produces no facts.
-                                source_type = vault_event.get("source_type")
-                                if not text_content and source_type == "manual_text":
-                                    content_resp = await vault_client.get(
-                                        f"/vault/events/{event_id}/content"
-                                    )
-                                    if content_resp.status_code == 200:
-                                        text_content = content_resp.content.decode(
-                                            "utf-8", errors="replace"
-                                        )
-                                    else:
-                                        # Couldn't retrieve the raw content — retry
-                                        # later rather than extract from nothing.
-                                        logger.warning(
-                                            "content fetch for %s returned %s; will retry",
-                                            event_id,
-                                            content_resp.status_code,
-                                        )
-                                        continue
-                                if not text_content and _is_pdf(vault_event):
-                                    content_resp = await vault_client.get(
-                                        f"/vault/events/{event_id}/content"
-                                    )
-                                    if content_resp.status_code != 200:
-                                        logger.warning(
-                                            "document fetch for %s returned %s; will retry",
-                                            event_id,
-                                            content_resp.status_code,
-                                        )
-                                        continue
-                                    text_content = _pdf_text_layer(content_resp.content)
-                                    logger.info(
-                                        "document %s: %d bytes, text layer %d chars",
-                                        event_id,
-                                        len(content_resp.content),
-                                        len(text_content),
-                                    )
-                                vault_event["_raw_text"] = text_content
-
-                                await _extract_facts(json.dumps(vault_event))
-                                ids.append(row.id)
-                            except Exception:
-                                # Do NOT mark delivered — leave undelivered for retry.
-                                logger.exception("error dispatching event %s; will retry", row.id)
-
-                        if ids:
-                            await session.execute(
-                                update(OutboxEventRow)
-                                .where(OutboxEventRow.id.in_(ids))
-                                .values(delivered_at=datetime.utcnow())
-                            )
-                            await session.commit()
-                            logger.info("dispatched %d outbox events", len(ids))
-
-            except Exception:
-                logger.exception("outbox dispatch loop error")
-
-            await asyncio.sleep(2.0)
+        await _consume_outbox_loop(
+            settings,
+            event_type="raw_context.received",
+            handler=_make_raw_context_handler(vault_client),
+        )
     finally:
         await vault_client.aclose()
+
+
+def _retry_policy(settings: ProcessingWorkerSettings) -> RetryPolicy:
+    return RetryPolicy(
+        max_attempts=settings.outbox_max_attempts,
+        max_delay_seconds=settings.outbox_max_backoff_seconds,
+    )
 
 
 async def _consume_outbox_loop(
     settings: ProcessingWorkerSettings,
     *,
     event_type: str,
-    handler: Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]],
+    handler: OutboxHandler,
+    transient_errors: tuple[type[BaseException], ...] = (),
     interval: float = 2.0,
 ) -> None:
     """Background task: poll the outbox for one event type and run ``handler``.
 
-    Mirrors the raw_context.received loop: claim undelivered rows with
-    FOR UPDATE SKIP LOCKED so a second poller cannot double-process, run each
-    event in its own committing session, then mark the claimed rows delivered.
-    Handlers are idempotent, so a redelivered event re-runs as a no-op. Rows that
-    error are left undelivered for the next poll.
+    Claims claimable rows (undelivered, not dead-lettered, not backing off) with
+    FOR UPDATE SKIP LOCKED so a second poller cannot double-process, runs each
+    event in its own committing session, then marks successes delivered.
+    Handlers are idempotent, so a redelivered event re-runs as a no-op.
+
+    Failures are recorded on the row per ``wellbe_events.retry``: backoff with
+    jitter, a single WARNING per retry, dead-lettering after
+    ``outbox_max_attempts``. ``transient_errors`` are deferred briefly without
+    counting toward the limit. Failure bookkeeping is written by the claim
+    transaction because it already holds the row lock; a separate transaction
+    would block on that lock.
     """
     from wellbe_db import create_engine, create_session_factory
     from wellbe_events.models import OutboxEventRow
 
     engine = create_engine(settings.database_url)
     session_factory = create_session_factory(engine)
+    policy = _retry_policy(settings)
+    age = func.extract("epoch", func.now() - OutboxEventRow.created_at)
 
     while True:
         try:
             async with session_factory() as claim_session:
                 stmt = (
-                    select(OutboxEventRow)
-                    .where(OutboxEventRow.delivered_at.is_(None))
+                    select(OutboxEventRow, age)
+                    .where(claimable())
                     .where(OutboxEventRow.event_type == event_type)
                     .order_by(OutboxEventRow.created_at)
                     .limit(20)
                     .with_for_update(skip_locked=True)
                 )
-                rows = (await claim_session.execute(stmt)).scalars().all()
+                claimed = (await claim_session.execute(stmt)).all()
 
                 ids = []
-                for row in rows:
+                failed = 0
+                for row, age_seconds in claimed:
                     try:
                         async with session_factory() as work_session:
                             outcome = await handler(work_session, row.payload, row.id)
                             await work_session.commit()
                         ids.append(row.id)
                         logger.info("%s %s -> %s", event_type, row.id, outcome or "ok")
-                    except Exception:
-                        logger.exception("error handling %s %s; will retry", event_type, row.id)
+                    except Exception as exc:
+                        decision = decide_failure(
+                            attempts=row.attempts,
+                            exc=exc,
+                            policy=policy,
+                            transient=isinstance(exc, transient_errors),
+                            age_seconds=float(age_seconds or 0.0),
+                            previous_error=row.last_error,
+                        )
+                        log_failure(
+                            logger,
+                            decision,
+                            event_type=event_type,
+                            row_id=row.id,
+                            exc=exc,
+                            policy=policy,
+                        )
+                        await claim_session.execute(
+                            update(OutboxEventRow)
+                            .where(OutboxEventRow.id == row.id)
+                            .values(**failure_values(decision))
+                            .execution_options(synchronize_session=False)
+                        )
+                        failed += 1
 
                 if ids:
                     await claim_session.execute(
                         update(OutboxEventRow)
                         .where(OutboxEventRow.id.in_(ids))
-                        .values(delivered_at=datetime.utcnow())
+                        .values(delivered_at=datetime.now(UTC).replace(tzinfo=None))
+                        .execution_options(synchronize_session=False)
                     )
+                if ids or failed:
                     await claim_session.commit()
         except Exception:
             logger.exception("%s consumer loop error", event_type)
 
         await asyncio.sleep(interval)
+
+
+_BACKLOG_SQL = text(
+    """
+    SELECT event_type,
+           count(*) FILTER (WHERE dead_lettered_at IS NULL AND last_error IS NULL) AS pending,
+           count(*) FILTER (WHERE dead_lettered_at IS NULL AND last_error IS NOT NULL)
+               AS retrying,
+           count(*) FILTER (WHERE dead_lettered_at IS NOT NULL) AS dead,
+           extract(epoch FROM now() - min(created_at) FILTER (WHERE dead_lettered_at IS NULL))
+               AS oldest_live_age_seconds
+    FROM events.outbox_events
+    WHERE delivered_at IS NULL
+    GROUP BY event_type
+    """
+)
+
+
+async def _outbox_health_loop(settings: ProcessingWorkerSettings) -> None:
+    """Periodically log one line when the outbox has dead-lettered or stuck rows."""
+    from wellbe_db import create_engine, create_session_factory
+
+    session_factory = create_session_factory(create_engine(settings.database_url))
+    interval = settings.outbox_health_interval_seconds
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            async with session_factory() as session:
+                rows = (await session.execute(_BACKLOG_SQL)).mappings().all()
+            summary = backlog_summary(
+                (
+                    BacklogStats(
+                        event_type=r["event_type"],
+                        pending=r["pending"],
+                        retrying=r["retrying"],
+                        dead=r["dead"],
+                        oldest_live_age_seconds=(
+                            None
+                            if r["oldest_live_age_seconds"] is None
+                            else float(r["oldest_live_age_seconds"])
+                        ),
+                    )
+                    for r in rows
+                ),
+                stale_after_seconds=interval,
+            )
+            if summary:
+                logger.warning("outbox health: %s", summary)
+        except Exception as exc:
+            logger.warning("outbox health check failed: %s", format_error(exc, 300))
 
 
 async def _handle_genesis_input_ready(
@@ -251,6 +297,11 @@ async def _handle_genesis_input_ready(
         f"{r.decision.value}({r.reason_code})" + (" replay" if r.idempotent_replay else "")
         for r in records
     ) or "no facts"
+
+
+# A successor transition consumed before its predecessor: retried quietly until
+# the predecessor lands (see wellbe_events.retry for the age bound).
+THREAD_STATE_TRANSIENT_ERRORS: tuple[type[BaseException], ...] = (OutOfOrderThreadEventError,)
 
 
 async def _handle_thread_state_changed(
@@ -409,9 +460,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         ),
         asyncio.create_task(
             _consume_outbox_loop(
-                settings, event_type="thread.state_changed", handler=_handle_thread_state_changed
+                settings,
+                event_type="thread.state_changed",
+                handler=_handle_thread_state_changed,
+                transient_errors=THREAD_STATE_TRANSIENT_ERRORS,
             )
         ),
+        asyncio.create_task(_outbox_health_loop(settings)),
         asyncio.create_task(_reconcile_thread_linkage(settings)),
     ]
     try:

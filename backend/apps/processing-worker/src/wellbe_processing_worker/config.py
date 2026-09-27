@@ -10,3 +10,6 @@ class ProcessingWorkerSettings(BaseServiceSettings):
     vault_writer_url: str = "http://localhost:8002"
     temporal_host: str = "localhost:7233"
     extraction_model: str = "wellbe-text-extractor"
+    outbox_max_attempts: int = 8
+    outbox_max_backoff_seconds: float = 300.0
+    outbox_health_interval_seconds: float = 300.0
