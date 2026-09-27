@@ -99,7 +99,7 @@ async def _verify() -> None:
                 {"p": str(pending_id)},
             )
         ).scalar_one_or_none()
-        fired = (
+        fired: int = (
             await s.execute(
                 text(
                     "SELECT count(*) FROM c9.timer_actions "

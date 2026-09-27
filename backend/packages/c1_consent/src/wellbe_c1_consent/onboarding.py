@@ -188,7 +188,7 @@ class OnboardingService:
             ),
             {"id": uuid.uuid4(), "pid": pid},
         )
-        rb_id = (
+        rb_id: uuid.UUID = (
             await self._session.execute(
                 text(
                     """
@@ -214,7 +214,7 @@ class OnboardingService:
             ),
             {"id": uuid.uuid4(), "pid": pid, "rb": rb_id},
         )
-        ws_id = (
+        ws_id: uuid.UUID = (
             await self._session.execute(
                 text(
                     """

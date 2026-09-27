@@ -6,7 +6,7 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Any
+from typing import Any, TypedDict
 
 from wellbe_contracts.c4_processing import (
     FactType,
@@ -373,13 +373,20 @@ _LAB_LINE = re.compile(
 )
 
 
-def parse_lab_lines(text: str) -> list[dict[str, str | None]]:
+class LabLine(TypedDict):
+    test_name: str
+    value: str
+    unit: str | None
+    reference_range: str | None
+
+
+def parse_lab_lines(text: str) -> list[LabLine]:
     """Find ``Name: value unit (ref low-high)`` observations in document text.
 
     Requires a unit or a reference range so prose like "Pain: 7" is not mistaken
     for a lab. Returns kwargs for ``StructuredObservationExtractor.extract_lab``.
     """
-    found: list[dict[str, str | None]] = []
+    found: list[LabLine] = []
     seen: set[str] = set()
     for line in re.split(r"[\n;]", text or ""):
         for m in _LAB_LINE.finditer(line):
