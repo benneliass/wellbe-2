@@ -73,7 +73,9 @@ Consent rows follow the existing C1 model: subject = authenticated controller; e
 ## Implementation notes
 
 <!-- Filled after approval. -->
-To be expanded on approval. Anchors that already exist: backend dev-header principal contract and `Principal.is_controller` (`backend/apps/api/src/wellbe_api/deps.py`); `ConsentService` consent-scope/grant/revocation primitives (`backend/packages/c1_consent/`); frontend single session resolver (`apps/web/lib/session.ts`) designed for a one-file OIDC swap; deployed-but-unwired ZITADEL. The flow above composes with WEL-151 (real session) and feeds the WEL-184 workspace model (personal workspace is the always-present default).
+Real OIDC is now wired behind `WELLBE_AUTH_MODE=oidc` (API) and the web
+`/auth-config.js` runtime config; operating steps live in
+[`docs/runbooks/auth-oidc.md`](../runbooks/auth-oidc.md). To be expanded on approval. Anchors that already exist: backend dev-header principal contract and `Principal.is_controller` (`backend/apps/api/src/wellbe_api/deps.py`); `ConsentService` consent-scope/grant/revocation primitives (`backend/packages/c1_consent/`); frontend single session resolver (`apps/web/lib/session.ts`) designed for a one-file OIDC swap; deployed-but-unwired ZITADEL. The flow above composes with WEL-151 (real session) and feeds the WEL-184 workspace model (personal workspace is the always-present default).
 
 ---
 

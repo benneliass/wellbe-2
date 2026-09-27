@@ -129,6 +129,27 @@ class OnboardingService:
             )
         ).scalar_one_or_none()
 
+    async def active_controller_patient_id(
+        self, *, issuer: str, subject: str
+    ) -> uuid.UUID | None:
+        """The controller patient id for a federated identity whose onboarding is
+        finalized, else None (unknown identity or still pending)."""
+        pid: uuid.UUID | None = (
+            await self._session.execute(
+                text(
+                    """
+                    SELECT a.controller_patient_id
+                    FROM identity.accounts a
+                    JOIN identity.onboarding_sessions s ON s.account_id = a.id
+                    WHERE a.issuer = :issuer AND a.subject = :subject
+                      AND s.status = 'active'
+                    """
+                ),
+                {"issuer": issuer, "subject": subject},
+            )
+        ).scalar_one_or_none()
+        return pid
+
     async def start(self, account: AccountRow) -> OnboardingSessionRow:
         """Open (or resume) a pending onboarding session. Idempotent per account."""
         await self._session.execute(

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
-import { clearSession, updateSession } from "@/lib/session";
+import { signOut } from "@/lib/auth";
+import { updateSession } from "@/lib/session";
 import { useSession } from "@/lib/useSession";
 import styles from "./OnboardingFlow.module.css";
 
@@ -41,7 +42,9 @@ export function OnboardingFlow() {
     let active = true;
     (async () => {
       try {
-        const { data } = await getApiClient().POST("/v1/onboarding/start", { body: {} });
+        const { data } = await getApiClient().POST("/v1/onboarding/start", {
+          body: { display_name: session.displayName ?? null },
+        });
         if (active && data) setState(data);
       } catch {
         if (active) setError("Couldn't start onboarding. Please try again.");
@@ -78,8 +81,8 @@ export function OnboardingFlow() {
     }
   }
 
-  function cancel() {
-    clearSession();
+  async function cancel() {
+    await signOut();
     router.replace("/");
   }
 

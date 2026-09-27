@@ -42,6 +42,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${jakarta.variable} ${jetbrains.variable} ${newsreader.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Runtime auth config (app/auth-config.js/route.ts). Deliberately
+            synchronous: it must set window.__WELLBE_AUTH_CONFIG__ before hydration. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/auth-config.js" />
+      </head>
       <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
