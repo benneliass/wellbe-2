@@ -184,3 +184,15 @@
     transition: none;
   }
 }
+
+.markers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+.support {
+  font-size: var(--text-sm);
+  color: var(--fg2);
+}
