@@ -15,7 +15,7 @@ export interface PanelProps {
 /** Card with an icon + title header — the repeated container in the thread detail. */
 export function Panel({ title, icon, count, action, children }: PanelProps) {
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} aria-label={title}>
       <div className={styles.head}>
         <h3>
           <Icon name={icon} size={16} />

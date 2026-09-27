@@ -69,8 +69,11 @@ export function SharedPacketView({ token }: { token: string }) {
     return (
       <div className={styles.center}>
         <Icon name="lock" size={22} />
-        <h1>This packet is passcode-protected</h1>
-        <p>Enter the passcode the patient shared with you.</p>
+        <h1>Enter the passcode to open this packet</h1>
+        <p>
+          Enter the passcode the patient shared with you. If you weren&rsquo;t given one, this link
+          may have been revoked or expired — ask the patient for a new one.
+        </p>
         <div className={styles.passRow}>
           <input
             className={styles.passInput}
