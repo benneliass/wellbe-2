@@ -45,6 +45,8 @@ redis:
 
 minio:
   image: minio/minio:latest
+  # Bucket-init hook image. Must include a shell (the job runs `sh -c`).
+  mcImage: minio/mc:latest
   rootUser: wellbe_minio
   rootPassword: wellbe_minio_dev
   buckets:

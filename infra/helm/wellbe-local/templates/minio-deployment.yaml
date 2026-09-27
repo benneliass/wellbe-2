@@ -30,6 +30,11 @@ spec:
           ports:
             - containerPort: 9000
             - containerPort: 9001
+          # Writable data dir for non-root MinIO images (e.g. Chainguard runs as
+          # uid 65532 and cannot create /data on the root filesystem).
+          volumeMounts:
+            - name: data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /minio/health/live
@@ -42,3 +47,6 @@ spec:
               port: 9000
             initialDelaySeconds: 15
             periodSeconds: 10
+      volumes:
+        - name: data
+          emptyDir: {}

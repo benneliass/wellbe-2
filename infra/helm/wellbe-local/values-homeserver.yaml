@@ -55,7 +55,12 @@ redis:
     requests: {cpu: 10m, memory: 32Mi}
     limits: {cpu: 200m, memory: 128Mi}
 
+# MinIO stopped publishing images to Docker Hub (minio/minio, minio/mc now 404)
+# and quay.io/minio requires auth, so pull Chainguard's free builds, pinned by
+# digest. The -dev variant of minio-client carries the shell the init job needs.
 minio:
+  image: cgr.dev/chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+  mcImage: cgr.dev/chainguard/minio-client:latest-dev@sha256:f0dd93b48af1f8a641edcd3c64661c8dbe05189bd2ef2f8cea216eb18af10bf8
   resources:
     requests: {cpu: 20m, memory: 128Mi}
     limits: {cpu: 500m, memory: 512Mi}
