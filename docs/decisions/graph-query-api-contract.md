@@ -5,7 +5,8 @@
 **Date approved:** 2026-06-18  
 **Approved by:** User  
 **Jira Spike:** WEL-165  
-**Blocks:** WEL-156 [Graph query/read API endpoint for thread-scoped graph view]
+**Blocks:** WEL-156 [Graph query/read API endpoint for thread-scoped graph view]  
+**Amended by:** [graph-thread-view-owner-neighbours.md](graph-thread-view-owner-neighbours.md) (owner reads include one-hop neighbours; grant reads unchanged)
 
 ---
 
