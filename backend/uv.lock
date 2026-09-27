@@ -1666,6 +1666,7 @@ dependencies = [
     { name = "wellbe-c1-consent" },
     { name = "wellbe-c10-safety" },
     { name = "wellbe-c11-correction" },
+    { name = "wellbe-c12-audit" },
     { name = "wellbe-c14-investigation" },
     { name = "wellbe-c15-theory" },
     { name = "wellbe-c16-external" },
@@ -1692,6 +1693,7 @@ requires-dist = [
     { name = "wellbe-c1-consent", editable = "packages/c1_consent" },
     { name = "wellbe-c10-safety", editable = "packages/c10_safety" },
     { name = "wellbe-c11-correction", editable = "packages/c11_correction" },
+    { name = "wellbe-c12-audit", editable = "packages/c12_audit" },
     { name = "wellbe-c14-investigation", editable = "packages/c14_investigation" },
     { name = "wellbe-c15-theory", editable = "packages/c15_theory" },
     { name = "wellbe-c16-external", editable = "packages/c16_external" },
@@ -2147,13 +2149,21 @@ name = "wellbe-notification-worker"
 version = "0.1.0"
 source = { virtual = "apps/notification-worker" }
 dependencies = [
+    { name = "wellbe-c12-audit" },
+    { name = "wellbe-c9-continuity" },
     { name = "wellbe-contracts" },
+    { name = "wellbe-db" },
+    { name = "wellbe-events" },
     { name = "wellbe-platform" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "wellbe-c12-audit", editable = "packages/c12_audit" },
+    { name = "wellbe-c9-continuity", editable = "packages/c9_continuity" },
     { name = "wellbe-contracts", editable = "packages/contracts" },
+    { name = "wellbe-db", editable = "packages/db" },
+    { name = "wellbe-events", editable = "packages/events" },
     { name = "wellbe-platform", editable = "packages/platform" },
 ]
 

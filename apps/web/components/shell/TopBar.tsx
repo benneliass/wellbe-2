@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Icon, Modal } from "@wellbe/ui";
+import { NotificationBell } from "./NotificationBell";
 import styles from "./TopBar.module.css";
 
 export interface TopBarProps {
@@ -17,7 +18,6 @@ export interface TopBarProps {
 export function TopBar({ title, subtitle, breadcrumb, backHref }: TopBarProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [notifOpen, setNotifOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
   function onSearch(e: React.FormEvent) {
@@ -54,17 +54,7 @@ export function TopBar({ title, subtitle, breadcrumb, backHref }: TopBarProps) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </form>
-        <button
-          type="button"
-          className={styles.iconbtn}
-          title="Notifications"
-          aria-label="Notifications"
-          aria-haspopup="dialog"
-          onClick={() => setNotifOpen(true)}
-        >
-          <Icon name="bell" size={18} />
-          <span className={styles.iconbtnDot} />
-        </button>
+        <NotificationBell />
         <button
           type="button"
           className={styles.iconbtn}
@@ -77,46 +67,8 @@ export function TopBar({ title, subtitle, breadcrumb, backHref }: TopBarProps) {
         </button>
       </div>
 
-      {notifOpen && <NotificationsModal onClose={() => setNotifOpen(false)} />}
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
     </header>
-  );
-}
-
-/**
- * Notifications surface. There is no push/alert backend yet, so this is honest
- * about that: it points to the two live places where time-sensitive updates
- * actually gather (what-changed digest and open loops) rather than inventing
- * alerts. Calm, never-alarm framing per WellBe's safety posture.
- */
-function NotificationsModal({ onClose }: { onClose: () => void }) {
-  return (
-    <Modal title="Notifications" icon="bell" onClose={onClose}>
-      <p style={{ margin: "0 0 16px", color: "var(--fg2)", fontSize: 14, lineHeight: 1.5 }}>
-        You&rsquo;re all caught up. WellBe gathers updates calmly in one place rather than
-        interrupting you — here&rsquo;s where to look.
-      </p>
-      <Link href="/delta" className={styles.notifRow} onClick={onClose}>
-        <span className={styles.notifIcon}>
-          <Icon name="activity" size={18} />
-        </span>
-        <span className={styles.notifText}>
-          <b>What changed</b>
-          <span>A source-linked digest of recent updates across your threads.</span>
-        </span>
-        <Icon name="chevron-right" size={18} />
-      </Link>
-      <Link href="/workspace" className={styles.notifRow} onClick={onClose}>
-        <span className={styles.notifIcon}>
-          <Icon name="list" size={18} />
-        </span>
-        <span className={styles.notifText}>
-          <b>Open loops</b>
-          <span>Follow-ups and results you&rsquo;re still carrying forward.</span>
-        </span>
-        <Icon name="chevron-right" size={18} />
-      </Link>
-    </Modal>
   );
 }
 

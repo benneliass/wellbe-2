@@ -8,6 +8,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+vi.mock("./NotificationBell", () => ({
+  NotificationBell: () => <button type="button">Notifications</button>,
+}));
+
 describe("TopBar", () => {
   beforeEach(() => {
     push.mockReset();
@@ -28,10 +32,9 @@ describe("TopBar", () => {
     expect(push).toHaveBeenCalledWith("/ask");
   });
 
-  it("opens a calm notifications panel", () => {
+  it("renders the notification bell", () => {
     render(<TopBar title="Workspace" />);
-    fireEvent.click(screen.getByRole("button", { name: /notifications/i }));
-    expect(screen.getByText(/caught up/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /notifications/i })).toBeInTheDocument();
   });
 
   it("opens a help panel", () => {

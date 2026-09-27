@@ -164,6 +164,14 @@ class NotificationWorkItemV1(BaseModel):
     not_personal_evidence: bool = False
 
 
+class InAppNotificationKind(StrEnum):
+    """Kinds of in-app notifications C12 derives from C9 pending-item events."""
+
+    PENDING_ITEM_CREATED = "pending_item_created"
+    PENDING_ITEM_DUE = "pending_item_due"
+    PENDING_ITEM_OVERDUE = "pending_item_overdue"
+
+
 def _requires_authority(event_type: str) -> bool:
     sensitive_terms = (
         ".access.",
@@ -191,6 +199,7 @@ __all__ = [
     "AuditRetentionClass",
     "AuditSubjectV1",
     "AuditVisibility",
+    "InAppNotificationKind",
     "NotificationClass",
     "NotificationTemplateV1",
     "NotificationWorkItemV1",

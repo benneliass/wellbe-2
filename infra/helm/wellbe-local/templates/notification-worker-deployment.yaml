@@ -1,0 +1,43 @@
+{{- if .Values.notificationWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-worker
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+    app: notification-worker
+  annotations:
+    # Last wave: it only needs Postgres (+ the migration hook), and a first
+    # rollout whose image is not yet published must not hold up api/web.
+    {{- include "wellbe-local.syncWave" "4" | nindent 4 }}
+spec:
+  replicas: {{ .Values.notificationWorker.replicas }}
+  selector:
+    matchLabels:
+      app: notification-worker
+  template:
+    metadata:
+      labels:
+        app: notification-worker
+    spec:
+      {{- include "wellbe-local.podScheduling" . | nindent 6 }}
+      terminationGracePeriodSeconds: 20
+      containers:
+        - name: notification-worker
+          image: {{ .Values.notificationWorker.image }}
+          imagePullPolicy: {{ .Values.notificationWorker.imagePullPolicy }}
+          {{- include "wellbe-local.resources" .Values.notificationWorker.resources | nindent 10 }}
+          envFrom:
+            - configMapRef:
+                name: notification-worker-config
+          # No HTTP port: an outbox consumer process. Liveness verifies PID 1 is
+          # still the notification worker.
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - grep -q wellbe_notification_worker /proc/1/cmdline
+            initialDelaySeconds: 20
+            periodSeconds: 20
+{{- end }}

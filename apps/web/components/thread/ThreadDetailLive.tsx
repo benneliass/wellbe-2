@@ -13,6 +13,7 @@ import { Panel } from "./Panel";
 import detail from "./ThreadDetail.module.css";
 import rec from "@/components/records/RecordList.module.css";
 import styles from "./ThreadDetailLive.module.css";
+import { describePendingItem, openPendingItems } from "@/lib/pending";
 
 /**
  * Live thread detail for real (non-demo) thread ids: the /v1/threads/{id}
@@ -58,9 +59,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
   const nodes = graph.data?.nodes ?? [];
   const edges = graph.data?.edges ?? [];
   const labelById = new Map(nodes.map((n) => [n.id, n.label]));
-  const loops = (pending.data ?? []).filter(
-    (p) => p.primary_thread_id === id && p.status === "active",
-  );
+  const loops = openPendingItems((pending.data ?? []).filter((p) => p.primary_thread_id === id));
   const askHref = `/ask?q=${encodeURIComponent(`What is going on with my ${data.title.toLowerCase()}?`)}`;
 
   return (
@@ -184,6 +183,9 @@ export function ThreadDetailLive({ id }: { id: string }) {
                       <span className={rec.rowMain}>
                         <span className={rec.rowTitle}>{p.title}</span>
                       </span>
+                      <Chip size="sm" tone={describePendingItem(p).tone}>
+                        {describePendingItem(p).label}
+                      </Chip>
                     </li>
                   ))}
                 </ul>

@@ -290,6 +290,34 @@ class PendingItemV2(StrictBaseModel):
     audit_refs: list[AuditRefV2] = Field(default_factory=list)
 
 
+class NotificationV2(StrictBaseModel):
+    """An in-app notification (C12). In-app only: never pushed or emailed."""
+
+    schema_version: Literal["c13.notification.v2"] = "c13.notification.v2"
+    notification_id: str
+    kind: str
+    title: str
+    body: str
+    pending_item_id: str | None = None
+    thread_id: str | None = None
+    created_at: datetime
+    read_at: datetime | None = None
+
+
+class NotificationListV2(StrictBaseModel):
+    schema_version: Literal["c13.notification_list.v2"] = "c13.notification_list.v2"
+    notifications: list[NotificationV2] = Field(default_factory=list)
+    unread_count: int = 0
+
+
+class NotificationsMarkedReadV2(StrictBaseModel):
+    schema_version: Literal["c13.notifications_marked_read.v2"] = (
+        "c13.notifications_marked_read.v2"
+    )
+    marked_read: int
+    unread_count: int = 0
+
+
 class MemoryEntryV2(StrictBaseModel):
     schema_version: Literal["c13.memory_entry.v2"] = "c13.memory_entry.v2"
     memory_entry_id: str
@@ -373,6 +401,9 @@ __all__ = [
     "GrantV2",
     "InvestigationV2",
     "MemoryEntryV2",
+    "NotificationListV2",
+    "NotificationsMarkedReadV2",
+    "NotificationV2",
     "PendingItemV2",
     "ProblemCode",
     "ProblemDetailsV2",

@@ -75,6 +75,14 @@ temporal:
   db: temporal
   visibilityDb: temporal_visibility
 
+# C9 follow-up windows (owner decision). The processing-worker dates new waiting
+# items with them; the continuity-worker sweeper applies the overdue grace.
+# Migration 024 backfilled existing items with these same defaults.
+c9Policy:
+  resultWindowDays: 7
+  referralWindowDays: 28
+  overdueGraceDays: 2
+
 continuityWorker:
   image: wellbe-continuity-worker:local
   imagePullPolicy: Never
@@ -82,6 +90,23 @@ continuityWorker:
   config:
     temporalHost: "temporal:7233"
     temporalNamespace: "default"
+    logLevel: "INFO"
+    environment: "dev"
+    # "sweeper" (periodic ledger sweep, no Temporal needed) or "temporal"
+    # (per-item durable-timer workflow). Exactly one mechanism owns C9 timers;
+    # see docs/decisions/c9-due-reminders-sweeper.md.
+    timerMechanism: "sweeper"
+    sweepIntervalSeconds: 60
+
+# C12 in-app notification worker: sole consumer of c9.pending_item.created /
+# .due / .overdue outbox events. In-app only (no push/email/messaging).
+notificationWorker:
+  enabled: true
+  image: wellbe-notification-worker:local
+  imagePullPolicy: Never
+  replicas: 1
+  config:
+    pollIntervalSeconds: 5
     logLevel: "INFO"
     environment: "dev"
 

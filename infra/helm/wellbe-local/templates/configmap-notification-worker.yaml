@@ -1,0 +1,13 @@
+{{- if .Values.notificationWorker.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-worker-config
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+data:
+  WELLBE_DATABASE_URL: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
+  WELLBE_NOTIFICATION_POLL_INTERVAL_SECONDS: {{ .Values.notificationWorker.config.pollIntervalSeconds | quote }}
+  WELLBE_LOG_LEVEL: {{ .Values.notificationWorker.config.logLevel | quote }}
+  WELLBE_ENVIRONMENT: {{ .Values.notificationWorker.config.environment | quote }}
+{{- end }}

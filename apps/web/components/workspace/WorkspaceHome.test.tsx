@@ -48,4 +48,28 @@ describe("WorkspaceHome", () => {
     expect(screen.queryByText("Newer thread")).not.toBeInTheDocument();
     expect(screen.getByText("Older thread")).toBeInTheDocument();
   });
+
+  it("lists open loops with their due state, linking to the thread", () => {
+    const pendingItems = [
+      {
+        schema_version: "c13.pending_item.v2" as const,
+        pending_item_id: "p1",
+        primary_thread_id: "1",
+        item_type: "result_pending",
+        status: "due",
+        title: "Waiting for a result: Ferritin",
+        due_at: "2026-10-04T12:00:00Z",
+        due_precision: "relative_policy",
+        investigation_ids: [],
+        blocks_closure: false,
+        created_at: "2026-09-27T12:00:00Z",
+        updated_at: "2026-09-27T12:00:00Z",
+        audit_refs: [],
+      },
+    ];
+    render(<WorkspaceHome threads={threads} pendingCount={1} pendingItems={pendingItems} />);
+    const row = screen.getByRole("link", { name: /waiting for a result: ferritin/i });
+    expect(row).toHaveAttribute("href", "/threads/1");
+    expect(row).toHaveTextContent("Due Oct 4");
+  });
 });

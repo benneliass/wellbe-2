@@ -11,3 +11,7 @@ data:
   WELLBE_TEMPORAL_HOST: {{ .Values.processingWorker.config.temporalHost | quote }}
   WELLBE_LOG_LEVEL: {{ .Values.processingWorker.config.logLevel | quote }}
   WELLBE_ENVIRONMENT: {{ .Values.processingWorker.config.environment | quote }}
+  # C9 reconciliation (thread.state_changed) runs here and dates new waiting items.
+  WELLBE_C9_RESULT_WINDOW_DAYS: {{ .Values.c9Policy.resultWindowDays | quote }}
+  WELLBE_C9_REFERRAL_WINDOW_DAYS: {{ .Values.c9Policy.referralWindowDays | quote }}
+  WELLBE_C9_OVERDUE_GRACE_DAYS: {{ .Values.c9Policy.overdueGraceDays | quote }}

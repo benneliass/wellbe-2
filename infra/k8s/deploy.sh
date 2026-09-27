@@ -27,6 +27,7 @@ docker build -t wellbe-safety-gate:local -f "$REPO_ROOT/backend/apps/safety-gate
 docker build -t wellbe-api:local -f "$REPO_ROOT/backend/apps/api/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-audit-service:local -f "$REPO_ROOT/backend/apps/audit-service/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-continuity-worker:local -f "$REPO_ROOT/backend/apps/continuity-worker/Dockerfile" "$REPO_ROOT"
+docker build -t wellbe-notification-worker:local -f "$REPO_ROOT/backend/apps/notification-worker/Dockerfile" "$REPO_ROOT"
 docker build -t wellbe-web:local -f "$REPO_ROOT/apps/web/Dockerfile" "$REPO_ROOT" \
   --build-arg "NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=$DEV_PATIENT_ID" \
   --build-arg "NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=$DEV_PATIENT_ID" \
@@ -51,6 +52,7 @@ LOCAL_IMAGES=(
   wellbe-api:local
   wellbe-audit-service:local
   wellbe-continuity-worker:local
+  wellbe-notification-worker:local
   wellbe-web:local
   wellbe-migrations:local
 )
