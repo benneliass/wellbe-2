@@ -417,10 +417,99 @@
         "title": "C10ObligationV2",
         "type": "object"
       },
+      "CaptureContextV1": {
+        "description": "Optional, patient-authored follow-up answers for a symptom or note capture.\n\nEvery field is the person's own words and is optional; capture never requires\nany of them. Answers are stored verbatim in the raw record (raw stays raw) with\nper-field character spans in ``source_metadata.patient_context`` so readers can\nrecover each structured answer without re-parsing.",
+        "properties": {
+          "change_from_normal": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change From Normal"
+          },
+          "daily_impact": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Impact"
+          },
+          "main_concern": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Main Concern"
+          },
+          "medications_access": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medications Access"
+          },
+          "onset": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset"
+          },
+          "prior_care": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Care"
+          }
+        },
+        "title": "CaptureContextV1",
+        "type": "object"
+      },
       "CaptureRequestV1": {
         "properties": {
           "capture_type": {
             "$ref": "#/components/schemas/CaptureType"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaptureContextV1"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "occurred_at": {
             "anyOf": [
@@ -2946,6 +3035,93 @@
         "title": "SaveDraftRequest",
         "type": "object"
       },
+      "ShareLinkStatus": {
+        "enum": [
+          "active",
+          "revoked",
+          "expired"
+        ],
+        "title": "ShareLinkStatus",
+        "type": "string"
+      },
+      "ShareLinkSummaryV2": {
+        "description": "Owner-facing view of one share link (never carries the token or passcode).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "info_scope": {
+            "title": "Info Scope",
+            "type": "string"
+          },
+          "packet_id": {
+            "title": "Packet Id",
+            "type": "string"
+          },
+          "packet_title": {
+            "title": "Packet Title",
+            "type": "string"
+          },
+          "passcode_required": {
+            "title": "Passcode Required",
+            "type": "boolean"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "schema_version": {
+            "const": "c13.visit_packet.share_link.v2",
+            "default": "c13.visit_packet.share_link.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "share_link_id": {
+            "title": "Share Link Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ShareLinkStatus"
+          }
+        },
+        "required": [
+          "share_link_id",
+          "packet_id",
+          "packet_title",
+          "recipient_name",
+          "purpose",
+          "info_scope",
+          "status",
+          "passcode_required",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "ShareLinkSummaryV2",
+        "type": "object"
+      },
       "SharePacketRequest": {
         "properties": {
           "expires_in_hours": {
@@ -3880,6 +4056,13 @@
       },
       "UpdatePacketRequest": {
         "properties": {
+          "edits": {
+            "items": {
+              "$ref": "#/components/schemas/UpdateStatementText"
+            },
+            "title": "Edits",
+            "type": "array"
+          },
           "inclusions": {
             "items": {
               "$ref": "#/components/schemas/UpdateStatementInclusion"
@@ -3907,6 +4090,27 @@
           "included"
         ],
         "title": "UpdateStatementInclusion",
+        "type": "object"
+      },
+      "UpdateStatementText": {
+        "description": "Reword a patient-prep statement (the user's own words).\n\nOnly ``patient_prep`` statements are editable. Source-backed summary\nstatements are never rewritten in place \u2014 the user deselects them or files a\ncorrection instead, so a packet claim can't drift from its source.",
+        "properties": {
+          "statement_id": {
+            "title": "Statement Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_id",
+          "text"
+        ],
+        "title": "UpdateStatementText",
         "type": "object"
       },
       "ValidationError": {
@@ -9070,6 +9274,135 @@
         ]
       }
     },
+    "/v2/share-links": {
+      "get": {
+        "description": "The controller's share links (all packets, or one), newest first.\n\nTokens and passcodes are never returned \u2014 only who, what, status, and when \u2014\nso the user can see and revoke every active share in one place.",
+        "operationId": "list_share_links_v2_share_links_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "packet_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Packet Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShareLinkSummaryV2"
+                  },
+                  "title": "Response List Share Links V2 Share Links Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Share Links",
+        "tags": [
+          "v2-visit-packet"
+        ]
+      }
+    },
     "/v2/share/{token}": {
       "get": {
         "description": "Public recipient read of a shared packet. Returns 404 for any unknown,\nrevoked, expired, or passcode-failing link (no information leak).",
@@ -9973,7 +10306,7 @@
         ]
       },
       "patch": {
-        "description": "Toggle statement inclusion. Deselected statements are kept and marked,\nnever silently dropped (decision: deselection visibility).",
+        "description": "Toggle statement inclusion and reword the user's own prep statements.\n\nDeselected statements are kept and marked, never silently dropped (decision:\ndeselection visibility). Only ``patient_prep`` statements can be reworded;\nsource-backed summary statements are rejected so they can't drift from their\nsource. The C10 gate re-runs on the edited text at share time.",
         "operationId": "update_visit_packet_v2_visit_packets__packet_id__patch",
         "parameters": [
           {

@@ -54,6 +54,40 @@ class CaptureType(StrEnum):
     NOTE = "note"
 
 
+_CONTEXT_MAX_CHARS = 2000
+
+
+class CaptureContextV1(BaseModel):
+    """Optional, patient-authored follow-up answers for a symptom or note capture.
+
+    Every field is the person's own words and is optional; capture never requires
+    any of them. Answers are stored verbatim in the raw record (raw stays raw) with
+    per-field character spans in ``source_metadata.patient_context`` so readers can
+    recover each structured answer without re-parsing.
+    """
+
+    change_from_normal: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+    onset: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+    daily_impact: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+    main_concern: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+    prior_care: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+    medications_access: str | None = Field(default=None, max_length=_CONTEXT_MAX_CHARS)
+
+
+# Fixed field order + the plain-language label written ahead of each answer in the
+# raw narrative. Changing a label changes future raw bytes, never stored spans.
+_CONTEXT_LABELS: tuple[tuple[str, str], ...] = (
+    ("change_from_normal", "Change from my normal"),
+    ("onset", "When it started and how it has changed"),
+    ("daily_impact", "Effect on my daily life"),
+    ("main_concern", "My main worry or question"),
+    ("prior_care", "Visits, tests or referrals so far"),
+    ("medications_access", "Medicines or access changes"),
+)
+
+_CONTEXT_CAPTURE_TYPES = frozenset({"symptom", "note"})
+
+
 class CaptureRequestV1(BaseModel):
     schema_version: str = "c13.capture.request.v1"
     capture_type: CaptureType
@@ -62,6 +96,8 @@ class CaptureRequestV1(BaseModel):
     occurred_at: datetime | None = None
     source: str | None = None
     thread_id: str | None = None
+    # Optional patient-authored follow-up answers (symptom / note only).
+    context: CaptureContextV1 | None = None
 
 
 class CaptureResponseV1(BaseModel):
@@ -83,6 +119,40 @@ def _bad_request(detail: str, correlation_id: str) -> ProblemError:
     )
 
 
+def _compose_narrative(
+    primary: str, context: CaptureContextV1 | None
+) -> tuple[str, dict[str, Any] | None]:
+    """Append the provided context answers to the primary narrative, verbatim.
+
+    Returns the full raw text and, when any answer was given, the
+    ``patient_context`` metadata block: authorship, review marker, and
+    ``[start, end)`` spans (Unicode code points into the UTF-8-decoded raw text)
+    of the narrative and of each answer.
+    """
+    if context is None:
+        return primary, None
+    answers: list[tuple[str, str, str]] = []
+    for name, label in _CONTEXT_LABELS:
+        value: str | None = getattr(context, name)
+        if value and value.strip():
+            answers.append((name, label, value.strip()))
+    if not answers:
+        return primary, None
+
+    text = primary
+    spans: dict[str, list[int]] = {"narrative": [0, len(primary)]}
+    for i, (name, label, answer) in enumerate(answers):
+        text += ("\n\n" if i == 0 else "\n") + f"{label}: "
+        spans[name] = [len(text), len(text) + len(answer)]
+        text += answer
+    return text, {
+        "schema_version": "c13.capture.context.v1",
+        "authorship": "controller_authored",
+        "review_marker": "patient-entered",
+        "spans": spans,
+    }
+
+
 def _build_ingest(
     body: CaptureRequestV1, correlation_id: str
 ) -> tuple[str, bytes, dict[str, Any]]:
@@ -98,6 +168,10 @@ def _build_ingest(
         metadata["thread_id"] = body.thread_id
     if body.source:
         metadata["source"] = body.source
+    if body.context is not None and body.capture_type.value not in _CONTEXT_CAPTURE_TYPES:
+        raise _bad_request(
+            "context is only supported for symptom and note captures", correlation_id
+        )
 
     if body.capture_type is CaptureType.SYMPTOM:
         description = (payload.get("description") or "").strip()
@@ -105,13 +179,19 @@ def _build_ingest(
             raise _bad_request("symptom.payload.description is required", correlation_id)
         if payload.get("severity"):
             metadata["severity"] = payload["severity"]
-        return "manual_text", description.encode("utf-8"), metadata
+        narrative, patient_context = _compose_narrative(description, body.context)
+        if patient_context:
+            metadata["patient_context"] = patient_context
+        return "manual_text", narrative.encode("utf-8"), metadata
 
     if body.capture_type is CaptureType.NOTE:
         text = (payload.get("text") or payload.get("body") or "").strip()
         if not text:
             raise _bad_request("note.payload.text is required", correlation_id)
-        return "manual_text", text.encode("utf-8"), metadata
+        narrative, patient_context = _compose_narrative(text, body.context)
+        if patient_context:
+            metadata["patient_context"] = patient_context
+        return "manual_text", narrative.encode("utf-8"), metadata
 
     if body.capture_type is CaptureType.LAB:
         test_name = (payload.get("test_name") or "").strip()

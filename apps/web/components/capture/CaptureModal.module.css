@@ -267,3 +267,47 @@
   background: var(--accent-soft);
   color: var(--teal-600);
 }
+
+/* "Add more detail" — optional, progressively disclosed follow-up prompts. */
+.more {
+  margin-bottom: 14px;
+}
+.moreToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--teal-600);
+  cursor: pointer;
+}
+.moreToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 6px;
+}
+.moreHint {
+  font-weight: 500;
+  font-size: var(--text-2xs);
+  color: var(--fg3);
+}
+.morePanel {
+  margin-top: 10px;
+  padding: 12px 12px 0;
+  border-left: 3px solid var(--teal-500);
+  border-radius: 0 9px 9px 0;
+  background: var(--slate-50);
+}
+.moreIntro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: var(--text-xs);
+  color: var(--fg2);
+}

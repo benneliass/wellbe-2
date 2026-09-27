@@ -609,6 +609,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/share-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Share Links
+         * @description The controller's share links (all packets, or one), newest first.
+         *
+         *     Tokens and passcodes are never returned — only who, what, status, and when —
+         *     so the user can see and revoke every active share in one place.
+         */
+        get: operations["list_share_links_v2_share_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/share/{token}": {
         parameters: {
             query?: never;
@@ -751,8 +774,12 @@ export interface paths {
         head?: never;
         /**
          * Update Visit Packet
-         * @description Toggle statement inclusion. Deselected statements are kept and marked,
-         *     never silently dropped (decision: deselection visibility).
+         * @description Toggle statement inclusion and reword the user's own prep statements.
+         *
+         *     Deselected statements are kept and marked, never silently dropped (decision:
+         *     deselection visibility). Only ``patient_prep`` statements can be reworded;
+         *     source-backed summary statements are rejected so they can't drift from their
+         *     source. The C10 gate re-runs on the edited text at share time.
          */
         patch: operations["update_visit_packet_v2_visit_packets__packet_id__patch"];
         trace?: never;
@@ -1038,9 +1065,33 @@ export interface components {
              */
             schema_version: "c13.c10_obligation.v2";
         };
+        /**
+         * CaptureContextV1
+         * @description Optional, patient-authored follow-up answers for a symptom or note capture.
+         *
+         *     Every field is the person's own words and is optional; capture never requires
+         *     any of them. Answers are stored verbatim in the raw record (raw stays raw) with
+         *     per-field character spans in ``source_metadata.patient_context`` so readers can
+         *     recover each structured answer without re-parsing.
+         */
+        CaptureContextV1: {
+            /** Change From Normal */
+            change_from_normal?: string | null;
+            /** Daily Impact */
+            daily_impact?: string | null;
+            /** Main Concern */
+            main_concern?: string | null;
+            /** Medications Access */
+            medications_access?: string | null;
+            /** Onset */
+            onset?: string | null;
+            /** Prior Care */
+            prior_care?: string | null;
+        };
         /** CaptureRequestV1 */
         CaptureRequestV1: {
             capture_type: components["schemas"]["CaptureType"];
+            context?: components["schemas"]["CaptureContextV1"] | null;
             /** Occurred At */
             occurred_at?: string | null;
             /** Payload */
@@ -2163,6 +2214,50 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /**
+         * ShareLinkStatus
+         * @enum {string}
+         */
+        ShareLinkStatus: "active" | "revoked" | "expired";
+        /**
+         * ShareLinkSummaryV2
+         * @description Owner-facing view of one share link (never carries the token or passcode).
+         */
+        ShareLinkSummaryV2: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Info Scope */
+            info_scope: string;
+            /** Packet Id */
+            packet_id: string;
+            /** Packet Title */
+            packet_title: string;
+            /** Passcode Required */
+            passcode_required: boolean;
+            /** Purpose */
+            purpose: string;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Revoked At */
+            revoked_at?: string | null;
+            /**
+             * Schema Version
+             * @default c13.visit_packet.share_link.v2
+             * @constant
+             */
+            schema_version: "c13.visit_packet.share_link.v2";
+            /** Share Link Id */
+            share_link_id: string;
+            status: components["schemas"]["ShareLinkStatus"];
+        };
         /** SharePacketRequest */
         SharePacketRequest: {
             /**
@@ -2613,6 +2708,8 @@ export interface components {
         };
         /** UpdatePacketRequest */
         UpdatePacketRequest: {
+            /** Edits */
+            edits?: components["schemas"]["UpdateStatementText"][];
             /** Inclusions */
             inclusions?: components["schemas"]["UpdateStatementInclusion"][];
         };
@@ -2622,6 +2719,20 @@ export interface components {
             included: boolean;
             /** Statement Id */
             statement_id: string;
+        };
+        /**
+         * UpdateStatementText
+         * @description Reword a patient-prep statement (the user's own words).
+         *
+         *     Only ``patient_prep`` statements are editable. Source-backed summary
+         *     statements are never rewritten in place — the user deselects them or files a
+         *     correction instead, so a packet claim can't drift from its source.
+         */
+        UpdateStatementText: {
+            /** Statement Id */
+            statement_id: string;
+            /** Text */
+            text: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -4309,6 +4420,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SupportedSchemaVersionsV2"];
+                };
+            };
+        };
+    };
+    list_share_links_v2_share_links_get: {
+        parameters: {
+            query?: {
+                packet_id?: string | null;
+            };
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareLinkSummaryV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

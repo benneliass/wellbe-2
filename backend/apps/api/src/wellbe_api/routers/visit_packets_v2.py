@@ -24,6 +24,7 @@ from wellbe_contracts.visit_packet import (
     PacketStatus,
     SharedPacketView,
     ShareLinkStatus,
+    ShareLinkSummaryV2,
     SharePacketRequest,
     SharePacketResponse,
     StatementClassification,
@@ -165,13 +166,49 @@ async def update_visit_packet(
     principal: PrincipalDep,
     session: SessionDep,
 ) -> VisitPacketV2:
-    """Toggle statement inclusion. Deselected statements are kept and marked,
-    never silently dropped (decision: deselection visibility)."""
+    """Toggle statement inclusion and reword the user's own prep statements.
+
+    Deselected statements are kept and marked, never silently dropped (decision:
+    deselection visibility). Only ``patient_prep`` statements can be reworded;
+    source-backed summary statements are rejected so they can't drift from their
+    source. The C10 gate re-runs on the edited text at share time.
+    """
     await require_access(
         principal, session, action="write", resource_type=_RESOURCE, resource_id=packet_id
     )
     repo = VisitPacketRepository(session)
     packet = await _load_owned_packet(repo, principal, packet_id)
+
+    for edit in body.edits:
+        try:
+            statement_id: uuid.UUID | None = uuid.UUID(edit.statement_id)
+        except ValueError:
+            statement_id = None
+        row = await repo.get_statement(statement_id) if statement_id else None
+        if row is None or row.packet_id != packet.id:
+            raise ProblemError(
+                status=404,
+                code=ProblemCode.GRANT_REQUIRED,
+                title="Statement not found",
+                detail="No statement with that id belongs to this packet.",
+                correlation_id=principal.correlation_id,
+            )
+        if row.layer != PacketLayer.PATIENT_PREP.value:
+            raise ProblemError(
+                status=422,
+                code=ProblemCode.PROVENANCE_MISSING,
+                title="Summary statements can't be reworded",
+                detail=(
+                    "Source-linked summary statements stay as their source says. "
+                    "Remove it from the packet or add a correction instead."
+                ),
+                correlation_id=principal.correlation_id,
+            )
+        text = edit.text.strip()
+        if text:
+            row.text = text
+    if body.edits:
+        packet.updated_at = datetime.now(UTC).replace(tzinfo=None)
 
     for inc in body.inclusions:
         try:
@@ -355,6 +392,52 @@ async def export_visit_packet(
     )
     await session.commit()
     return ExportPacketResponse(packet=_packet_v2(packet, rows))
+
+
+def _share_link_status(link: ShareLinkRow, now: datetime) -> ShareLinkStatus:
+    if link.status != ShareLinkStatus.ACTIVE.value:
+        return ShareLinkStatus(link.status)
+    if link.expires_at <= now:
+        return ShareLinkStatus.EXPIRED
+    return ShareLinkStatus.ACTIVE
+
+
+def _aware(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+def _share_link_summary(link: ShareLinkRow, packet_title: str, now: datetime) -> ShareLinkSummaryV2:
+    return ShareLinkSummaryV2(
+        share_link_id=str(link.id),
+        packet_id=str(link.packet_id),
+        packet_title=packet_title,
+        recipient_name=link.recipient_name,
+        purpose=link.purpose,
+        info_scope=link.info_scope,
+        status=_share_link_status(link, now),
+        passcode_required=link.passcode_hash is not None,
+        created_at=_aware(link.created_at),
+        expires_at=_aware(link.expires_at),
+        revoked_at=_aware(link.revoked_at) if link.revoked_at else None,
+    )
+
+
+@router.get("/share-links", response_model=list[ShareLinkSummaryV2])
+async def list_share_links(
+    principal: PrincipalDep,
+    session: SessionDep,
+    packet_id: uuid.UUID | None = None,
+) -> list[ShareLinkSummaryV2]:
+    """The controller's share links (all packets, or one), newest first.
+
+    Tokens and passcodes are never returned — only who, what, status, and when —
+    so the user can see and revoke every active share in one place.
+    """
+    await require_access(principal, session, action="read", resource_type=_RESOURCE)
+    repo = VisitPacketRepository(session)
+    now = datetime.now(UTC).replace(tzinfo=None)
+    rows = await repo.share_links_for_patient(principal.patient_id, packet_id)
+    return [_share_link_summary(link, title, now) for link, title in rows]
 
 
 @router.get("/share/{token}", response_model=SharedPacketView)

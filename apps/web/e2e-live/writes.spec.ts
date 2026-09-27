@@ -83,14 +83,13 @@ test("a visit packet can be shared, opened by the recipient, and revoked", async
   await page.goto("/prepare");
   await page.getByRole("button", { name: "Build packet" }).click();
   await expect(page.getByText(/\d+ of \d+ items included/)).toBeVisible({ timeout: 30_000 });
-  await page.getByRole("button", { name: "Share", exact: true }).click();
+  await page.getByRole("button", { name: "Approve and continue" }).click();
 
-  const sheet = page.getByRole("dialog", { name: "Share packet" });
-  await sheet.getByPlaceholder(/Dr\. Jane Smith/).fill(`E2E browser check ${new Date().toISOString()}`);
-  await sheet.getByRole("combobox").selectOption({ label: "In 24 hours" });
-  await sheet.getByRole("button", { name: "Create link" }).click();
+  await page.getByPlaceholder(/Dr\. Jane Smith/).fill(`E2E browser check ${new Date().toISOString()}`);
+  await page.getByLabel("Access expires").selectOption({ label: "In 24 hours" });
+  await page.getByRole("button", { name: "Create link" }).click();
 
-  const created = page.getByRole("dialog", { name: "Share link created" });
+  const created = page.getByRole("region", { name: "Share link created" });
   await expect(created).toBeVisible({ timeout: 30_000 });
   const url = (await created.locator("code").innerText()).trim();
   expect(url).toMatch(/\/shared\/[^/]+$/);

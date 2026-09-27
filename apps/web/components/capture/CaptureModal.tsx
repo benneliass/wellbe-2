@@ -1,11 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Button, Icon, Modal } from "@wellbe/ui";
+import { useId, useRef, useState } from "react";
+import { Button, Icon, Modal, ReviewMarker } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
 import { CAPTURE_TYPES } from "@/lib/meta";
+import { CONTEXT_PROMPTS, buildCaptureContext, type CaptureContextField } from "./contextPrompts";
 import styles from "./CaptureModal.module.css";
+
+/** Capture types that accept the optional follow-up prompts (backend: symptom / note). */
+const CONTEXT_TYPES = new Set(["reported", "note"]);
 
 const SEVERITIES = ["Mild", "Moderate", "Severe"];
 
@@ -55,6 +59,9 @@ export function CaptureModal({
   const [labUnit, setLabUnit] = useState("");
   const [labRange, setLabRange] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [answers, setAnswers] = useState<Partial<Record<CaptureContextField, string>>>({});
+  const morePanelId = useId();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,12 +122,14 @@ export function CaptureModal({
       const captureType = TYPE_MAP[type];
       if (!captureType) throw new Error("Unknown capture type.");
       const payload = await buildPayload();
+      const context = CONTEXT_TYPES.has(type) ? buildCaptureContext(answers) : undefined;
       const { data, error: apiError } = await getApiClient().POST("/v1/capture", {
         params: { header: { "Idempotency-Key": idempotencyKeyRef.current } },
         body: {
           schema_version: "c13.capture.request.v1",
           capture_type: captureType,
           payload,
+          ...(context ? { context } : {}),
         },
       });
       if (apiError || !data) {
@@ -342,6 +351,43 @@ export function CaptureModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
+        </div>
+      )}
+
+      {CONTEXT_TYPES.has(type) && (
+        <div className={styles.more}>
+          <button
+            type="button"
+            className={styles.moreToggle}
+            aria-expanded={moreOpen}
+            aria-controls={morePanelId}
+            onClick={() => setMoreOpen((v) => !v)}
+          >
+            <Icon name={moreOpen ? "chevron-down" : "chevron-right"} size={14} />
+            {moreOpen ? "Hide extra detail" : "Add more detail"}
+            <span className={styles.moreHint}>optional</span>
+          </button>
+          {moreOpen && (
+            <div id={morePanelId} className={styles.morePanel}>
+              <p className={styles.moreIntro}>
+                <ReviewMarker value="patient-entered" />
+                Answer any that help, skip the rest. Saved exactly as you write it.
+              </p>
+              {CONTEXT_PROMPTS.map((p) => (
+                <div key={p.field} className={styles.field}>
+                  <label htmlFor={`capture-ctx-${p.field}`}>{p.label}</label>
+                  <textarea
+                    id={`capture-ctx-${p.field}`}
+                    rows={2}
+                    maxLength={2000}
+                    placeholder={p.placeholder}
+                    value={answers[p.field] ?? ""}
+                    onChange={(e) => setAnswers((prev) => ({ ...prev, [p.field]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

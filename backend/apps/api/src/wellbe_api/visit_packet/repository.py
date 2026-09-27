@@ -46,6 +46,21 @@ class VisitPacketRepository:
     async def get_share_link(self, link_id: uuid.UUID) -> ShareLinkRow | None:
         return await self._session.get(ShareLinkRow, link_id)
 
+    async def share_links_for_patient(
+        self, patient_id: uuid.UUID, packet_id: uuid.UUID | None = None
+    ) -> list[tuple[ShareLinkRow, str]]:
+        """Share links owned by the patient with their packet title, newest first."""
+        stmt = (
+            select(ShareLinkRow, PacketRow.title)
+            .join(PacketRow, PacketRow.id == ShareLinkRow.packet_id)
+            .where(ShareLinkRow.patient_id == patient_id)
+            .order_by(ShareLinkRow.created_at.desc())
+        )
+        if packet_id is not None:
+            stmt = stmt.where(ShareLinkRow.packet_id == packet_id)
+        result = await self._session.execute(stmt)
+        return [(row, title) for row, title in result.all()]
+
     async def share_link_by_token_hash(self, token_hash: str) -> ShareLinkRow | None:
         stmt = select(ShareLinkRow).where(ShareLinkRow.token_hash == token_hash)
         result = await self._session.execute(stmt)

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, Icon } from "@wellbe/ui";
+import { Button, Icon, SourceMarker } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
+import { ABSENCE_LABELS, toEvidenceSource } from "./packetFormat";
 import styles from "./SharedPacketView.module.css";
 
 type SharedView = components["schemas"]["SharedPacketView"];
@@ -107,15 +108,20 @@ export function SharedPacketView({ token }: { token: string }) {
               <div className={styles.meta}>
                 <span className={styles.chip} data-absent={s.absent || undefined}>
                   {s.absent
-                    ? `Known gap: ${s.absence_reason ?? "unavailable"}`
+                    ? (ABSENCE_LABELS[s.absence_reason ?? "unavailable"] ?? "Not available")
                     : (CLASS_LABELS[s.classification] ?? s.classification)}
                 </span>
-                {(s.source_refs ?? []).map((ref, i) => (
-                  <span key={i} className={styles.source}>
-                    <Icon name="badge-check" size={11} />
-                    {ref.label ?? ref.ref_type}
-                  </span>
-                ))}
+                {(s.source_refs ?? []).map((ref, i) => {
+                  const source = toEvidenceSource(s, ref, i);
+                  return (
+                    <SourceMarker
+                      key={source.id}
+                      displayLabel={source.displayLabel}
+                      component={source.component}
+                      kind={source.kind}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -73,6 +73,88 @@ def test_build_ingest_symptom() -> None:
     assert meta["severity"] == "Moderate"
 
 
+def test_build_ingest_symptom_without_context_is_unchanged() -> None:
+    body = capture_v1.CaptureRequestV1(
+        capture_type="symptom",
+        payload={"description": "dull ache"},
+        context={"onset": "   ", "daily_impact": None},
+    )
+    _, raw, meta = capture_v1._build_ingest(body, "corr")
+    assert raw == b"dull ache"
+    assert "patient_context" not in meta
+
+
+def test_build_ingest_symptom_context_is_verbatim_with_spans() -> None:
+    body = capture_v1.CaptureRequestV1(
+        capture_type="symptom",
+        payload={"description": "dull ache in my knee"},
+        context={
+            "change_from_normal": "I usually run 5k, now I can't",
+            "onset": "Two weeks ago, worse on stairs",
+            "main_concern": "Is it a tear? ",
+        },
+    )
+    source_type, raw, meta = capture_v1._build_ingest(body, "corr")
+    assert source_type == "manual_text"
+    text = raw.decode("utf-8")
+    assert text.startswith("dull ache in my knee\n\n")
+
+    ctx = meta["patient_context"]
+    assert ctx["authorship"] == "controller_authored"
+    assert ctx["review_marker"] == "patient-entered"
+    spans = ctx["spans"]
+    assert set(spans) == {"narrative", "change_from_normal", "onset", "main_concern"}
+
+    def at(name: str) -> str:
+        start, end = spans[name]
+        return text[start:end]
+
+    assert at("narrative") == "dull ache in my knee"
+    assert at("change_from_normal") == "I usually run 5k, now I can't"
+    assert at("onset") == "Two weeks ago, worse on stairs"
+    assert at("main_concern") == "Is it a tear?"
+    # Fixed order: change_from_normal is written before onset regardless of input order.
+    assert spans["change_from_normal"][0] < spans["onset"][0] < spans["main_concern"][0]
+
+
+def test_build_ingest_note_accepts_context() -> None:
+    body = capture_v1.CaptureRequestV1(
+        capture_type="note",
+        payload={"text": "ask about the new inhaler"},
+        context={"medications_access": "Pharmacy was out of stock — ünïcode ok"},
+    )
+    _, raw, meta = capture_v1._build_ingest(body, "corr")
+    text = raw.decode("utf-8")
+    start, end = meta["patient_context"]["spans"]["medications_access"]
+    assert text[start:end] == "Pharmacy was out of stock — ünïcode ok"
+
+
+def test_capture_rejects_context_on_lab() -> None:
+    resp = _client().post(
+        "/v1/capture",
+        headers={**_AUTH, **_IDEM},
+        json={
+            "capture_type": "lab",
+            "payload": {"test_name": "LDL", "value": "3.1"},
+            "context": {"onset": "last month"},
+        },
+    )
+    assert resp.status_code == 422
+
+
+def test_capture_rejects_overlong_context_answer() -> None:
+    resp = _client().post(
+        "/v1/capture",
+        headers={**_AUTH, **_IDEM},
+        json={
+            "capture_type": "symptom",
+            "payload": {"description": "ache"},
+            "context": {"daily_impact": "x" * 2001},
+        },
+    )
+    assert resp.status_code == 422
+
+
 def test_build_ingest_lab_summary() -> None:
     body = capture_v1.CaptureRequestV1(
         capture_type="lab",
