@@ -2,28 +2,33 @@ import "@wellbe/ui/tokens.css";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Figtree, JetBrains_Mono, Noto_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { Providers } from "./providers";
 
-const figtree = Figtree({
-  subsets: ["latin"],
+// Self-hosted (latin subset, variable weight) so `next build` never reaches out to
+// Google Fonts — image builds must work offline. See app/fonts/README.md.
+const figtree = localFont({
+  src: [{ path: "./fonts/figtree-latin-wght-normal.woff2", weight: "300 900", style: "normal" }],
   variable: "--font-figtree",
   display: "swap",
-  weight: ["500", "600", "700", "800"],
+  fallback: ["system-ui", "sans-serif"],
 });
 
-const notoSans = Noto_Sans({
-  subsets: ["latin"],
+const notoSans = localFont({
+  src: [{ path: "./fonts/noto-sans-latin-wght-normal.woff2", weight: "100 900", style: "normal" }],
   variable: "--font-noto-sans",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  fallback: ["system-ui", "sans-serif"],
 });
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
+const jetbrains = localFont({
+  src: [
+    { path: "./fonts/jetbrains-mono-latin-wght-normal.woff2", weight: "100 800", style: "normal" },
+  ],
   variable: "--font-jetbrains",
   display: "swap",
-  weight: ["400", "500"],
+  fallback: ["ui-monospace", "monospace"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {

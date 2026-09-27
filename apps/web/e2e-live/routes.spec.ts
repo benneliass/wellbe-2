@@ -187,15 +187,17 @@ test("Graph renders the patient's real nodes", async ({ page, request }) => {
   await snap(page, "09-graph");
 });
 
-test("Memory lists the memories kept around each thread", async ({ page, request }) => {
+test("Memory groups the memories kept around each thread by type", async ({ page, request }) => {
   const threads = await apiGet<ThreadV1[]>(request, "/v1/threads");
   await page.goto("/memory");
   await expect(page.getByRole("heading", { name: "Memory", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Show memory type" })).toBeVisible();
   for (const t of threads) {
     const memories = await apiGet<{ title: string }[]>(request, `/v2/threads/${t.thread_id}/memories`);
-    const group = page.getByRole("region", { name: `${t.title} memories` });
-    await expect(group).toBeVisible();
-    for (const m of memories) await expect(group.getByText(m.title).first()).toBeVisible();
+    for (const m of memories) await expect(page.getByText(m.title, { exact: true }).first()).toBeVisible();
+    if (memories.length > 0) {
+      await expect(page.locator(`a[href="/threads/${t.thread_id}"]`).first()).toBeVisible();
+    }
   }
   await expectCleanPage(page);
   await snap(page, "11-memory");
