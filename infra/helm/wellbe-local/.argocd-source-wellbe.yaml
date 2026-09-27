@@ -28,7 +28,7 @@ helm:
     value: ghcr.io/benneliass/wellbe-continuity-worker:0.1.15
     forcestring: true
   - name: migration.image
-    value: ghcr.io/benneliass/wellbe-migrations:0.1.16
+    value: ghcr.io/benneliass/wellbe-migrations:0.1.17
     forcestring: true
   - name: postgres.image
     value: ghcr.io/benneliass/wellbe-postgres:0.1.5
