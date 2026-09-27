@@ -7,6 +7,7 @@ import { ComingSoon } from "@/components/placeholder/ComingSoon";
 import { formatShortDate, mapThreadStatus } from "@/lib/adapters";
 import { STATUS_META } from "@/lib/meta";
 import { useThread } from "@/lib/hooks";
+import { ThreadTheories } from "./ThreadTheories";
 
 /**
  * Live thread detail for real (non-demo) thread ids. The /v1/threads/{id} header
@@ -62,6 +63,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
           title="The full thread view is on the way"
           description={`This is a real thread (status: ${status.label.toLowerCase()}). Its evidence, timeline, and open questions are being wired in — for now you can see its header above.`}
         />
+        <ThreadTheories threadId={id} />
       </PageBody>
     </>
   );
