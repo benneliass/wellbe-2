@@ -1,0 +1,19 @@
+{{- /* Render-time guard for the auth.* values; emits no resources. */ -}}
+{{- $mode := .Values.auth.mode }}
+{{- if not (has $mode (list "dev-headers" "oidc")) }}
+{{- fail (printf "auth.mode must be dev-headers or oidc, got %q" $mode) }}
+{{- end }}
+{{- if eq $mode "oidc" }}
+{{- if not .Values.auth.oidc.issuer }}
+{{- fail "auth.mode=oidc requires auth.oidc.issuer" }}
+{{- end }}
+{{- if not .Values.auth.oidc.audience }}
+{{- fail "auth.mode=oidc requires auth.oidc.audience (ZITADEL project id and/or client id)" }}
+{{- end }}
+{{- if and .Values.web.enabled (not .Values.auth.oidc.webClientId) }}
+{{- fail "auth.mode=oidc requires auth.oidc.webClientId for the web app" }}
+{{- end }}
+{{- if .Values.devSeed.enabled }}
+{{- fail "auth.mode=oidc requires devSeed.enabled=false (the seed calls the API with dev identity headers)" }}
+{{- end }}
+{{- end }}

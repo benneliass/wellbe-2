@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@wellbe/ui";
+import { isOidcMode, oidcConfigured } from "@/lib/auth-config";
+import { beginSignIn } from "@/lib/oidc";
 import {
   devWorkspaceAvailable,
   getSession,
@@ -14,13 +16,91 @@ import styles from "./EntryScreen.module.css";
 /**
  * The front door (WEL-151 / WEL-181 / WEL-184).
  *
- * Three explicit entry paths, never an auto-login:
+ * Dev mode offers three explicit entry paths, never an auto-login:
  *  1. New to WellBe  -> start onboarding (consent + baseline) into a fresh personal workspace.
  *  2. Continue       -> resume the last signed-in identity (returning user).
  *  3. Dev workspace  -> sign in as the seeded test identity. One selectable workspace,
  *                       clearly labelled, never the default.
+ *
+ * OIDC mode replaces them with a single ZITADEL sign-in (accounts are provisioned
+ * in ZITADEL, not self-registered); the callback routes an identity with no
+ * WellBe account yet into onboarding.
  */
 export function EntryScreen() {
+  return isOidcMode() ? <OidcEntryScreen /> : <DevEntryScreen />;
+}
+
+function OidcEntryScreen() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(
+    oidcConfigured() ? null : "Sign-in isn't configured for this deployment yet.",
+  );
+
+  const signIn = async () => {
+    if (busy || !oidcConfigured()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await beginSignIn();
+    } catch {
+      setError("Couldn't reach the sign-in service. Please try again.");
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={styles.screen}>
+      <div className={styles.bg} aria-hidden="true" />
+
+      <div className={styles.card}>
+        <div className={styles.brandRow}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/wellbe-logo.png" alt="" className={styles.mark} />
+          <span className={styles.word}>
+            Well<b>Be</b>
+          </span>
+        </div>
+
+        <h1 className={styles.title}>Your private health workspace</h1>
+        <p className={styles.sub}>
+          Everything you add stays yours. You decide what is ever shared.
+        </p>
+
+        <div className={styles.options}>
+          <button
+            type="button"
+            className={styles.primary}
+            onClick={signIn}
+            disabled={busy || !oidcConfigured()}
+          >
+            <span className={styles.optIcon}>
+              <Icon name="user" size={20} />
+            </span>
+            <span className={styles.optText}>
+              <b>Sign in</b>
+              <span>Continue to your workspace</span>
+            </span>
+            <Icon name="arrow-right" size={18} />
+          </button>
+
+        </div>
+
+        {error && (
+          <p className={styles.sub} role="alert">
+            {error}
+          </p>
+        )}
+
+        <p className={styles.foot}>
+          <Icon name="lock" size={13} />
+          Only you can see your data. We never sell it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DevEntryScreen() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const returning = getSession();

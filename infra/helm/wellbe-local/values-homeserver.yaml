@@ -158,3 +158,31 @@ devSeed:
   enabled: true
   image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
+
+# ---------------------------------------------------------------------------
+# Authentication — see docs/runbooks/auth-oidc.md. ZITADEL is exposed on the
+# tailnet now; the API/web stay on dev-headers until the orchestrator has run
+# scripts/ops/zitadel_bootstrap.py and filled in the ids below.
+# ---------------------------------------------------------------------------
+auth:
+  mode: dev-headers
+  # --- flip to OIDC (runbook step 5): uncomment, fill ids, and set devSeed.enabled: false
+  # mode: oidc
+  # oidc:
+  #   issuer: "https://wellbe-auth.tail9c487a.ts.net"
+  #   audience: ["<PROJECT_ID>", "<WEB_CLIENT_ID>"]
+  #   webClientId: "<WEB_CLIENT_ID>"
+  #   jwksUrl: "http://zitadel:8090/oauth/v2/keys"
+  #   jwksHostHeader: "wellbe-auth.tail9c487a.ts.net"
+  zitadel:
+    externalDomain: wellbe-auth.tail9c487a.ts.net
+    externalPort: "443"
+    externalSecure: true
+    tailscaleIngress:
+      enabled: true
+      hostname: wellbe-auth
+    firstInstance:
+      orgName: WellBe
+      loginV2Required: false
+      bootstrapMachine:
+        enabled: true

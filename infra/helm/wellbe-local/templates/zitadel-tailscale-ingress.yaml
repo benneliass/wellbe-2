@@ -1,0 +1,26 @@
+{{- $ts := .Values.auth.zitadel.tailscaleIngress }}
+{{- if $ts.enabled }}
+# Exposes ZITADEL over the tailnet at https://<hostname>.<tailnet>.ts.net so
+# browsers can reach the login UI. Same shape as the home-server repo's
+# helm/tailscale-ingress entries (wellbe / wellbe-api): the Tailscale operator
+# terminates TLS and forwards plain HTTP, so ZITADEL runs with --tlsMode external
+# (auth.zitadel.externalSecure=true) and externalDomain = the MagicDNS name.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $ts.hostname }}-ts
+  labels:
+    {{- include "wellbe-local.labels" . | nindent 4 }}
+  annotations:
+    tailscale.com/hostname: {{ $ts.hostname | quote }}
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: zitadel
+      port:
+        number: {{ .Values.zitadel.externalPort }}
+  tls:
+    - hosts:
+        - {{ $ts.hostname | quote }}
+{{- end }}

@@ -4,13 +4,19 @@
  * The session is established by an *explicit* sign-in — never baked in. There is
  * no auto-login. This is the single place that resolves "who is acting", modelled
  * on the OIDC (issuer, subject) federated identity the backend's resolve_identity
- * expects. Wiring real ZITADEL OIDC later is an adapter swap behind these same
- * functions (signIn* establish the session; getAuthToken returns the id-token).
+ * expects.
  *
  * Identity is held client-side (localStorage) so a sign-in survives reloads but is
  * never persisted into the build. The NEXT_PUBLIC dev env is NOT an auto-session;
  * it only supplies the default patient id for the explicitly-chosen "Dev workspace".
+ *
+ * In OIDC mode (lib/auth-config) the session is a projection of the ZITADEL login
+ * (issuer/subject from the token, patient id from onboarding), kept in
+ * sessionStorage alongside the tokens, and getAuthToken returns the access token.
  */
+
+import { isOidcMode } from "./auth-config";
+import { currentAccessToken } from "./oidc";
 
 const STORAGE_KEY = "wellbe.session";
 const EVENT = "wellbe:session";
@@ -34,6 +40,10 @@ function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+function storage(): Storage {
+  return isOidcMode() ? window.sessionStorage : window.localStorage;
+}
+
 // Snapshot cache: useSyncExternalStore compares snapshots by reference, so
 // getSession() MUST return a stable object while the stored value is unchanged.
 // Re-parsing JSON on every call returns a fresh object each time, which makes the
@@ -46,7 +56,7 @@ export function getSession(): Session | null {
   if (!isBrowser()) return null;
   let raw: string | null;
   try {
-    raw = window.localStorage.getItem(STORAGE_KEY);
+    raw = storage().getItem(STORAGE_KEY);
   } catch {
     return null;
   }
@@ -65,10 +75,10 @@ function write(session: Session | null): void {
   // Keep the snapshot cache in lockstep so same-tab reads are immediately stable.
   if (session) {
     cachedRaw = JSON.stringify(session);
-    window.localStorage.setItem(STORAGE_KEY, cachedRaw);
+    storage().setItem(STORAGE_KEY, cachedRaw);
   } else {
     cachedRaw = null;
-    window.localStorage.removeItem(STORAGE_KEY);
+    storage().removeItem(STORAGE_KEY);
   }
   cachedSession = session;
   window.dispatchEvent(new Event(EVENT));
@@ -138,12 +148,16 @@ export function signInNewUser(): Session {
 }
 
 /**
- * Bearer token for the API client. No OIDC yet, so null in the dev adapter;
- * reachability comes from the X-Wellbe-* headers. ZITADEL (WEL-151) returns the
- * real id-token here without touching any caller.
+ * Bearer token for the API client: the ZITADEL access token in OIDC mode, null in
+ * the dev adapter (reachability comes from the X-Wellbe-* headers there).
  */
 export async function getAuthToken(): Promise<string | null> {
-  return null;
+  if (!isBrowser() || !isOidcMode()) return null;
+  try {
+    return await currentAccessToken();
+  } catch {
+    return null;
+  }
 }
 
 /** Subscribe to session changes (storage events + same-tab writes). */

@@ -13,8 +13,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from wellbe_api.config import ApiSettings
-from wellbe_api.deps import UnauthenticatedError, lifespan
-from wellbe_api.errors import ProblemError, problem_error_handler, unauthenticated_response
+from wellbe_api.deps import OnboardingRequiredError, UnauthenticatedError, lifespan
+from wellbe_api.errors import (
+    ProblemError,
+    onboarding_required_response,
+    problem_error_handler,
+    unauthenticated_response,
+)
 from wellbe_api.routers import (
     access,
     ask_v2,
@@ -60,7 +65,12 @@ app.add_exception_handler(ProblemError, problem_error_handler)
 
 @app.exception_handler(UnauthenticatedError)
 async def _unauth_handler(_request: object, exc: UnauthenticatedError) -> JSONResponse:
-    return unauthenticated_response(exc.correlation_id)
+    return unauthenticated_response(exc.correlation_id, code=exc.code, bearer=exc.bearer)
+
+
+@app.exception_handler(OnboardingRequiredError)
+async def _onboarding_handler(_request: object, exc: OnboardingRequiredError) -> JSONResponse:
+    return onboarding_required_response(exc.correlation_id)
 
 
 @app.get("/health")
