@@ -237,6 +237,7 @@ class MemoryService:
                     resolved_overlays=overlays,
                     projection_stale=stale,
                     created_at=entry.created_at,
+                    authorship_mode=AuthorshipMode(entry.authorship_mode),
                 )
             )
         return resolved

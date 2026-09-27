@@ -22,6 +22,7 @@ from wellbe_c8_memories.errors import VisibleWithoutEvidenceError
 from wellbe_c8_memories.service import MemoryService
 from wellbe_c11_correction.service import CorrectionService
 from wellbe_contracts.c8_memory import (
+    AuthorshipMode,
     LinkRole,
     MemorySourceRef,
     MemoryType,
@@ -235,6 +236,7 @@ async def test_live_memory_hybrid_store_and_read_resolution(session_factory):
             )
             assert len(resolved) == 1
             entry = resolved[0]
+            assert entry.authorship_mode == AuthorshipMode.SYSTEM_DERIVED
             assert entry.projection_stale is True
             assert len(entry.resolved_overlays) == 1
             assert entry.resolved_overlays[0]["resolved_value"] == {"value": "5.9%"}

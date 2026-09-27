@@ -35,6 +35,7 @@ from wellbe_api.routers import (
     render,
     signals_v2,
     things_noticed_v1,
+    thread_timeline_v2,
     threads_v1,
     visit_packets_v2,
 )
@@ -96,3 +97,4 @@ app.include_router(delta_v2.router)
 app.include_router(signals_v2.router)
 app.include_router(notifications_v2.router)
 app.include_router(records_v2.router)
+app.include_router(thread_timeline_v2.router)

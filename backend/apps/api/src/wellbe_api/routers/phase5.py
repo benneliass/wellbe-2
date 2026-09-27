@@ -104,6 +104,7 @@ async def thread_memories(
                 resolved_overlays=list(e.resolved_overlays),
                 projection_stale=e.projection_stale,
                 created_at=e.created_at,
+                authorship_mode=str(e.authorship_mode) if e.authorship_mode else None,
             )
             for e in entries
         ]
@@ -120,7 +121,9 @@ def dedupe_memories(entries: list[MemoryEntryV2]) -> list[MemoryEntryV2]:
     Thread linkage keeps one pointer memory per extracted fact, so the same
     concept mentioned in several captures ("pain", "pain") reads as duplicates.
     The newest entry is kept and the others' source refs and overlays are merged
-    into it, so no provenance is lost. Untitled entries are never merged.
+    into it, so no provenance is lost. Untitled entries are never merged, and
+    entries with different authorship never merge: the user's own words must not
+    fold into a WellBe summary (story-memory-display-lanes.md).
     """
     oldest = datetime.min.replace(tzinfo=UTC)
 
@@ -130,14 +133,14 @@ def dedupe_memories(entries: list[MemoryEntryV2]) -> list[MemoryEntryV2]:
             return oldest
         return ts if ts.tzinfo else ts.replace(tzinfo=UTC)
 
-    kept: dict[tuple[str, str], MemoryEntryV2] = {}
+    kept: dict[tuple[str, str | None, str], MemoryEntryV2] = {}
     out: list[MemoryEntryV2] = []
     for m in sorted(entries, key=when, reverse=True):
         title = m.title.strip().casefold()
         if not title:
             out.append(m)
             continue
-        group = (m.memory_type, title)
+        group = (m.memory_type, m.authorship_mode, title)
         head = kept.get(group)
         if head is None:
             head = m.model_copy(deep=True)
