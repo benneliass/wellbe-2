@@ -14,6 +14,7 @@ spec:
   # database concurrently.
   strategy:
     type: Recreate
+    rollingUpdate: null
   selector:
     matchLabels:
       app: zitadel
