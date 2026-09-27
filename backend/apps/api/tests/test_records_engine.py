@@ -3,7 +3,8 @@
 Covers: literal (non-diagnostic) comparison against the printed reference range,
 analyte grouping with an oldest-to-newest trend, thread linking restricted to
 the caller's own threads, plain-language sources that never show ids, and the
-derived plain-words document processing state.
+stored (or, for older rows, derived) plain-words document processing state and
+the original filename with its fallback label.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ import pytest
 from fastapi.testclient import TestClient
 from wellbe_api.main import app
 from wellbe_api.records import engine
-from wellbe_contracts.records import DocumentStatus, RangePosition
+from wellbe_contracts.records import DocumentProcessingStatus, DocumentStatus, RangePosition
 
 _NOW = datetime(2026, 9, 27, 12, 0, tzinfo=UTC)
 
@@ -29,6 +30,7 @@ class _Event:
     source_metadata: dict[str, Any] = field(default_factory=lambda: {"capture_type": "lab"})
     captured_at: datetime = _NOW
     id: uuid.UUID = field(default_factory=uuid.uuid4)
+    original_filename: str | None = None
 
 
 @dataclass
@@ -179,20 +181,138 @@ def test_facts_without_a_capture_are_skipped() -> None:
     assert result.analytes == []
 
 
-def test_document_status_in_plain_words() -> None:
-    status, label, _ = engine.document_status(added_at=_NOW, extracted_total=3, now=_NOW)
-    assert (status, label) == (DocumentStatus.PROCESSED, "Processed")
+def test_document_status_derived_for_rows_without_a_stored_status() -> None:
+    ps, status, label, _ = engine.document_status(added_at=_NOW, extracted_total=3, now=_NOW)
+    assert (ps, status, label) == (
+        DocumentProcessingStatus.PROCESSED,
+        DocumentStatus.PROCESSED,
+        "Processed",
+    )
 
-    status, label, _ = engine.document_status(
+    ps, status, label, _ = engine.document_status(
         added_at=_NOW - timedelta(minutes=5), extracted_total=0, now=_NOW
     )
-    assert (status, label) == (DocumentStatus.WAITING, "Waiting to be read")
+    assert (ps, status, label) == (
+        DocumentProcessingStatus.RECEIVED,
+        DocumentStatus.WAITING,
+        "Received",
+    )
 
-    status, label, detail = engine.document_status(
+    ps, status, label, detail = engine.document_status(
         added_at=_NOW - timedelta(hours=2), extracted_total=0, now=_NOW
     )
-    assert (status, label) == (DocumentStatus.COULD_NOT_READ, "Could not be read")
+    assert (ps, status, label) == (
+        DocumentProcessingStatus.NEEDS_OCR,
+        DocumentStatus.COULD_NOT_READ,
+        "Could not be read",
+    )
     assert "safely stored" in detail
+
+
+@pytest.mark.parametrize(
+    ("stored", "expected", "legacy", "label"),
+    [
+        ("received", DocumentProcessingStatus.RECEIVED, DocumentStatus.WAITING, "Received"),
+        ("processing", DocumentProcessingStatus.PROCESSING, DocumentStatus.WAITING, "Being read"),
+        ("processed", DocumentProcessingStatus.PROCESSED, DocumentStatus.PROCESSED, "Processed"),
+        (
+            "needs_ocr",
+            DocumentProcessingStatus.NEEDS_OCR,
+            DocumentStatus.COULD_NOT_READ,
+            "Could not be read",
+        ),
+        (
+            "failed",
+            DocumentProcessingStatus.FAILED,
+            DocumentStatus.COULD_NOT_READ,
+            "Couldn't finish reading",
+        ),
+    ],
+)
+def test_stored_status_is_authoritative_over_the_time_window(
+    stored: str,
+    expected: DocumentProcessingStatus,
+    legacy: DocumentStatus,
+    label: str,
+) -> None:
+    old = _NOW - timedelta(days=3)
+    ps, status, got_label, detail = engine.document_status(
+        added_at=old, extracted_total=0, now=_NOW, stored=stored
+    )
+    assert (ps, status, got_label) == (expected, legacy, label)
+    assert detail
+
+
+def test_facts_mean_processed_even_if_stored_status_lags() -> None:
+    ps, status, _, detail = engine.document_status(
+        added_at=_NOW, extracted_total=2, now=_NOW, stored="failed"
+    )
+    assert ps is DocumentProcessingStatus.PROCESSED
+    assert status is DocumentStatus.PROCESSED
+    assert "found 2 things" in detail
+
+
+def test_unknown_stored_status_falls_back_to_derivation() -> None:
+    ps, *_ = engine.document_status(
+        added_at=_NOW - timedelta(hours=2), extracted_total=0, now=_NOW, stored="bogus"
+    )
+    assert ps is DocumentProcessingStatus.NEEDS_OCR
+
+
+def test_needs_ocr_detail_explains_missing_text_recognition() -> None:
+    *_, detail = engine.document_status(
+        added_at=_NOW, extracted_total=0, now=_NOW, stored="needs_ocr", stored_detail="ocr_unavailable"
+    )
+    assert "text recognition" in detail
+
+
+def test_status_copy_is_calm() -> None:
+    for stored in ("received", "processing", "processed", "needs_ocr", "failed"):
+        _, _, label, detail = engine.document_status(
+            added_at=_NOW, extracted_total=0, now=_NOW, stored=stored
+        )
+        text = f"{label} {detail}".lower()
+        assert "!" not in text
+        assert not any(w in text for w in ("error", "urgent", "warning", "corrupt"))
+
+
+def test_original_filename_shown_with_fallback_label_kept() -> None:
+    named = _Event(
+        source_type="pdf",
+        mime_type="application/pdf",
+        source_metadata={"capture_type": "document", "source": "Clinic"},
+        original_filename="Blood test — March.pdf",
+    )
+    legacy = _Event(
+        source_type="pdf",
+        mime_type="application/pdf",
+        source_metadata={"capture_type": "document"},
+        captured_at=_NOW - timedelta(minutes=1),
+    )
+    result = engine.build_documents(
+        events=[named, legacy],
+        fact_counts={},
+        stored_statuses={named.id: ("processing", None)},
+        now=_NOW,
+    )
+    first, second = result.documents
+    assert first.original_filename == "Blood test — March.pdf"
+    assert first.display_label == "PDF document from Clinic"
+    assert first.processing_status is DocumentProcessingStatus.PROCESSING
+    assert second.original_filename is None
+    assert second.display_label == "PDF document"
+    assert second.processing_status is DocumentProcessingStatus.RECEIVED
+
+
+def test_stored_filename_is_re_sanitised_on_read() -> None:
+    event = _Event(
+        source_type="pdf",
+        mime_type="application/pdf",
+        source_metadata={"capture_type": "document"},
+        original_filename="C:\\Users\\me\\scan\x00.pdf",
+    )
+    (doc,) = engine.build_documents(events=[event], fact_counts={}, now=_NOW).documents
+    assert doc.original_filename == "scan.pdf"
 
 
 def test_build_documents_counts_extractions_and_results() -> None:
@@ -217,6 +337,7 @@ def test_build_documents_counts_extractions_and_results() -> None:
     assert first.document_id == str(photo.id)
     assert first.type_label == "Photo"
     assert first.status is DocumentStatus.COULD_NOT_READ
+    assert first.processing_status is DocumentProcessingStatus.NEEDS_OCR
     assert second.display_label == "PDF document"
     assert second.status is DocumentStatus.PROCESSED
     assert second.extracted_total == 4

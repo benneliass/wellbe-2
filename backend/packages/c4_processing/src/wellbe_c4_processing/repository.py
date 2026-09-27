@@ -4,11 +4,16 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from wellbe_contracts.c4_processing import DocumentProcessingStatus
 
-from wellbe_c4_processing.models import ExtractedFactRow, HealthSignalRow
+from wellbe_c4_processing.models import (
+    DocumentProcessingStatusRow,
+    ExtractedFactRow,
+    HealthSignalRow,
+)
 
 
 class ProcessingRepository:
@@ -30,6 +35,47 @@ class ProcessingRepository:
         )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def set_document_status(
+        self,
+        *,
+        raw_context_event_id: uuid.UUID,
+        patient_id: uuid.UUID,
+        status: DocumentProcessingStatus,
+        detail: str | None = None,
+        new_attempt: bool = False,
+    ) -> None:
+        """Upsert the stored processing status for one document capture.
+
+        ``new_attempt`` increments ``attempts`` (set when a worker picks it up).
+        """
+        now = datetime.now(UTC)
+        stmt = pg_insert(DocumentProcessingStatusRow).values(
+            raw_context_event_id=raw_context_event_id,
+            patient_id=patient_id,
+            status=status.value,
+            detail=detail,
+            attempts=1 if new_attempt else 0,
+            created_at=now,
+            updated_at=now,
+        )
+        attempts = DocumentProcessingStatusRow.attempts
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[DocumentProcessingStatusRow.raw_context_event_id],
+            set_={
+                "status": stmt.excluded.status,
+                "detail": stmt.excluded.detail,
+                "attempts": attempts + 1 if new_attempt else attempts,
+                "updated_at": stmt.excluded.updated_at,
+            },
+        )
+        await self._session.execute(stmt)
+
+    async def count_facts_for_capture(self, raw_context_event_id: uuid.UUID) -> int:
+        stmt = select(func.count(ExtractedFactRow.id)).where(
+            ExtractedFactRow.raw_context_event_id == raw_context_event_id
+        )
+        return int((await self._session.execute(stmt)).scalar_one())
 
     async def insert_fact(
         self,

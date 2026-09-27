@@ -17,6 +17,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from wellbe_c9_continuity.errors import OutOfOrderThreadEventError
+from wellbe_contracts.c4_processing import DocumentProcessingStatus
 from wellbe_events.retry import (
     BacklogStats,
     RetryPolicy,
@@ -29,6 +30,7 @@ from wellbe_events.retry import (
 )
 
 from wellbe_processing_worker.config import ProcessingWorkerSettings
+from wellbe_processing_worker.document_status import DocumentStatusTracker, is_document
 
 logging.basicConfig(
     level=os.environ.get("WELLBE_LOG_LEVEL", "INFO"),
@@ -51,16 +53,25 @@ class VaultFetchError(RuntimeError):
 OutboxHandler = Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]]
 
 
-def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
+def _make_raw_context_handler(
+    vault_client: httpx.AsyncClient,
+    status_tracker: DocumentStatusTracker | None = None,
+) -> OutboxHandler:
     """Handler for raw_context.received: fetch the vault event and run extraction.
 
     Returns normally for terminal outcomes (processed, or permanently
     unprocessable) so the row is marked delivered. Raises for transient
     failures (e.g. vault unreachable) so the outbox retry policy backs off and
     eventually dead-letters instead of silently dropping data.
+
+    Document captures also get their stored processing status moved along
+    (see ``document_status``).
     """
-    from wellbe_processing_worker.ocr import extract_document_text
+    from wellbe_processing_worker.document_status import default_tracker
+    from wellbe_processing_worker.ocr import extract_document_text, tesseract_version
     from wellbe_processing_worker.tasks import _extract_facts
+
+    tracker: DocumentStatusTracker | None = status_tracker
 
     async def fetch(path: str, what: str) -> httpx.Response:
         resp = await vault_client.get(path)
@@ -84,6 +95,34 @@ def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
             raise VaultFetchError(f"vault event {event_id} returned {vault_resp.status_code}")
 
         vault_event = vault_resp.json()
+        if not is_document(vault_event):
+            await _run(vault_event, event_id)
+            return "dispatched"
+
+        nonlocal tracker
+        if tracker is None:
+            tracker = default_tracker()
+        doc_id = uuid.UUID(str(vault_event["id"]))
+        patient_id = uuid.UUID(str(vault_event["patient_id"]))
+        await tracker.mark(
+            doc_id, patient_id, DocumentProcessingStatus.PROCESSING, new_attempt=True
+        )
+        try:
+            has_text = await _run(vault_event, event_id)
+        except Exception as exc:
+            await tracker.mark(
+                doc_id, patient_id, DocumentProcessingStatus.FAILED, detail=type(exc).__name__
+            )
+            raise
+        if not has_text:
+            detail = "ocr_unavailable" if tesseract_version() is None else "no_readable_text"
+            await tracker.mark(doc_id, patient_id, DocumentProcessingStatus.NEEDS_OCR, detail=detail)
+            return "dispatched"
+        await tracker.finish(doc_id, patient_id, detail_if_empty="no_facts_found")
+        return "dispatched"
+
+    async def _run(vault_event: dict[str, Any], event_id: object) -> bool:
+        """Resolve text and extract facts. Returns whether any text was found."""
         source_metadata = vault_event.get("source_metadata") or {}
         text_content = source_metadata.get("text", "")
         # The captured text lives in the raw blob, not in source_metadata (raw
@@ -102,7 +141,7 @@ def _make_raw_context_handler(vault_client: httpx.AsyncClient) -> OutboxHandler:
         vault_event["_raw_text"] = text_content
 
         await _extract_facts(json.dumps(vault_event))
-        return "dispatched"
+        return bool(text_content)
 
     return handle
 

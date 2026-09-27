@@ -23,6 +23,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from wellbe_contracts.c4_processing import DocumentProcessingStatus
+
 
 class RangePosition(StrEnum):
     # The value sits inside the range printed with the result.
@@ -86,6 +88,8 @@ class ResultsResponseV2(BaseModel):
 
 
 class DocumentStatus(StrEnum):
+    """Legacy coarse state, kept for older clients; derived from ``processing_status``."""
+
     PROCESSED = "processed"
     WAITING = "waiting"
     COULD_NOT_READ = "could_not_read"
@@ -101,12 +105,18 @@ class ExtractedCountV2(BaseModel):
 
 class DocumentV2(BaseModel):
     document_id: str
+    # Fallback label ("PDF document from …"); shown when ``original_filename`` is null.
     display_label: str
+    # Sanitised display name of the uploaded file (never a path). Null for older
+    # uploads and for documents captured without a filename.
+    original_filename: str | None = None
     # Plain type, e.g. "PDF" or "Photo".
     type_label: str
     mime_type: str
     added_at: datetime
     status: DocumentStatus
+    # Stored lifecycle: received / processing / processed / needs_ocr / failed.
+    processing_status: DocumentProcessingStatus
     status_label: str
     status_detail: str
     extracted_total: int = 0
@@ -124,6 +134,7 @@ class DocumentsResponseV2(BaseModel):
 
 __all__ = [
     "AnalyteResultV2",
+    "DocumentProcessingStatus",
     "DocumentStatus",
     "DocumentV2",
     "DocumentsResponseV2",

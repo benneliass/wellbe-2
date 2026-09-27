@@ -14,7 +14,11 @@ from wellbe_c4_processing.investigation_extractor import (
     TheoryClaimExtractor,
     TheoryClaimResult,
 )
-from wellbe_c4_processing.models import ExtractedFactRow, HealthSignalRow
+from wellbe_c4_processing.models import (
+    DocumentProcessingStatusRow,
+    ExtractedFactRow,
+    HealthSignalRow,
+)
 from wellbe_c4_processing.repository import ProcessingRepository
 from wellbe_c4_processing.vital_registry import (
     VITAL_REGISTRY_VERSION,
@@ -25,6 +29,7 @@ from wellbe_c4_processing.vital_registry import (
 __all__ = [
     "DispatchDecision",
     "DispatchRoute",
+    "DocumentProcessingStatusRow",
     "ExternalClaimExtractor",
     "ExternalClaimResult",
     "ExtractionResult",

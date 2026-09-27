@@ -48,6 +48,7 @@ class RawContextEvent(BaseModel):
     encoding: str | None = None
     language: str | None = None
     original_filename_hash: str | None = None
+    original_filename: str | None = None
     source_metadata: dict[str, Any] | None = None
     adapter_name: str
     adapter_version: str
@@ -85,6 +86,7 @@ class VaultWriteRequest(BaseModel):
     encoding: str | None = None
     language: str | None = None
     original_filename_hash: str | None = None
+    original_filename: str | None = None
     source_metadata: dict[str, Any] | None = None
 
     # Payloads are arbitrary binary (scanned PDFs, photos): base64 on the JSON wire,

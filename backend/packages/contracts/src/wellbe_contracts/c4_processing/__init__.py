@@ -47,6 +47,20 @@ class QualityFlag(StrEnum):
     PARTIAL = "partial"
 
 
+class DocumentProcessingStatus(StrEnum):
+    """Stored lifecycle of one document capture (processing.document_processing_status).
+
+    received -> processing -> processed | needs_ocr | failed. ``failed`` is retried by
+    the outbox; ``needs_ocr`` means no readable text could be recovered.
+    """
+
+    RECEIVED = "received"
+    PROCESSING = "processing"
+    PROCESSED = "processed"
+    NEEDS_OCR = "needs_ocr"
+    FAILED = "failed"
+
+
 class SubjectType(StrEnum):
     PATIENT = "patient"
     FAMILY_MEMBER = "family_member"
@@ -235,6 +249,7 @@ __all__ = [
     "FactId",
     "SignalId",
     # Enums
+    "DocumentProcessingStatus",
     "FactType",
     "HealthSignalCreatedPayload",
     "QualityFlag",
