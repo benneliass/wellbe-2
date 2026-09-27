@@ -1693,6 +1693,8 @@ export interface components {
         MemoryEntryV2: {
             /** Audit Refs */
             audit_refs?: components["schemas"]["AuditRefV2"][];
+            /** Created At */
+            created_at?: string | null;
             /** Lifecycle State */
             lifecycle_state: string;
             /** Memory Entry Id */

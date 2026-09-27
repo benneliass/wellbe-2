@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Chip, Icon } from "@wellbe/ui";
 import { StateNote } from "@/components/placeholder/StateNote";
+import { formatShortDate } from "@/lib/adapters";
 import { memoryTypeLabel, sourceRefSummary } from "@/lib/graph-labels";
 import { useMemoriesForThreads, useThreads } from "@/lib/hooks";
 import styles from "./RecordList.module.css";
@@ -71,6 +72,9 @@ export function MemoryLive() {
                       <span className={styles.rowSub}>
                         <Icon name="badge-check" size={11} />
                         {sourceRefSummary(m.source_refs ?? []) || "Source-linked"}
+                        {m.created_at && formatShortDate(m.created_at)
+                          ? ` · ${formatShortDate(m.created_at)}`
+                          : ""}
                       </span>
                     </span>
                     <Chip size="sm" tone="tealmid">

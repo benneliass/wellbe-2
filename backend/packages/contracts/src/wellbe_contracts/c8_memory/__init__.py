@@ -13,6 +13,7 @@ Authoritative decision: docs/decisions/six-memories-store-structure.md
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
 from uuid import UUID
@@ -140,6 +141,7 @@ class ResolvedMemoryEntry(BaseModel):
     # For each correctable source ref, the resolved overlay (from the C11 seam).
     resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
+    created_at: datetime | None = None
 
 
 __all__ = [

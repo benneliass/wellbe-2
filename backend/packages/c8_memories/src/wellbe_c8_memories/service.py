@@ -236,6 +236,7 @@ class MemoryService:
                     source_refs=refs,
                     resolved_overlays=overlays,
                     projection_stale=stale,
+                    created_at=entry.created_at,
                 )
             )
         return resolved

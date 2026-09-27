@@ -377,6 +377,7 @@ class MemoryEntryV2(StrictBaseModel):
     source_refs: list[dict[str, Any]] = Field(default_factory=list)
     resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
+    created_at: datetime | None = None
     audit_refs: list[AuditRefV2] = Field(default_factory=list)
 
 

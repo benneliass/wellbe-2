@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter
@@ -91,19 +92,64 @@ async def thread_memories(
     entries = await svc.read_thread_memory(
         patient_id=principal.patient_id, thread_id=thread_id
     )
-    return [
-        MemoryEntryV2(
-            memory_entry_id=str(e.memory_entry_id),
-            memory_type=str(e.memory_type),
-            lifecycle_state=str(e.lifecycle_state),
-            title=e.title or "",
-            thread_id=str(thread_id),
-            source_refs=[ref.model_dump(mode="json") for ref in e.source_refs],
-            resolved_overlays=list(e.resolved_overlays),
-            projection_stale=e.projection_stale,
-        )
-        for e in entries
-    ]
+    return dedupe_memories(
+        [
+            MemoryEntryV2(
+                memory_entry_id=str(e.memory_entry_id),
+                memory_type=str(e.memory_type),
+                lifecycle_state=str(e.lifecycle_state),
+                title=e.title or "",
+                thread_id=str(thread_id),
+                source_refs=[ref.model_dump(mode="json") for ref in e.source_refs],
+                resolved_overlays=list(e.resolved_overlays),
+                projection_stale=e.projection_stale,
+                created_at=e.created_at,
+            )
+            for e in entries
+        ]
+    )
+
+
+def _ref_key(ref: dict[str, Any]) -> tuple[Any, ...]:
+    return (ref.get("source_ref_type"), ref.get("source_ref_id"), ref.get("field_path"))
+
+
+def dedupe_memories(entries: list[MemoryEntryV2]) -> list[MemoryEntryV2]:
+    """Collapse same-type, same-title memories into one row, newest first.
+
+    Thread linkage keeps one pointer memory per extracted fact, so the same
+    concept mentioned in several captures ("pain", "pain") reads as duplicates.
+    The newest entry is kept and the others' source refs and overlays are merged
+    into it, so no provenance is lost. Untitled entries are never merged.
+    """
+    oldest = datetime.min.replace(tzinfo=UTC)
+
+    def when(m: MemoryEntryV2) -> datetime:
+        ts = m.created_at
+        if ts is None:
+            return oldest
+        return ts if ts.tzinfo else ts.replace(tzinfo=UTC)
+
+    kept: dict[tuple[str, str], MemoryEntryV2] = {}
+    out: list[MemoryEntryV2] = []
+    for m in sorted(entries, key=when, reverse=True):
+        title = m.title.strip().casefold()
+        if not title:
+            out.append(m)
+            continue
+        group = (m.memory_type, title)
+        head = kept.get(group)
+        if head is None:
+            head = m.model_copy(deep=True)
+            kept[group] = head
+            out.append(head)
+            continue
+        refs = {_ref_key(r) for r in head.source_refs}
+        head.source_refs += [r for r in m.source_refs if _ref_key(r) not in refs]
+        overlays = head.resolved_overlays
+        head.resolved_overlays += [o for o in m.resolved_overlays if o not in overlays]
+        head.projection_stale = head.projection_stale or m.projection_stale
+    return out
 
 
 @router.get("/corrections", response_model=list[CorrectionV2])

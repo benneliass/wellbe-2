@@ -91,23 +91,27 @@ export function ThreadDetailLive({ id }: { id: string }) {
                 </p>
               ) : (
                 <ul className={rec.list}>
-                  {(memories.data ?? []).map((m) => (
-                    <li key={m.memory_entry_id} className={rec.row}>
-                      <span className={rec.rowIcon}>
-                        <Icon name="book" size={15} />
-                      </span>
-                      <span className={rec.rowMain}>
-                        <span className={rec.rowTitle}>{m.title}</span>
-                        <span className={rec.rowSub}>
-                          <Icon name="badge-check" size={11} />
-                          {sourceRefSummary(m.source_refs ?? []) || "Source-linked"}
+                  {(memories.data ?? []).map((m) => {
+                    const kept = m.created_at ? formatShortDate(m.created_at) : "";
+                    return (
+                      <li key={m.memory_entry_id} className={rec.row}>
+                        <span className={rec.rowIcon}>
+                          <Icon name="book" size={15} />
                         </span>
-                      </span>
-                      <Chip size="sm" tone="tealmid">
-                        {memoryTypeLabel(m.memory_type)}
-                      </Chip>
-                    </li>
-                  ))}
+                        <span className={rec.rowMain}>
+                          <span className={rec.rowTitle}>{m.title}</span>
+                          <span className={rec.rowSub}>
+                            <Icon name="badge-check" size={11} />
+                            {sourceRefSummary(m.source_refs ?? []) || "Source-linked"}
+                            {kept ? ` · ${kept}` : ""}
+                          </span>
+                        </span>
+                        <Chip size="sm" tone="tealmid">
+                          {memoryTypeLabel(m.memory_type)}
+                        </Chip>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </Panel>
