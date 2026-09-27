@@ -297,6 +297,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/grants/{grant_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Grant
+         * @description The grantee (the calling actor) accepts a grant shared with them.
+         */
+        post: operations["accept_grant_v2_grants__grant_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/grants/{grant_id}/revoke": {
         parameters: {
             query?: never;
@@ -534,6 +554,60 @@ export interface paths {
         };
         /** Get Signals */
         get: operations["get_signals_v2_signals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/theories/{theory_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Theory */
+        get: operations["get_theory_v2_theories__theory_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/theories/{theory_id}/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate Theory
+         * @description The USER marks a theory, citing their own evidence. The system never decides.
+         */
+        post: operations["evaluate_theory_v2_theories__theory_id__evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/theories/{theory_id}/evaluations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Theory Evaluations */
+        get: operations["list_theory_evaluations_v2_theories__theory_id__evaluations_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1118,6 +1192,28 @@ export interface components {
             ref_type: string;
             /** Source Id */
             source_id: string;
+        };
+        /**
+         * EvaluateTheoryRequest
+         * @description The user's own evaluation. ``to_status`` is the user's mark, never a diagnosis.
+         */
+        EvaluateTheoryRequest: {
+            /** Evidence Refs */
+            evidence_refs?: components["schemas"]["EvidenceRefRequest"][];
+            /** Expected Version */
+            expected_version: number;
+            /** Rationale */
+            rationale: string;
+            to_status: components["schemas"]["TheoryAssessment"];
+        };
+        /** EvidenceRefRequest */
+        EvidenceRefRequest: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TheoryEvidenceRefKind"];
         };
         /**
          * EvidenceTier
@@ -1957,12 +2053,104 @@ export interface components {
             supported_schema_versions?: string[];
         };
         /**
+         * TheoryAssessment
+         * @description The USER's own mark on a theory, always attributed to them.
+         *
+         *     This is a user-authored label, not a finding: it maps onto the existing
+         *     non-diagnostic ``TheoryStatus`` taxonomy (G1 is unchanged — no status is ever
+         *     ``ruled_out``/``confirmed``) and is shown as "You marked this theory as …".
+         * @enum {string}
+         */
+        TheoryAssessment: "open" | "under_review" | "supported" | "weakened" | "ruled_out";
+        /** TheoryEvaluationResultV2 */
+        TheoryEvaluationResultV2: {
+            evaluation: components["schemas"]["TheoryEvaluationV2"];
+            /**
+             * Schema Version
+             * @default c13.theory_evaluation_result.v2
+             * @constant
+             */
+            schema_version: "c13.theory_evaluation_result.v2";
+            theory: components["schemas"]["TheoryV2"];
+        };
+        /**
+         * TheoryEvaluationV2
+         * @description One immutable, user-authored evaluation. The user decides; never a diagnosis.
+         */
+        TheoryEvaluationV2: {
+            /** Assessment */
+            assessment: string;
+            /** Assessment Label */
+            assessment_label: string;
+            /** Audit Refs */
+            audit_refs?: components["schemas"]["AuditRefV2"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Evaluated By */
+            evaluated_by: {
+                [key: string]: unknown;
+            };
+            /** Evaluation Id */
+            evaluation_id: string;
+            /** Evaluation Version */
+            evaluation_version: number;
+            /** Evidence Node Ids */
+            evidence_node_ids?: string[];
+            /** Evidence Refs */
+            evidence_refs?: components["schemas"]["TheoryEvidenceRefV2"][];
+            /** From Status */
+            from_status: string;
+            /**
+             * Not Diagnosis
+             * @constant
+             */
+            not_diagnosis: true;
+            /** Rationale */
+            rationale: string;
+            /**
+             * Schema Version
+             * @default c13.theory_evaluation.v2
+             * @constant
+             */
+            schema_version: "c13.theory_evaluation.v2";
+            /** Theory Id */
+            theory_id: string;
+            /** To Status */
+            to_status: string;
+        };
+        /**
+         * TheoryEvidenceRefKind
+         * @description What a user-cited evidence reference points at (all personal, same patient).
+         * @enum {string}
+         */
+        TheoryEvidenceRefKind: "evidence_link" | "fact" | "capture";
+        /**
+         * TheoryEvidenceRefV2
+         * @description A user-cited personal evidence pointer (C5 link, C4 fact, or C2 capture id).
+         */
+        TheoryEvidenceRefV2: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "evidence_link" | "fact" | "capture";
+        };
+        /**
          * TheoryType
          * @enum {string}
          */
         TheoryType: "symptom_cause" | "treatment_effect" | "trigger" | "pattern" | "other";
         /** TheoryV2 */
         TheoryV2: {
+            /** Assessment */
+            assessment?: string | null;
+            /** Assessment Label */
+            assessment_label?: string | null;
             /** Audit Refs */
             audit_refs?: components["schemas"]["AuditRefV2"][];
             /** Clinician Annotation Ref */
@@ -1988,6 +2176,7 @@ export interface components {
             investigation_id: string;
             /** Label */
             label: string;
+            latest_evaluation?: components["schemas"]["TheoryEvaluationV2"] | null;
             /** Missing Data */
             missing_data?: {
                 [key: string]: unknown;
@@ -2020,6 +2209,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
         };
         /** ThingNoticedV1 */
         ThingNoticedV1: {
@@ -2050,6 +2244,16 @@ export interface components {
             schema_version: string;
             /** Seen Count */
             seen_count: number;
+            /**
+             * Source Capture Count
+             * @default 0
+             */
+            source_capture_count: number;
+            /**
+             * Source Fact Count
+             * @default 0
+             */
+            source_fact_count: number;
             /** Status */
             status: string;
             /** Title */
@@ -3036,6 +3240,43 @@ export interface operations {
             };
         };
     };
+    accept_grant_v2_grants__grant_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     revoke_grant_v2_grants__grant_id__revoke_post: {
         parameters: {
             query?: never;
@@ -3654,6 +3895,122 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignalsSummaryV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_theory_v2_theories__theory_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                theory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TheoryV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_theory_v2_theories__theory_id__evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                theory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluateTheoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TheoryEvaluationResultV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_theory_evaluations_v2_theories__theory_id__evaluations_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                theory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TheoryEvaluationV2"][];
                 };
             };
             /** @description Validation Error */
