@@ -43,10 +43,14 @@ redis:
   image: redis:7-alpine
   port: 6379
 
+# MinIO stopped publishing images to Docker Hub (minio/minio and minio/mc now
+# fail with "pull access denied"), so pull Chainguard's free builds, pinned by
+# digest (multi-arch: amd64 CI runners + arm64 Macs). Same pins as homeserver.
 minio:
-  image: minio/minio:latest
-  # Bucket-init hook image. Must include a shell (the job runs `sh -c`).
-  mcImage: minio/mc:latest
+  image: cgr.dev/chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+  # Bucket-init hook image. Must include a shell (the job runs `sh -c`); the
+  # -dev variant of minio-client carries one.
+  mcImage: cgr.dev/chainguard/minio-client:latest-dev@sha256:f0dd93b48af1f8a641edcd3c64661c8dbe05189bd2ef2f8cea216eb18af10bf8
   rootUser: wellbe_minio
   rootPassword: wellbe_minio_dev
   buckets:
@@ -54,7 +58,7 @@ minio:
     - wellbe-documents
 
 zitadel:
-  image: ghcr.io/zitadel/zitadel:latest
+  image: ghcr.io/zitadel/zitadel:v4.19.1@sha256:f98935f56505ec6fa3e6523261cd1b8ace0c622e16da4a45acd493cb472f003f
   masterkey: "MasterkeyNeedsToHave32Characters"
   externalPort: 8090
   externalDomain: localhost

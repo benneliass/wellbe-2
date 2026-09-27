@@ -71,6 +71,7 @@ temporal:
     limits: {cpu: 500m, memory: 768Mi}
 
 zitadel:
+  image: ghcr.io/zitadel/zitadel:v4.19.1@sha256:f98935f56505ec6fa3e6523261cd1b8ace0c622e16da4a45acd493cb472f003f
   # Set together with the ZITADEL DB re-init (docs/runbooks/auth-oidc.md step 2A).
   # masterkeySecret: {name: zitadel-masterkey}
   resources:
