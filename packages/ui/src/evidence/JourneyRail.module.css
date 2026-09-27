@@ -1,0 +1,188 @@
+.rail {
+  --rail-tint: var(--accent-soft, #e6f6f6);
+  --rail-fg: var(--teal-600, #0d6e6d);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: var(--wb-text-base, 1rem);
+  line-height: 1.5;
+  color: var(--wb-text, #0f172a);
+}
+
+.rail[data-state="stable"] {
+  --rail-tint: var(--wb-state-stable-tint, #e6f1ee);
+  --rail-fg: var(--wb-state-stable-fg, #1f5a50);
+}
+
+.rail[data-state="watch"] {
+  --rail-tint: var(--wb-state-watch-tint, #eef0e2);
+  --rail-fg: var(--wb-state-watch-fg, #5a5a20);
+}
+
+.rail[data-state="needs_attention"] {
+  --rail-tint: var(--wb-state-attention-tint, #fbeede);
+  --rail-fg: var(--wb-state-attention-fg, #8a4b16);
+}
+
+.stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+}
+
+/* Connector between stages; position, not hue, carries the meaning. */
+.stage + .stage::before {
+  content: "";
+  width: 20px;
+  height: 2px;
+  margin: 0 4px;
+  background: var(--border-strong, #cbd5e1);
+}
+
+.stage[data-position="next"]::before {
+  background: none;
+  border-top: 2px dashed var(--border-strong, #cbd5e1);
+  height: 0;
+}
+
+.stageButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill, 999px);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color var(--wb-motion-base, 240ms) var(--wb-ease, ease),
+    border-color var(--wb-motion-base, 240ms) var(--wb-ease, ease);
+}
+
+button.stageButton {
+  cursor: pointer;
+}
+
+button.stageButton:hover {
+  border-color: var(--wb-border, #e2e8f0);
+}
+
+.stageButton:focus-visible {
+  outline: 2px solid var(--wb-accent, #0ea5a4);
+  outline-offset: 2px;
+}
+
+.node {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong, #cbd5e1);
+  background: var(--wb-surface, #ffffff);
+  color: var(--wb-text-muted, #475569);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stageLabel {
+  font-weight: 600;
+}
+
+.status {
+  font-size: var(--wb-text-sm, 0.875rem);
+  color: var(--wb-text-muted, #475569);
+}
+
+.stage[data-position="traveled"] .stageLabel {
+  font-weight: 500;
+  color: var(--wb-text-muted, #475569);
+}
+
+.stage[data-position="traveled"] .node {
+  border-color: var(--teal-600, #0d6e6d);
+  color: var(--teal-600, #0d6e6d);
+}
+
+.stage[data-position="current"] .stageButton {
+  background: var(--rail-tint);
+  border-color: var(--rail-fg);
+}
+
+.stage[data-position="current"] .node {
+  border-color: var(--rail-fg);
+  background: var(--rail-fg);
+  color: var(--wb-surface, #ffffff);
+}
+
+.stage[data-position="current"] .stageLabel {
+  color: var(--rail-fg);
+  font-weight: 700;
+}
+
+.stage[data-position="next"] .node {
+  border-style: dashed;
+}
+
+.stage[data-position="next"] .stageLabel {
+  font-weight: 500;
+  color: var(--wb-text-muted, #475569);
+}
+
+.stage[data-stage="started"] .node,
+.stage[data-stage="archived"] .node {
+  opacity: 0.7;
+}
+
+.rail[data-stage="archived"] .stage[data-position="current"] .stageButton {
+  background: var(--wb-surface-muted, #f1f5f9);
+  border-color: var(--wb-border, #e2e8f0);
+}
+
+.rail[data-stage="archived"] .stage[data-position="current"] .node {
+  background: var(--slate-400, #94a3b8);
+  border-color: var(--slate-400, #94a3b8);
+}
+
+.rail[data-stage="archived"] .stage[data-position="current"] .stageLabel {
+  color: var(--wb-text-muted, #475569);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.whatChanged {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.footLabel {
+  font-size: var(--wb-text-sm, 0.875rem);
+  font-weight: 700;
+  color: var(--wb-text-muted, #475569);
+}
+
+.rail[data-variant="compact"] .stage::before {
+  display: none;
+}
