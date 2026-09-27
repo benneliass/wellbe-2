@@ -359,23 +359,20 @@ def run(j: Journey) -> None:
     def thread_attach() -> str:
         tid = j.ctx["threads"].get("headache")
         assert tid, "no headache thread"
-        before = j.call("GET", f"/v2/graph/threads/{tid}")
+        def memory_count() -> int:
+            return len(items_of(j.call("GET", f"/v2/threads/{tid}/memories"), "memories"))
+
+        before = memory_count()
         j.call("POST", "/v1/capture", expect=201,
                json={"capture_type": "symptom",
                      "payload": {"description": "Another headache this evening."}},
                headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
 
-        def poll() -> Any:
-            g = j.call("GET", f"/v2/graph/threads/{tid}")
-            evidence = sum(len(n.get("evidence_link_ids", n.get("evidence", [])) or [])
-                           for n in g.get("nodes", []))
-            before_ev = sum(len(n.get("evidence_link_ids", n.get("evidence", [])) or [])
-                            for n in before.get("nodes", []))
-            return g if evidence > before_ev or len(g.get("nodes", [])) > len(
-                before.get("nodes", [])) else None
-
-        j.wait_for("new headache evidence attached to thread", poll)
-        return "follow-up capture attached to existing thread"
+        # A repeat of the same concept reuses the graph node; the attached fact
+        # shows up as a new pointer memory on the thread.
+        after = j.wait_for("new headache evidence attached to thread",
+                           lambda: (n := memory_count()) > before and n)
+        return f"follow-up capture attached to existing thread ({before} -> {after} memories)"
 
     if j.ctx.get("threads", {}).get("headache"):
         j.step("genesis attaches new evidence to an existing thread", thread_attach)

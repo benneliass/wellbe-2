@@ -126,7 +126,8 @@ CREATE TABLE c9.pending_items (
   resolved_at timestamptz NULL,
   cancelled_at timestamptz NULL,
   idempotency_key text NOT NULL UNIQUE,
-  CHECK ((due_at IS NOT NULL) OR (status IN ('draft', 'active', 'waiting_external', 'no_due_date'))));
+  CHECK ((due_at IS NOT NULL) OR (status IN ('draft', 'active', 'waiting_external', 'no_due_date',
+                                             'result_received', 'resolved', 'cancelled', 'superseded'))));
 CREATE TABLE c9.pending_item_thread_links (
   pending_item_id uuid NOT NULL REFERENCES c9.pending_items(pending_item_id),
   thread_id uuid NOT NULL,
