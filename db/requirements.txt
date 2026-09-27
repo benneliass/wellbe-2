@@ -1,0 +1,12 @@
+# Exact pins for the migrations image (db/Dockerfile.migrations). This is the
+# full transitive closure — versions match backend/uv.lock so migrations run on
+# the same SQLAlchemy/alembic the services use. Keep SQLAlchemy on 2.0.x: 2.1
+# makes psycopg (v3) the default postgresql:// driver, and only psycopg2 is
+# installed here.
+alembic==1.20.0
+mako==1.4.3
+markupsafe==3.0.3
+sqlalchemy==2.0.54
+greenlet==3.5.6 ; platform_machine == "aarch64" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64"
+typing-extensions==4.16.0
+psycopg2-binary==2.9.13
