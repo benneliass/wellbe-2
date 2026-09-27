@@ -81,7 +81,7 @@ function HelpModal({ onClose }: { onClose: () => void }) {
   );
   return (
     <Modal title="How WellBe works" icon="help-circle" onClose={onClose} footer={footer}>
-      <p style={{ margin: "0 0 14px", color: "var(--fg2)", fontSize: 14, lineHeight: 1.5 }}>
+      <p style={{ margin: "0 0 14px", color: "var(--fg2)", fontSize: "var(--text-body)", lineHeight: "var(--lh-normal)" }}>
         WellBe helps you understand your own health. Everything is yours, source-linked, and never a
         diagnosis.
       </p>
