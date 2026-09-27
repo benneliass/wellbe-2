@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import base64
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
 from wellbe_contracts.c3_ingestion import AdapterProvenance
 from wellbe_contracts.primitives import (
@@ -85,6 +86,19 @@ class VaultWriteRequest(BaseModel):
     language: str | None = None
     original_filename_hash: str | None = None
     source_metadata: dict[str, Any] | None = None
+
+    # Payloads are arbitrary binary (scanned PDFs, photos): base64 on the JSON wire,
+    # since pydantic's utf-8 default fails on non-text bytes.
+    @field_serializer("normalized_payload", when_used="json")
+    def _payload_to_base64(self, value: bytes) -> str:
+        return base64.b64encode(value).decode("ascii")
+
+    @field_validator("normalized_payload", mode="before")
+    @classmethod
+    def _payload_from_base64(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return base64.b64decode(value, validate=True)
+        return value
 
 
 class VaultWriteResponse(BaseModel):
