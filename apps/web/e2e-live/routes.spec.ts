@@ -1,5 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { API_URL, DEMO_HEADERS, expect, expectCleanPage, snap, test } from "./fixtures";
+import type { PendingItemV2 } from "@/lib/pending";
+import { openPendingItems } from "@/lib/pending";
 
 /**
  * Every route, as the seeded demo patient, against the live deployment. Each test
@@ -200,7 +202,7 @@ test("Memory lists the memories kept around each thread", async ({ page, request
 });
 
 test("Appointments shows the open follow-up items", async ({ page, request }) => {
-  const items = await apiGet<{ title: string }[]>(request, "/v2/pending-items");
+  const items = openPendingItems(await apiGet<PendingItemV2[]>(request, "/v2/pending-items"));
   await page.goto("/appointments");
   await expect(page.getByRole("heading", { name: "Appointments", exact: true })).toBeVisible();
   for (const i of items) await expect(page.getByText(i.title).first()).toBeVisible();

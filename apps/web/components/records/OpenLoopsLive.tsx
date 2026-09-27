@@ -5,6 +5,7 @@ import { Icon } from "@wellbe/ui";
 import { StateNote } from "@/components/placeholder/StateNote";
 import { formatShortDate } from "@/lib/adapters";
 import { usePendingItems, useThreads } from "@/lib/hooks";
+import { openPendingItems } from "@/lib/pending";
 import styles from "./RecordList.module.css";
 
 const ITEM_TYPE_LABEL: Record<string, string> = {
@@ -34,7 +35,7 @@ export function OpenLoopsLive() {
     );
   }
 
-  const active = (items.data ?? []).filter((p) => p.status === "active");
+  const active = openPendingItems(items.data ?? []);
   const titleById = new Map((threads.data ?? []).map((t) => [t.id, t.title]));
 
   return (
