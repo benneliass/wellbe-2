@@ -571,8 +571,11 @@ def run(j: Journey) -> None:
         j.call("POST", f"/v2/visit-packets/{pid}/share/{link_id}/revoke", expect=(200, 204),
                json={})
         after = c.get(f"/v2/share/{token}")
-        assert after.status_code in (403, 404, 410), f"revoked share still readable {after.status_code}"
-        return f"{len(stmts)} statement(s); share/read/export/revoke ok ({exp.headers.get('content-type')})"
+        assert after.status_code in (403, 404, 410), (
+            f"revoked share still readable {after.status_code}"
+        )
+        ctype = exp.headers.get("content-type")
+        return f"{len(stmts)} statement(s); share/read/export/revoke ok ({ctype})"
 
     if j.ctx.get("threads"):
         j.step("visit packet compose/edit/share/export/revoke", visit_packet)

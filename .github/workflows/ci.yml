@@ -28,6 +28,9 @@ jobs:
         working-directory: backend
         run: uv run ruff check .
 
+      - name: Image dependency closure
+        run: uv run --no-project python scripts/qa/check_workspace_deps.py
+
       - name: Type-check (mypy)
         working-directory: backend
         run: uv run mypy packages/ apps/
