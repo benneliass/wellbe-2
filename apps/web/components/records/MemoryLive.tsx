@@ -1,21 +1,47 @@
 "use client";
 
+import { useId, useState } from "react";
 import Link from "next/link";
-import { Chip, Icon } from "@wellbe/ui";
+import { EvidenceDrawer, Icon, StoryLanes, type StoryEntry } from "@wellbe/ui";
 import { StateNote } from "@/components/placeholder/StateNote";
-import { formatShortDate } from "@/lib/adapters";
-import { memoryTypeLabel, sourceRefSummary } from "@/lib/graph-labels";
 import { useMemoriesForThreads, useThreads } from "@/lib/hooks";
-import styles from "./RecordList.module.css";
+import {
+  MEMORY_TYPES,
+  MEMORY_TYPE_COPY,
+  groupByType,
+  toHubEntry,
+  type HubEntry,
+  type MemoryTypeId,
+} from "./memoryHub";
+import styles from "./MemoryHub.module.css";
+
+type GroupId = MemoryTypeId | "other";
+type Filter = GroupId | "all";
+
+const OTHER_COPY = {
+  title: "Other memories",
+  description: "Kept by WellBe, linked to where each one came from.",
+  empty: "Nothing here yet.",
+};
+
+function copyFor(type: GroupId) {
+  return type === "other" ? OTHER_COPY : MEMORY_TYPE_COPY[type];
+}
 
 /**
- * The health memory: the source-linked memories WellBe keeps around each thread
- * (/v2/threads/{id}/memories), grouped by thread.
+ * The Memory hub: every memory WellBe keeps around your threads
+ * (/v2/threads/{id}/memories), grouped by the six C8 memory types. Within a type,
+ * StoryLanes keeps your own words apart from WellBe's summaries (WEL-146).
  */
 export function MemoryLive() {
   const threads = useThreads();
   const list = threads.data ?? [];
   const memories = useMemoriesForThreads(list.map((t) => t.id));
+  const [filter, setFilter] = useState<Filter>("all");
+  const [inspecting, setInspecting] = useState<HubEntry | null>(null);
+
+  const entries = list.flatMap((t, i) => (memories[i]?.data ?? []).map((m) => toHubEntry(m, t.title)));
+  const groups = groupByType(entries);
 
   if (threads.isLoading) return <StateNote icon="clock" title="Loading your memory…" />;
   if (threads.isError) {
@@ -27,7 +53,11 @@ export function MemoryLive() {
       />
     );
   }
-  if (list.length === 0) {
+
+  const loading = memories.some((q) => q.isLoading);
+  const unavailable = list.filter((_, i) => memories[i]?.isError);
+
+  if (list.length === 0 || (!loading && entries.length === 0 && unavailable.length === 0)) {
     return (
       <StateNote
         icon="book"
@@ -37,56 +67,136 @@ export function MemoryLive() {
     );
   }
 
+  const count = (type: GroupId) => groups.get(type)?.length ?? 0;
+  const filterIds: GroupId[] = [...MEMORY_TYPES, ...(count("other") > 0 ? (["other"] as const) : [])];
+  const shown: GroupId[] = filter === "all" ? filterIds.filter((t) => count(t) > 0) : [filter];
+  const notYet = filter === "all" ? MEMORY_TYPES.filter((t) => count(t) === 0) : [];
+
   return (
     <div className={styles.wrap}>
       <p className={styles.hint}>
-        <Icon name="lock" size={13} />
+        <Icon name="lock" size={14} />
         Your longitudinal record — every memory links back to what you added.
       </p>
-      {list.map((t, i) => {
-        const q = memories[i];
-        const entries = q?.data ?? [];
-        return (
-          <section key={t.id} className={styles.group} aria-label={`${t.title} memories`}>
-            <div className={styles.groupHead}>
-              <h2 className={styles.groupTitle}>{t.title}</h2>
-              <Link href={`/threads/${t.id}`} className={styles.groupLink}>
-                Open thread
-              </Link>
-            </div>
-            {!q || q.isLoading ? (
-              <p className={styles.muted}>Loading…</p>
-            ) : q.isError ? (
-              <p className={styles.muted}>These memories aren&rsquo;t available right now.</p>
-            ) : entries.length === 0 ? (
-              <p className={styles.muted}>Nothing kept for this thread yet.</p>
-            ) : (
-              <ul className={styles.list}>
-                {entries.map((m) => (
-                  <li key={m.memory_entry_id} className={styles.row}>
-                    <span className={styles.rowIcon}>
-                      <Icon name="book" size={15} />
-                    </span>
-                    <span className={styles.rowMain}>
-                      <span className={styles.rowTitle}>{m.title}</span>
-                      <span className={styles.rowSub}>
-                        <Icon name="badge-check" size={11} />
-                        {sourceRefSummary(m.source_refs ?? []) || "Source-linked"}
-                        {m.created_at && formatShortDate(m.created_at)
-                          ? ` · ${formatShortDate(m.created_at)}`
-                          : ""}
-                      </span>
-                    </span>
-                    <Chip size="sm" tone="tealmid">
-                      {memoryTypeLabel(m.memory_type)}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        );
-      })}
+
+      <div className={styles.filters} role="group" aria-label="Show memory type">
+        <FilterButton active={filter === "all"} onClick={() => setFilter("all")} count={entries.length}>
+          All
+        </FilterButton>
+        {filterIds.map((t) => (
+          <FilterButton key={t} active={filter === t} onClick={() => setFilter(t)} count={count(t)}>
+            {copyFor(t).title}
+          </FilterButton>
+        ))}
+      </div>
+
+      {unavailable.length > 0 && (
+        <p className={styles.quiet} role="status">
+          <Icon name="info" size={14} />
+          Memories for {unavailable.map((t) => t.title).join(", ")} aren&rsquo;t available right now.
+        </p>
+      )}
+
+      {loading && entries.length === 0 ? (
+        <p className={styles.quiet} role="status">
+          Loading memories…
+        </p>
+      ) : (
+        shown.map((type) => (
+          <TypeSection
+            key={type}
+            type={type}
+            entries={groups.get(type) ?? []}
+            onOpenSources={(e) => setInspecting(entries.find((x) => x.id === e.id) ?? null)}
+          />
+        ))
+      )}
+
+      {notYet.length > 0 && !loading && (
+        <p className={styles.quiet}>
+          Not kept yet: {notYet.map((t) => MEMORY_TYPE_COPY[t].title).join(" · ")}
+        </p>
+      )}
+
+      <EvidenceDrawer
+        open={inspecting !== null}
+        onClose={() => setInspecting(null)}
+        title="Where this came from"
+        sources={inspecting?.sources ?? []}
+        claim={
+          inspecting && (
+            <>
+              {inspecting.text} · kept in{" "}
+              <Link href={`/threads/${inspecting.threadId}`}>{inspecting.threadTitle}</Link>
+            </>
+          )
+        }
+      />
     </div>
+  );
+}
+
+function FilterButton({
+  active,
+  count,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  count: number;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button type="button" className={styles.filter} aria-pressed={active} onClick={onClick}>
+      {children}
+      <span className={styles.count} aria-hidden="true">
+        {count}
+      </span>
+      <span className={styles.srOnly}>
+        , {count} {count === 1 ? "memory" : "memories"}
+      </span>
+    </button>
+  );
+}
+
+function TypeSection({
+  type,
+  entries,
+  onOpenSources,
+}: {
+  type: GroupId;
+  entries: HubEntry[];
+  onOpenSources: (entry: StoryEntry) => void;
+}) {
+  const headingId = useId();
+  const copy = copyFor(type);
+  const threads = Array.from(new Map(entries.map((e) => [e.threadId, e.threadTitle])));
+
+  return (
+    <section className={styles.section} aria-labelledby={headingId} data-memory-type={type}>
+      <header className={styles.sectionHead}>
+        <h2 id={headingId} className={styles.sectionTitle}>
+          {copy.title}
+        </h2>
+        <p className={styles.sectionDescription}>{copy.description}</p>
+      </header>
+
+      {entries.length === 0 ? (
+        <p className={styles.empty}>{copy.empty}</p>
+      ) : (
+        <>
+          <StoryLanes entries={entries} onOpenSources={onOpenSources} />
+          <p className={styles.keptIn}>
+            <span>Kept in</span>
+            {threads.map(([id, title]) => (
+              <Link key={id} href={`/threads/${id}`} className={styles.threadLink}>
+                {title}
+              </Link>
+            ))}
+          </p>
+        </>
+      )}
+    </section>
   );
 }
