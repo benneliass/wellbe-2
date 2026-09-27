@@ -97,6 +97,15 @@ continuityWorker:
     requests: {cpu: 20m, memory: 96Mi}
     limits: {cpu: 300m, memory: 384Mi}
 
+# New image: `latest` bootstraps the first rollout before argocd-image-updater
+# has written a semver tag for it to .argocd-source-wellbe.yaml.
+notificationWorker:
+  image: ghcr.io/benneliass/wellbe-notification-worker:latest
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 300m, memory: 384Mi}
+
 vaultWriter:
   image: ghcr.io/benneliass/wellbe-vault-writer:0.1.4
   imagePullPolicy: IfNotPresent

@@ -6,7 +6,8 @@ import { StateNote } from "@/components/placeholder/StateNote";
 import { ComingSoon } from "@/components/placeholder/ComingSoon";
 import { formatShortDate, mapThreadStatus } from "@/lib/adapters";
 import { STATUS_META } from "@/lib/meta";
-import { useThread } from "@/lib/hooks";
+import { usePendingItems, useThread } from "@/lib/hooks";
+import { OpenLoops } from "@/components/workspace/OpenLoops";
 
 /**
  * Live thread detail for real (non-demo) thread ids. The /v1/threads/{id} header
@@ -15,6 +16,7 @@ import { useThread } from "@/lib/hooks";
  */
 export function ThreadDetailLive({ id }: { id: string }) {
   const { data, isLoading, isError } = useThread(id);
+  const pending = usePendingItems();
 
   if (isLoading) {
     return (
@@ -57,6 +59,11 @@ export function ThreadDetailLive({ id }: { id: string }) {
         backHref="/workspace"
       />
       <PageBody>
+        <OpenLoops
+          title="Follow-ups on this thread"
+          linkToThread={false}
+          items={(pending.data ?? []).filter((i) => i.primary_thread_id === id)}
+        />
         <ComingSoon
           icon={status.icon}
           title="The full thread view is on the way"

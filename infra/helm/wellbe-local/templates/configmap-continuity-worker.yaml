@@ -10,3 +10,8 @@ data:
   WELLBE_TEMPORAL_NAMESPACE: {{ .Values.continuityWorker.config.temporalNamespace | quote }}
   WELLBE_LOG_LEVEL: {{ .Values.continuityWorker.config.logLevel | quote }}
   WELLBE_ENVIRONMENT: {{ .Values.continuityWorker.config.environment | quote }}
+  WELLBE_C9_TIMER_MECHANISM: {{ .Values.continuityWorker.config.timerMechanism | quote }}
+  WELLBE_C9_SWEEP_INTERVAL_SECONDS: {{ .Values.continuityWorker.config.sweepIntervalSeconds | quote }}
+  WELLBE_C9_RESULT_WINDOW_DAYS: {{ .Values.c9Policy.resultWindowDays | quote }}
+  WELLBE_C9_REFERRAL_WINDOW_DAYS: {{ .Values.c9Policy.referralWindowDays | quote }}
+  WELLBE_C9_OVERDUE_GRACE_DAYS: {{ .Values.c9Policy.overdueGraceDays | quote }}

@@ -82,13 +82,54 @@ class ContinuityRepository:
         return await self._session.get(PendingItemRow, pending_item_id)
 
     async def get_for_update(self, pending_item_id: uuid.UUID) -> PendingItemRow | None:
+        # populate_existing: a row already in the identity map must be refreshed
+        # from the locked read, or callers would act on pre-lock state.
         stmt = (
             select(PendingItemRow)
             .where(PendingItemRow.pending_item_id == pending_item_id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def claim_next_timer(
+        self, *, status: PendingItemStatus, fire_before: datetime
+    ) -> PendingItemRow | None:
+        """Lock the oldest item in ``status`` whose ``due_at`` is before ``fire_before``.
+
+        SKIP LOCKED lets several sweepers (or a reconciler holding the row) run
+        without blocking or double-claiming; the caller fires inside the same
+        transaction so the claim and the transition commit together.
+        """
+        stmt = (
+            select(PendingItemRow)
+            .where(
+                PendingItemRow.status == status.value,
+                PendingItemRow.due_at.is_not(None),
+                PendingItemRow.due_at <= fire_before,
+            )
+            .order_by(PendingItemRow.due_at)
+            .limit(1)
+            .with_for_update(skip_locked=True)
+            .execution_options(populate_existing=True)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def transition_time(
+        self, *, thread_id: uuid.UUID, transition_seq: int
+    ) -> datetime | None:
+        """When C7 recorded the given thread transition (None if not found)."""
+        stmt = text(
+            "SELECT created_at FROM thread.thread_state_transitions "
+            "WHERE thread_id = :t AND transition_seq = :s"
+        )
+        result = await self._session.execute(stmt, {"t": str(thread_id), "s": transition_seq})
+        value: datetime | None = result.scalar_one_or_none()
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value
 
     async def active_blocking_items(
         self, *, patient_id: uuid.UUID, thread_id: uuid.UUID

@@ -100,17 +100,6 @@
   background: var(--slate-50);
   color: var(--fg1);
 }
-.iconbtnDot {
-  position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--amber-500);
-  border: 1.5px solid #fff;
-}
-
 .notifRow {
   display: flex;
   align-items: center;

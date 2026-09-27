@@ -3,6 +3,7 @@
 import { StateNote } from "@/components/placeholder/StateNote";
 import { useSession } from "@/lib/useSession";
 import { usePendingItems, useThreads } from "@/lib/hooks";
+import { openPendingItems } from "@/lib/pending";
 import { WorkspaceHome } from "./WorkspaceHome";
 
 /**
@@ -40,7 +41,8 @@ export function WorkspaceLive() {
   }
 
   const threads = threadsQuery.data ?? [];
-  const pendingCount = pendingQuery.data?.length ?? 0;
+  const pendingItems = openPendingItems(pendingQuery.data ?? []);
+  const pendingCount = pendingItems.length;
 
   if (threads.length === 0) {
     return (
@@ -52,5 +54,7 @@ export function WorkspaceLive() {
     );
   }
 
-  return <WorkspaceHome threads={threads} pendingCount={pendingCount} />;
+  return (
+    <WorkspaceHome threads={threads} pendingCount={pendingCount} pendingItems={pendingItems} />
+  );
 }

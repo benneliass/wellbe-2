@@ -22,6 +22,7 @@ from wellbe_api.routers import (
     delta_v2,
     graph_v2,
     investigations,
+    notifications_v2,
     onboarding_v1,
     patterns_v2,
     phase5,
@@ -82,3 +83,4 @@ app.include_router(graph_v2.router)
 app.include_router(patterns_v2.router)
 app.include_router(delta_v2.router)
 app.include_router(signals_v2.router)
+app.include_router(notifications_v2.router)

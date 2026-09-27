@@ -64,6 +64,8 @@ jobs:
               - 'backend/apps/continuity-worker/**'
             ingestion-worker:
               - 'backend/apps/ingestion-worker/**'
+            notification-worker:
+              - 'backend/apps/notification-worker/**'
             processing-worker:
               - 'backend/apps/processing-worker/**'
             safety-gate:
@@ -88,6 +90,7 @@ jobs:
           C_AUDIT: ${{ steps.f.outputs.audit-service }}
           C_CONTINUITY: ${{ steps.f.outputs.continuity-worker }}
           C_INGESTION: ${{ steps.f.outputs.ingestion-worker }}
+          C_NOTIFICATION: ${{ steps.f.outputs.notification-worker }}
           C_PROCESSING: ${{ steps.f.outputs.processing-worker }}
           C_SAFETY: ${{ steps.f.outputs.safety-gate }}
           C_VAULT: ${{ steps.f.outputs.vault-writer }}
@@ -106,6 +109,7 @@ jobs:
           backend "$C_AUDIT"      && add '{"name":"wellbe-audit-service","file":"backend/apps/audit-service/Dockerfile","context":"."}' || true
           backend "$C_CONTINUITY" && add '{"name":"wellbe-continuity-worker","file":"backend/apps/continuity-worker/Dockerfile","context":"."}' || true
           backend "$C_INGESTION"  && add '{"name":"wellbe-ingestion-worker","file":"backend/apps/ingestion-worker/Dockerfile","context":"."}' || true
+          backend "$C_NOTIFICATION" && add '{"name":"wellbe-notification-worker","file":"backend/apps/notification-worker/Dockerfile","context":"."}' || true
           backend "$C_PROCESSING" && add '{"name":"wellbe-processing-worker","file":"backend/apps/processing-worker/Dockerfile","context":"."}' || true
           backend "$C_SAFETY"     && add '{"name":"wellbe-safety-gate","file":"backend/apps/safety-gate/Dockerfile","context":"."}' || true
           backend "$C_VAULT"      && add '{"name":"wellbe-vault-writer","file":"backend/apps/vault-writer/Dockerfile","context":"."}' || true

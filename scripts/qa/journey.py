@@ -21,6 +21,7 @@ import traceback
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -416,6 +417,54 @@ def run(j: Journey) -> None:
         items = j.wait_for("pending items after waiting_for_result", poll, timeout=30)
         open_items = [i for i in items if i.get("status") not in ("resolved", "cancelled")]
         assert open_items, f"no open pending item: {items}"
+        opened = open_items[0]
+        # Time-aware: a result wait is dated by policy (transition + 7 days).
+        assert opened.get("status") == "scheduled", f"not scheduled: {opened}"
+        assert opened.get("due_precision") == "relative_policy", opened
+        due_in = datetime.fromisoformat(opened["due_at"]) - datetime.now(UTC)
+        assert timedelta(days=6, hours=23) < due_in <= timedelta(days=7, minutes=10), (
+            f"due_at not ~now+7d: {opened.get('due_at')}"
+        )
+        j.ctx["opened_pending_item"] = opened
+        return f"opened '{opened.get('title')}' scheduled, due {opened['due_at'][:10]}"
+
+    if j.ctx.get("waiting_thread"):
+        j.step("pending item opens on waiting_for_result, dated now+7d", pending)
+
+    # Checked while the item is still open: reminders for settled items are
+    # intentionally suppressed, so resolving first could race the consumer.
+    def notifications() -> str:
+        opened = j.ctx["opened_pending_item"]
+
+        def poll() -> Any:
+            body = j.call("GET", "/v2/notifications", params={"limit": 50})
+            found = [
+                n for n in items_of(body, "notifications")
+                if n.get("kind") == "pending_item_created"
+                and n.get("pending_item_id") == opened["pending_item_id"]
+            ]
+            return found or None
+
+        found = j.wait_for("'created' notification for the waiting thread", poll, timeout=60)
+        note = found[0]
+        assert note.get("thread_id") == j.ctx["waiting_thread"], note
+        assert note["title"] == f"New follow-up: {opened['title']}", note["title"]
+        read = j.call("POST", f"/v2/notifications/{note['notification_id']}/read")
+        assert read.get("read_at"), f"mark read did not set read_at: {read}"
+        body = j.call("GET", "/v2/notifications", params={"limit": 50})
+        again = [n for n in items_of(body, "notifications")
+                 if n["notification_id"] == note["notification_id"]]
+        assert again and again[0].get("read_at"), f"not read after mark: {again}"
+        r = j.client.post(f"/v2/notifications/{uuid.uuid4()}/read", headers=j.headers())
+        assert r.status_code == 404, f"unknown notification not 404: {r.status_code}"
+        done = j.call("POST", "/v2/notifications/read-all")
+        assert done.get("unread_count") == 0, done
+        return f"'{note['title']}' listed; mark read + read-all ok"
+
+    if j.ctx.get("opened_pending_item"):
+        j.step("in-app notification for the opened follow-up", notifications)
+
+    def pending_resolves() -> str:
         tid = j.ctx["waiting_thread"]
         t = j.call("GET", f"/v1/threads/{tid}")
         j.call("POST", f"/v1/threads/{tid}/transition",
@@ -429,10 +478,10 @@ def run(j: Journey) -> None:
             return done or None
 
         j.wait_for("pending item resolved after leaving waiting_for_result", resolved, timeout=30)
-        return f"opened '{open_items[0].get('title')}', resolved when result came in"
+        return "resolved when the result came in"
 
-    if j.ctx.get("waiting_thread"):
-        j.step("pending item opens on waiting_for_result and resolves after", pending)
+    if j.ctx.get("opened_pending_item"):
+        j.step("pending item resolves after leaving waiting_for_result", pending_resolves)
 
     def memories() -> str:
         out = []

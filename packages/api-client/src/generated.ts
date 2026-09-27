@@ -297,6 +297,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/grants/{grant_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Grant
+         * @description The grantee (the calling actor) accepts a grant shared with them.
+         */
+        post: operations["accept_grant_v2_grants__grant_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/grants/{grant_id}/revoke": {
         parameters: {
             query?: never;
@@ -430,6 +450,57 @@ export interface paths {
         put?: never;
         /** Create Theory */
         post: operations["create_theory_v2_investigations__investigation_id__theories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Notifications */
+        get: operations["list_notifications_v2_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark All Notifications Read */
+        post: operations["mark_all_notifications_read_v2_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Notification Read */
+        post: operations["mark_notification_read_v2_notifications__notification_id__read_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1466,6 +1537,69 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** NotificationListV2 */
+        NotificationListV2: {
+            /** Notifications */
+            notifications?: components["schemas"]["NotificationV2"][];
+            /**
+             * Schema Version
+             * @default c13.notification_list.v2
+             * @constant
+             */
+            schema_version: "c13.notification_list.v2";
+            /**
+             * Unread Count
+             * @default 0
+             */
+            unread_count: number;
+        };
+        /**
+         * NotificationV2
+         * @description An in-app notification (C12). In-app only: never pushed or emailed.
+         */
+        NotificationV2: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Kind */
+            kind: string;
+            /** Notification Id */
+            notification_id: string;
+            /** Pending Item Id */
+            pending_item_id?: string | null;
+            /** Read At */
+            read_at?: string | null;
+            /**
+             * Schema Version
+             * @default c13.notification.v2
+             * @constant
+             */
+            schema_version: "c13.notification.v2";
+            /** Thread Id */
+            thread_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** NotificationsMarkedReadV2 */
+        NotificationsMarkedReadV2: {
+            /** Marked Read */
+            marked_read: number;
+            /**
+             * Schema Version
+             * @default c13.notifications_marked_read.v2
+             * @constant
+             */
+            schema_version: "c13.notifications_marked_read.v2";
+            /**
+             * Unread Count
+             * @default 0
+             */
+            unread_count: number;
+        };
         /** OnboardingStateV1 */
         OnboardingStateV1: {
             /** Account Id */
@@ -2050,6 +2184,16 @@ export interface components {
             schema_version: string;
             /** Seen Count */
             seen_count: number;
+            /**
+             * Source Capture Count
+             * @default 0
+             */
+            source_capture_count: number;
+            /**
+             * Source Fact Count
+             * @default 0
+             */
+            source_fact_count: number;
             /** Status */
             status: string;
             /** Title */
@@ -3036,6 +3180,43 @@ export interface operations {
             };
         };
     };
+    accept_grant_v2_grants__grant_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     revoke_grant_v2_grants__grant_id__revoke_post: {
         parameters: {
             query?: never;
@@ -3455,6 +3636,116 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TheoryV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notifications_v2_notifications_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                unread_only?: boolean;
+            };
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_all_notifications_read_v2_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsMarkedReadV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_notification_read_v2_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationV2"];
                 };
             };
             /** @description Validation Error */
