@@ -25,7 +25,7 @@ describe("CaptureModal", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("posts a symptom capture with an Idempotency-Key and closes on success", async () => {
+  it("posts a symptom capture with an Idempotency-Key and acknowledges it", async () => {
     const onClose = vi.fn();
     const onCaptured = vi.fn();
     render(<CaptureModal onClose={onClose} onCaptured={onCaptured} />);
@@ -35,7 +35,10 @@ describe("CaptureModal", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
 
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/added to your memory/i));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /done/i }));
+    expect(onClose).toHaveBeenCalled();
 
     expect(post).toHaveBeenCalledTimes(1);
     const [path, opts] = post.mock.calls[0]!;
@@ -74,7 +77,7 @@ describe("CaptureModal", () => {
     fireEvent.click(submit);
     await waitFor(() => expect(screen.getByText(/could not be saved/i)).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: /add to memory/i }));
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
 
     const firstKey = post.mock.calls[0]![1].params.header["Idempotency-Key"];
     const secondKey = post.mock.calls[1]![1].params.header["Idempotency-Key"];

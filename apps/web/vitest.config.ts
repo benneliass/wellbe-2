@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 
 /**
  * Unit/component test runner for the web app (Track 0.5, WEL-155).
- * jsdom environment + RTL. e2e lives separately under e2e/ (Playwright), so we
+ * jsdom environment + RTL. e2e lives separately under e2e/ and e2e-live/ (Playwright), so we
  * exclude it here to keep `vitest` fast and browserless.
  */
 export default defineConfig({
@@ -19,6 +19,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules/**", ".next/**", "e2e/**"],
+    exclude: ["node_modules/**", ".next/**", "e2e/**", "e2e-live/**"],
   },
 });

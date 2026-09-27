@@ -60,11 +60,6 @@ export function Launcher() {
         </div>
       </header>
 
-      <div className={styles.sync}>
-        <span className={styles.syncDot} />
-        Data synced <span className={styles.syncTime}>4 min ago</span>
-      </div>
-
       <SignalsPanel />
 
       <div className={styles.hero}>

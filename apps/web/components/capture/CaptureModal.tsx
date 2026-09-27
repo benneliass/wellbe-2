@@ -61,6 +61,11 @@ export function CaptureModal({
   // Stable across error-retries of the same capture so a retried submit is
   // idempotent (one permanent raw record); reset only after a clean success.
   const idempotencyKeyRef = useRef<string | null>(null);
+  const [saved, setSaved] = useState<{ processing: string } | null>(null);
+  const [openedAt] = useState(
+    () =>
+      `Today, ${new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date())}`,
+  );
 
   async function buildPayload(): Promise<Record<string, unknown>> {
     switch (type) {
@@ -123,12 +128,41 @@ export function CaptureModal({
       }
       idempotencyKeyRef.current = null;
       onCaptured?.(data.capture_id);
-      onClose();
+      setSaved({ processing: data.processing ?? "pending" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong saving your capture.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (saved) {
+    return (
+      <Modal
+        title="Capture"
+        icon="plus-circle"
+        onClose={onClose}
+        footer={
+          <div className={styles.savedFoot}>
+            <Button variant="primary" icon="check" onClick={onClose}>
+              Done
+            </Button>
+          </div>
+        }
+      >
+        <div className={styles.saved} role="status">
+          <span className={styles.savedIcon}>
+            <Icon name="check-circle-2" size={26} />
+          </span>
+          <b>Added to your memory</b>
+          <span>
+            {saved.processing === "pending"
+              ? "Saved privately. WellBe is sorting it into your threads now — it'll show up shortly."
+              : "Saved privately to your memory."}
+          </span>
+        </div>
+      </Modal>
+    );
   }
 
   const footer = (
@@ -317,15 +351,14 @@ export function CaptureModal({
           <label>When</label>
           <div className={styles.input}>
             <Icon name="calendar" size={15} />
-            <span>Today, 9:24 AM</span>
+            <span>{openedAt}</span>
           </div>
         </div>
         <div className={styles.field}>
-          <label>Attach to thread</label>
+          <label>Thread</label>
           <div className={styles.input}>
             <Icon name="list" size={15} />
-            <span>Lower back pain</span>
-            <Icon name="chevron-down" size={15} className={styles.chev} />
+            <span>Sorted into the right thread for you</span>
           </div>
         </div>
       </div>
