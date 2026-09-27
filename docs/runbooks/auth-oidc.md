@@ -64,6 +64,10 @@ kubectl -n wellbe create secret generic zitadel-masterkey \
   --from-literal=masterkey="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)"
 ```
 
+The zitadel Deployment uses `strategy: Recreate`, so once the values change syncs
+the old pod (old masterkey) is gone and only the new pod can re-initialize the
+database. It fails against the old database until you drop it:
+
 ```sh
 kubectl -n wellbe exec statefulset/postgres -- \
   psql -U wellbe -d postgres -c 'DROP DATABASE zitadel WITH (FORCE);'
