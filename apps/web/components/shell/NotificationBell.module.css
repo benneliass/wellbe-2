@@ -33,7 +33,7 @@
   background: var(--amber-500);
   border: 2px solid #fff;
   color: #fff;
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   line-height: 14px;
   text-align: center;
@@ -73,13 +73,13 @@
   justify-content: space-between;
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 .linkBtn {
   border: none;
   background: none;
   padding: 0;
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--teal-600);
   cursor: pointer;
@@ -135,7 +135,7 @@
   min-width: 0;
 }
 .text b {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--fg1);
   line-height: 1.35;
@@ -145,12 +145,12 @@
   color: var(--fg2);
 }
 .text span {
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   color: var(--fg2);
   line-height: 1.4;
 }
 .text time {
-  font-size: 11.5px;
+  font-size: var(--text-2xs);
   color: var(--fg3);
 }
 .markBtn {
@@ -173,7 +173,7 @@
 
 .empty {
   padding: 16px 14px 18px;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--fg2);
   line-height: 1.5;
 }
