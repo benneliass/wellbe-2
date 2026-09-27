@@ -71,6 +71,8 @@ temporal:
     limits: {cpu: 500m, memory: 768Mi}
 
 zitadel:
+  # Set together with the ZITADEL DB re-init (docs/runbooks/auth-oidc.md step 2A).
+  # masterkeySecret: {name: zitadel-masterkey}
   resources:
     requests: {cpu: 30m, memory: 128Mi}
     limits: {cpu: 500m, memory: 512Mi}

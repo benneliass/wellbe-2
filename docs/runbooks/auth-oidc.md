@@ -54,6 +54,16 @@ does not run), so the recommended path is A.
 Safe today: nothing in WellBe references ZITADEL data yet (the API is still on
 dev-headers), and ZITADEL uses its own `zitadel` database — WellBe data is untouched.
 
+The chart's default masterkey is public, so a re-initialized instance must get its
+own. Create the secret first and set `zitadel.masterkeySecret: {name: zitadel-masterkey}`
+in `values-homeserver.yaml` in the same change that triggers the reset (a masterkey
+change on an existing ZITADEL database makes its encrypted data unreadable):
+
+```sh
+kubectl -n wellbe create secret generic zitadel-masterkey \
+  --from-literal=masterkey="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)"
+```
+
 ```sh
 kubectl -n wellbe exec statefulset/postgres -- \
   psql -U wellbe -d postgres -c 'DROP DATABASE zitadel WITH (FORCE);'

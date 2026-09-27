@@ -47,11 +47,23 @@ spec:
           {{- include "wellbe-local.resources" .Values.zitadel.resources | nindent 10 }}
           args:
             - start-from-init
+            {{- if .Values.zitadel.masterkeySecret }}
+            - --masterkeyFromEnv
+            {{- else }}
             - --masterkey
             - {{ .Values.zitadel.masterkey | quote }}
+            {{- end }}
             - --tlsMode
             - {{ ternary "external" "disabled" $z.externalSecure }}
           env:
+            {{- with .Values.zitadel.masterkeySecret }}
+            # Created out of band (never in git); must be exactly 32 characters.
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key | default "masterkey" }}
+            {{- end }}
             - name: ZITADEL_DATABASE_POSTGRES_HOST
               value: "wellbe-postgres"
             - name: ZITADEL_DATABASE_POSTGRES_PORT
