@@ -279,6 +279,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Documents */
+        get: operations["get_documents_v2_documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/grants": {
         parameters: {
             query?: never;
@@ -552,6 +569,23 @@ export interface paths {
         put?: never;
         /** V2 Render Validate */
         post: operations["v2_render_validate_v2_render_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Results */
+        get: operations["get_results_v2_results_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -893,6 +927,20 @@ export interface components {
             valid_until: string;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /** AnalyteResultV2 */
+        AnalyteResultV2: {
+            /** Analyte Key */
+            analyte_key: string;
+            /** Display Label */
+            display_label: string;
+            /** History */
+            history?: components["schemas"]["ObservationV2"][];
+            /** Kind */
+            kind: string;
+            latest: components["schemas"]["ObservationV2"];
+            /** Threads */
+            threads?: components["schemas"]["ThreadRefV2"][];
         };
         /** AskAnswerV2 */
         AskAnswerV2: {
@@ -1245,6 +1293,59 @@ export interface components {
             source_id: string;
         };
         /**
+         * DocumentStatus
+         * @enum {string}
+         */
+        DocumentStatus: "processed" | "waiting" | "could_not_read";
+        /** DocumentV2 */
+        DocumentV2: {
+            /**
+             * Added At
+             * Format: date-time
+             */
+            added_at: string;
+            /** Display Label */
+            display_label: string;
+            /** Document Id */
+            document_id: string;
+            /** Extracted */
+            extracted?: components["schemas"]["ExtractedCountV2"][];
+            /**
+             * Extracted Total
+             * @default 0
+             */
+            extracted_total: number;
+            /** Mime Type */
+            mime_type: string;
+            /**
+             * Result Count
+             * @default 0
+             */
+            result_count: number;
+            status: components["schemas"]["DocumentStatus"];
+            /** Status Detail */
+            status_detail: string;
+            /** Status Label */
+            status_label: string;
+            /** Type Label */
+            type_label: string;
+        };
+        /** DocumentsResponseV2 */
+        DocumentsResponseV2: {
+            /** Documents */
+            documents?: components["schemas"]["DocumentV2"][];
+            /** Headline */
+            headline: string;
+            /** Note */
+            note: string;
+            /**
+             * Schema Version
+             * @default c13.documents.v2
+             * @constant
+             */
+            schema_version: "c13.documents.v2";
+        };
+        /**
          * EvaluateTheoryRequest
          * @description The user's own evaluation. ``to_status`` is the user's mark, never a diagnosis.
          */
@@ -1286,6 +1387,15 @@ export interface components {
              * @constant
              */
             schema_version: "c13.visit_packet.export.v2";
+        };
+        /** ExtractedCountV2 */
+        ExtractedCountV2: {
+            /** Count */
+            count: number;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
         };
         /** FinalizeRequest */
         FinalizeRequest: {
@@ -1676,6 +1786,27 @@ export interface components {
              */
             unread_count: number;
         };
+        /** ObservationV2 */
+        ObservationV2: {
+            /** Numeric Value */
+            numeric_value?: number | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Range Note */
+            range_note: string;
+            /** @default not_compared */
+            range_position: components["schemas"]["RangePosition"];
+            /** Reference Range */
+            reference_range?: string | null;
+            source: components["schemas"]["RecordSourceV2"];
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value: string;
+        };
         /** OnboardingStateV1 */
         OnboardingStateV1: {
             /** Account Id */
@@ -1856,6 +1987,24 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * RangePosition
+         * @enum {string}
+         */
+        RangePosition: "within" | "outside" | "not_compared";
+        /** RecordSourceV2 */
+        RecordSourceV2: {
+            /** Capture Id */
+            capture_id: string;
+            /** Display Label */
+            display_label: string;
+            /** Document Id */
+            document_id?: string | null;
+            /** Kind */
+            kind: string;
+            /** Review Marker */
+            review_marker: string;
+        };
         /** RelevanceLinkV2 */
         RelevanceLinkV2: {
             /** Audit Refs */
@@ -1972,6 +2121,26 @@ export interface components {
              */
             raw_correction_event_id: string;
             target: components["schemas"]["CorrectionTargetRequest"];
+        };
+        /** ResultsResponseV2 */
+        ResultsResponseV2: {
+            /** Analytes */
+            analytes?: components["schemas"]["AnalyteResultV2"][];
+            /** Headline */
+            headline: string;
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            /** Note */
+            note: string;
+            /**
+             * Schema Version
+             * @default c13.results.v2
+             * @constant
+             */
+            schema_version: "c13.results.v2";
         };
         /** RevokeGrantRequest */
         RevokeGrantRequest: {
@@ -2370,6 +2539,13 @@ export interface components {
             source_fact_count: number;
             /** Status */
             status: string;
+            /** Title */
+            title: string;
+        };
+        /** ThreadRefV2 */
+        ThreadRefV2: {
+            /** Thread Id */
+            thread_id: string;
             /** Title */
             title: string;
         };
@@ -3280,6 +3456,41 @@ export interface operations {
             };
         };
     };
+    get_documents_v2_documents_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentsResponseV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_grants_v2_grants_get: {
         parameters: {
             query?: never;
@@ -4031,6 +4242,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_v2_results_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultsResponseV2"];
                 };
             };
             /** @description Validation Error */

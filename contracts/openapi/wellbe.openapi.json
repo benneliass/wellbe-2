@@ -174,6 +174,47 @@
         "title": "AccessPredicateV2",
         "type": "object"
       },
+      "AnalyteResultV2": {
+        "properties": {
+          "analyte_key": {
+            "title": "Analyte Key",
+            "type": "string"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationV2"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "latest": {
+            "$ref": "#/components/schemas/ObservationV2"
+          },
+          "threads": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadRefV2"
+            },
+            "title": "Threads",
+            "type": "array"
+          }
+        },
+        "required": [
+          "analyte_key",
+          "display_label",
+          "kind",
+          "latest"
+        ],
+        "title": "AnalyteResultV2",
+        "type": "object"
+      },
       "AskAnswerV2": {
         "properties": {
           "answer_text": {
@@ -1045,6 +1086,111 @@
         "title": "DeltaSourceRef",
         "type": "object"
       },
+      "DocumentStatus": {
+        "enum": [
+          "processed",
+          "waiting",
+          "could_not_read"
+        ],
+        "title": "DocumentStatus",
+        "type": "string"
+      },
+      "DocumentV2": {
+        "properties": {
+          "added_at": {
+            "format": "date-time",
+            "title": "Added At",
+            "type": "string"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "extracted": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedCountV2"
+            },
+            "title": "Extracted",
+            "type": "array"
+          },
+          "extracted_total": {
+            "default": 0,
+            "title": "Extracted Total",
+            "type": "integer"
+          },
+          "mime_type": {
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "result_count": {
+            "default": 0,
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "status_detail": {
+            "title": "Status Detail",
+            "type": "string"
+          },
+          "status_label": {
+            "title": "Status Label",
+            "type": "string"
+          },
+          "type_label": {
+            "title": "Type Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "display_label",
+          "type_label",
+          "mime_type",
+          "added_at",
+          "status",
+          "status_label",
+          "status_detail"
+        ],
+        "title": "DocumentV2",
+        "type": "object"
+      },
+      "DocumentsResponseV2": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentV2"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.documents.v2",
+            "default": "c13.documents.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headline",
+          "note"
+        ],
+        "title": "DocumentsResponseV2",
+        "type": "object"
+      },
       "EvaluateTheoryRequest": {
         "description": "The user's own evaluation. ``to_status`` is the user's mark, never a diagnosis.",
         "properties": {
@@ -1127,6 +1273,29 @@
           "packet"
         ],
         "title": "ExportPacketResponse",
+        "type": "object"
+      },
+      "ExtractedCountV2": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "label",
+          "count"
+        ],
+        "title": "ExtractedCountV2",
         "type": "object"
       },
       "FinalizeRequest": {
@@ -1897,6 +2066,71 @@
         "title": "NotificationsMarkedReadV2",
         "type": "object"
       },
+      "ObservationV2": {
+        "properties": {
+          "numeric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Value"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "range_note": {
+            "title": "Range Note",
+            "type": "string"
+          },
+          "range_position": {
+            "$ref": "#/components/schemas/RangePosition",
+            "default": "not_compared"
+          },
+          "reference_range": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Range"
+          },
+          "source": {
+            "$ref": "#/components/schemas/RecordSourceV2"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "range_note",
+          "observed_at",
+          "source"
+        ],
+        "title": "ObservationV2",
+        "type": "object"
+      },
       "OnboardingStateV1": {
         "properties": {
           "account_id": {
@@ -2311,6 +2545,54 @@
         "title": "PendingItemV2",
         "type": "object"
       },
+      "RangePosition": {
+        "enum": [
+          "within",
+          "outside",
+          "not_compared"
+        ],
+        "title": "RangePosition",
+        "type": "string"
+      },
+      "RecordSourceV2": {
+        "properties": {
+          "capture_id": {
+            "title": "Capture Id",
+            "type": "string"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "review_marker": {
+            "title": "Review Marker",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "display_label",
+          "capture_id",
+          "review_marker"
+        ],
+        "title": "RecordSourceV2",
+        "type": "object"
+      },
       "RelevanceLinkV2": {
         "additionalProperties": false,
         "properties": {
@@ -2573,6 +2855,42 @@
           "raw_correction_event_id"
         ],
         "title": "RequestCorrectionRequest",
+        "type": "object"
+      },
+      "ResultsResponseV2": {
+        "properties": {
+          "analytes": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyteResultV2"
+            },
+            "title": "Analytes",
+            "type": "array"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.results.v2",
+            "default": "c13.results.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headline",
+          "note"
+        ],
+        "title": "ResultsResponseV2",
         "type": "object"
       },
       "RevokeGrantRequest": {
@@ -3386,6 +3704,24 @@
           "last_seen_at"
         ],
         "title": "ThingNoticedV1",
+        "type": "object"
+      },
+      "ThreadRefV2": {
+        "properties": {
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "title"
+        ],
+        "title": "ThreadRefV2",
         "type": "object"
       },
       "ThreadSubgraphV2": {
@@ -6040,6 +6376,113 @@
         ]
       }
     },
+    "/v2/documents": {
+      "get": {
+        "operationId": "get_documents_v2_documents_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentsResponseV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Documents",
+        "tags": [
+          "v2-records"
+        ]
+      }
+    },
     "/v2/grants": {
       "get": {
         "operationId": "list_grants_v2_grants_get",
@@ -8474,6 +8917,113 @@
         "summary": "V2 Render Validate",
         "tags": [
           "v2-render"
+        ]
+      }
+    },
+    "/v2/results": {
+      "get": {
+        "operationId": "get_results_v2_results_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultsResponseV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Results",
+        "tags": [
+          "v2-records"
         ]
       }
     },
