@@ -12,6 +12,7 @@ import uuid
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+from wellbe_c6_graph import GraphRepository
 from wellbe_c7_thread import ThreadService
 from wellbe_c14_investigation import (
     ClosureBlockedByThreadError,
@@ -247,7 +248,7 @@ async def create_theory(
     await require_access(
         principal, session, action="write", resource_type=_RESOURCE, resource_id=investigation_id
     )
-    await _load_owned(session, principal, investigation_id)
+    inv_repo = await _load_owned(session, principal, investigation_id)
     tsvc = TheoryService(session)
     tid = await tsvc.create_theory(
         patient_id=principal.patient_id,
@@ -268,6 +269,31 @@ async def create_theory(
     trepo = TheoryRepository(session)
     row = await trepo.get(tid)
     assert row is not None
+    # The theory lives in the investigation's threads, reached from the investigation.
+    investigation = await inv_repo.get(investigation_id)
+    if (
+        investigation is not None
+        and investigation.projection_node_id is not None
+        and row.projection_node_id is not None
+    ):
+        graph = GraphRepository(session)
+        await graph.upsert_observed_edge(
+            patient_id=principal.patient_id,
+            from_node_id=investigation.projection_node_id,
+            to_node_id=row.projection_node_id,
+            edge_type="investigates",
+            confidence=1.0,
+            observation_key=f"theory:{tid}",
+        )
+        for thread_id in await inv_repo.linked_thread_ids(investigation_id):
+            await graph.tag_nodes_with_thread(
+                patient_id=principal.patient_id,
+                node_ids=[row.projection_node_id],
+                thread_id=thread_id,
+            )
+            await graph.tag_edges_within_thread(
+                patient_id=principal.patient_id, thread_id=thread_id
+            )
     await session.commit()
     return mappers.theory_to_v2(row, audit_refs=[audit])
 

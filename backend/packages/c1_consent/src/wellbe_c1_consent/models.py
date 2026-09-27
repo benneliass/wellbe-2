@@ -25,9 +25,9 @@ class ConsentScopeRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     data_category: Mapped[str] = mapped_column(Text, nullable=False)
     purpose: Mapped[str | None] = mapped_column(Text)
     grant_source: Mapped[str] = mapped_column(Text, nullable=False)
-    valid_from: Mapped[datetime] = mapped_column(nullable=False)
-    valid_until: Mapped[datetime | None] = mapped_column()
-    revoked_at: Mapped[datetime | None] = mapped_column()
+    valid_from: Mapped[datetime] = mapped_column(_TZ, nullable=False)
+    valid_until: Mapped[datetime | None] = mapped_column(_TZ)
+    revoked_at: Mapped[datetime | None] = mapped_column(_TZ)
     policy_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
 
@@ -55,16 +55,16 @@ class ShareGrantRow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     actions: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False)
     data_categories: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False)
     purpose: Mapped[str | None] = mapped_column(Text)
-    expires_at: Mapped[datetime | None] = mapped_column()
-    accepted_at: Mapped[datetime | None] = mapped_column()
-    revoked_at: Mapped[datetime | None] = mapped_column()
+    expires_at: Mapped[datetime | None] = mapped_column(_TZ)
+    accepted_at: Mapped[datetime | None] = mapped_column(_TZ)
+    revoked_at: Mapped[datetime | None] = mapped_column(_TZ)
     revoked_by: Mapped[uuid.UUID | None] = mapped_column()
     revocation_reason: Mapped[str | None] = mapped_column(Text)
     consent_snapshot_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
     grant_token_hash: Mapped[str | None] = mapped_column(Text)
     policy_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_by: Mapped[uuid.UUID] = mapped_column(nullable=False)
-    last_accessed_at: Mapped[datetime | None] = mapped_column()
+    last_accessed_at: Mapped[datetime | None] = mapped_column(_TZ)
     grant_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
 
 
@@ -76,7 +76,7 @@ class RevocationLogRow(UUIDPrimaryKeyMixin, Base):
         ForeignKey("consent.share_grants.id"), nullable=False
     )
     revoked_by: Mapped[uuid.UUID] = mapped_column(nullable=False)
-    revoked_at: Mapped[datetime] = mapped_column(nullable=False)
+    revoked_at: Mapped[datetime] = mapped_column(_TZ, nullable=False)
     reason: Mapped[str | None] = mapped_column(Text)
     event_type: Mapped[str] = mapped_column(Text, nullable=False)
 
@@ -94,8 +94,8 @@ class PatientPrivacyPreferenceRow(Base):
     patient_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     capability: Mapped[str] = mapped_column(Text, primary_key=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="disabled")
-    enabled_at: Mapped[datetime | None] = mapped_column()
-    revoked_at: Mapped[datetime | None] = mapped_column()
+    enabled_at: Mapped[datetime | None] = mapped_column(_TZ)
+    revoked_at: Mapped[datetime | None] = mapped_column(_TZ)
     purpose: Mapped[str | None] = mapped_column(Text)
     consent_text_version: Mapped[str | None] = mapped_column(Text)
     policy_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

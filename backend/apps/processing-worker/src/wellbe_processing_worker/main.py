@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import json
 import logging
+import os
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from typing import Any
@@ -18,7 +20,30 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from wellbe_processing_worker.config import ProcessingWorkerSettings
 
+logging.basicConfig(
+    level=os.environ.get("WELLBE_LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 logger = logging.getLogger(__name__)
+
+
+def _is_pdf(vault_event: dict[str, Any]) -> bool:
+    return (
+        vault_event.get("mime_type") == "application/pdf"
+        or vault_event.get("source_type") == "pdf"
+    )
+
+
+def _pdf_text_layer(content: bytes) -> str:
+    """Text layer of a digital PDF ("" for image-only/unreadable documents)."""
+    from pypdf import PdfReader
+
+    try:
+        reader = PdfReader(io.BytesIO(content))
+        return "\n".join((page.extract_text() or "") for page in reader.pages).strip()
+    except Exception:
+        logger.warning("could not read PDF text layer", exc_info=True)
+        return ""
 
 
 async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
@@ -112,6 +137,24 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
                                             content_resp.status_code,
                                         )
                                         continue
+                                if not text_content and _is_pdf(vault_event):
+                                    content_resp = await vault_client.get(
+                                        f"/vault/events/{event_id}/content"
+                                    )
+                                    if content_resp.status_code != 200:
+                                        logger.warning(
+                                            "document fetch for %s returned %s; will retry",
+                                            event_id,
+                                            content_resp.status_code,
+                                        )
+                                        continue
+                                    text_content = _pdf_text_layer(content_resp.content)
+                                    logger.info(
+                                        "document %s: %d bytes, text layer %d chars",
+                                        event_id,
+                                        len(content_resp.content),
+                                        len(text_content),
+                                    )
                                 vault_event["_raw_text"] = text_content
 
                                 await _extract_facts(json.dumps(vault_event))
@@ -137,18 +180,21 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
         await vault_client.aclose()
 
 
-async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
-    """Background task: poll outbox for genesis.input_ready and run thread genesis.
+async def _consume_outbox_loop(
+    settings: ProcessingWorkerSettings,
+    *,
+    event_type: str,
+    handler: Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]],
+    interval: float = 2.0,
+) -> None:
+    """Background task: poll the outbox for one event type and run ``handler``.
 
     Mirrors the raw_context.received loop: claim undelivered rows with
     FOR UPDATE SKIP LOCKED so a second poller cannot double-process, run each
-    event's genesis in its own committing session, then mark the claimed rows
-    delivered. Genesis is idempotent on a deterministic decision hash, so a
-    redelivered event re-runs as a no-op rather than creating duplicate threads
-    or candidates. Rows that error are left undelivered for the next poll.
+    event in its own committing session, then mark the claimed rows delivered.
+    Handlers are idempotent, so a redelivered event re-runs as a no-op. Rows that
+    error are left undelivered for the next poll.
     """
-    from wellbe_c9_continuity.genesis import ThreadGenesisService
-    from wellbe_contracts.genesis import GENESIS_INPUT_READY, GenesisInputReadyPayload
     from wellbe_db import create_engine, create_session_factory
     from wellbe_events.models import OutboxEventRow
 
@@ -161,7 +207,7 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
                 stmt = (
                     select(OutboxEventRow)
                     .where(OutboxEventRow.delivered_at.is_(None))
-                    .where(OutboxEventRow.event_type == GENESIS_INPUT_READY)
+                    .where(OutboxEventRow.event_type == event_type)
                     .order_by(OutboxEventRow.created_at)
                     .limit(20)
                     .with_for_update(skip_locked=True)
@@ -171,18 +217,13 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
                 ids = []
                 for row in rows:
                     try:
-                        payload = GenesisInputReadyPayload.model_validate(row.payload)
                         async with session_factory() as work_session:
-                            await ThreadGenesisService(work_session).handle_input_ready(
-                                payload
-                            )
+                            outcome = await handler(work_session, row.payload, row.id)
                             await work_session.commit()
                         ids.append(row.id)
+                        logger.info("%s %s -> %s", event_type, row.id, outcome or "ok")
                     except Exception:
-                        # Leave undelivered for retry; do not mark delivered.
-                        logger.exception(
-                            "error running genesis for event %s; will retry", row.id
-                        )
+                        logger.exception("error handling %s %s; will retry", event_type, row.id)
 
                 if ids:
                     await claim_session.execute(
@@ -191,11 +232,169 @@ async def _dispatch_genesis_loop(settings: ProcessingWorkerSettings) -> None:
                         .values(delivered_at=datetime.utcnow())
                     )
                     await claim_session.commit()
-                    logger.info("ran genesis for %d events", len(ids))
         except Exception:
-            logger.exception("genesis dispatch loop error")
+            logger.exception("%s consumer loop error", event_type)
 
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(interval)
+
+
+async def _handle_genesis_input_ready(
+    session: AsyncSession, payload: dict[str, Any], event_id: uuid.UUID
+) -> str:
+    from wellbe_c9_continuity.genesis import ThreadGenesisService
+    from wellbe_contracts.genesis import GenesisInputReadyPayload
+
+    records = await ThreadGenesisService(session).handle_input_ready(
+        GenesisInputReadyPayload.model_validate(payload)
+    )
+    return ", ".join(
+        f"{r.decision.value}({r.reason_code})" + (" replay" if r.idempotent_replay else "")
+        for r in records
+    ) or "no facts"
+
+
+async def _handle_thread_state_changed(
+    session: AsyncSession, payload: dict[str, Any], event_id: uuid.UUID
+) -> str:
+    from wellbe_c9_continuity import ContinuityService
+    from wellbe_contracts.c7_thread import ThreadStateChangedPayload
+
+    event = ThreadStateChangedPayload.model_validate(payload)
+    applied = await ContinuityService(session).reconcile_thread_state_changed(
+        payload=event,
+        event_id=event_id,
+        correlation_id=event.correlation_id,
+        trace_id=event.trace_id,
+    )
+    return (
+        f"c9 {'applied' if applied else 'duplicate'} "
+        f"{event.from_status.value}->{event.to_status.value} seq={event.transition_seq}"
+    )
+
+
+async def _reconcile_thread_linkage(settings: ProcessingWorkerSettings) -> None:
+    """Idempotently re-project every thread's facts and every capture's edges.
+
+    Threads created before thread linkage existed have no evidence/graph/memory
+    projection, and captures processed before edge building have no edges. Every
+    step is idempotent (dedup constraints, deterministic keys, observation keys),
+    so this runs at each start and only writes what is missing.
+    """
+    from wellbe_c9_continuity.genesis.thread_linkage import ThreadLinkageService
+    from wellbe_db import create_engine, create_session_factory
+
+    from wellbe_processing_worker.tasks import _link_co_occurrence
+
+    session_factory = create_session_factory(create_engine(settings.database_url))
+    try:
+        async with session_factory() as session:
+            links = (
+                await session.execute(
+                    text(
+                        """
+                        SELECT user_id, target_thread_id AS thread_id, fact_ids
+                        FROM genesis.genesis_decisions WHERE target_thread_id IS NOT NULL
+                        UNION ALL
+                        SELECT user_id, promoted_thread_id, source_fact_ids
+                        FROM genesis.thread_candidates WHERE promoted_thread_id IS NOT NULL
+                        """
+                    )
+                )
+            ).mappings().all()
+            captures = (
+                await session.execute(
+                    text(
+                        """
+                        SELECT raw_context_event_id, patient_id, min(captured_at) AS captured_at
+                        FROM processing.extracted_facts
+                        GROUP BY raw_context_event_id, patient_id
+                        ORDER BY min(captured_at)
+                        """
+                    )
+                )
+            ).mappings().all()
+        linked = 0
+        for row in links:
+            async with session_factory() as session:
+                result = await ThreadLinkageService(session).link_facts(
+                    patient_id=row["user_id"],
+                    thread_id=row["thread_id"],
+                    fact_ids=list(row["fact_ids"] or []),
+                    correlation_id="reconcile-thread-linkage",
+                    trace_id="reconcile-thread-linkage",
+                )
+                await session.commit()
+                linked += result.nodes_tagged + result.memories_created
+        edges = 0
+        for cap in captures:
+            edges += await _link_co_occurrence(
+                raw_event_id=cap["raw_context_event_id"],
+                patient_id=cap["patient_id"],
+                captured_at=cap["captured_at"],
+            )
+        projections = await _reconcile_projections(session_factory)
+        logger.info(
+            "reconciliation done: %d thread link row(s), %d new node/memory link(s); "
+            "%d capture(s), %d new edge observation(s); %d investigation/theory projection(s)",
+            len(links),
+            linked,
+            len(captures),
+            edges,
+            projections,
+        )
+    except Exception:
+        logger.exception("thread linkage reconciliation failed")
+
+
+async def _reconcile_projections(session_factory: Any) -> int:
+    """Place existing Investigation/Theory projection nodes into their threads."""
+    from wellbe_c6_graph import GraphRepository
+    from wellbe_c6_graph.projection import project_into_thread
+
+    async with session_factory() as session:
+        rows = (
+            await session.execute(
+                text(
+                    """
+                    SELECT i.id AS investigation_id, i.patient_id, i.projection_node_id,
+                           it.thread_id, t.id AS theory_id,
+                           t.projection_node_id AS theory_node_id
+                    FROM c14.investigations i
+                    JOIN c14.investigation_threads it ON it.investigation_id = i.id
+                    LEFT JOIN c15.theories t ON t.linked_investigation_id = i.id
+                    WHERE i.projection_node_id IS NOT NULL
+                    """
+                )
+            )
+        ).mappings().all()
+        graph = GraphRepository(session)
+        for r in rows:
+            await project_into_thread(
+                graph,
+                patient_id=r["patient_id"],
+                projection_node_id=r["projection_node_id"],
+                thread_id=r["thread_id"],
+                observation_key=f"investigation:{r['investigation_id']}",
+            )
+            if r["theory_node_id"] is not None:
+                await graph.upsert_observed_edge(
+                    patient_id=r["patient_id"],
+                    from_node_id=r["projection_node_id"],
+                    to_node_id=r["theory_node_id"],
+                    edge_type="investigates",
+                    confidence=1.0,
+                    observation_key=f"theory:{r['theory_id']}",
+                )
+                await graph.tag_nodes_with_thread(
+                    patient_id=r["patient_id"],
+                    node_ids=[r["theory_node_id"]],
+                    thread_id=r["thread_id"],
+                )
+                await graph.tag_edges_within_thread(
+                    patient_id=r["patient_id"], thread_id=r["thread_id"]
+                )
+        await session.commit()
+    return len(rows)
 
 
 @asynccontextmanager
@@ -203,7 +402,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     import wellbe_processing_worker.tasks  # noqa: F401 — registers Dramatiq actors
     tasks = [
         asyncio.create_task(_dispatch_outbox_loop(settings)),
-        asyncio.create_task(_dispatch_genesis_loop(settings)),
+        asyncio.create_task(
+            _consume_outbox_loop(
+                settings, event_type="genesis.input_ready", handler=_handle_genesis_input_ready
+            )
+        ),
+        asyncio.create_task(
+            _consume_outbox_loop(
+                settings, event_type="thread.state_changed", handler=_handle_thread_state_changed
+            )
+        ),
+        asyncio.create_task(_reconcile_thread_linkage(settings)),
     ]
     try:
         yield

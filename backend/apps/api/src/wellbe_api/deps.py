@@ -183,6 +183,7 @@ async def require_access(
         resource_type=resource_type,
         resource_id=resource_id,
         action=action,
+        patient_id=principal.patient_id,
     )
     if not allowed:
         raise ProblemError(

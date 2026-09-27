@@ -10,6 +10,8 @@ dependencies = [
     "wellbe-events",
     "wellbe-c7-thread",
     "wellbe-c5-evidence",
+    "wellbe-c6-graph",
+    "wellbe-c8-memories",
     "temporalio>=1.27",
 ]
 
@@ -20,3 +22,5 @@ wellbe-db = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-c7-thread = { workspace = true }
 wellbe-c5-evidence = { workspace = true }
+wellbe-c6-graph = { workspace = true }
+wellbe-c8-memories = { workspace = true }

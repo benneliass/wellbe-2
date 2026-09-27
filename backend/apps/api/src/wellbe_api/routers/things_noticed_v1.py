@@ -23,6 +23,7 @@ from wellbe_c7_thread import ThreadService
 from wellbe_c9_continuity.genesis import GenesisCandidateService
 from wellbe_c9_continuity.genesis.candidate_repository import CandidateRepository
 from wellbe_c9_continuity.genesis.models import GenesisCandidateRow
+from wellbe_c9_continuity.genesis.thread_linkage import ThreadLinkageService
 from wellbe_contracts.c7_thread import ThreadCreatedBy
 from wellbe_contracts.c13_api import ProblemCode
 from wellbe_contracts.genesis import CandidateStatus, ThreadCandidate
@@ -47,6 +48,8 @@ class ThingNoticedV1(BaseModel):
     first_seen_at: datetime
     last_seen_at: datetime
     promoted_thread_id: str | None = None
+    source_capture_count: int = 0
+    source_fact_count: int = 0
 
 
 class ConfirmResponseV1(BaseModel):
@@ -72,6 +75,8 @@ def _to_v1(candidate: ThreadCandidate) -> ThingNoticedV1:
             if candidate.promoted_thread_id is not None
             else None
         ),
+        source_capture_count=len(candidate.source_capture_ids),
+        source_fact_count=len(candidate.source_fact_ids),
     )
 
 
@@ -168,6 +173,16 @@ async def confirm_thing_noticed(
         correlation_id=principal.correlation_id,
         trace_id=principal.trace_id,
     )
+    # Carry what was noticed into the thread: C5 evidence, C6 thread scope, and
+    # C8 clinical memory — otherwise the confirmed thread is an empty shell.
+    linkage = await ThreadLinkageService(session).link_facts(
+        patient_id=principal.patient_id,
+        thread_id=thread_id,
+        fact_ids=list(row.source_fact_ids or []),
+        correlation_id=principal.correlation_id,
+        trace_id=principal.trace_id,
+        linked_by="user",
+    )
     svc = GenesisCandidateService(session)
     candidate = await svc.promote(candidate_id, thread_id=thread_id)
     await audit_ref(
@@ -175,7 +190,12 @@ async def confirm_thing_noticed(
         event_type="c13.things_noticed.confirmed",
         principal=principal,
         summary="Thing noticed confirmed into a health thread",
-        extra={"candidate_id": str(candidate_id), "thread_id": str(thread_id)},
+        extra={
+            "candidate_id": str(candidate_id),
+            "thread_id": str(thread_id),
+            "evidence_links": len(linkage.evidence_links),
+            "graph_nodes": linkage.nodes_tagged,
+        },
     )
     await session.commit()
     return ConfirmResponseV1(

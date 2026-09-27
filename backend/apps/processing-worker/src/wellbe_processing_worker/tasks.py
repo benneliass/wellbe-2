@@ -3,14 +3,16 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import os
 import uuid
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
 import dramatiq
 import wellbe_c2_vault.models  # noqa: F401 — ensure vault tables registered in Base.metadata
 from dramatiq.brokers.redis import RedisBroker
+from sqlalchemy import text
 from wellbe_contracts.c2_vault import RawContextEvent
 from wellbe_contracts.c4_processing import (
     FACT_EXTRACTED,
@@ -30,6 +32,8 @@ if TYPE_CHECKING:
         StructuredObservationExtractor,
     )
 
+logger = logging.getLogger("wellbe.processing_worker.tasks")
+
 _redis_url = os.environ.get("WELLBE_REDIS_URL", "redis://localhost:6379/0")
 dramatiq.set_broker(RedisBroker(url=_redis_url))  # type: ignore[no-untyped-call]
 
@@ -48,6 +52,7 @@ async def _extract_facts(event_json: str) -> None:
         TextFactExtractor,
     )
     from wellbe_c4_processing.dispatcher import DispatchRoute, decide_route
+    from wellbe_c4_processing.extractor import parse_lab_lines
     from wellbe_c5_evidence import EvidenceService
     from wellbe_db import create_engine, create_session_factory
     from wellbe_events import emit_event
@@ -61,7 +66,18 @@ async def _extract_facts(event_json: str) -> None:
     event = RawContextEvent.model_validate(data)
 
     decision = decide_route(event.source_type, event.mime_type)
-    if decision.route != DispatchRoute.DRAMATIQ_TEXT:
+    # A document whose text layer was already read (digital PDF) is extracted
+    # here; only image-only documents need the (not yet available) OCR workflow.
+    has_text_layer = decision.route == DispatchRoute.TEMPORAL_OCR and bool(data.get("_raw_text"))
+    if decision.route != DispatchRoute.DRAMATIQ_TEXT and not has_text_layer:
+        logger.warning(
+            "capture %s not extracted: route=%s (source_type=%s, mime=%s) has no consumer; "
+            "image-only documents need OCR, which is not deployed",
+            event.id,
+            decision.route.value,
+            event.source_type,
+            event.mime_type,
+        )
         return
 
     # Dispatch by product capture_type *inside* the text route: structured
@@ -90,6 +106,15 @@ async def _extract_facts(event_json: str) -> None:
         text_extractor = TextFactExtractor()
         results = await text_extractor.extract(raw_text, event.patient_id)
         extractor = text_extractor
+        if has_text_layer:
+            structured = StructuredObservationExtractor()
+            labs = [
+                fact
+                for lab in parse_lab_lines(raw_text)
+                for fact in structured.extract_lab(occurrence=event.captured_at, **lab)
+            ]
+            if labs:
+                results = [r for r in results if r.fact_type.value != "other"] + labs
 
     # Payloads for facts that were newly persisted in this run. On at-least-once
     # re-delivery, already-existing facts are skipped here so we do not re-link
@@ -187,6 +212,26 @@ async def _extract_facts(event_json: str) -> None:
     for fact_payload in new_fact_payloads:
         await _create_graph_node(fact_payload.model_dump_json())
 
+    logger.info(
+        "capture %s (%s) extracted %d fact(s), %d new: %s",
+        event.id,
+        capture_type or event.source_type,
+        len(results),
+        len(new_fact_payloads),
+        ", ".join(f"{p.fact_type.value}:{p.normalized_key}" for p in new_fact_payloads) or "-",
+    )
+    if not results:
+        logger.warning(
+            "capture %s produced no facts (source_type=%s, text_len=%d)",
+            event.id,
+            event.source_type,
+            len(raw_text),
+        )
+
+    await _link_co_occurrence(
+        raw_event_id=event.id, patient_id=event.patient_id, captured_at=event.captured_at
+    )
+
     # Capture processing is now complete (C4 facts + C5 evidence + C6 nodes). Emit
     # the synthetic genesis.input_ready signal — the single, well-defined trigger
     # for thread genesis (triage-decision-contract.md §1). Emission reads all facts
@@ -194,6 +239,98 @@ async def _extract_facts(event_json: str) -> None:
     # extraction still produces a complete payload; genesis itself dedups on a
     # deterministic decision hash, so re-emission is a no-op downstream.
     await _emit_genesis_input_ready(event)
+
+
+CO_OCCURRENCE_WINDOW = timedelta(hours=48)
+_CO_OCCURRENCE_FACT_TYPES = ["symptom", "lab_result", "medication", "vital_sign", "finding"]
+_CO_OCCURRENCE_SQL = text(
+    """
+    SELECT raw_context_event_id, normalized_key, extraction_confidence
+    FROM processing.extracted_facts
+    WHERE patient_id = :pid
+      AND NOT is_negated AND NOT is_hypothetical
+      AND fact_type = ANY(:types)
+      AND captured_at BETWEEN :start AND :end
+    ORDER BY captured_at DESC
+    LIMIT 200
+    """
+)
+
+
+async def _link_co_occurrence(
+    *, raw_event_id: uuid.UUID, patient_id: uuid.UUID, captured_at: datetime
+) -> int:
+    """Record ``co_occurs_with`` observations between this capture's concepts and
+    every concept seen within ``CO_OCCURRENCE_WINDOW`` (including each other).
+
+    One observation per (capture, capture) pair, so redelivery never inflates
+    support. Edge thread scope is re-derived for threads both endpoints share.
+    """
+    from wellbe_c6_graph import GraphRepository
+    from wellbe_db import create_engine, create_session_factory
+
+    from wellbe_processing_worker.config import ProcessingWorkerSettings
+
+    settings = ProcessingWorkerSettings()
+    session_factory = create_session_factory(create_engine(settings.database_url))
+    captured = captured_at.replace(tzinfo=None) if captured_at.tzinfo else captured_at
+
+    async with session_factory() as session:
+        graph = GraphRepository(session)
+        rows = (
+            await session.execute(
+                _CO_OCCURRENCE_SQL,
+                {
+                    "pid": patient_id,
+                    "types": _CO_OCCURRENCE_FACT_TYPES,
+                    "start": captured - CO_OCCURRENCE_WINDOW,
+                    "end": captured + CO_OCCURRENCE_WINDOW,
+                },
+            )
+        ).mappings().all()
+
+        nodes: dict[str, Any] = {}
+        for r in rows:
+            if r["normalized_key"] not in nodes:
+                nodes[r["normalized_key"]] = await graph.get_node_by_key(
+                    patient_id=patient_id, normalized_key=r["normalized_key"]
+                )
+        mine = [r for r in rows if r["raw_context_event_id"] == raw_event_id]
+        changed = 0
+        threads: set[uuid.UUID] = set()
+        seen_pairs: set[tuple[str, ...]] = set()
+        for a in mine:
+            for b in rows:
+                node_a, node_b = nodes.get(a["normalized_key"]), nodes.get(b["normalized_key"])
+                if node_a is None or node_b is None or node_a.id == node_b.id:
+                    continue
+                captures = sorted((str(a["raw_context_event_id"]), str(b["raw_context_event_id"])))
+                key = (*sorted((str(node_a.id), str(node_b.id))), *captures)
+                if key in seen_pairs:
+                    continue
+                seen_pairs.add(key)
+                _, did_change = await graph.upsert_observed_edge(
+                    patient_id=patient_id,
+                    from_node_id=node_a.id,
+                    to_node_id=node_b.id,
+                    edge_type="co_occurs_with",
+                    confidence=min(a["extraction_confidence"], b["extraction_confidence"]),
+                    observation_key="|".join(captures),
+                )
+                if did_change:
+                    changed += 1
+                    threads |= set(node_a.thread_ids or []) & set(node_b.thread_ids or [])
+        for thread_id in threads:
+            await graph.tag_edges_within_thread(patient_id=patient_id, thread_id=thread_id)
+        await session.commit()
+
+    logger.info(
+        "capture %s co-occurrence: %d concept(s) in window, %d edge observation(s) recorded",
+        raw_event_id,
+        len(nodes),
+        changed,
+    )
+    return changed
 
 
 async def _emit_genesis_input_ready(event: RawContextEvent) -> None:

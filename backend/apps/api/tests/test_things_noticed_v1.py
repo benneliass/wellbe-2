@@ -168,6 +168,7 @@ def test_confirm_happy_path_creates_thread_and_promotes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     thread_id = uuid.uuid4()
+    fact_id = uuid.uuid4()
     captured: dict[str, Any] = {}
 
     class _FakeRepo:
@@ -179,6 +180,7 @@ def test_confirm_happy_path_creates_thread_and_promotes(
                 status="pending",
                 display_title="Knee pain",
                 concern_key={"concern_type": "symptom"},
+                source_fact_ids=[fact_id],
             )
 
     class _FakeThreadService:
@@ -187,6 +189,13 @@ def test_confirm_happy_path_creates_thread_and_promotes(
         async def create_thread(self, **kwargs: Any) -> uuid.UUID:
             captured.update(kwargs)
             return thread_id
+
+    class _FakeLinkage:
+        def __init__(self, _session: Any) -> None: ...
+
+        async def link_facts(self, **kwargs: Any) -> Any:
+            captured["linked"] = kwargs
+            return SimpleNamespace(evidence_links=[uuid.uuid4()], nodes_tagged=1)
 
     class _FakeCandidateService:
         def __init__(self, _session: Any) -> None: ...
@@ -198,10 +207,14 @@ def test_confirm_happy_path_creates_thread_and_promotes(
     monkeypatch.setattr(things_noticed_v1, "CandidateRepository", _FakeRepo)
     monkeypatch.setattr(things_noticed_v1, "ThreadService", _FakeThreadService)
     monkeypatch.setattr(things_noticed_v1, "GenesisCandidateService", _FakeCandidateService)
+    monkeypatch.setattr(things_noticed_v1, "ThreadLinkageService", _FakeLinkage)
     _override_session()
 
     resp = _client().post(f"/v1/things-noticed/{_CANDIDATE_ID}/confirm", headers=_AUTH)
     assert resp.status_code == 200, resp.text
+    # What was noticed is carried into the new thread (evidence, graph, memory).
+    assert captured["linked"]["thread_id"] == thread_id
+    assert captured["linked"]["fact_ids"] == [fact_id]
     body = resp.json()
     assert body["thread_id"] == str(thread_id)
     assert body["status"] == "promoted"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -11,6 +12,7 @@ from wellbe_c7_thread.errors import (
     ThreadNotFoundError,
     VersionConflictError,
 )
+from wellbe_c7_thread.repository import ThreadRepository
 from wellbe_c7_thread.service import ThreadService
 from wellbe_contracts.c7_thread import (
     HealthThreadStatus,
@@ -46,6 +48,16 @@ from wellbe_c9_continuity.repository import ContinuityRepository
 # Closure-like target statuses. C9 never requests these on the basis of a single
 # normal test, and never while a blocking safety-net item is active.
 _CLOSURE_LIKE = {HealthThreadStatus.CLOSED, HealthThreadStatus.EXPLAINED}
+
+# Thread states that mean "we are waiting on something": entering one opens the
+# matching pending item; leaving it resolves that item.
+_WAITING_STATES: dict[HealthThreadStatus, tuple[PendingItemType, str]] = {
+    HealthThreadStatus.WAITING_FOR_RESULT: (PendingItemType.RESULT_PENDING, "Waiting for a result"),
+    HealthThreadStatus.REFERRED: (PendingItemType.REFERRAL_PENDING, "Waiting on a referral"),
+}
+_TERMINAL = ("resolved", "cancelled", "superseded")
+
+logger = logging.getLogger("wellbe.c9.continuity")
 
 
 class ContinuityService:
@@ -226,6 +238,61 @@ class ContinuityService:
                 correlation_id=correlation_id,
                 trace_id=trace_id,
             )
+
+        # Leaving a waiting state means the awaited thing happened: resolve its item.
+        for status, (item_type, _) in _WAITING_STATES.items():
+            if payload.from_status == status and payload.to_status != status:
+                for item in await self._repo.items_for_thread(
+                    patient_id=payload.patient_id, thread_id=payload.thread_id
+                ):
+                    if item.item_type == item_type.value and item.status not in _TERMINAL:
+                        await self._repo.bump_timer_epoch(row=item)
+                        await self._repo.set_status(row=item, status=PendingItemStatus.RESOLVED)
+                        logger.info(
+                            "c9 resolved %s item %s (thread %s left %s)",
+                            item_type.value,
+                            item.pending_item_id,
+                            payload.thread_id,
+                            status.value,
+                        )
+
+        # Entering a waiting state opens the follow-up the user is waiting on.
+        waiting = _WAITING_STATES.get(payload.to_status)
+        if waiting is not None:
+            item_type, title = waiting
+            items = await self._repo.items_for_thread(
+                patient_id=payload.patient_id, thread_id=payload.thread_id
+            )
+            if not any(
+                i.item_type == item_type.value and i.status not in _TERMINAL for i in items
+            ):
+                thread = await ThreadRepository(self._session).get(payload.thread_id)
+                row = await self.create_pending_item(
+                    patient_id=payload.patient_id,
+                    primary_thread_id=payload.thread_id,
+                    item_type=item_type,
+                    title=f"{title}: {thread.title}" if thread is not None else title,
+                    status=PendingItemStatus.ACTIVE,
+                    source_ref={
+                        "kind": "thread_transition",
+                        "transition_seq": payload.transition_seq,
+                        "reason_code": payload.reason_code,
+                    },
+                    evidence_refs=[r.model_dump(mode="json") for r in payload.evidence_refs],
+                    latest_observed_thread_status_version=payload.transition_seq + 1,
+                    idempotency_key=(
+                        f"c9:thread:{payload.thread_id}:seq:{payload.transition_seq}:"
+                        f"{item_type.value}"
+                    ),
+                    correlation_id=correlation_id,
+                    trace_id=trace_id,
+                )
+                logger.info(
+                    "c9 opened %s item %s for thread %s",
+                    item_type.value,
+                    row.pending_item_id,
+                    payload.thread_id,
+                )
 
         # On closure, cancel non-applicable timers but keep history.
         if payload.to_status == HealthThreadStatus.CLOSED:

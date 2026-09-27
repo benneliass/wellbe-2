@@ -83,59 +83,39 @@ class TextFactExtractor(FactExtractor):
     async def extract(self, text: str, patient_id: uuid.UUID) -> list[ExtractionResult]:
         results: list[ExtractionResult] = []
         lower = text.lower()
+        taken: list[tuple[int, int]] = []
 
-        symptom_keywords = {
-            "headache": "headache",
-            "nausea": "nausea",
-            "fatigue": "fatigue",
-            "dizziness": "dizziness",
-            "pain": "pain",
-            "fever": "fever",
-            "cough": "cough",
-            "chest pain": "chest_pain",
-            "shortness of breath": "shortness_of_breath",
-            "insomnia": "insomnia",
-        }
-
-        for keyword, normalized in symptom_keywords.items():
-            start = lower.find(keyword)
-            if start == -1:
-                continue
-            confidence = 0.90
-            results.append(ExtractionResult(
-                fact_type=FactType.SYMPTOM,
-                entity_label=keyword,
-                normalized_key=normalized,
-                extraction_confidence=confidence,
-                quality_flag=compute_quality_flag(confidence),
-                quality_metadata={"method": "keyword_match"},
-                text_span_start=start,
-                text_span_end=start + len(keyword),
-                is_negated=_check_negation(lower, start),
-            ))
-
-        medication_keywords = {
-            "ibuprofen": "ibuprofen",
-            "paracetamol": "paracetamol",
-            "aspirin": "aspirin",
-            "metformin": "metformin",
-        }
-
-        for keyword, normalized in medication_keywords.items():
-            start = lower.find(keyword)
-            if start == -1:
-                continue
-            confidence = 0.92
-            results.append(ExtractionResult(
-                fact_type=FactType.MEDICATION,
-                entity_label=keyword,
-                normalized_key=normalized,
-                extraction_confidence=confidence,
-                quality_flag=compute_quality_flag(confidence),
-                quality_metadata={"method": "keyword_match"},
-                text_span_start=start,
-                text_span_end=start + len(keyword),
-            ))
+        for fact_type, pattern, normalized, label, confidence in _LEXICON:
+            for match in pattern.finditer(lower):
+                start, end = match.span()
+                if any(s < end and start < e for s, e in taken):
+                    continue
+                taken.append((start, end))
+                key, shown = normalized, label
+                site = match.groupdict().get("site")
+                if site:
+                    key = f"{normalized}:{_slug(site)}"
+                    shown = f"{site} {label}"
+                results.append(ExtractionResult(
+                    fact_type=fact_type,
+                    entity_label=shown,
+                    normalized_key=key,
+                    extraction_confidence=confidence,
+                    quality_flag=compute_quality_flag(confidence),
+                    quality_metadata={
+                        "method": "lexicon_match",
+                        "lexicon_version": LEXICON_VERSION,
+                        "surface": text[start:end],
+                    },
+                    text_span_start=start,
+                    text_span_end=end,
+                    is_negated=(
+                        _check_negation(lower, start)
+                        if fact_type is FactType.SYMPTOM
+                        else False
+                    ),
+                ))
+                break  # first mention per concept; repeats add no new fact
 
         if not results:
             confidence = 0.50
@@ -289,9 +269,134 @@ def _occurrence_token(occurrence: date | datetime | None) -> str:
 
 
 def _check_negation(text: str, span_start: int) -> bool:
-    prefix = text[max(0, span_start - 15):span_start]
-    negation_cues = ("no ", "not ", "don't ", "doesn't ", "without ", "deny ", "denies ")
-    return any(cue in prefix for cue in negation_cues)
+    prefix = text[max(0, span_start - 25):span_start]
+    # A cue never negates across a sentence/clause boundary ("No fever. Cough.").
+    prefix = re.split(r"[.;!?\n]|\bbut\b", prefix)[-1]
+    negation_cues = (
+        "no ", "not ", "don't ", "doesn't ", "without ", "deny ", "denies ", "never ",
+        "free of ", "resolved ",
+    )
+    return any(cue in f" {prefix}" for cue in negation_cues)
+
+
+# Rule-based lexicon (placeholder for an NER/LLM extractor). Each concept is one
+# alternation of surface forms, matched on word boundaries, longest form first,
+# so "chest pain" never also yields a generic "pain" and "tired" maps to fatigue.
+LEXICON_VERSION = "text-lexicon-v2"
+
+_BODY_SITES = (
+    "knee", "back", "lower back", "neck", "shoulder", "hip", "ankle", "wrist", "elbow",
+    "foot", "hand", "joint", "stomach", "abdominal", "belly", "ear", "eye", "tooth",
+    "jaw", "leg", "arm", "muscle",
+)
+
+_CONCEPTS: list[tuple[FactType, str, str, tuple[str, ...], float]] = [
+    (FactType.SYMPTOM, "chest_pain", "chest pain", ("chest pain", "chest tightness"), 0.90),
+    (FactType.SYMPTOM, "shortness_of_breath", "shortness of breath",
+     ("shortness of breath", "short of breath", "breathless", "breathlessness"), 0.90),
+    (FactType.SYMPTOM, "headache", "headache",
+     ("headaches", "headache", "migraines", "migraine", "head ache", "head hurts"), 0.90),
+    (FactType.SYMPTOM, "fatigue", "fatigue",
+     ("fatigue", "fatigued", "tiredness", "tired", "exhausted", "exhaustion", "low energy",
+      "no energy", "worn out", "lethargic", "lethargy"), 0.88),
+    (FactType.SYMPTOM, "dizziness", "dizziness",
+     ("dizziness", "dizzy", "lightheaded", "light-headed", "light headed", "vertigo"), 0.90),
+    (FactType.SYMPTOM, "nausea", "nausea", ("nausea", "nauseous", "nauseated", "queasy"), 0.90),
+    (FactType.SYMPTOM, "vomiting", "vomiting", ("vomiting", "vomited", "throwing up"), 0.90),
+    (FactType.SYMPTOM, "fever", "fever", ("fever", "feverish", "high temperature"), 0.90),
+    (FactType.SYMPTOM, "cough", "cough", ("coughing", "cough"), 0.90),
+    (FactType.SYMPTOM, "sore_throat", "sore throat", ("sore throat",), 0.90),
+    (FactType.SYMPTOM, "insomnia", "insomnia",
+     ("insomnia", "can't sleep", "cannot sleep", "trouble sleeping", "poor sleep"), 0.88),
+    (FactType.SYMPTOM, "palpitations", "palpitations",
+     ("palpitations", "heart racing", "racing heart", "heart pounding"), 0.90),
+    (FactType.SYMPTOM, "rash", "rash", ("rash", "hives"), 0.88),
+    (FactType.SYMPTOM, "diarrhea", "diarrhea", ("diarrhea", "diarrhoea"), 0.90),
+    (FactType.SYMPTOM, "constipation", "constipation", ("constipation", "constipated"), 0.90),
+    (FactType.SYMPTOM, "anxiety", "anxiety", ("anxiety", "anxious", "panic attack"), 0.85),
+    (FactType.SYMPTOM, "low_mood", "low mood", ("low mood", "depressed", "feeling down"), 0.85),
+    (FactType.SYMPTOM, "numbness", "numbness", ("numbness", "numb", "tingling", "pins and needles"),
+     0.88),
+    (FactType.MEDICATION, "iron_supplement", "iron supplement",
+     ("iron supplements", "iron supplement", "iron tablets", "iron pills", "ferrous sulfate",
+      "ferrous sulphate", "ferrous fumarate"), 0.90),
+    (FactType.MEDICATION, "vitamin_d_supplement", "vitamin D supplement",
+     ("vitamin d supplement", "vitamin d3", "cholecalciferol"), 0.90),
+    (FactType.MEDICATION, "vitamin_b12_supplement", "vitamin B12 supplement",
+     ("b12 supplement", "b12 injection", "cyanocobalamin"), 0.90),
+    (FactType.MEDICATION, "ibuprofen", "ibuprofen", ("ibuprofen", "advil", "nurofen"), 0.92),
+    (FactType.MEDICATION, "paracetamol", "paracetamol",
+     ("paracetamol", "acetaminophen", "tylenol"), 0.92),
+    (FactType.MEDICATION, "aspirin", "aspirin", ("aspirin",), 0.92),
+    (FactType.MEDICATION, "metformin", "metformin", ("metformin",), 0.92),
+    (FactType.MEDICATION, "levothyroxine", "levothyroxine", ("levothyroxine", "synthroid"), 0.92),
+    (FactType.MEDICATION, "omeprazole", "omeprazole", ("omeprazole",), 0.92),
+]
+
+
+def _alternation(forms: tuple[str, ...]) -> str:
+    return "|".join(re.escape(f) for f in sorted(forms, key=len, reverse=True))
+
+
+def _compile_lexicon() -> list[tuple[FactType, re.Pattern[str], str, str, float]]:
+    sites = _alternation(_BODY_SITES)
+    lexicon: list[tuple[FactType, re.Pattern[str], str, str, float]] = [
+        (
+            FactType.SYMPTOM,
+            re.compile(rf"\b(?P<site>{sites})\s+(?:pain|ache|aches|hurts|soreness)\b"),
+            "pain",
+            "pain",
+            0.88,
+        ),
+    ]
+    for fact_type, normalized, label, forms, confidence in _CONCEPTS:
+        lexicon.append((
+            fact_type,
+            re.compile(rf"\b(?:{_alternation(forms)})\b"),
+            normalized,
+            label,
+            confidence,
+        ))
+    # Generic pain only when no more specific form claimed the span.
+    lexicon.append((
+        FactType.SYMPTOM, re.compile(r"\b(?:pain|painful|aches?)\b"), "pain", "pain", 0.80,
+    ))
+    return lexicon
+
+
+_LEXICON = _compile_lexicon()
+
+_LAB_LINE = re.compile(
+    r"(?P<name>[A-Za-z][A-Za-z0-9 ,\-()]{1,40}?)\s*[:=]\s*"
+    r"(?P<value>[<>]?\d+(?:\.\d+)?)\s*(?P<unit>[A-Za-zµ%/0-9\^.]+(?:/[A-Za-z]+)?)?"
+    r"\s*(?:\((?:ref(?:erence)?(?: range)?|normal)?[:\s]*(?P<ref>[^)]*)\))?"
+)
+
+
+def parse_lab_lines(text: str) -> list[dict[str, str | None]]:
+    """Find ``Name: value unit (ref low-high)`` observations in document text.
+
+    Requires a unit or a reference range so prose like "Pain: 7" is not mistaken
+    for a lab. Returns kwargs for ``StructuredObservationExtractor.extract_lab``.
+    """
+    found: list[dict[str, str | None]] = []
+    seen: set[str] = set()
+    for line in re.split(r"[\n;]", text or ""):
+        for m in _LAB_LINE.finditer(line):
+            unit, ref = m.group("unit"), m.group("ref")
+            if not unit and not ref:
+                continue
+            name = m.group("name").strip(" ,-")
+            if _slug(name) in seen:
+                continue
+            seen.add(_slug(name))
+            found.append({
+                "test_name": name,
+                "value": m.group("value"),
+                "unit": unit,
+                "reference_range": (ref or "").strip() or None,
+            })
+    return found
 
 
 def _make_hash(text: str) -> str:

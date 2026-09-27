@@ -23,6 +23,9 @@ PERSONAL_EDGE_CODES: frozenset[str] = frozenset({
     "evidence_for", "evidence_against", "investigates",
 })
 
+# Undirected relations: stored once per unordered node pair.
+SYMMETRIC_EDGE_CODES: frozenset[str] = frozenset({"co_occurs_with", "associated_with"})
+
 # Registered in graph.edge_types but FORBIDDEN inside the personal graph — the only
 # personal<->external connection is external_bridge.relevance_links (context only).
 FORBIDDEN_PERSONAL_EDGE_CODES: frozenset[str] = frozenset({"relevance_link"})

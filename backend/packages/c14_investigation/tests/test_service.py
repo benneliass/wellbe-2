@@ -21,13 +21,14 @@ from wellbe_contracts.c14_investigation import (
 )
 
 
-def _row(*, status="open", version=1):
+def _row(*, status="open", version=1, projection_node_id=None):
     return SimpleNamespace(
         id=uuid.uuid4(),
         patient_id=uuid.uuid4(),
         status=status,
         status_version=version,
         safety_flags=[],
+        projection_node_id=projection_node_id,
     )
 
 
@@ -230,3 +231,32 @@ class TestLinkThread:
             )
         service._repo.link_thread.assert_awaited_once()
         emit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_link_thread_projects_investigation_into_thread_graph(self, service):
+        node_id = uuid.uuid4()
+        thread_id = uuid.uuid4()
+        row = _row(projection_node_id=node_id)
+        service._repo.get.return_value = row
+        with (
+            patch(
+                "wellbe_c14_investigation.service.emit_event",
+                new=AsyncMock(return_value=uuid.uuid4()),
+            ),
+            patch(
+                "wellbe_c14_investigation.service.project_into_thread",
+                new=AsyncMock(return_value=2),
+            ) as project,
+        ):
+            await service.link_thread(
+                investigation_id=row.id,
+                thread_id=thread_id,
+                relationship=ThreadRelationship.PRIMARY,
+                correlation_id="c",
+                trace_id="t",
+            )
+        project.assert_awaited_once()
+        kwargs = project.await_args.kwargs
+        assert kwargs["projection_node_id"] == node_id
+        assert kwargs["thread_id"] == thread_id
+        assert kwargs["patient_id"] == row.patient_id

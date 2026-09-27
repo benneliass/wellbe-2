@@ -52,6 +52,7 @@ from wellbe_c9_continuity.genesis.concern_key import (
 )
 from wellbe_c9_continuity.genesis.models import GenesisDecisionRow
 from wellbe_c9_continuity.genesis.repository import GenesisDecisionRepository
+from wellbe_c9_continuity.genesis.thread_linkage import ThreadLinkageService
 
 
 class ThreadGenesisService:
@@ -62,6 +63,7 @@ class ThreadGenesisService:
         self._thread_repo = ThreadRepository(session)
         self._candidates = GenesisCandidateService(session)
         self._evidence = EvidenceService(session)
+        self._linkage = ThreadLinkageService(session)
 
     async def handle_input_ready(
         self, payload: GenesisInputReadyPayload
@@ -210,6 +212,14 @@ class ThreadGenesisService:
                 correlation_id=payload.correlation_id,
                 trace_id=payload.trace_id,
             )
+            await self._linkage.link_facts(
+                patient_id=payload.patient_id,
+                thread_id=existing_thread_id,
+                fact_ids=[f.fact_id for f in facts],
+                correlation_id=payload.correlation_id,
+                trace_id=payload.trace_id,
+                link_evidence=False,
+            )
             await self._repo.update_decision_outcome(
                 decision_id=decision_id,
                 target_thread_id=existing_thread_id,
@@ -230,6 +240,14 @@ class ThreadGenesisService:
                 correlation_id=payload.correlation_id,
                 trace_id=payload.trace_id,
             )
+            await self._linkage.link_facts(
+                patient_id=payload.patient_id,
+                thread_id=created_thread_id,
+                fact_ids=[f.fact_id for f in facts],
+                correlation_id=payload.correlation_id,
+                trace_id=payload.trace_id,
+                link_evidence=False,
+            )
             await self._repo.update_decision_outcome(
                 decision_id=decision_id,
                 target_thread_id=created_thread_id,
@@ -242,6 +260,9 @@ class ThreadGenesisService:
             concern_key=concern_key,
             facts=facts,
             source_capture_ids=[payload.capture_id],
+            source_graph_entity_ids=sorted(
+                {f.graph_node_id for f in facts if f.graph_node_id is not None}, key=str
+            ),
             confidence=confidence,
             reason_code=reason_code,
         )

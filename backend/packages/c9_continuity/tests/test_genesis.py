@@ -202,6 +202,7 @@ def service():
     svc._thread_repo = AsyncMock()
     svc._candidates = AsyncMock()
     svc._evidence = AsyncMock()
+    svc._linkage = AsyncMock()
     # Sensible defaults: no existing thread (no dedup), claimed insert, side effects
     # return ids. Individual tests override as needed.
     svc._thread_repo.find_open_thread_by_concern_key.return_value = None
@@ -264,6 +265,11 @@ class TestHandleInputReady:
         assert create_call["initial_status"] is HealthThreadStatus.ACTIVE_UNRESOLVED
         assert create_call["evidence_refs"]  # never an orphan thread
         service._candidates.create_or_update.assert_not_awaited()
+        # The new thread's facts are projected into its graph + memory.
+        service._linkage.link_facts.assert_awaited_once()
+        link_call = service._linkage.link_facts.await_args.kwargs
+        assert link_call["thread_id"] == service._threads.create_thread.return_value
+        assert link_call["link_evidence"] is False  # create_thread already linked C5
 
     @pytest.mark.asyncio
     async def test_existing_open_thread_attaches_not_duplicates(self, service):
@@ -280,6 +286,7 @@ class TestHandleInputReady:
         service._threads.create_thread.assert_not_awaited()
         insert_call = service._repo.insert_decision.await_args.kwargs
         assert insert_call["decision"] == GenesisDecision.ATTACH_TO_EXISTING_THREAD.value
+        assert service._linkage.link_facts.await_args.kwargs["thread_id"] == existing.id
 
     @pytest.mark.asyncio
     async def test_redelivery_applies_no_side_effects(self, service):
@@ -295,6 +302,7 @@ class TestHandleInputReady:
         service._threads.create_thread.assert_not_awaited()
         service._candidates.create_or_update.assert_not_awaited()
         service._evidence.link_thread.assert_not_awaited()
+        service._linkage.link_facts.assert_not_awaited()
         service._repo.update_decision_outcome.assert_not_awaited()
 
     @pytest.mark.asyncio

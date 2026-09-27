@@ -12,6 +12,8 @@ import uuid
 from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from wellbe_c6_graph import GraphRepository
+from wellbe_c6_graph.projection import project_into_thread
 from wellbe_contracts.c7_thread import ThreadClosureSnapshot
 from wellbe_contracts.c14_investigation import (
     INVESTIGATION_CLOSED,
@@ -129,6 +131,14 @@ class InvestigationService:
             patient_id=row.patient_id,
             relationship=relationship.value,
         )
+        if row.projection_node_id is not None:
+            await project_into_thread(
+                GraphRepository(self._session),
+                patient_id=row.patient_id,
+                projection_node_id=row.projection_node_id,
+                thread_id=thread_id,
+                observation_key=f"investigation:{investigation_id}",
+            )
         await emit_event(
             session=self._session,
             event_type=INVESTIGATION_LINKED_TO_THREAD,

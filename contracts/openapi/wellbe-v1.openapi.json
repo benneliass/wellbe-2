@@ -439,6 +439,16 @@
             "title": "Seen Count",
             "type": "integer"
           },
+          "source_capture_count": {
+            "default": 0,
+            "title": "Source Capture Count",
+            "type": "integer"
+          },
+          "source_fact_count": {
+            "default": 0,
+            "title": "Source Fact Count",
+            "type": "integer"
+          },
           "status": {
             "title": "Status",
             "type": "string"

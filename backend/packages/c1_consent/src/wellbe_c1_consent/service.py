@@ -32,14 +32,29 @@ class ConsentService:
         resource_type: str,
         resource_id: UUID | None,
         action: str,
+        patient_id: UUID | None = None,
     ) -> bool:
         resource_key = resource_id or "*"
-        cache_key = f"{_SCOPE_CACHE_PREFIX}:{actor_id}:{resource_type}:{action}:{resource_key}"
+        cache_key = (
+            f"{_SCOPE_CACHE_PREFIX}:{actor_id}:{patient_id or '*'}:{resource_type}:"
+            f"{action}:{resource_key}"
+        )
         cached = await self._redis.get(cache_key)
         if cached is not None:
             return bool(cached == b"1")
 
         now = datetime.now(UTC)
+        if patient_id is not None and await self._share_grant_allows(
+            actor_id=actor_id,
+            patient_id=patient_id,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            action=action,
+            now=now,
+        ):
+            await self._redis.set(cache_key, b"1", ex=_SCOPE_CACHE_TTL)
+            return True
+
         stmt = select(ConsentScopeRow.id).where(
             and_(
                 ConsentScopeRow.subject_id == actor_id,
@@ -61,6 +76,62 @@ class ConsentService:
 
         await self._redis.set(cache_key, b"1" if allowed else b"0", ex=_SCOPE_CACHE_TTL)
         return allowed
+
+    async def _share_grant_allows(
+        self,
+        *,
+        actor_id: UUID,
+        patient_id: UUID,
+        resource_type: str,
+        resource_id: UUID | None,
+        action: str,
+        now: datetime,
+    ) -> bool:
+        """An *accepted* share grant from ``patient_id`` to ``actor_id`` covers this.
+
+        Fail-closed: pending/revoked/expired grants never allow; a grant limited
+        to specific threads only allows reads of those threads by id (never a
+        patient-wide list, which would disclose the unshared threads).
+        """
+        stmt = select(ShareGrantRow.thread_ids).where(
+            ShareGrantRow.grantor_id == patient_id,
+            ShareGrantRow.grantee_user_id == actor_id,
+            ShareGrantRow.status == "active",
+            ShareGrantRow.revoked_at.is_(None),
+            (ShareGrantRow.expires_at.is_(None)) | (ShareGrantRow.expires_at > now),
+            ShareGrantRow.actions.any(action),  # type: ignore[arg-type]
+            ShareGrantRow.data_categories.any(resource_type),  # type: ignore[arg-type]
+        )
+        for thread_ids in (await self._session.execute(stmt)).scalars().all():
+            scoped = {str(t) for t in (thread_ids or [])}
+            if not scoped:
+                return True
+            if resource_id is not None and str(resource_id) in scoped:
+                return True
+        return False
+
+    async def accept_share_grant(self, *, grant_id: UUID, grantee_id: UUID) -> ShareGrantRow:
+        """The named grantee accepts a pending grant, making it effective."""
+        row = await self._session.get(ShareGrantRow, grant_id)
+        if row is None or row.grantee_user_id != grantee_id:
+            raise LookupError("grant_not_found")
+        if row.status == "pending":
+            row.status = "active"
+            row.accepted_at = datetime.now(UTC)
+            await self._session.flush()
+            await self._clear_scope_cache()
+            await emit_event(
+                self._session,
+                event_type="share_grant.accepted",
+                payload={"grant_id": str(grant_id), "grantee_id": str(grantee_id)},
+                correlation_id=str(grant_id),
+                trace_id=get_trace_id(),
+            )
+        return row
+
+    async def _clear_scope_cache(self) -> None:
+        async for key in self._redis.scan_iter(match=f"{_SCOPE_CACHE_PREFIX}:*", count=200):
+            await self._redis.delete(key)
 
     async def create_share_grant(
         self,
@@ -143,9 +214,7 @@ class ConsentService:
         self._session.add(log_entry)
         await self._session.flush()
 
-        pattern = f"{_SCOPE_CACHE_PREFIX}:*"
-        async for key in self._redis.scan_iter(match=pattern, count=200):
-            await self._redis.delete(key)
+        await self._clear_scope_cache()
 
         await emit_event(
             self._session,

@@ -18,6 +18,7 @@ dependencies = [
     "uvicorn>=0.34",
     "dramatiq[redis]>=1.17",
     "httpx>=0.28",
+    "pypdf>=5",
 ]
 
 [tool.uv.sources]

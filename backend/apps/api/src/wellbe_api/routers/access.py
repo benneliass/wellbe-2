@@ -67,6 +67,7 @@ async def access_evaluate(
             resource_type=body.resource_type,
             resource_id=body.resource_id,
             action=body.action,
+            patient_id=principal.patient_id,
         )
         decision = "allow" if allowed else "deny"
         reasons = ["grant_satisfied"] if allowed else ["grant_required"]
@@ -160,6 +161,30 @@ async def create_grant(
     await session.commit()
     await session.refresh(row)
     return _grant_to_v2(row, principal.patient_id)
+
+
+@router.post("/grants/{grant_id}/accept", response_model=GrantV2)
+async def accept_grant(
+    grant_id: uuid.UUID, principal: PrincipalDep, session: SessionDep
+) -> GrantV2:
+    """The grantee (the calling actor) accepts a grant shared with them."""
+    from fastapi import HTTPException  # noqa: PLC0415
+
+    consent = ConsentService(session, get_redis())
+    try:
+        row = await consent.accept_share_grant(grant_id=grant_id, grantee_id=principal.actor_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="grant_not_found") from exc
+    await audit_ref(
+        session,
+        event_type="c13.grant.accepted",
+        principal=principal,
+        summary="Grant accepted",
+        extra={"grant_id": str(grant_id)},
+    )
+    await session.commit()
+    await session.refresh(row)
+    return _grant_to_v2(row, row.grantor_id)
 
 
 @router.post("/grants/{grant_id}/revoke", response_model=GrantV2)
