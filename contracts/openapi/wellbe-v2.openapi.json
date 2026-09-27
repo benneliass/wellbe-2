@@ -1661,6 +1661,17 @@
             "title": "Audit Refs",
             "type": "array"
           },
+          "authorship_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorship Mode"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -3401,6 +3412,273 @@
           "thread_id"
         ],
         "title": "ThreadSubgraphV2",
+        "type": "object"
+      },
+      "ThreadTimelineV2": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEventV2"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "c13.thread_timeline.v2",
+            "default": "c13.thread_timeline.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineSourceV2"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "status_history": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Status History",
+            "type": "array"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "status",
+          "status_history",
+          "events",
+          "sources"
+        ],
+        "title": "ThreadTimelineV2",
+        "type": "object"
+      },
+      "TimelineEventV2": {
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "enum": [
+                  "you",
+                  "wellbe"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Status"
+          },
+          "item_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Status"
+          },
+          "item_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Type"
+          },
+          "kind": {
+            "enum": [
+              "thread_started",
+              "status_changed",
+              "capture",
+              "open_loop"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "source_ref_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ref Ids",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "to_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Status"
+          }
+        },
+        "required": [
+          "event_id",
+          "kind",
+          "occurred_at",
+          "title"
+        ],
+        "title": "TimelineEventV2",
+        "type": "object"
+      },
+      "TimelineSourceV2": {
+        "description": "One backing source, labelled for display (SourceRefV2-shaped, never an id label).",
+        "properties": {
+          "capture_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture Id"
+          },
+          "component": {
+            "enum": [
+              "c2",
+              "c5",
+              "c16"
+            ],
+            "title": "Component",
+            "type": "string"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "confidence_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Basis"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "review_marker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Marker"
+          },
+          "source_ref_id": {
+            "title": "Source Ref Id",
+            "type": "string"
+          },
+          "source_ref_type": {
+            "title": "Source Ref Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_ref_id",
+          "source_ref_type",
+          "component",
+          "kind",
+          "display_label"
+        ],
+        "title": "TimelineSourceV2",
         "type": "object"
       },
       "TransitionInvestigationRequest": {
@@ -7956,6 +8234,123 @@
         "summary": "Thread Memories",
         "tags": [
           "v2-continuity-memory-correction"
+        ]
+      }
+    },
+    "/v2/threads/{thread_id}/timeline": {
+      "get": {
+        "operationId": "thread_timeline_v2_threads__thread_id__timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadTimelineV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Thread Timeline",
+        "tags": [
+          "v2-thread-timeline"
         ]
       }
     },

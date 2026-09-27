@@ -1,24 +1,44 @@
 .edges {
   margin: 10px 0 0;
-  padding: 10px 0 0 18px;
+  padding: 10px 0 0;
   border-top: 1px solid var(--border);
+  list-style: none;
   font-size: var(--text-sm);
   color: var(--fg2);
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .edges b {
   font-weight: 600;
   color: var(--fg1);
+}
+.edge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.edgeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
 }
 .caveat {
   margin: 10px 0 0;
   font-size: var(--text-xs);
   color: var(--fg3);
 }
-.status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg3);
+}
+.count {
+  font-size: var(--text-xs);
+  color: var(--fg3);
+  font-weight: 600;
 }
 .next {
   display: flex;
@@ -36,4 +56,223 @@
 }
 .nextLink:hover {
   text-decoration: underline;
+}
+
+/* L0–L2: journey rail, what changed, the one next action. */
+.journey {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.changed {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.nextPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--teal-600);
+  text-decoration: none;
+}
+.nextPrimary:hover {
+  text-decoration: underline;
+}
+/* L1: one gentle question. Calm accent, never an alert. */
+.clarify {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal-500);
+  background: var(--accent-soft, #f0f9f9);
+}
+.clarifyIcon {
+  color: var(--teal-600);
+  padding-top: 2px;
+}
+.clarifyBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.clarifyQuestion {
+  margin: 0;
+  font-weight: 600;
+  color: var(--fg1);
+  line-height: 1.45;
+}
+.clarifyWhy {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg2);
+}
+.clarifyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* L1: Story Memory lanes. */
+.story {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sectionHead,
+.regionSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--fg1);
+}
+.sectionTitle svg {
+  color: var(--teal-500);
+}
+
+/* L3 timeline. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tlItem {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 14px;
+  position: relative;
+  outline: none;
+}
+.tlItem:focus-visible .tlBody {
+  box-shadow: 0 0 0 2px var(--teal-500);
+  border-radius: 8px;
+}
+.tlItem:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.tlNode {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft, #e6f6f6);
+  color: var(--teal-600);
+}
+.tlBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.tlHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+.tlTitle {
+  font-weight: 600;
+  color: var(--fg1);
+}
+.tlDate {
+  font-size: var(--text-xs);
+  color: var(--fg3);
+  font-variant-numeric: tabular-nums;
+}
+.tlDetail {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg2);
+}
+.tlMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+/* Thread-scoped capture sheet. */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sheetPrompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+  color: var(--fg1);
+}
+.sheetPrompt svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--teal-600);
+}
+.sheetLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--fg2);
+}
+.sheetInput {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.sheetNote,
+.sheetText {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg2);
+}
+.sheetError {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg1);
 }

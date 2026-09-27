@@ -741,6 +741,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/threads/{thread_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Thread Timeline */
+        get: operations["thread_timeline_v2_threads__thread_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/visit-packets": {
         parameters: {
             query?: never;
@@ -1744,6 +1761,8 @@ export interface components {
         MemoryEntryV2: {
             /** Audit Refs */
             audit_refs?: components["schemas"]["AuditRefV2"][];
+            /** Authorship Mode */
+            authorship_mode?: string | null;
             /** Created At */
             created_at?: string | null;
             /** Lifecycle State */
@@ -2662,6 +2681,25 @@ export interface components {
             /** Thread Id */
             thread_id: string;
         };
+        /** ThreadTimelineV2 */
+        ThreadTimelineV2: {
+            /** Events */
+            events: components["schemas"]["TimelineEventV2"][];
+            /**
+             * Schema Version
+             * @default c13.thread_timeline.v2
+             * @constant
+             */
+            schema_version: "c13.thread_timeline.v2";
+            /** Sources */
+            sources: components["schemas"]["TimelineSourceV2"][];
+            /** Status */
+            status: string;
+            /** Status History */
+            status_history: string[];
+            /** Thread Id */
+            thread_id: string;
+        };
         /** ThreadV1 */
         ThreadV1: {
             /**
@@ -2689,6 +2727,68 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** TimelineEventV2 */
+        TimelineEventV2: {
+            /** Actor */
+            actor?: ("you" | "wellbe") | null;
+            /** Detail */
+            detail?: string | null;
+            /** Due At */
+            due_at?: string | null;
+            /** Event Id */
+            event_id: string;
+            /** From Status */
+            from_status?: string | null;
+            /** Item Status */
+            item_status?: string | null;
+            /** Item Type */
+            item_type?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "thread_started" | "status_changed" | "capture" | "open_loop";
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Source Ref Ids */
+            source_ref_ids?: string[];
+            /** Title */
+            title: string;
+            /** To Status */
+            to_status?: string | null;
+        };
+        /**
+         * TimelineSourceV2
+         * @description One backing source, labelled for display (SourceRefV2-shaped, never an id label).
+         */
+        TimelineSourceV2: {
+            /** Capture Id */
+            capture_id?: string | null;
+            /**
+             * Component
+             * @enum {string}
+             */
+            component: "c2" | "c5" | "c16";
+            /** Confidence */
+            confidence?: number | null;
+            /** Confidence Basis */
+            confidence_basis?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Display Label */
+            display_label: string;
+            /** Kind */
+            kind: string;
+            /** Review Marker */
+            review_marker?: string | null;
+            /** Source Ref Id */
+            source_ref_id: string;
+            /** Source Ref Type */
+            source_ref_type: string;
         };
         /** TransitionInvestigationRequest */
         TransitionInvestigationRequest: {
@@ -4669,6 +4769,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemoryEntryV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    thread_timeline_v2_threads__thread_id__timeline_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadTimelineV2"];
                 };
             };
             /** @description Validation Error */

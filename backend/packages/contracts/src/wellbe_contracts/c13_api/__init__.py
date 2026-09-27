@@ -378,6 +378,10 @@ class MemoryEntryV2(StrictBaseModel):
     resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
     created_at: datetime | None = None
+    # C8 AuthorshipMode: controller_authored / controller_confirmed (the user's own
+    # words), system_derived / hybrid (WellBe summary), role_authored_pending_acceptance
+    # (shared in, awaiting the controller). Null only for legacy rows.
+    authorship_mode: str | None = None
     audit_refs: list[AuditRefV2] = Field(default_factory=list)
 
 

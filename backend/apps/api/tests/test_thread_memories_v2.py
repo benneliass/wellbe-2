@@ -19,6 +19,7 @@ from wellbe_api.main import app
 from wellbe_api.routers import phase5
 from wellbe_api.routers.phase5 import dedupe_memories
 from wellbe_contracts.c8_memory import (
+    AuthorshipMode,
     MemoryLifecycleState,
     MemorySourceRef,
     MemoryType,
@@ -128,3 +129,26 @@ def test_route_dedupes_and_exposes_created_at(memories) -> None:
     assert len(body) == 1
     assert body[0]["created_at"].startswith("2026-09-04")
     assert len(body[0]["source_refs"]) == 2
+
+
+def test_route_exposes_authorship_mode(memories) -> None:
+    derived = _resolved("pain", datetime(2026, 9, 1, 8, tzinfo=UTC))
+    derived.authorship_mode = AuthorshipMode.SYSTEM_DERIVED
+    legacy = _resolved("sleep", datetime(2026, 9, 2, 8, tzinfo=UTC))
+    memories += [derived, legacy]
+    body = TestClient(app).get(f"/v2/threads/{THREAD}/memories", headers=AUTH).json()
+    by_title = {m["title"]: m for m in body}
+    assert by_title["pain"]["authorship_mode"] == "system_derived"
+    assert by_title["sleep"]["authorship_mode"] is None
+
+
+def test_different_authorship_is_never_merged() -> None:
+    voice = _v2("pain", 1, mtype="story")
+    voice.authorship_mode = "controller_authored"
+    shared = _v2("pain", 2, mtype="story")
+    shared.authorship_mode = "role_authored_pending_acceptance"
+    out = dedupe_memories([voice, shared])
+    assert {m.authorship_mode for m in out} == {
+        "controller_authored",
+        "role_authored_pending_acceptance",
+    }

@@ -1,7 +1,15 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
-import { Button, Chip, type Tone } from "@wellbe/ui";
+import {
+  Button,
+  Chip,
+  ReviewMarkerList,
+  SourceMarker,
+  type EvidenceSource,
+  type ReviewMarkerValue,
+  type Tone,
+} from "@wellbe/ui";
 import { formatShortDate } from "@/lib/adapters";
 import {
   EvaluationProblem,
@@ -17,7 +25,35 @@ import {
 } from "@/lib/theories";
 import { THEORY_QUESTION_FRAME, cleanTheoryLabel } from "@/lib/theory-label";
 import { Panel } from "./Panel";
+import { resolveSources, theoryEvidenceIds, theorySupportWords, type SourceIndex } from "./thread-view";
 import styles from "./ThreadTheories.module.css";
+
+export type OpenEvidence = (title: string, claim: string, sources: EvidenceSource[]) => void;
+
+interface EvidenceContext {
+  index: SourceIndex;
+  /** The controller's actor id: theories they proposed are in their own words. */
+  controllerId?: string;
+  onOpenEvidence?: OpenEvidence;
+}
+
+const REVIEW_VALUES = new Set<string>([
+  "patient-entered",
+  "AI-summarized",
+  "not-clinician-reviewed",
+  "clinician-reviewed",
+  "clinician-annotated",
+  "ready-for-visit",
+]);
+
+function theoryReviewMarkers(theory: TheoryV2, controllerId?: string): ReviewMarkerValue[] {
+  if (theory.review_marker && REVIEW_VALUES.has(theory.review_marker)) {
+    return [theory.review_marker as ReviewMarkerValue];
+  }
+  const proposer = (theory.proposed_by as Record<string, unknown> | undefined)?.["actor_id"];
+  if (controllerId && proposer === controllerId) return ["patient-entered"];
+  return ["AI-summarized", "not-clinician-reviewed"];
+}
 
 const RATIONALE_MAX = 2000;
 
@@ -39,11 +75,23 @@ const ASSESSMENT_TONE: Record<string, Tone> = {
 };
 
 /** Investigations that include this thread, with their theories and the user's evaluations. */
-export function ThreadTheories({ threadId }: { threadId: string }) {
+export function ThreadTheories({
+  threadId,
+  sourceIndex,
+  controllerId,
+  onOpenEvidence,
+}: {
+  threadId: string;
+  sourceIndex?: SourceIndex;
+  controllerId?: string;
+  onOpenEvidence?: OpenEvidence;
+}) {
   const investigations = useThreadInvestigations(threadId);
   const evidence = useThreadEvidenceOptions(threadId);
 
   if (investigations.isLoading || !investigations.data?.length) return null;
+
+  const ctx: EvidenceContext = { index: sourceIndex ?? new Map(), controllerId, onOpenEvidence };
 
   return (
     <div className={styles.stack}>
@@ -52,6 +100,7 @@ export function ThreadTheories({ threadId }: { threadId: string }) {
           key={inv.investigation_id}
           investigation={inv}
           evidence={evidence.data ?? []}
+          ctx={ctx}
         />
       ))}
     </div>
@@ -61,9 +110,11 @@ export function ThreadTheories({ threadId }: { threadId: string }) {
 function InvestigationTheories({
   investigation,
   evidence,
+  ctx,
 }: {
   investigation: InvestigationV2;
   evidence: EvidenceOption[];
+  ctx: EvidenceContext;
 }) {
   const { data: theories = [], isLoading } = useInvestigationTheories(
     investigation.investigation_id,
@@ -84,6 +135,7 @@ function InvestigationTheories({
             theory={t}
             investigationId={investigation.investigation_id}
             evidence={evidence}
+            ctx={ctx}
           />
         ))}
       </ul>
@@ -95,24 +147,45 @@ function TheoryItem({
   theory,
   investigationId,
   evidence,
+  ctx,
 }: {
   theory: TheoryV2;
   investigationId: string;
   evidence: EvidenceOption[];
+  ctx: EvidenceContext;
 }) {
   const [editing, setEditing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const history = useTheoryEvaluations(theory.theory_id, showHistory);
   const latest = theory.latest_evaluation;
+  const label = cleanTheoryLabel(theory.label);
+  const support = theorySupportWords(theory.status);
+  const sources = resolveSources(theoryEvidenceIds(theory), ctx.index);
+  const lead = sources[0];
+  const onOpen = ctx.onOpenEvidence;
 
   return (
     <li className={styles.theory}>
       <div className={styles.theoryHead}>
-        <p className={styles.theoryLabel}>{cleanTheoryLabel(theory.label)}</p>
+        <p className={styles.theoryLabel}>{label}</p>
         {theory.assessment && (
           <Chip tone={ASSESSMENT_TONE[theory.assessment] ?? "neutral"} size="sm">
             {ASSESSMENTS.find((a) => a.value === theory.assessment)?.label ?? theory.assessment}
           </Chip>
+        )}
+      </div>
+      <div className={styles.markers}>
+        {support && <span className={styles.support}>{support}</span>}
+        <ReviewMarkerList values={theoryReviewMarkers(theory, ctx.controllerId)} />
+        {onOpen && (
+          <SourceMarker
+            displayLabel={lead ? lead.displayLabel : "No sources cited yet"}
+            component={lead?.component ?? "c5"}
+            kind={lead?.kind}
+            date={lead?.date}
+            count={Math.max(1, sources.length)}
+            onOpen={() => onOpen("Evidence for this theory", label, sources)}
+          />
         )}
       </div>
       {latest && (

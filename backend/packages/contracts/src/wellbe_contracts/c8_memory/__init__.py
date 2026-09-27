@@ -142,6 +142,8 @@ class ResolvedMemoryEntry(BaseModel):
     resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
     created_at: datetime | None = None
+    # Who stands behind the entry; drives the Story Memory display lane (WEL-146).
+    authorship_mode: AuthorshipMode | None = None
 
 
 __all__ = [
