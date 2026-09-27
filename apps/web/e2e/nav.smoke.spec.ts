@@ -19,6 +19,7 @@ const NAV: { label: string; path: string; heading?: string }[] = [
   { label: "Results", path: "/results" },
   { label: "Documents", path: "/documents" },
   { label: "Appointments", path: "/appointments" },
+  { label: "Graph", path: "/graph", heading: "Open the graph" },
 ];
 
 for (const item of NAV) {

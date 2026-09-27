@@ -80,6 +80,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { id: "results", icon: "bar-chart-3", label: "Results", href: "/results" },
   { id: "documents", icon: "file-text", label: "Documents", href: "/documents" },
   { id: "appointments", icon: "calendar", label: "Appointments", href: "/appointments" },
+  { id: "graph", icon: "git-fork", label: "Graph", href: "/graph" },
 ];
 
 export const NAV_ITEMS: NavItem[] = [...PRIMARY_NAV, ...SECONDARY_NAV];
