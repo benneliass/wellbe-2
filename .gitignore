@@ -2,6 +2,8 @@
 __pycache__/
 *.egg-info/
 uv.lock
+# The backend lockfile is what images install from (uv sync --frozen).
+!backend/uv.lock
 .worktrees/
 .venv/
 .pytest_cache/
