@@ -21,6 +21,9 @@ class ApiSettings(BaseSettings):
     # C10 render-token HMAC secret. Matches the safety-gate default so render
     # tokens minted at visit-packet share time validate consistently.
     c10_token_secret: SecretStr = SecretStr("local-dev-c10-render-token-secret")
+    # Deployment-level ISO region for triage emergency-number substitution (e.g.
+    # "GB" -> 999). Unset keeps the generalized "your local emergency number".
+    triage_default_region: str | None = None
     log_level: str = "INFO"
     environment: str = "dev"
     # Browser origins allowed to call this boundary cross-origin. The web app is
