@@ -5,10 +5,11 @@ WORKDIR /app
 RUN pip install uv
 
 COPY backend/pyproject.toml ./pyproject.toml
+COPY backend/uv.lock ./uv.lock
 COPY backend/packages/ ./packages/
 COPY backend/apps/vault-writer/ ./apps/vault-writer/
 
-RUN uv sync --package wellbe-vault-writer --no-dev
+RUN uv sync --frozen --package wellbe-vault-writer --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/apps/vault-writer/src"

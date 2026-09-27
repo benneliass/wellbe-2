@@ -5,10 +5,11 @@ WORKDIR /app
 RUN pip install uv
 
 COPY backend/pyproject.toml ./pyproject.toml
+COPY backend/uv.lock ./uv.lock
 COPY backend/packages/ ./packages/
 COPY backend/apps/processing-worker/ ./apps/processing-worker/
 
-RUN uv sync --package wellbe-processing-worker --no-dev
+RUN uv sync --frozen --package wellbe-processing-worker --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/apps/processing-worker/src"
