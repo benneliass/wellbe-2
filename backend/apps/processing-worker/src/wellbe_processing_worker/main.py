@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import io
 import json
 import logging
 import os
@@ -34,23 +33,12 @@ def _is_pdf(vault_event: dict[str, Any]) -> bool:
     )
 
 
-def _pdf_text_layer(content: bytes) -> str:
-    """Text layer of a digital PDF ("" for image-only/unreadable documents)."""
-    from pypdf import PdfReader
-
-    try:
-        reader = PdfReader(io.BytesIO(content))
-        return "\n".join((page.extract_text() or "") for page in reader.pages).strip()
-    except Exception:
-        logger.warning("could not read PDF text layer", exc_info=True)
-        return ""
-
-
 async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
     """Background task: poll outbox for raw_context.received and dispatch to extractor."""
     from wellbe_db import create_engine, create_session_factory
     from wellbe_events.models import OutboxEventRow
 
+    from wellbe_processing_worker.ocr import extract_document_text
     from wellbe_processing_worker.tasks import _extract_facts
 
     engine = create_engine(settings.database_url)
@@ -148,13 +136,12 @@ async def _dispatch_outbox_loop(settings: ProcessingWorkerSettings) -> None:
                                             content_resp.status_code,
                                         )
                                         continue
-                                    text_content = _pdf_text_layer(content_resp.content)
-                                    logger.info(
-                                        "document %s: %d bytes, text layer %d chars",
-                                        event_id,
-                                        len(content_resp.content),
-                                        len(text_content),
+                                    document = await extract_document_text(
+                                        content_resp.content, event_id
                                     )
+                                    text_content = document.text
+                                    if document.ocr is not None:
+                                        vault_event["_ocr"] = document.ocr.provenance()
                                 vault_event["_raw_text"] = text_content
 
                                 await _extract_facts(json.dumps(vault_event))

@@ -9,7 +9,7 @@ from wellbe_contracts.c3_ingestion import (
 
 from wellbe_c3_ingestion.protocol import BaseAdapter
 
-ALLOWED_MIME_TYPES = {"application/pdf", "image/png", "image/jpeg"}
+ALLOWED_MIME_TYPES = {"application/pdf", "image/png", "image/jpeg", "image/heic", "image/heif"}
 MAX_DOCUMENT_SIZE = 50 * 1024 * 1024  # 50 MB
 
 
