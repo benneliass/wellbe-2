@@ -5,7 +5,7 @@
   height: 28px;
   padding: 0 12px;
   border-radius: var(--r-pill);
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   font-weight: 600;
   white-space: nowrap;
   background: var(--tone-bg, var(--slate-100));

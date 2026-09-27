@@ -8,7 +8,7 @@
 }
 
 .hint {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text-muted, #667085);
   display: flex;
   align-items: flex-start;
@@ -71,7 +71,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 999px;
@@ -90,7 +90,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   padding: 4px 10px;
   border-radius: 999px;
   background: #f5f6f8;
@@ -100,14 +100,14 @@
 
 .caveat {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text-muted, #667085);
   line-height: 1.5;
 }
 
 .note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text-muted, #667085);
   display: flex;
   align-items: flex-start;
@@ -116,7 +116,7 @@
 }
 
 .alts {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text-muted, #667085);
 }
 
@@ -135,6 +135,6 @@
 }
 
 .error {
-  font-size: 14px;
+  font-size: var(--text-body);
   color: #b42318;
 }

@@ -33,7 +33,7 @@ export { Wordmark } from "./primitives/Wordmark";
 export type { WordmarkProps } from "./primitives/Wordmark";
 
 // Safety / semantic layer (existing — calm state tokens + evidence markers)
-export { STATE_TOKENS } from "./tokens";
+export { STATE_TOKENS, STATE_MARK_VARS, FONT_VARS, TYPE_SCALE_VARS, MOTION_VARS } from "./tokens";
 export type { StateToken, StateTokenMeta, DisclosureLevel } from "./tokens";
 export { StatePill } from "./components/StatePill";
 export type { StatePillProps } from "./components/StatePill";
