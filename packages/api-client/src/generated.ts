@@ -141,6 +141,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/things-noticed/{candidate_id}/ignore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ignore Thing Noticed
+         * @description Ignore for now: no decision; it comes back if it is noticed again.
+         */
+        post: operations["ignore_thing_noticed_v1_things_noticed__candidate_id__ignore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/things-noticed/{candidate_id}/snooze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Snooze Thing Noticed
+         * @description Remind me later: hidden until ``until``, then it reappears unchanged.
+         */
+        post: operations["snooze_thing_noticed_v1_things_noticed__candidate_id__snooze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/threads": {
         parameters: {
             query?: never;
@@ -2419,6 +2459,17 @@ export interface components {
             suppressed: boolean;
         };
         /**
+         * SnoozeThingNoticedV1
+         * @description Remind me later: hide the candidate until ``until`` (future, within a year).
+         */
+        SnoozeThingNoticedV1: {
+            /**
+             * Until
+             * Format: date-time
+             */
+            until: string;
+        };
+        /**
          * SourceQualityTierV2
          * @enum {string}
          */
@@ -2627,6 +2678,8 @@ export interface components {
              * Format: date-time
              */
             first_seen_at: string;
+            /** Ignored At */
+            ignored_at?: string | null;
             /**
              * Last Seen At
              * Format: date-time
@@ -2643,6 +2696,8 @@ export interface components {
             schema_version: string;
             /** Seen Count */
             seen_count: number;
+            /** Snoozed Until */
+            snoozed_until?: string | null;
             /**
              * Source Capture Count
              * @default 0
@@ -3271,6 +3326,84 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThingNoticedV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ignore_thing_noticed_v1_things_noticed__candidate_id__ignore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThingNoticedV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    snooze_thing_noticed_v1_things_noticed__candidate_id__snooze_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SnoozeThingNoticedV1"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

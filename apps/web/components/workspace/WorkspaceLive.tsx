@@ -3,14 +3,15 @@
 import { StateNote } from "@/components/placeholder/StateNote";
 import { useSession } from "@/lib/useSession";
 import { usePendingItems, useThreads } from "@/lib/hooks";
+import { loopGroupOf } from "@/lib/home-continuity";
 import { ThingsNoticed } from "./ThingsNoticed";
-import { openPendingItems } from "@/lib/pending";
+import { WhatChanged } from "./WhatChanged";
 import { WorkspaceHome } from "./WorkspaceHome";
 
 /**
  * Fetches real threads (/v1/threads) and open loops (/v2/pending-items) and
  * renders the workspace, with calm loading / empty / error / sign-in states.
- * Replaces the previous mock-data render (Track 0.3, WEL-154).
+ * Opens on what changed (WEL-145), then open loops, things noticed and threads.
  */
 export function WorkspaceLive() {
   const signedIn = Boolean(useSession()?.patientId);
@@ -42,12 +43,12 @@ export function WorkspaceLive() {
   }
 
   const threads = threadsQuery.data ?? [];
-  const pendingItems = openPendingItems(pendingQuery.data ?? []);
-  const pendingCount = pendingItems.length;
+  const loops = (pendingQuery.data ?? []).filter((p) => loopGroupOf(p.status) !== null);
 
   if (threads.length === 0) {
     return (
       <>
+        <WhatChanged pending={loops} />
         <ThingsNoticed />
         <StateNote
           icon="folder"
@@ -60,8 +61,13 @@ export function WorkspaceLive() {
 
   return (
     <>
-      <ThingsNoticed />
-      <WorkspaceHome threads={threads} pendingCount={pendingCount} pendingItems={pendingItems} />
+      <WhatChanged pending={loops} />
+      <WorkspaceHome
+        threads={threads}
+        pendingCount={loops.length}
+        pendingItems={loops}
+        afterLoops={<ThingsNoticed />}
+      />
     </>
   );
 }

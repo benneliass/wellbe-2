@@ -128,3 +128,5 @@ class GenesisCandidateRow(Base):
     )
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
+    snoozed_until: Mapped[datetime | None] = mapped_column(nullable=True)
+    ignored_at: Mapped[datetime | None] = mapped_column(nullable=True)

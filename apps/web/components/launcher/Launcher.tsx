@@ -6,6 +6,7 @@ import { Icon } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
+import { ContinuityStrip } from "./ContinuityStrip";
 import { SignalsPanel } from "./SignalsPanel";
 import { LAUNCH_ACTIONS, type LaunchAction } from "@/lib/meta";
 import styles from "./Launcher.module.css";
@@ -107,6 +108,8 @@ export function Launcher() {
             <Icon name="arrow-right" size={18} />
           </button>
         </form>
+
+        <ContinuityStrip />
 
         <div className={styles.foot}>
           <Icon name="lock" size={14} />

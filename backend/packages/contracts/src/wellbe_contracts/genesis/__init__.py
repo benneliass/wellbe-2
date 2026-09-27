@@ -243,6 +243,11 @@ class ThreadCandidate(BaseModel):
     promoted_thread_id: UUID | None = None
     created_at: AwareDatetime
     updated_at: AwareDatetime
+    # Review holds keep a candidate ``pending`` but off "Things noticed" for now:
+    # ``snoozed_until`` hides it until that moment ("remind me later");
+    # ``ignored_at`` hides it until it is seen again (``last_seen_at`` advances).
+    snoozed_until: AwareDatetime | None = None
+    ignored_at: AwareDatetime | None = None
 
 
 __all__ = [

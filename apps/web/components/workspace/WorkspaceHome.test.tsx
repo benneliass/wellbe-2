@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ThreadSummary } from "@/lib/types";
 import { WorkspaceHome } from "./WorkspaceHome";
@@ -71,5 +71,41 @@ describe("WorkspaceHome", () => {
     const row = screen.getByRole("link", { name: /waiting for a result: ferritin/i });
     expect(row).toHaveAttribute("href", "/threads/1");
     expect(row).toHaveTextContent("Due Oct 4");
+  });
+
+  it("groups open loops into Needs attention, In motion and a folded Steady", () => {
+    const base = {
+      schema_version: "c13.pending_item.v2" as const,
+      primary_thread_id: "1",
+      due_precision: "date",
+      blocks_closure: false,
+      created_at: "2026-09-01T00:00:00Z",
+      updated_at: "2026-09-01T00:00:00Z",
+    };
+    const pendingItems = [
+      { ...base, pending_item_id: "a", item_type: "repeat_test_due", status: "overdue", title: "Repeat ferritin", due_at: "2026-09-20T12:00:00Z" },
+      { ...base, pending_item_id: "b", item_type: "referral_pending", status: "waiting_external", title: "Physio referral" },
+      { ...base, pending_item_id: "c", item_type: "follow_up_due", status: "active", title: "BP follow-up", due_at: "2026-11-01T12:00:00Z" },
+    ];
+    render(
+      <WorkspaceHome
+        threads={threads}
+        pendingCount={3}
+        pendingItems={pendingItems}
+        afterLoops={<p>Things noticed slot</p>}
+      />,
+    );
+    const loops = screen.getByRole("region", { name: "Open loops" });
+    const groups = within(loops).getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(groups).toEqual(["Needs attention1", "In motion1"]);
+    expect(within(loops).getByRole("link", { name: /repeat ferritin/i })).toHaveTextContent(
+      /Book the repeat test.*Still open · was due Sep 20/,
+    );
+    expect(within(loops).getByRole("link", { name: /physio referral/i })).toHaveTextContent("Ask about the referral");
+    expect(within(loops).queryByText("BP follow-up")).toBeNull();
+
+    fireEvent.click(within(loops).getByRole("button", { name: /1 steady loop/i }));
+    expect(within(loops).getByText("BP follow-up")).toBeInTheDocument();
+    expect(screen.getByText("Things noticed slot")).toBeInTheDocument();
   });
 });

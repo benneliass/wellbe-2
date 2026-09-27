@@ -12,6 +12,10 @@ vi.mock("./SignalsPanel", () => ({
   SignalsPanel: () => <button type="button">Your health signals</button>,
 }));
 
+vi.mock("./ContinuityStrip", () => ({
+  ContinuityStrip: () => <a href="/workspace">5 threads carrying forward</a>,
+}));
+
 describe("Launcher", () => {
   beforeEach(() => {
     push.mockReset();
@@ -43,6 +47,14 @@ describe("Launcher", () => {
     fireEvent.change(screen.getByLabelText("Ask WellBe"), { target: { value: "knee pain" } });
     fireEvent.click(screen.getByRole("button", { name: "Go" }));
     expect(push).toHaveBeenCalledWith("/ask?q=knee%20pain");
+  });
+
+  it("places the continuity strip after the Ask bar, inside the main column", () => {
+    render(<Launcher />);
+    const main = screen.getByRole("main");
+    const strip = within(main).getByRole("link", { name: /carrying forward/i });
+    const ask = within(main).getByLabelText("Ask WellBe");
+    expect(ask.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("Full View opens the workspace", () => {

@@ -3,11 +3,18 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wellbe_c9_continuity.genesis.models import GenesisCandidateRow
+
+
+def _naive_utc(value: datetime | None) -> datetime | None:
+    """Columns are ``timestamp`` (naive UTC); normalise aware inputs to that."""
+    if value is None or value.tzinfo is None:
+        return value
+    return value.astimezone(UTC).replace(tzinfo=None)
 
 
 def _union(existing: list[uuid.UUID] | None, new: list[uuid.UUID]) -> list[uuid.UUID]:
@@ -118,13 +125,31 @@ class CandidateRepository:
         return result.scalar_one_or_none()
 
     async def list_pending(
-        self, user_id: uuid.UUID, *, limit: int = 100
+        self,
+        user_id: uuid.UUID,
+        *,
+        limit: int = 100,
+        now: datetime | None = None,
     ) -> list[GenesisCandidateRow]:
+        """Pending candidates that are not on a review hold at ``now``.
+
+        A snoozed candidate reappears once ``snoozed_until`` has passed; an ignored
+        one reappears once it is seen again after being ignored.
+        """
+        at = (now or datetime.now(UTC)).astimezone(UTC).replace(tzinfo=None)
         stmt = (
             select(GenesisCandidateRow)
             .where(
                 GenesisCandidateRow.user_id == user_id,
                 GenesisCandidateRow.status == "pending",
+                or_(
+                    GenesisCandidateRow.snoozed_until.is_(None),
+                    GenesisCandidateRow.snoozed_until <= at,
+                ),
+                or_(
+                    GenesisCandidateRow.ignored_at.is_(None),
+                    GenesisCandidateRow.last_seen_at > GenesisCandidateRow.ignored_at,
+                ),
             )
             .order_by(GenesisCandidateRow.last_seen_at.desc())
             .limit(limit)
@@ -145,6 +170,23 @@ class CandidateRepository:
         row.status = status
         if promoted_thread_id is not None:
             row.promoted_thread_id = promoted_thread_id
+        row.updated_at = datetime.now(UTC).replace(tzinfo=None)
+        await self._session.flush()
+        return row
+
+    async def set_hold(
+        self,
+        *,
+        candidate_id: uuid.UUID,
+        snoozed_until: datetime | None,
+        ignored_at: datetime | None,
+    ) -> GenesisCandidateRow | None:
+        """Replace a candidate's review hold; the status is left untouched."""
+        row = await self.get(candidate_id)
+        if row is None:
+            return None
+        row.snoozed_until = _naive_utc(snoozed_until)
+        row.ignored_at = _naive_utc(ignored_at)
         row.updated_at = datetime.now(UTC).replace(tzinfo=None)
         await self._session.flush()
         return row

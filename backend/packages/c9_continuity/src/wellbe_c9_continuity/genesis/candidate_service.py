@@ -85,13 +85,46 @@ class GenesisCandidateService:
     async def list_things_noticed(
         self, user_id: uuid.UUID, *, limit: int = 100
     ) -> list[ThreadCandidate]:
-        """Pending candidates for the user, most-recently-seen first."""
+        """Pending, un-held candidates for the user, most-recently-seen first."""
         rows = await self._repo.list_pending(user_id, limit=limit)
         return [self._to_candidate(r) for r in rows]
 
     async def dismiss(self, candidate_id: uuid.UUID) -> ThreadCandidate:
-        """User stops tracking a candidate. Evidence + history are preserved."""
+        """User rejects a candidate for good. Evidence + history are preserved."""
         return await self._set_status(candidate_id, CandidateStatus.DISMISSED)
+
+    async def ignore(
+        self, candidate_id: uuid.UUID, *, now: datetime | None = None
+    ) -> ThreadCandidate:
+        """Ignore for now: hide until the concern is mentioned again.
+
+        No decision is recorded — the candidate stays pending and a repeat signal
+        (which advances ``last_seen_at``) brings it back.
+        """
+        at = now or datetime.now(UTC)
+        return await self._set_hold(candidate_id, snoozed_until=None, ignored_at=at)
+
+    async def snooze(
+        self, candidate_id: uuid.UUID, *, until: datetime
+    ) -> ThreadCandidate:
+        """Remind me later: hide until ``until``, then it reappears as-is."""
+        return await self._set_hold(candidate_id, snoozed_until=until, ignored_at=None)
+
+    async def _set_hold(
+        self,
+        candidate_id: uuid.UUID,
+        *,
+        snoozed_until: datetime | None,
+        ignored_at: datetime | None,
+    ) -> ThreadCandidate:
+        row = await self._repo.set_hold(
+            candidate_id=candidate_id,
+            snoozed_until=snoozed_until,
+            ignored_at=ignored_at,
+        )
+        if row is None:
+            raise CandidateNotFoundError(candidate_id)
+        return self._to_candidate(row)
 
     async def promote(
         self, candidate_id: uuid.UUID, *, thread_id: uuid.UUID
@@ -142,6 +175,9 @@ class GenesisCandidateService:
         def _aware(value: datetime) -> datetime:
             return value.replace(tzinfo=UTC) if value.tzinfo is None else value
 
+        def _aware_opt(value: datetime | None) -> datetime | None:
+            return None if value is None else _aware(value)
+
         return ThreadCandidate(
             candidate_id=row.candidate_id,
             user_id=row.user_id,
@@ -162,4 +198,6 @@ class GenesisCandidateService:
             promoted_thread_id=row.promoted_thread_id,
             created_at=_aware(row.created_at),
             updated_at=_aware(row.updated_at),
+            snoozed_until=_aware_opt(row.snoozed_until),
+            ignored_at=_aware_opt(row.ignored_at),
         )
