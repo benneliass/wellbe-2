@@ -44,6 +44,7 @@ export function Launcher() {
             Well<b>Be</b>
           </span>
         </button>
+        <SignalsPanel />
         <div className={styles.topright}>
           <button type="button" className={styles.full} onClick={goFullView}>
             Full View <Icon name="arrow-right" size={16} />
@@ -60,64 +61,58 @@ export function Launcher() {
         </div>
       </header>
 
-      <SignalsPanel />
-
-      <div className={styles.hero}>
-        <div className={styles.orb}>
-          <div className={styles.orbRings} aria-hidden="true" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-logo.png" alt="" className={styles.orbImg} />
+      <main className={styles.main}>
+        <div className={styles.hero}>
+          <div className={styles.orb}>
+            <div className={styles.orbRings} aria-hidden="true" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/wellbe-logo.png" alt="" className={styles.orbImg} />
+          </div>
+          <h1 className={styles.h1}>
+            What do you need <em>today?</em>
+          </h1>
+          <p className={styles.sub}>We&rsquo;ll guide you to the right things.</p>
         </div>
-        <h1 className={styles.h1}>
-          What do you need <em>today?</em>
-        </h1>
-        <p className={styles.sub}>We&rsquo;ll guide you to the right things.</p>
-      </div>
 
-      <div className={styles.rec}>
-        <div className={styles.recRow}>
-          {LAUNCH_ACTIONS.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              className={`${styles.pill} ${a.tone === "alert" ? styles.pillAlert : ""}`}
-              onClick={() => onAction(a)}
-            >
-              {a.tone === "alert" && <span className={styles.pillDot} />}
-              <span className={styles.pillIcon}>
-                <Icon name={a.icon} size={22} />
-              </span>
-              <span className={styles.pillTitle}>{a.title}</span>
-              <span className={`${styles.pillSub} ${a.tone === "alert" ? styles.pillSubAlert : ""}`}>
-                {a.sub}
-              </span>
-            </button>
-          ))}
+        <div className={styles.rec}>
+          {/* Every pill shares the calm teal treatment: red is reserved for
+              Safety Gate-approved urgent guidance, never a launcher entry point. */}
+          <div className={styles.recRow}>
+            {LAUNCH_ACTIONS.map((a) => (
+              <button key={a.id} type="button" className={styles.pill} onClick={() => onAction(a)}>
+                <span className={styles.pillIcon}>
+                  <Icon name={a.icon} size={22} />
+                </span>
+                <span className={styles.pillTitle}>{a.title}</span>
+                <span className={styles.pillSub}>{a.sub}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className={styles.or}>
-        <span>OR</span>
-      </div>
-      <form className={styles.ask} onSubmit={onAsk}>
-        <span className={styles.askLead}>
-          <Icon name="activity" size={20} />
-        </span>
-        <input
-          placeholder="Type what you need…"
-          aria-label="Ask WellBe"
-          value={askValue}
-          onChange={(e) => setAskValue(e.target.value)}
-        />
-        <button type="submit" className={styles.askGo} aria-label="Go">
-          <Icon name="arrow-right" size={18} />
-        </button>
-      </form>
+        <div className={styles.or}>
+          <span>OR</span>
+        </div>
+        <form className={styles.ask} onSubmit={onAsk}>
+          <span className={styles.askLead}>
+            <Icon name="activity" size={20} />
+          </span>
+          <input
+            placeholder="Type what you need…"
+            aria-label="Ask WellBe"
+            value={askValue}
+            onChange={(e) => setAskValue(e.target.value)}
+          />
+          <button type="submit" className={styles.askGo} aria-label="Go">
+            <Icon name="arrow-right" size={18} />
+          </button>
+        </form>
 
-      <div className={styles.foot}>
-        <Icon name="lock" size={14} />
-        Your data is private and secure. We never sell your data.
-      </div>
+        <div className={styles.foot}>
+          <Icon name="lock" size={14} />
+          Your data is private and secure. We never sell your data.
+        </div>
+      </main>
 
       <button
         type="button"
