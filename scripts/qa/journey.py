@@ -392,8 +392,10 @@ def run(j: Journey) -> None:
     def thread_attach() -> str:
         tid = j.ctx["threads"].get("headache")
         assert tid, "no headache thread"
+        # Same-titled memories are merged on read, so count their source links.
         def memory_count() -> int:
-            return len(items_of(j.call("GET", f"/v2/threads/{tid}/memories"), "memories"))
+            memories = items_of(j.call("GET", f"/v2/threads/{tid}/memories"), "memories")
+            return sum(len(m.get("source_refs") or []) for m in memories)
 
         before = memory_count()
         j.call("POST", "/v1/capture", expect=201,
@@ -402,10 +404,10 @@ def run(j: Journey) -> None:
                headers=j.headers(**{"Idempotency-Key": f"qa-{uuid.uuid4()}"}))
 
         # A repeat of the same concept reuses the graph node; the attached fact
-        # shows up as a new pointer memory on the thread.
+        # shows up as a new source link on the thread's memories.
         after = j.wait_for("new headache evidence attached to thread",
                            lambda: (n := memory_count()) > before and n)
-        return f"follow-up capture attached to existing thread ({before} -> {after} memories)"
+        return f"follow-up capture attached to existing thread ({before} -> {after} source links)"
 
     if j.ctx.get("threads", {}).get("headache"):
         j.step("genesis attaches new evidence to an existing thread", thread_attach)

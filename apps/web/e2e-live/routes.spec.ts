@@ -210,19 +210,18 @@ test("Appointments shows the open follow-up items", async ({ page, request }) =>
   await snap(page, "10-appointments");
 });
 
-const PLACEHOLDERS: { path: string; heading: string; shot: string }[] = [
-  { path: "/results", heading: "Results", shot: "12-results" },
-  { path: "/documents", heading: "Documents", shot: "13-documents" },
-  { path: "/triage", heading: "Something feels off", shot: "14-triage" },
+const RECORD_PAGES: { path: string; heading: string; marker: RegExp; shot: string }[] = [
+  { path: "/results", heading: "Results", marker: /Add a result/, shot: "12-results" },
+  { path: "/documents", heading: "Documents", marker: /Add a document/, shot: "13-documents" },
+  { path: "/triage", heading: "A calm check-in", marker: /Question 1 of \d+/, shot: "14-triage" },
 ];
 
-for (const r of PLACEHOLDERS) {
+for (const r of RECORD_PAGES) {
   test(`${r.path} renders its view`, async ({ page }) => {
     await page.goto(r.path);
     await expect(page.getByRole("heading", { name: r.heading, exact: true })).toBeVisible();
-    // Not built yet (product gap): the route is an honest "In progress" placeholder.
-    await expect(page.getByText("In progress")).toBeVisible();
-    test.info().annotations.push({ type: "product-gap", description: `${r.path} is a placeholder` });
+    await expect(page.getByText(r.marker).first()).toBeVisible();
+    await expect(page.getByText("In progress")).toHaveCount(0);
     await expectCleanPage(page);
     await snap(page, r.shot);
   });
