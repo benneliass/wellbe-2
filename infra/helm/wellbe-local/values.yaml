@@ -262,6 +262,11 @@ auth:
       tokenSecret:
         name: wellbe-login-client
         key: pat
+      # "Try the demo" on the front door: signs anyone who clicks it into this
+      # shared ZITADEL login without a password. Only for sample-data logins.
+      demo:
+        enabled: false
+        loginName: demo
   zitadel:
     # Overrides for zitadel.externalDomain/externalPort when non-empty.
     externalDomain: ""

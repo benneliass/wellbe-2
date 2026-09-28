@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@wellbe/ui";
-import { isOidcMode, oidcConfigured } from "@/lib/auth-config";
+import { demoSignInAvailable, isOidcMode, oidcConfigured } from "@/lib/auth-config";
 import { beginSignIn } from "@/lib/oidc";
 import {
   devWorkspaceAvailable,
@@ -24,7 +24,8 @@ import styles from "./EntryScreen.module.css";
  *
  * OIDC mode replaces them with a single ZITADEL sign-in (accounts are provisioned
  * in ZITADEL, not self-registered); the callback routes an identity with no
- * WellBe account yet into onboarding.
+ * WellBe account yet into onboarding. When the server enables it, "Try the demo"
+ * goes through the same redirect and /login opens the shared demo workspace.
  */
 export function EntryScreen() {
   return isOidcMode() ? <OidcEntryScreen /> : <DevEntryScreen />;
@@ -36,12 +37,12 @@ function OidcEntryScreen() {
     oidcConfigured() ? null : "Sign-in isn't configured for this deployment yet.",
   );
 
-  const signIn = async () => {
+  const signIn = async (demo = false) => {
     if (busy || !oidcConfigured()) return;
     setBusy(true);
     setError(null);
     try {
-      await beginSignIn();
+      await beginSignIn(demo ? { demo: true } : undefined);
     } catch {
       setError("Couldn't reach the sign-in service. Please try again.");
       setBusy(false);
@@ -70,7 +71,7 @@ function OidcEntryScreen() {
           <button
             type="button"
             className={styles.primary}
-            onClick={signIn}
+            onClick={() => signIn()}
             disabled={busy || !oidcConfigured()}
           >
             <span className={styles.optIcon}>
@@ -83,6 +84,24 @@ function OidcEntryScreen() {
             <Icon name="arrow-right" size={18} />
           </button>
 
+          {demoSignInAvailable() && (
+            <button
+              type="button"
+              className={styles.option}
+              data-variant="demo"
+              onClick={() => signIn(true)}
+              disabled={busy}
+            >
+              <span className={styles.optIcon}>
+                <Icon name="sparkles" size={20} />
+              </span>
+              <span className={styles.optText}>
+                <b>Try the demo</b>
+                <span>Sample data, shared with every visitor</span>
+              </span>
+              <span className={styles.tag}>shared</span>
+            </button>
+          )}
         </div>
 
         {error && (

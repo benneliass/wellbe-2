@@ -197,3 +197,53 @@ export async function signInWithPassword(
     return { kind: "unavailable" };
   }
 }
+
+export type DemoSignInResult = Extract<SignInResult, { kind: "ok" | "expired" | "unavailable" }>;
+
+/**
+ * Login name of the shared demo user, or null when the demo sign-in is off.
+ * Server config only: the browser never chooses which user the demo signs in.
+ */
+export function demoLoginNameFromEnv(env: Record<string, string | undefined> = process.env): string | null {
+  if (env["WELLBE_DEMO_LOGIN_ENABLED"] !== "true") return null;
+  return (env["WELLBE_DEMO_LOGIN_NAME"] ?? "").trim() || "demo";
+}
+
+/**
+ * Finish the auth request as the shared demo user without a password: the login
+ * client may finalize with a session that only has a user check. The resulting
+ * tokens carry no `amr`, since no factor was verified.
+ */
+export async function signInAsDemo(
+  config: LoginServerConfig,
+  input: { authRequestId: string; loginName: string },
+  fetchImpl: Fetch = fetch,
+): Promise<DemoSignInResult> {
+  const call = client(config, fetchImpl);
+  const authRequest = encodeURIComponent(input.authRequestId);
+
+  try {
+    await call("GET", `/v2/oidc/auth_requests/${authRequest}`);
+  } catch (err) {
+    if (err instanceof ZitadelHttpError && (err.status === 404 || err.status === 400)) {
+      return { kind: "expired" };
+    }
+    return { kind: "unavailable" };
+  }
+
+  try {
+    const session = await call<{ sessionId: string; sessionToken: string }>("POST", "/v2/sessions", {
+      checks: { user: { loginName: input.loginName } },
+    });
+    const { callbackUrl } = await call<{ callbackUrl?: string }>(
+      "POST",
+      `/v2/oidc/auth_requests/${authRequest}`,
+      { session: { sessionId: session.sessionId, sessionToken: session.sessionToken } },
+    );
+    if (!callbackUrl || !/^https?:\/\//.test(callbackUrl)) return { kind: "unavailable" };
+    return { kind: "ok", callbackUrl };
+  } catch (err) {
+    if (err instanceof ZitadelHttpError && err.status === 404) return { kind: "expired" };
+    return { kind: "unavailable" };
+  }
+}

@@ -51,6 +51,13 @@ spec:
                 secretKeyRef:
                   name: {{ .tokenSecret.name }}
                   key: {{ .tokenSecret.key }}
+            {{- if (.demo).enabled }}
+            # "Try the demo": /login/demo signs in this one fixed login, no password.
+            - name: WELLBE_DEMO_LOGIN_ENABLED
+              value: "true"
+            - name: WELLBE_DEMO_LOGIN_NAME
+              value: {{ .demo.loginName | default "demo" | quote }}
+            {{- end }}
             {{- end }}
             {{- end }}
             {{- end }}

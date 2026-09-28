@@ -16,6 +16,8 @@ export interface AuthConfig {
   issuer: string;
   /** Public (PKCE, no secret) client id of the wellbe-web app. */
   clientId: string;
+  /** The server offers "Try the demo" (POST /login/demo). Runtime config only. */
+  demo: boolean;
 }
 
 declare global {
@@ -33,6 +35,7 @@ function buildTimeConfig(): AuthConfig {
     mode: parseAuthMode(process.env.NEXT_PUBLIC_WELLBE_AUTH_MODE),
     issuer: process.env.NEXT_PUBLIC_WELLBE_OIDC_ISSUER ?? "",
     clientId: process.env.NEXT_PUBLIC_WELLBE_OIDC_CLIENT_ID ?? "",
+    demo: false,
   };
 }
 
@@ -44,6 +47,7 @@ export function getAuthConfig(): AuthConfig {
     mode: parseAuthMode(runtime.mode ?? fallback.mode),
     issuer: runtime.issuer || fallback.issuer,
     clientId: runtime.clientId || fallback.clientId,
+    demo: runtime.demo === true,
   };
 }
 
@@ -55,4 +59,9 @@ export function isOidcMode(): boolean {
 export function oidcConfigured(): boolean {
   const cfg = getAuthConfig();
   return cfg.mode === "oidc" && cfg.issuer !== "" && cfg.clientId !== "";
+}
+
+/** "Try the demo" can be offered: OIDC sign-in works and the server enabled it. */
+export function demoSignInAvailable(): boolean {
+  return oidcConfigured() && getAuthConfig().demo;
 }

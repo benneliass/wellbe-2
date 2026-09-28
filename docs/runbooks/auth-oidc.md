@@ -233,6 +233,24 @@ app goes back to ZITADEL's pages. Check: Sign in on the front door shows the
 WellBe card at `/login`, a wrong password says the login and password don't match,
 and a correct one lands in the workspace.
 
+### Try the demo (optional)
+
+`auth.oidc.customLogin.demo.enabled: true` (on in values-homeserver.yaml) adds
+"Try the demo" to the front door. It runs the normal authorize redirect; the
+`/login` page then posts only the auth request id to `/login/demo`, which creates
+a ZITADEL session for the fixed login `demo.loginName` (default `demo`, the user
+linked to the demo patient in step 4) with a user check only, no password, and
+finishes the auth request. ZITADEL allows this for the `IAM_LOGIN_CLIENT` token,
+so no demo password is stored anywhere in the cluster. The login name comes from
+server config only; the browser cannot pick another user.
+
+Anyone who can reach the web origin can open the demo workspace, and everyone
+shares it: keep only sample data in that patient, and treat anything written
+there as public to the tailnet. The demo tokens carry no `amr` claim. Turning the
+flag off removes the button (`/auth-config.js` publishes `demo: false`) and makes
+`/login/demo` answer 404. Check: front door → Try the demo → "Opening the demo…"
+→ the workspace as Demo, without typing anything.
+
 QA against an OIDC deployment signs in through the same screen:
 
 ```sh

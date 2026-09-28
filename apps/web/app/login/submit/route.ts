@@ -1,3 +1,4 @@
+import { AUTH_REQUEST_ID, isJson, json, sameOrigin } from "@/lib/server/login-request";
 import { loginConfigFromEnv, signInWithPassword, type SignInResult } from "@/lib/server/zitadel-login";
 
 export const dynamic = "force-dynamic";
@@ -14,32 +15,12 @@ const STATUS: Record<SignInResult["kind"], number> = {
   unavailable: 502,
 };
 
-function json(body: unknown, status: number): Response {
-  return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
-}
-
-/** Same-origin only: the configured public origin, or the forwarded host in dev. */
-function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return false;
-  const allowed = process.env["WELLBE_WEB_ORIGIN"];
-  if (allowed) return origin === allowed.replace(/\/+$/, "");
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
-}
-
 const str = (v: unknown, max: number) =>
   typeof v === "string" && v.length > 0 && v.length <= max ? v : null;
 
 export async function POST(request: Request): Promise<Response> {
   if (!sameOrigin(request)) return json({ kind: "forbidden" }, 403);
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return json({ kind: "bad_request" }, 415);
-  }
+  if (!isJson(request)) return json({ kind: "bad_request" }, 415);
   const config = loginConfigFromEnv();
   if (!config) return json({ kind: "unavailable" }, 503);
 
@@ -53,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   const loginName = str(body["loginName"], 320);
   const password = str(body["password"], 256);
   const newPassword = body["newPassword"] === undefined ? undefined : str(body["newPassword"], 256);
-  if (!authRequestId || !/^V2_\d+$/.test(authRequestId) || !loginName || !password || newPassword === null) {
+  if (!authRequestId || !AUTH_REQUEST_ID.test(authRequestId) || !loginName || !password || newPassword === null) {
     return json({ kind: "bad_request" }, 400);
   }
 

@@ -188,6 +188,8 @@ auth:
       enabled: true
       webOrigin: "https://wellbe.tail9c487a.ts.net"
       instanceHost: "wellbe-auth.tail9c487a.ts.net"
+      demo:
+        enabled: true
   zitadel:
     externalDomain: wellbe-auth.tail9c487a.ts.net
     externalPort: "443"

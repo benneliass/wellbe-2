@@ -2,8 +2,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { describeRules, LoginScreen } from "./LoginScreen";
 
-const beginSignIn = vi.fn(async () => {});
-vi.mock("@/lib/oidc", () => ({ beginSignIn: () => beginSignIn() }));
+const beginSignIn = vi.fn(async (_options?: { demo?: boolean }) => {});
+const takeDemoSignInIntent = vi.fn(() => false);
+vi.mock("@/lib/oidc", () => ({
+  beginSignIn: (options?: { demo?: boolean }) => beginSignIn(options),
+  takeDemoSignInIntent: () => takeDemoSignInIntent(),
+}));
 
 const fetchMock = vi.fn();
 const assign = vi.fn();
@@ -28,6 +32,7 @@ describe("LoginScreen", () => {
     fetchMock.mockReset();
     assign.mockReset();
     beginSignIn.mockClear();
+    takeDemoSignInIntent.mockReset().mockReturnValue(false);
   });
 
   it("signs in and follows the callback URL", async () => {
@@ -87,5 +92,36 @@ describe("LoginScreen", () => {
       describeRules({ minLength: 10, requiresUppercase: false, requiresLowercase: true, requiresNumber: true, requiresSymbol: true }),
     ).toEqual(["At least 10 characters", "A lowercase letter", "A number", "A symbol"]);
     expect(describeRules(null)).toEqual([]);
+  });
+
+  it("opens the demo without asking for anything when this tab chose it", async () => {
+    takeDemoSignInIntent.mockReturnValue(true);
+    reply({ kind: "ok", callbackUrl: "https://app.example/auth/callback?code=c" });
+    render(<LoginScreen authRequestId="V2_1" />);
+    expect(screen.getByRole("heading", { name: "Opening the demo…" })).toBeInTheDocument();
+    expect(screen.getByText(/Shared sample data/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Password")).toBeNull();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("https://app.example/auth/callback?code=c"));
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("/login/demo");
+    expect(JSON.parse(init.body)).toEqual({ authRequestId: "V2_1" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets the demo be retried when it can't open", async () => {
+    takeDemoSignInIntent.mockReturnValue(true);
+    reply({ kind: "unavailable" }, 502);
+    render(<LoginScreen authRequestId="V2_1" />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("unavailable");
+    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+    await waitFor(() => expect(beginSignIn).toHaveBeenCalledWith({ demo: true }));
+  });
+
+  it("restarts an expired demo sign-in as a demo", async () => {
+    takeDemoSignInIntent.mockReturnValue(true);
+    reply({ kind: "expired" });
+    render(<LoginScreen authRequestId="V2_1" />);
+    fireEvent.click(await screen.findByRole("button", { name: /Open the demo/ }));
+    await waitFor(() => expect(beginSignIn).toHaveBeenCalledWith({ demo: true }));
   });
 });

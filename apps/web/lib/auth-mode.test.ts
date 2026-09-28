@@ -85,7 +85,7 @@ describe("auth mode", () => {
   it("prefers the runtime config published by /auth-config.js", () => {
     vi.stubEnv("NEXT_PUBLIC_WELLBE_AUTH_MODE", "dev");
     window.__WELLBE_AUTH_CONFIG__ = OIDC;
-    expect(getAuthConfig()).toEqual(OIDC);
+    expect(getAuthConfig()).toEqual({ ...OIDC, demo: false });
     expect(oidcConfigured()).toBe(true);
   });
 

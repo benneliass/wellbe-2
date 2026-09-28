@@ -37,9 +37,24 @@ export function getUserManager(): UserManager {
   return manager;
 }
 
-/** Redirect to the ZITADEL login. */
-export async function beginSignIn(): Promise<void> {
+const DEMO_INTENT_KEY = "wellbe.demoSignIn";
+const DEMO_INTENT_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Redirect to the ZITADEL login. With `demo`, the /login page this tab comes back
+ * to opens the shared demo workspace instead of asking for credentials.
+ */
+export async function beginSignIn(options: { demo?: boolean } = {}): Promise<void> {
+  if (options.demo) window.sessionStorage.setItem(DEMO_INTENT_KEY, String(Date.now()));
+  else window.sessionStorage.removeItem(DEMO_INTENT_KEY);
   await getUserManager().signinRedirect();
+}
+
+/** Whether this tab just chose "Try the demo". Consumed on read. */
+export function takeDemoSignInIntent(): boolean {
+  const at = Number(window.sessionStorage.getItem(DEMO_INTENT_KEY));
+  window.sessionStorage.removeItem(DEMO_INTENT_KEY);
+  return at > 0 && Date.now() - at < DEMO_INTENT_TTL_MS;
 }
 
 let callbackOnce: Promise<User | undefined> | null = null;

@@ -120,7 +120,8 @@
   color: var(--accent-press);
 }
 
-.option[data-variant="dev"] .optIcon {
+.option[data-variant="dev"] .optIcon,
+.option[data-variant="demo"] .optIcon {
   background: var(--neutral-soft);
   color: var(--fg2);
 }

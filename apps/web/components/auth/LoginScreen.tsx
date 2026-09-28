@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@wellbe/ui";
-import { beginSignIn } from "@/lib/oidc";
+import { beginSignIn, takeDemoSignInIntent } from "@/lib/oidc";
 import type { PasswordRules, SignInResult } from "@/lib/server/zitadel-login";
 import styles from "./EntryScreen.module.css";
 
-type Step = "credentials" | "change" | "expired";
+/** "pending": until mounted, when the tab's demo intent decides between demo and credentials. */
+type Step = "pending" | "credentials" | "change" | "demo" | "expired";
 
 const MESSAGES: Partial<Record<SignInResult["kind"] | "network", string>> = {
   invalid_credentials: "That login name and password don't match. Please try again.",
@@ -27,9 +28,12 @@ export function describeRules(rules: PasswordRules | null): string[] {
   return out;
 }
 
-async function submit(body: Record<string, string>): Promise<SignInResult | { kind: "network" }> {
+async function submit(
+  body: Record<string, string>,
+  path = "/login/submit",
+): Promise<SignInResult | { kind: "network" }> {
   try {
-    const res = await fetch("/login/submit", {
+    const res = await fetch(path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -48,7 +52,9 @@ async function submit(body: Record<string, string>): Promise<SignInResult | { ki
  * password and issues the tokens; see lib/server/zitadel-login.ts.
  */
 export function LoginScreen({ authRequestId }: { authRequestId: string | null }) {
-  const [step, setStep] = useState<Step>(authRequestId ? "credentials" : "expired");
+  const [step, setStep] = useState<Step>(authRequestId ? "pending" : "expired");
+  const [demo, setDemo] = useState(false);
+  const started = useRef(false);
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -83,6 +89,21 @@ export function LoginScreen({ authRequestId }: { authRequestId: string | null })
     setBusy(false);
   };
 
+  useEffect(() => {
+    // The intent is consumed on read, so strict mode's second run must not re-read it.
+    if (started.current || !authRequestId) return;
+    started.current = true;
+    if (!takeDemoSignInIntent()) {
+      setStep("credentials");
+      return;
+    }
+    setDemo(true);
+    setStep("demo");
+    setBusy(true);
+    void submit({ authRequestId }, "/login/demo").then(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per auth request
+  }, [authRequestId]);
+
   const onCredentials = async (e: FormEvent) => {
     e.preventDefault();
     if (busy || !authRequestId) return;
@@ -105,8 +126,9 @@ export function LoginScreen({ authRequestId }: { authRequestId: string | null })
 
   const restart = async () => {
     setBusy(true);
+    setError(null);
     try {
-      await beginSignIn();
+      await beginSignIn(demo ? { demo: true } : undefined);
     } catch {
       setError(MESSAGES.network!);
       setBusy(false);
@@ -247,6 +269,28 @@ export function LoginScreen({ authRequestId }: { authRequestId: string | null })
           </>
         )}
 
+        {step === "demo" && (
+          <>
+            <h1 className={styles.title}>{error ? "The demo didn\u2019t open" : "Opening the demo\u2026"}</h1>
+            <p className={styles.sub}>
+              Shared sample data. Anyone trying the demo sees the same workspace, so don&rsquo;t
+              add anything personal.
+            </p>
+            {error && (
+              <>
+                <p className={styles.error} role="alert">
+                  <Icon name="alert-circle" size={14} />
+                  {error}
+                </p>
+                <button type="button" className={styles.submit} onClick={restart} disabled={busy}>
+                  Try again
+                  <Icon name="arrow-right" size={18} />
+                </button>
+              </>
+            )}
+          </>
+        )}
+
         {step === "expired" && (
           <>
             <h1 className={styles.title}>Let&rsquo;s start again</h1>
@@ -260,16 +304,18 @@ export function LoginScreen({ authRequestId }: { authRequestId: string | null })
               </p>
             )}
             <button type="button" className={styles.submit} onClick={restart} disabled={busy}>
-              Sign in
+              {demo ? "Open the demo" : "Sign in"}
               <Icon name="arrow-right" size={18} />
             </button>
           </>
         )}
 
-        <p className={styles.foot}>
-          <Icon name="lock" size={13} />
-          Only you can see your data. We never sell it.
-        </p>
+        {step !== "demo" && (
+          <p className={styles.foot}>
+            <Icon name="lock" size={13} />
+            Only you can see your data. We never sell it.
+          </p>
+        )}
       </div>
     </div>
   );
