@@ -52,23 +52,21 @@ export function Launcher() {
             </span>
           </button>
         </div>
+        <button type="button" className={styles.full} onClick={goFullView}>
+          Full View <Icon name="arrow-right" size={16} />
+        </button>
+        <button
+          type="button"
+          className={styles.avatar}
+          onClick={() => setProfileOpen(true)}
+          aria-label={`Your account: ${account.name}`}
+          aria-haspopup="dialog"
+          title={account.email ?? account.name}
+        >
+          {account.initials}
+          <span className={styles.avatarDot} />
+        </button>
         <SignalsPanel />
-        <div className={styles.topright}>
-          <button type="button" className={styles.full} onClick={goFullView}>
-            Full View <Icon name="arrow-right" size={16} />
-          </button>
-          <button
-            type="button"
-            className={styles.avatar}
-            onClick={() => setProfileOpen(true)}
-            aria-label={`Your account: ${account.name}`}
-            aria-haspopup="dialog"
-            title={account.email ?? account.name}
-          >
-            {account.initials}
-            <span className={styles.avatarDot} />
-          </button>
-        </div>
       </header>
 
       <main className={styles.main}>

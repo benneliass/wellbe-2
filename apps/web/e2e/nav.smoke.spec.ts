@@ -78,6 +78,16 @@ for (const [width, height] of [
       }));
       expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
 
+      // The signals chip sits directly under Full View, right edges aligned — a
+      // named grid cell, so sibling width changes can't slide it sideways.
+      const full = (await page.getByRole("button", { name: /Full View/ }).boundingBox())!;
+      const chip = (await page.locator('button[aria-controls="launcher-signals-panel"]').boundingBox())!;
+      expect(chip.y).toBeGreaterThanOrEqual(full.y + full.height);
+      expect(chip.y - (full.y + full.height)).toBeLessThan(32);
+      expect(Math.abs(chip.x + chip.width - (full.x + full.width))).toBeLessThanOrEqual(2);
+      expect(intersects(chip, navBox)).toBe(false);
+      for (const box of targets) expect(intersects(chip, box)).toBe(false);
+
       await nav.getByRole("button", { name: "Menu" }).click();
       await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
       await expect(nav.getByRole("link", { name: "Threads" })).toBeVisible();

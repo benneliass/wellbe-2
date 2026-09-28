@@ -60,16 +60,20 @@
   z-index: 1;
 }
 
-/* Header row: wordmark | signals chip | Full View + avatar. The chip lives in
-   the header grid, so it can never overlap the centered column. */
+/* Header: wordmark on the left; Full View + avatar on the right, and the signals
+   chip on its own row directly under Full View. Every item has a named cell, so
+   the chip's position never depends on the width of its siblings: it shares the
+   Full View column (right edges aligned) and the avatar column stays empty below. */
 .top {
   z-index: 3;
   width: 100%;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "brand signals actions";
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "brand . full avatar"
+    ". . signals .";
   align-items: center;
-  column-gap: var(--sp-4);
+  column-gap: 14px;
   row-gap: var(--sp-3);
   padding: clamp(8px, 1.6vh, 20px) clamp(16px, 3vw, 36px);
 }
@@ -103,13 +107,9 @@
   font-weight: 400;
   color: var(--teal-500);
 }
-.topright {
-  grid-area: actions;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
 .full {
+  grid-area: full;
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -132,6 +132,7 @@
   box-shadow: 0 12px 28px rgba(13, 110, 109, 0.38);
 }
 .avatar {
+  grid-area: avatar;
   position: relative;
   width: 46px;
   height: 46px;
@@ -622,6 +623,14 @@
   .or {
     margin: var(--gap-xs) 0;
   }
+  /* The signals row under Full View costs height; pull it in tight. */
+  .top {
+    row-gap: 2px;
+  }
+  .signals {
+    min-height: 40px;
+    padding-block: 3px;
+  }
 }
 @supports (height: 1dvh) {
   @media (max-height: 640px) {
@@ -659,15 +668,11 @@
     padding-bottom: var(--sp-4);
   }
   .top {
-    grid-template-columns: auto auto;
     grid-template-areas:
-      "brand actions"
-      "signals signals";
-    justify-content: space-between;
+      "brand . full avatar"
+      "signals signals signals signals";
+    column-gap: 10px;
     padding: 12px 16px 4px;
-  }
-  .topright {
-    gap: 10px;
   }
   .full {
     height: 44px;
