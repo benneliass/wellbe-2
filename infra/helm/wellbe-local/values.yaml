@@ -247,6 +247,21 @@ auth:
     # instance by its external domain. Empty = discovery via `issuer`.
     jwksUrl: ""
     jwksHostHeader: ""
+    # WellBe's own sign-in screens (/login) instead of ZITADEL's hosted pages. The
+    # web server checks passwords through ZITADEL's session API with the
+    # login-client token (scripts/ops/zitadel_login_client.py). Turning it on also
+    # needs the wellbe-web app's login version set to V2 with base URI = webOrigin
+    # (ZITADEL_LOGIN_V2_BASE_URI for scripts/ops/zitadel_bootstrap.py).
+    customLogin:
+      enabled: false
+      # Public web origin; sign-in posts from any other origin are refused.
+      webOrigin: ""
+      apiUrl: "http://zitadel:8090"
+      # ZITADEL external domain, sent as x-zitadel-instance-host (default: issuer host).
+      instanceHost: ""
+      tokenSecret:
+        name: wellbe-login-client
+        key: pat
   zitadel:
     # Overrides for zitadel.externalDomain/externalPort when non-empty.
     externalDomain: ""

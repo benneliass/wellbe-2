@@ -204,6 +204,40 @@ In a browser: `https://wellbe.tail9c487a.ts.net` → Sign in → `demo` lands in
 seeded workspace; `ben` changes his password, then goes through onboarding into a
 new workspace. Sign out returns to the front door.
 
+## 7. WellBe's own sign-in screens (optional)
+
+ZITADEL's hosted pages can only be recoloured. With `auth.oidc.customLogin` the web
+app renders the sign-in itself at `/login`: ZITADEL redirects authorize requests
+to `<baseUri>/login?authRequest=V2_…`, and `/login/submit` checks the password
+and finishes the auth request server side, with a service token that never
+reaches the browser.
+
+```sh
+# Machine user wellbe-login (instance role IAM_LOGIN_CLIENT), 10-attempt lockout,
+# and a fresh token stored as the web Deployment's secret.
+cd backend && F=$(mktemp) && uv run python ../scripts/ops/zitadel_login_client.py --pat-out "$F" \
+  && kubectl -n wellbe create secret generic wellbe-login-client --from-file=pat="$F" \
+       --dry-run=client -o yaml | kubectl apply -f - ; rm -f "$F"
+```
+
+Deploy with `auth.oidc.customLogin.enabled: true` (values-homeserver.yaml) and
+wait for the web rollout, then point the app at it:
+
+```sh
+ZITADEL_LOGIN_V2_BASE_URI=https://wellbe.tail9c487a.ts.net \
+  uv run python ../scripts/ops/zitadel_bootstrap.py   # same env as step 3
+```
+
+Always pass `ZITADEL_LOGIN_V2_BASE_URI` on later bootstrap runs; without it the
+app goes back to ZITADEL's pages. Check: Sign in on the front door shows the
+WellBe card at `/login`, a wrong password says the login and password don't match,
+and a correct one lands in the workspace.
+
+To undo, re-run the bootstrap without `ZITADEL_LOGIN_V2_BASE_URI` (the web
+settings can stay; `/login` is simply never reached). A login locked by the
+lockout policy is unlocked in the ZITADEL console, or with
+`POST /v2/users/{id}/unlock`.
+
 ## Rollback
 
 Set `auth.mode: dev-headers` and `devSeed.enabled: true`, and re-bind the demo

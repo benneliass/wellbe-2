@@ -37,6 +37,22 @@ spec:
               value: {{ .Values.auth.oidc.issuer | quote }}
             - name: NEXT_PUBLIC_WELLBE_OIDC_CLIENT_ID
               value: {{ .Values.auth.oidc.webClientId | quote }}
+            {{- with .Values.auth.oidc.customLogin }}
+            {{- if .enabled }}
+            # Server-only (no NEXT_PUBLIC_ prefix): read by the /login/submit handler.
+            - name: WELLBE_WEB_ORIGIN
+              value: {{ required "auth.oidc.customLogin.webOrigin is required" .webOrigin | quote }}
+            - name: WELLBE_ZITADEL_API_URL
+              value: {{ .apiUrl | quote }}
+            - name: WELLBE_ZITADEL_INSTANCE_HOST
+              value: {{ .instanceHost | default (urlParse $.Values.auth.oidc.issuer).host | quote }}
+            - name: WELLBE_ZITADEL_LOGIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .tokenSecret.name }}
+                  key: {{ .tokenSecret.key }}
+            {{- end }}
+            {{- end }}
             {{- end }}
           readinessProbe:
             httpGet:

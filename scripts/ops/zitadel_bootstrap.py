@@ -27,6 +27,10 @@ Environment:
   DEMO_EMAIL               default demo@wellbe.invalid
   WEB_ORIGINS              comma-separated, default
                            https://wellbe.tail9c487a.ts.net,http://localhost:3000
+  ZITADEL_LOGIN_V2_BASE_URI
+                           optional: send the app's logins to WellBe's own sign-in
+                           screens (the web origin; ZITADEL appends /login). Unset
+                           = ZITADEL's built-in v1 login pages
 
 Run from the backend workspace (httpx + PyJWT):
   cd backend && uv run python ../scripts/ops/zitadel_bootstrap.py
@@ -145,7 +149,7 @@ def ensure_project(client: httpx.Client, log: list[str]) -> str:
     return project_id
 
 
-def oidc_config(origins: list[str]) -> dict[str, Any]:
+def oidc_config(origins: list[str], login_v2_base_uri: str = "") -> dict[str, Any]:
     has_http = any(o.startswith("http://") for o in origins)
     return {
         "redirectUris": [f"{o}/auth/callback" for o in origins],
@@ -162,15 +166,18 @@ def oidc_config(origins: list[str]) -> dict[str, Any]:
         "idTokenUserinfoAssertion": True,
         "clockSkew": "0s",
         "additionalOrigins": [],
-        # The chart does not run the separate Login V2 container.
-        "loginVersion": {"loginV1": {}},
+        # Login V2 is served by the web app itself (auth.oidc.customLogin), never
+        # by ZITADEL's separate login container, which the chart does not run.
+        "loginVersion": (
+            {"loginV2": {"baseUri": login_v2_base_uri}} if login_v2_base_uri else {"loginV1": {}}
+        ),
     }
 
 
 def ensure_app(
     client: httpx.Client, project_id: str, origins: list[str], log: list[str]
 ) -> tuple[str, str]:
-    config = oidc_config(origins)
+    config = oidc_config(origins, _env("ZITADEL_LOGIN_V2_BASE_URI").rstrip("/"))
     found = _call(
         client,
         "POST",

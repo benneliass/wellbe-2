@@ -77,9 +77,7 @@ def main() -> int:
     if not url or not pat:
         print("ZITADEL_URL and ZITADEL_PAT are required", file=sys.stderr)
         return 2
-    client = httpx.Client(
-        base_url=url, headers={"Authorization": f"Bearer {pat}"}, timeout=30
-    )
+    client = httpx.Client(base_url=url, headers={"Authorization": f"Bearer {pat}"}, timeout=30)
 
     def check(resp: httpx.Response, what: str) -> None:
         if resp.status_code == 400 and "has not been changed" in resp.text:

@@ -184,6 +184,10 @@ auth:
     webClientId: "392740358343164230"
     jwksUrl: "http://zitadel:8090/oauth/v2/keys"
     jwksHostHeader: "wellbe-auth.tail9c487a.ts.net"
+    customLogin:
+      enabled: true
+      webOrigin: "https://wellbe.tail9c487a.ts.net"
+      instanceHost: "wellbe-auth.tail9c487a.ts.net"
   zitadel:
     externalDomain: wellbe-auth.tail9c487a.ts.net
     externalPort: "443"
