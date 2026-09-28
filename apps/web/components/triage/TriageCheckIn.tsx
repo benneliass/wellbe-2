@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
+import type { components } from "@wellbe/api-client";
 import { queryKeys } from "@wellbe/api-client/react-query";
 import { Button, Icon } from "@wellbe/ui";
 import { getApiClient } from "@/lib/api";
@@ -81,14 +82,117 @@ function suggestTitle(what: string): string {
   return t.length > TITLE_MAX ? `${t.slice(0, TITLE_MAX - 1).trimEnd()}…` : t;
 }
 
+type Evaluation = components["schemas"]["TriageEvaluateResponseV2"];
+/** "unavailable": the warning-sign check could not run; saving still goes ahead. */
+type Check = Evaluation | "unavailable";
+
+/** Urgent treatment only when the Safety Gate itself returned route_urgent. */
+function isUrgent(check: Check | null): check is Evaluation {
+  return (
+    check !== null &&
+    check !== "unavailable" &&
+    check.route === "route_urgent" &&
+    check.safety_gate_decision === "route_urgent"
+  );
+}
+
+function toRequest(a: Answers): components["schemas"]["TriageEvaluateRequestV2"] {
+  return {
+    schema_version: "c13.triage.evaluate.request.v2",
+    answers: {
+      what: a.what.trim(),
+      change: a.change.trim(),
+      onset: a.onset,
+      onset_note: a.onsetNote.trim(),
+      impact: a.impact,
+      impact_note: a.impactNote.trim(),
+      worry: a.worry.trim(),
+    },
+  };
+}
+
 function Backstop() {
   return (
     <aside className={styles.backstop} aria-label="If you need help now">
       <Icon name="info" size={18} />
       <p>
-        This check-in doesn&apos;t judge how urgent something is. If it feels severe or concerning,
-        contact a clinician. If you think it&apos;s an emergency, call your local emergency number.
+        When you save, WellBe checks your words for a short list of warning signs. That list
+        isn&apos;t complete, and it isn&apos;t a diagnosis. If it feels severe or concerning, contact
+        a clinician. If you think it&apos;s an emergency, call your local emergency number.
       </p>
+    </aside>
+  );
+}
+
+function UrgentGuidance({
+  evaluation,
+  headingId,
+  headingRef,
+  onSaveAnyway,
+  onBack,
+  saving,
+}: {
+  evaluation: Evaluation;
+  headingId: string;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  onSaveAnyway: () => void;
+  onBack: () => void;
+  saving: boolean;
+}) {
+  const g = evaluation.guidance;
+  return (
+    <section className={styles.urgent} aria-labelledby={headingId} data-state="urgent">
+      <h2 id={headingId} ref={headingRef} tabIndex={-1} className={styles.question}>
+        <Icon name="heart-pulse" size={22} />
+        {g.headline}
+      </h2>
+      <p className={styles.urgentAction}>{g.action}</p>
+      {g.emergency_number && (
+        <a href={`tel:${g.emergency_number}`} className={styles.callLink}>
+          Call {g.emergency_number}
+        </a>
+      )}
+      {evaluation.crisis_support && g.crisis_line && (
+        <p className={styles.body}>You can also reach {g.crisis_line}.</p>
+      )}
+      <p className={styles.body}>{g.rationale}</p>
+      <p className={styles.body}>{g.backstop}</p>
+      <div className={styles.row}>
+        <Button variant="secondary" onClick={onSaveAnyway} disabled={saving}>
+          {saving ? "Saving…" : "Save my check-in anyway"}
+        </Button>
+        <Button variant="tertiary" icon="arrow-left" onClick={onBack} disabled={saving}>
+          Back to my answers
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function AfterSaveGuidance({ check }: { check: Check }) {
+  if (check === "unavailable") {
+    return (
+      <aside className={styles.attention} aria-label="About warning signs" data-state="needs_attention">
+        <Icon name="info" size={18} />
+        <p>
+          WellBe couldn&apos;t check your words for warning signs just now. If it feels severe or
+          concerning, contact a clinician. If you think it&apos;s an emergency, call your local
+          emergency number.
+        </p>
+      </aside>
+    );
+  }
+  if (check.route !== "route_soon") return null;
+  const g = check.guidance;
+  return (
+    <aside className={styles.attention} aria-label={g.headline} data-state="needs_attention">
+      <Icon name="info" size={18} />
+      <div>
+        <p className={styles.attentionHeadline}>{g.headline}</p>
+        <p>{g.action}</p>
+        <p>{g.rationale}</p>
+        <p>{g.backstop}</p>
+      </div>
     </aside>
   );
 }
@@ -105,6 +209,8 @@ export function TriageCheckIn() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ threadId?: string; threadTitle?: string } | null>(null);
+  const [check, setCheck] = useState<Check | null>(null);
+  const [showUrgent, setShowUrgent] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -117,7 +223,7 @@ export function TriageCheckIn() {
       return;
     }
     headingRef.current?.focus();
-  }, [step, done]);
+  }, [step, done, showUrgent]);
 
   const threadList = threads.data ?? [];
   const effectiveTitle = titleTouched ? title : suggestTitle(answers.what);
@@ -125,6 +231,8 @@ export function TriageCheckIn() {
   function set<K extends keyof Answers>(key: K, value: Answers[K]) {
     setAnswers((prev) => ({ ...prev, [key]: value }));
     setError(null);
+    setCheck(null);
+    setShowUrgent(false);
   }
 
   function next() {
@@ -150,11 +258,25 @@ export function TriageCheckIn() {
     setExistingId("");
     setError(null);
     setDone(null);
+    setCheck(null);
+    setShowUrgent(false);
     idempotencyKeyRef.current = null;
     createdThreadRef.current = null;
   }
 
-  async function submit() {
+  async function evaluate(): Promise<Check> {
+    try {
+      const { data, error: apiError } = await getApiClient().POST("/v2/triage/evaluate", {
+        body: toRequest(answers),
+      });
+      if (apiError || !data) return "unavailable";
+      return data;
+    } catch {
+      return "unavailable";
+    }
+  }
+
+  async function submit({ acknowledgedUrgent = false }: { acknowledgedUrgent?: boolean } = {}) {
     if (destination === "new" && !effectiveTitle.trim()) {
       setError("Give the new thread a short name first.");
       return;
@@ -165,6 +287,16 @@ export function TriageCheckIn() {
     }
     setError(null);
     setSubmitting(true);
+    let evaluation = check;
+    if (evaluation === null) {
+      evaluation = await evaluate();
+      setCheck(evaluation);
+    }
+    if (isUrgent(evaluation) && !acknowledgedUrgent) {
+      setShowUrgent(true);
+      setSubmitting(false);
+      return;
+    }
     const api = getApiClient();
     try {
       let thread: { id: string; title: string } | undefined;
@@ -196,6 +328,7 @@ export function TriageCheckIn() {
       if (apiError || !data) throw new Error("capture");
 
       idempotencyKeyRef.current = null;
+      setShowUrgent(false);
       void queryClient.invalidateQueries({ queryKey: queryKeys.threads });
       setDone({ threadId: thread?.id, threadTitle: thread?.title });
     } catch {
@@ -237,7 +370,29 @@ export function TriageCheckIn() {
             </Button>
           </div>
         </section>
+        {check && !isUrgent(check) && <AfterSaveGuidance check={check} />}
         <Backstop />
+      </div>
+    );
+  }
+
+  if (showUrgent && isUrgent(check)) {
+    return (
+      <div className={styles.wrap}>
+        <UrgentGuidance
+          evaluation={check}
+          headingId={`${formId}-urgent`}
+          headingRef={headingRef}
+          saving={submitting}
+          onSaveAnyway={() => void submit({ acknowledgedUrgent: true })}
+          onBack={() => setShowUrgent(false)}
+        />
+        {error && (
+          <p className={styles.error} role="alert">
+            <Icon name="alert-circle" size={16} />
+            {error}
+          </p>
+        )}
       </div>
     );
   }

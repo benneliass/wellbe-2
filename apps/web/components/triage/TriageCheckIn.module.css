@@ -297,3 +297,74 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* Red is reserved for C10-approved route_urgent guidance (health-adaptive-safety-language.md). */
+.urgent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--state-urgent);
+  border-radius: var(--r-xl);
+  background: var(--state-urgent-tint);
+  color: var(--fg1);
+}
+
+.urgent .question > svg {
+  color: var(--state-urgent-fg);
+}
+
+.urgentAction {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--state-urgent-fg);
+}
+
+.callLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: var(--r-lg);
+  background: var(--state-urgent);
+  color: #fff;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.callLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.attention {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  background: var(--state-needs-attention-tint);
+  color: var(--state-needs-attention-fg);
+}
+
+.attention > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.attention p {
+  margin: 0;
+}
+
+.attention div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attentionHeadline {
+  font-weight: 650;
+}
