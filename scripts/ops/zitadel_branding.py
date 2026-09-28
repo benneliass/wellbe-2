@@ -77,7 +77,9 @@ def main() -> int:
     if not url or not pat:
         print("ZITADEL_URL and ZITADEL_PAT are required", file=sys.stderr)
         return 2
-    client = httpx.Client(base_url=url, headers={"Authorization": f"Bearer {pat}"}, timeout=30)
+    client = httpx.Client(
+        base_url=url, headers={"Authorization": f"Bearer {pat}"}, timeout=30
+    )
 
     def check(resp: httpx.Response, what: str) -> None:
         if resp.status_code >= 300:
@@ -91,7 +93,10 @@ def main() -> int:
     for kind in ("logo", "icon"):
         with LOGO.open("rb") as f:
             check(
-                client.post(f"/assets/v1/instance/policy/label/{kind}", files={"file": (LOGO.name, f, "image/png")}),
+                client.post(
+                    f"/assets/v1/instance/policy/label/{kind}",
+                    files={"file": (LOGO.name, f, "image/png")},
+                ),
                 f"upload {kind}",
             )
     with FONT.open("rb") as f:
