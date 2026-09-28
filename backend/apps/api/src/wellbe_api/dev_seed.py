@@ -354,7 +354,12 @@ async def _walk_thread(
 async def _act_on_candidates(
     client: httpx.AsyncClient, patient_id: str, candidates: list[dict[str, Any]]
 ) -> dict[str, str]:
-    """Execute the CANDIDATE_PLAN; return {keyword: thread_id} for confirmations."""
+    """Execute the CANDIDATE_PLAN; return {keyword: thread_id} for confirmations.
+
+    ``candidates`` is a snapshot, so each candidate is claimed by the first rule that
+    matches it: a later, broader keyword ("pain") must not re-act on a candidate an
+    earlier rule ("knee") already confirmed, which the API rejects with 409.
+    """
     confirmed: dict[str, str] = {}
     for rule in CANDIDATE_PLAN:
         keyword = str(rule["match"])
@@ -364,6 +369,7 @@ async def _act_on_candidates(
             continue
         cid = candidate["candidate_id"]
         action = rule["action"]
+        candidate["status"] = "claimed_by_seed"
         if action == "confirm":
             resp = await client.post(
                 f"/v1/things-noticed/{cid}/confirm", headers=_headers(patient_id)
