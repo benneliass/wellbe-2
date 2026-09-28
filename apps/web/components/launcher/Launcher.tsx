@@ -6,6 +6,7 @@ import { Icon } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
+import { useRootNav } from "@/components/shell/RootFrame";
 import { ContinuityStrip } from "./ContinuityStrip";
 import { SignalsPanel } from "./SignalsPanel";
 import { LAUNCH_ACTIONS, type LaunchAction } from "@/lib/meta";
@@ -14,6 +15,7 @@ import styles from "./Launcher.module.css";
 /** The calm front door. "Full View" and most actions lead into the workspace. */
 export function Launcher() {
   const router = useRouter();
+  const rootNav = useRootNav();
   const [captureOpen, setCaptureOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -40,11 +42,14 @@ export function Launcher() {
       <div className={styles.bg} aria-hidden="true" />
 
       <header className={styles.top}>
-        <button type="button" className={styles.brand} onClick={goFullView} aria-label="WellBe">
-          <span className={styles.wordmark}>
-            Well<b>Be</b>
-          </span>
-        </button>
+        <div className={styles.lead}>
+          {rootNav}
+          <button type="button" className={styles.brand} onClick={goFullView} aria-label="WellBe">
+            <span className={styles.wordmark}>
+              Well<b>Be</b>
+            </span>
+          </button>
+        </div>
         <SignalsPanel />
         <div className={styles.topright}>
           <button type="button" className={styles.full} onClick={goFullView}>

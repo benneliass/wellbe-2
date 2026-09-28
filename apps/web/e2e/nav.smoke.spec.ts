@@ -33,8 +33,67 @@ for (const item of NAV) {
   });
 }
 
+type Box = { x: number; y: number; width: number; height: number };
+const intersects = (a: Box, b: Box) =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+/**
+ * Launcher (`/`) primary nav: a compact Menu beside the wordmark until the
+ * vertical dock fits beside the six fixed-width pills, then the dock. Neither
+ * form may sit over the pills, the Ask bar or the continuity strip.
+ */
+for (const [width, height, form] of [
+  [1024, 583, "compact"],
+  [1440, 900, "dock"],
+] as const) {
+  test.describe(`launcher nav at ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test(`shows the ${form} nav clear of the launcher column`, async ({ page }) => {
+      await page.goto("/");
+      const ask = page.locator("form").filter({ has: page.getByLabel("Ask WellBe") });
+      await expect(ask).toBeVisible();
+      const nav = page.getByRole("navigation", { name: "Primary" });
+      await expect(nav).toHaveCount(1);
+      await expect(nav.getByRole("button", { name: "Menu" })).toBeVisible({ visible: form === "compact" });
+
+      const navBox = (await nav.boundingBox())!;
+      const pills = await page.locator("main main button[class*='pill']").all();
+      expect(pills).toHaveLength(6);
+      const targets: Box[] = [];
+      for (const pill of pills) {
+        const box = (await pill.boundingBox())!;
+        expect(box.width).toBe(148);
+        targets.push(box);
+      }
+      const askBox = (await ask.boundingBox())!;
+      const stripBox = (await page.locator("main main [class*='continuity']").first().boundingBox())!;
+      targets.push(askBox, stripBox);
+      for (const box of targets) expect(intersects(navBox, box)).toBe(false);
+      expect(stripBox.y + stripBox.height).toBeLessThanOrEqual(height);
+
+      const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        innerWidth: window.innerWidth,
+      }));
+      expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
+
+      if (form === "compact") await nav.getByRole("button", { name: "Menu" }).click();
+      await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+      await expect(nav.getByRole("link", { name: "Threads" })).toBeVisible();
+    });
+  });
+}
+
 test.describe("mobile bottom nav", () => {
   test.use({ viewport: { width: 390, height: 844 } });
+
+  test("the launcher scrolls in a frame that ends above the bar", async ({ page }) => {
+    await page.goto("/");
+    const bar = (await page.getByRole("navigation", { name: "Primary" }).boundingBox())!;
+    const frame = (await page.locator("#main").boundingBox())!;
+    expect(frame.y + frame.height).toBeLessThanOrEqual(bar.y);
+  });
 
   test("shows the five destinations and routes Packets to /prepare", async ({ page }) => {
     await page.goto("/workspace");

@@ -2,9 +2,197 @@
   /* The launcher is a fixed-height canvas; scroll it inside a frame that stops
      above the fixed bottom nav so nothing hides behind it. */
   .withNav {
-    height: 100vh;
-    height: 100dvh;
+    /* 1px: the bar's top border. */
+    --wb-bottom-nav-space: calc(var(--wb-bottom-nav-h) + 1px + env(safe-area-inset-bottom));
+    height: calc(100vh - var(--wb-bottom-nav-space));
+    height: calc(100dvh - var(--wb-bottom-nav-space));
     overflow-y: auto;
-    padding-bottom: calc(var(--wb-bottom-nav-h) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Desktop primary nav. Mobile uses the BottomNav bar instead. */
+.nav {
+  display: none;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  border-radius: var(--r-md);
+  color: var(--fg2);
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: color var(--wb-motion-fast) var(--wb-ease), background var(--wb-motion-fast) var(--wb-ease);
+}
+
+.item:hover {
+  color: var(--fg1);
+}
+
+.item:focus-visible,
+.menuBtn:focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 2px;
+}
+
+.item[aria-current="page"] {
+  color: var(--teal-600);
+}
+
+.icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  transition: background var(--wb-motion-fast) var(--wb-ease);
+}
+
+.item[aria-current="page"] .icon {
+  background: var(--accent-soft);
+}
+
+.item[data-capture="true"] .icon {
+  background: var(--accent);
+  color: var(--fg-on-accent);
+}
+
+.label {
+  white-space: nowrap;
+}
+
+/* Compact form (768–1279px, or short screens): a "Menu" pill beside the
+   wordmark, opening the destinations in a panel under it. */
+@media (min-width: 768px) {
+  .nav {
+    display: block;
+    position: relative;
+  }
+
+  .menuBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 14px 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(10px);
+    color: var(--fg1);
+    font-family: inherit;
+    font-size: var(--wb-text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background var(--wb-motion-fast) var(--wb-ease);
+  }
+
+  .menuBtn:hover,
+  .nav[data-open] .menuBtn {
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 200px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--r-2xl);
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .nav[data-open] .list {
+    display: flex;
+  }
+
+  .item {
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px 0 0;
+    font-size: var(--wb-text-sm);
+  }
+
+  .item:hover {
+    background: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Full vertical dock once it fits beside the 6-pill row: dock (24px offset +
+   90px) + 16px breathing room on both sides of the 988px row = 1248px. The
+   launcher column is inset by the same amount so the dock never sits over it. */
+@media (min-width: 1280px) and (min-height: 540px) {
+  .withNav {
+    --wb-launch-dock-inset: 130px;
+  }
+
+  .nav {
+    position: fixed;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--r-2xl);
+    box-shadow: var(--shadow-md);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+  }
+
+  .menuBtn {
+    display: none;
+  }
+
+  .list,
+  .nav[data-open] .list {
+    position: static;
+    display: grid;
+    grid-template-columns: 72px;
+    grid-auto-rows: 60px;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 0;
+    padding: 6px 2px;
+    font-size: var(--text-2xs);
+  }
+
+  .item:hover {
+    background: none;
   }
 }
