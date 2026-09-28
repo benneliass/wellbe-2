@@ -26,6 +26,7 @@ from typing import Annotated, Any
 import httpx
 from fastapi import APIRouter, Header
 from pydantic import BaseModel, Field
+from wellbe_contracts.c3_ingestion import sanitize_display_filename
 from wellbe_contracts.c13_api import ProblemCode
 
 from wellbe_api.config import ApiSettings
@@ -234,6 +235,9 @@ def _build_ingest(
         metadata["original_filename_hash"] = hashlib.sha256(
             filename.encode("utf-8")
         ).hexdigest()
+        display_name = sanitize_display_filename(filename)
+        if display_name:
+            metadata["original_filename"] = display_name
     return "pdf", raw, metadata
 
 

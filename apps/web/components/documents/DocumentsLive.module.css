@@ -153,7 +153,8 @@
   color: var(--wb-state-stable-fg);
 }
 
-.status[data-status="could_not_read"] {
+.status[data-status="needs_ocr"],
+.status[data-status="failed"] {
   background: var(--wb-state-watch-tint);
   color: var(--wb-state-watch-fg);
 }

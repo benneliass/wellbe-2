@@ -5,6 +5,7 @@ from wellbe_contracts.c3_ingestion import (
     AdapterProvenance,
     NormalizedPayload,
     ValidationResult,
+    sanitize_display_filename,
 )
 
 from wellbe_c3_ingestion.protocol import BaseAdapter
@@ -49,7 +50,8 @@ class DocumentAdapter(BaseAdapter):
     async def metadata(
         self, raw_input: AdapterInput, payload: NormalizedPayload
     ) -> AdapterProvenance:
-        meta = raw_input.metadata or {}
+        meta = dict(raw_input.metadata or {})
+        original_filename = sanitize_display_filename(meta.pop("original_filename", None))
         return AdapterProvenance(
             source_type=self.source_type,
             captured_at=raw_input.captured_at,
@@ -57,5 +59,6 @@ class DocumentAdapter(BaseAdapter):
             adapter_version=self.adapter_version,
             mime_type=payload.mime_type,
             original_filename_hash=meta.get("original_filename_hash"),
-            source_metadata=raw_input.metadata,
+            original_filename=original_filename,
+            source_metadata=meta if raw_input.metadata is not None else None,
         )

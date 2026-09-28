@@ -918,7 +918,20 @@
         "title": "DeltaSourceRef",
         "type": "object"
       },
+      "DocumentProcessingStatus": {
+        "description": "Stored lifecycle of one document capture (processing.document_processing_status).\n\nreceived -> processing -> processed | needs_ocr | failed. ``failed`` is retried by\nthe outbox; ``needs_ocr`` means no readable text could be recovered.",
+        "enum": [
+          "received",
+          "processing",
+          "processed",
+          "needs_ocr",
+          "failed"
+        ],
+        "title": "DocumentProcessingStatus",
+        "type": "string"
+      },
       "DocumentStatus": {
+        "description": "Legacy coarse state, kept for older clients; derived from ``processing_status``.",
         "enum": [
           "processed",
           "waiting",
@@ -958,6 +971,20 @@
             "title": "Mime Type",
             "type": "string"
           },
+          "original_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Filename"
+          },
+          "processing_status": {
+            "$ref": "#/components/schemas/DocumentProcessingStatus"
+          },
           "result_count": {
             "default": 0,
             "title": "Result Count",
@@ -986,6 +1013,7 @@
           "mime_type",
           "added_at",
           "status",
+          "processing_status",
           "status_label",
           "status_detail"
         ],
@@ -3707,6 +3735,320 @@
           "reason_code"
         ],
         "title": "TransitionInvestigationRequest",
+        "type": "object"
+      },
+      "TriageAnswersV2": {
+        "description": "The check-in answers, in the user's own words (web /triage steps).",
+        "properties": {
+          "change": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Change",
+            "type": "string"
+          },
+          "impact": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Impact",
+            "type": "string"
+          },
+          "impact_note": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Impact Note",
+            "type": "string"
+          },
+          "onset": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Onset",
+            "type": "string"
+          },
+          "onset_note": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Onset Note",
+            "type": "string"
+          },
+          "what": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "What",
+            "type": "string"
+          },
+          "worry": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Worry",
+            "type": "string"
+          }
+        },
+        "required": [
+          "what"
+        ],
+        "title": "TriageAnswersV2",
+        "type": "object"
+      },
+      "TriageContextV2": {
+        "properties": {
+          "pregnant_or_postpartum": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pregnant Or Postpartum"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 2,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "title": "TriageContextV2",
+        "type": "object"
+      },
+      "TriageEvaluateRequestV2": {
+        "properties": {
+          "answers": {
+            "$ref": "#/components/schemas/TriageAnswersV2"
+          },
+          "context": {
+            "$ref": "#/components/schemas/TriageContextV2"
+          },
+          "schema_version": {
+            "const": "c13.triage.evaluate.request.v2",
+            "default": "c13.triage.evaluate.request.v2",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "title": "TriageEvaluateRequestV2",
+        "type": "object"
+      },
+      "TriageEvaluateResponseV2": {
+        "properties": {
+          "clinical_review_status": {
+            "enum": [
+              "pending_clinical_review",
+              "clinically_reviewed"
+            ],
+            "title": "Clinical Review Status",
+            "type": "string"
+          },
+          "crisis_support": {
+            "default": false,
+            "title": "Crisis Support",
+            "type": "boolean"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "evaluation_id": {
+            "title": "Evaluation Id",
+            "type": "string"
+          },
+          "guidance": {
+            "$ref": "#/components/schemas/TriageGuidanceV2"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "type": "string"
+          },
+          "matched_rules": {
+            "items": {
+              "$ref": "#/components/schemas/TriageMatchedRuleV2"
+            },
+            "title": "Matched Rules",
+            "type": "array"
+          },
+          "not_diagnosis": {
+            "default": true,
+            "title": "Not Diagnosis",
+            "type": "boolean"
+          },
+          "route": {
+            "$ref": "#/components/schemas/TriageRoute"
+          },
+          "ruleset_version": {
+            "title": "Ruleset Version",
+            "type": "string"
+          },
+          "safety_gate_decision": {
+            "enum": [
+              "route_urgent",
+              "allow_with_obligations"
+            ],
+            "title": "Safety Gate Decision",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "c13.triage.evaluate.v2",
+            "default": "c13.triage.evaluate.v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TriageSourceV2"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "evaluation_id",
+          "evaluated_at",
+          "route",
+          "safety_gate_decision",
+          "guidance",
+          "jurisdiction",
+          "ruleset_version",
+          "clinical_review_status"
+        ],
+        "title": "TriageEvaluateResponseV2",
+        "type": "object"
+      },
+      "TriageGuidanceV2": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "backstop": {
+            "title": "Backstop",
+            "type": "string"
+          },
+          "crisis_line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crisis Line"
+          },
+          "emergency_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emergency Number"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "headline",
+          "action",
+          "rationale",
+          "backstop"
+        ],
+        "title": "TriageGuidanceV2",
+        "type": "object"
+      },
+      "TriageMatchedRuleV2": {
+        "properties": {
+          "answer_field": {
+            "title": "Answer Field",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "route": {
+            "$ref": "#/components/schemas/TriageRoute"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rule_id",
+          "route",
+          "label",
+          "answer_field"
+        ],
+        "title": "TriageMatchedRuleV2",
+        "type": "object"
+      },
+      "TriageRoute": {
+        "enum": [
+          "route_routine",
+          "route_soon",
+          "route_urgent"
+        ],
+        "title": "TriageRoute",
+        "type": "string"
+      },
+      "TriageSourceV2": {
+        "properties": {
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "publisher",
+          "title",
+          "url"
+        ],
+        "title": "TriageSourceV2",
         "type": "object"
       },
       "UpdatePacketRequest": {
@@ -8351,6 +8693,123 @@
         "summary": "Thread Timeline",
         "tags": [
           "v2-thread-timeline"
+        ]
+      }
+    },
+    "/v2/triage/evaluate": {
+      "post": {
+        "operationId": "evaluate_check_in_v2_triage_evaluate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageEvaluateRequestV2"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriageEvaluateResponseV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Check In",
+        "tags": [
+          "v2-triage"
         ]
       }
     },

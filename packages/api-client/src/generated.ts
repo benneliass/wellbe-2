@@ -798,6 +798,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/triage/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Evaluate Check In */
+        post: operations["evaluate_check_in_v2_triage_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/visit-packets": {
         parameters: {
             query?: never;
@@ -1401,7 +1418,17 @@ export interface components {
             source_id: string;
         };
         /**
+         * DocumentProcessingStatus
+         * @description Stored lifecycle of one document capture (processing.document_processing_status).
+         *
+         *     received -> processing -> processed | needs_ocr | failed. ``failed`` is retried by
+         *     the outbox; ``needs_ocr`` means no readable text could be recovered.
+         * @enum {string}
+         */
+        DocumentProcessingStatus: "received" | "processing" | "processed" | "needs_ocr" | "failed";
+        /**
          * DocumentStatus
+         * @description Legacy coarse state, kept for older clients; derived from ``processing_status``.
          * @enum {string}
          */
         DocumentStatus: "processed" | "waiting" | "could_not_read";
@@ -1425,6 +1452,9 @@ export interface components {
             extracted_total: number;
             /** Mime Type */
             mime_type: string;
+            /** Original Filename */
+            original_filename?: string | null;
+            processing_status: components["schemas"]["DocumentProcessingStatus"];
             /**
              * Result Count
              * @default 0
@@ -2860,6 +2890,153 @@ export interface components {
             /** Reason Code */
             reason_code: string;
             target_status: components["schemas"]["HealthThreadStatus"];
+        };
+        /**
+         * TriageAnswersV2
+         * @description The check-in answers, in the user's own words (web /triage steps).
+         */
+        TriageAnswersV2: {
+            /**
+             * Change
+             * @default
+             */
+            change: string;
+            /**
+             * Impact
+             * @default
+             */
+            impact: string;
+            /**
+             * Impact Note
+             * @default
+             */
+            impact_note: string;
+            /**
+             * Onset
+             * @default
+             */
+            onset: string;
+            /**
+             * Onset Note
+             * @default
+             */
+            onset_note: string;
+            /** What */
+            what: string;
+            /**
+             * Worry
+             * @default
+             */
+            worry: string;
+        };
+        /** TriageContextV2 */
+        TriageContextV2: {
+            /** Pregnant Or Postpartum */
+            pregnant_or_postpartum?: boolean | null;
+            /** Region */
+            region?: string | null;
+        };
+        /** TriageEvaluateRequestV2 */
+        TriageEvaluateRequestV2: {
+            answers: components["schemas"]["TriageAnswersV2"];
+            context?: components["schemas"]["TriageContextV2"];
+            /**
+             * Schema Version
+             * @default c13.triage.evaluate.request.v2
+             * @constant
+             */
+            schema_version: "c13.triage.evaluate.request.v2";
+        };
+        /** TriageEvaluateResponseV2 */
+        TriageEvaluateResponseV2: {
+            /**
+             * Clinical Review Status
+             * @enum {string}
+             */
+            clinical_review_status: "pending_clinical_review" | "clinically_reviewed";
+            /**
+             * Crisis Support
+             * @default false
+             */
+            crisis_support: boolean;
+            /**
+             * Evaluated At
+             * Format: date-time
+             */
+            evaluated_at: string;
+            /** Evaluation Id */
+            evaluation_id: string;
+            guidance: components["schemas"]["TriageGuidanceV2"];
+            /** Jurisdiction */
+            jurisdiction: string;
+            /** Matched Rules */
+            matched_rules?: components["schemas"]["TriageMatchedRuleV2"][];
+            /**
+             * Not Diagnosis
+             * @default true
+             */
+            not_diagnosis: boolean;
+            route: components["schemas"]["TriageRoute"];
+            /** Ruleset Version */
+            ruleset_version: string;
+            /**
+             * Safety Gate Decision
+             * @enum {string}
+             */
+            safety_gate_decision: "route_urgent" | "allow_with_obligations";
+            /**
+             * Schema Version
+             * @default c13.triage.evaluate.v2
+             * @constant
+             */
+            schema_version: "c13.triage.evaluate.v2";
+            /** Sources */
+            sources?: components["schemas"]["TriageSourceV2"][];
+        };
+        /** TriageGuidanceV2 */
+        TriageGuidanceV2: {
+            /** Action */
+            action: string;
+            /** Backstop */
+            backstop: string;
+            /** Crisis Line */
+            crisis_line?: string | null;
+            /** Emergency Number */
+            emergency_number?: string | null;
+            /** Headline */
+            headline: string;
+            /** Rationale */
+            rationale: string;
+            /** Template Id */
+            template_id: string;
+        };
+        /** TriageMatchedRuleV2 */
+        TriageMatchedRuleV2: {
+            /** Answer Field */
+            answer_field: string;
+            /** Label */
+            label: string;
+            route: components["schemas"]["TriageRoute"];
+            /** Rule Id */
+            rule_id: string;
+            /** Source Ids */
+            source_ids?: string[];
+        };
+        /**
+         * TriageRoute
+         * @enum {string}
+         */
+        TriageRoute: "route_routine" | "route_soon" | "route_urgent";
+        /** TriageSourceV2 */
+        TriageSourceV2: {
+            /** Publisher */
+            publisher: string;
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
         };
         /** UpdatePacketRequest */
         UpdatePacketRequest: {
@@ -4939,6 +5116,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadTimelineV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_check_in_v2_triage_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TriageEvaluateRequestV2"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageEvaluateResponseV2"];
                 };
             };
             /** @description Validation Error */

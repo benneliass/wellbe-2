@@ -10,16 +10,20 @@ the source printed it. Anything that cannot be compared literally is
 ``not_compared``. There is no normality verdict and no diagnostic copy; a
 source-provided flag stays source metadata and is not surfaced here.
 
-Documents list uploaded PDFs/photos with a plain-words processing state. There
-is no persisted per-document processing status yet, so the state is derived:
+Documents list uploaded PDFs/photos with a plain-words processing state read
+from ``processing.document_processing_status`` (migration 027: received /
+processing / processed / needs_ocr / failed, written by the vault writer and
+the processing worker). Any extracted fact means ``processed`` whatever the
+stored row says (a retry may have succeeded after a failed status write).
+Captures with no stored row fall back to the original derivation:
 
-- any extracted fact for the capture  -> ``processed``
-- none yet, added within the grace window -> ``waiting``
-- none after the grace window -> ``could_not_read`` (e.g. image-only documents
-  while OCR is not deployed). The original stays stored in the Vault.
+- none yet, added within the grace window -> ``received``
+- none after the grace window -> ``needs_ocr``. The original stays in the Vault.
 
 The free-text extractor always emits at least a fallback fact for any readable
-text, so "no facts after the window" reliably means "no readable text".
+text, so "no facts after the window" reliably means "no readable text". The
+legacy coarse ``status`` (processed / waiting / could_not_read) is derived from
+the stored one for older clients.
 """
 
 from __future__ import annotations
@@ -35,11 +39,13 @@ from typing import Any
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c2_vault.models import RawContextEventRow
-from wellbe_c4_processing.models import ExtractedFactRow
+from wellbe_c4_processing.models import DocumentProcessingStatusRow, ExtractedFactRow
 from wellbe_c6_graph.models import KgNodeRow
 from wellbe_c7_thread.models import HealthThreadRow
+from wellbe_contracts.c3_ingestion import sanitize_display_filename
 from wellbe_contracts.records import (
     AnalyteResultV2,
+    DocumentProcessingStatus,
     DocumentsResponseV2,
     DocumentStatus,
     DocumentV2,
@@ -299,38 +305,103 @@ def _count_label(kind: str, count: int) -> str:
     return singular if count == 1 else plural
 
 
-def document_status(
-    *, added_at: datetime, extracted_total: int, now: datetime
-) -> tuple[DocumentStatus, str, str]:
+_LEGACY_STATUS = {
+    DocumentProcessingStatus.RECEIVED: DocumentStatus.WAITING,
+    DocumentProcessingStatus.PROCESSING: DocumentStatus.WAITING,
+    DocumentProcessingStatus.PROCESSED: DocumentStatus.PROCESSED,
+    DocumentProcessingStatus.NEEDS_OCR: DocumentStatus.COULD_NOT_READ,
+    DocumentProcessingStatus.FAILED: DocumentStatus.COULD_NOT_READ,
+}
+_STILL_STORED = "The original is still safely stored"
+
+
+def resolve_processing_status(
+    *,
+    stored: str | None,
+    added_at: datetime,
+    extracted_total: int,
+    now: datetime,
+) -> DocumentProcessingStatus:
     if extracted_total > 0:
-        noun = "thing" if extracted_total == 1 else "things"
-        return (
-            DocumentStatus.PROCESSED,
-            "Processed",
-            f"WellBe read this and found {extracted_total} {noun} to keep.",
-        )
+        return DocumentProcessingStatus.PROCESSED
+    if stored is not None:
+        try:
+            return DocumentProcessingStatus(stored)
+        except ValueError:
+            pass
     if now - _as_utc(added_at) < PROCESSING_GRACE:
-        return (
-            DocumentStatus.WAITING,
-            "Waiting to be read",
-            "WellBe hasn't finished reading this yet. It usually takes a few minutes.",
-        )
-    return (
-        DocumentStatus.COULD_NOT_READ,
-        "Could not be read",
-        "WellBe couldn't find readable text in this document. The original is "
-        "still safely stored, and you can type in anything important.",
+        return DocumentProcessingStatus.RECEIVED
+    return DocumentProcessingStatus.NEEDS_OCR
+
+
+def document_status(
+    *,
+    added_at: datetime,
+    extracted_total: int,
+    now: datetime,
+    stored: str | None = None,
+    stored_detail: str | None = None,
+) -> tuple[DocumentProcessingStatus, DocumentStatus, str, str]:
+    """(stored-lifecycle status, legacy status, label, plain-words detail)."""
+    status = resolve_processing_status(
+        stored=stored, added_at=added_at, extracted_total=extracted_total, now=now
     )
+    legacy = _LEGACY_STATUS[status]
+    if status is DocumentProcessingStatus.PROCESSED:
+        if extracted_total > 0:
+            noun = "thing" if extracted_total == 1 else "things"
+            detail = f"WellBe read this and found {extracted_total} {noun} to keep."
+        else:
+            detail = f"WellBe read this but didn't find anything to keep. {_STILL_STORED}."
+        return status, legacy, "Processed", detail
+    if status is DocumentProcessingStatus.RECEIVED:
+        return (
+            status,
+            legacy,
+            "Received",
+            "WellBe has saved this and will read it shortly. It usually takes a few minutes.",
+        )
+    if status is DocumentProcessingStatus.PROCESSING:
+        return (
+            status,
+            legacy,
+            "Being read",
+            "WellBe is reading this now. It usually takes a few minutes.",
+        )
+    if status is DocumentProcessingStatus.FAILED:
+        return (
+            status,
+            legacy,
+            "Couldn't finish reading",
+            "Something interrupted reading this. WellBe will try again on its own. "
+            f"{_STILL_STORED}.",
+        )
+    if stored_detail == "ocr_unavailable":
+        detail = (
+            "This looks like a scan, and text recognition isn't available right now. "
+            f"{_STILL_STORED}, and you can type in anything important."
+        )
+    else:
+        detail = (
+            "WellBe couldn't find readable text in this document. "
+            f"{_STILL_STORED}, and you can type in anything important."
+        )
+    return status, legacy, "Could not be read", detail
 
 
 def build_documents(
     *,
     events: Iterable[Any],
     fact_counts: Mapping[uuid.UUID, Mapping[str, int]],
+    stored_statuses: Mapping[uuid.UUID, tuple[str, str | None]] | None = None,
     now: datetime | None = None,
 ) -> DocumentsResponseV2:
-    """Pure transform: document captures + per-capture fact counts -> documents."""
+    """Pure transform: document captures + fact counts + stored statuses -> documents.
+
+    ``stored_statuses`` maps a capture id to its stored ``(status, detail)``.
+    """
     now = now or datetime.now(UTC)
+    stored_statuses = stored_statuses or {}
     documents: list[DocumentV2] = []
     for event in events:
         counts = fact_counts.get(event.id, {})
@@ -341,17 +412,26 @@ def build_documents(
         base = "PDF document" if type_label == "PDF" else f"{type_label} of a document"
         if type_label == "Document":
             base = "Document"
-        status, status_label, status_detail = document_status(
-            added_at=event.captured_at, extracted_total=total, now=now
+        stored, stored_detail = stored_statuses.get(event.id, (None, None))
+        processing_status, status, status_label, status_detail = document_status(
+            added_at=event.captured_at,
+            extracted_total=total,
+            now=now,
+            stored=stored,
+            stored_detail=stored_detail,
         )
         documents.append(
             DocumentV2(
                 document_id=str(event.id),
                 display_label=f"{base} from {origin}" if origin else base,
+                original_filename=sanitize_display_filename(
+                    getattr(event, "original_filename", None)
+                ),
                 type_label=type_label,
                 mime_type=mime,
                 added_at=_as_utc(event.captured_at),
                 status=status,
+                processing_status=processing_status,
                 status_label=status_label,
                 status_detail=status_detail,
                 extracted_total=total,
@@ -483,4 +563,19 @@ async def load_documents(*, session: AsyncSession, patient_id: uuid.UUID) -> Doc
         )
         for event_id, fact_type, count in rows.all():
             fact_counts[event_id][fact_type] = int(count)
-    return build_documents(events=events, fact_counts=fact_counts)
+        status_rows = await session.execute(
+            select(
+                DocumentProcessingStatusRow.raw_context_event_id,
+                DocumentProcessingStatusRow.status,
+                DocumentProcessingStatusRow.detail,
+            ).where(
+                DocumentProcessingStatusRow.patient_id == patient_id,
+                DocumentProcessingStatusRow.raw_context_event_id.in_([e.id for e in events]),
+            )
+        )
+        stored_statuses = {eid: (status, detail) for eid, status, detail in status_rows.all()}
+    else:
+        stored_statuses = {}
+    return build_documents(
+        events=events, fact_counts=fact_counts, stored_statuses=stored_statuses
+    )

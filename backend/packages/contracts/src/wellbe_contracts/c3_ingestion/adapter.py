@@ -42,6 +42,8 @@ class AdapterProvenance(BaseModel):
     adapter_version: str
     source_metadata: dict[str, Any] | None = None
     original_filename_hash: str | None = None
+    # Sanitised display name (see filenames.sanitize_display_filename); never a path.
+    original_filename: str | None = None
     mime_type: str
     encoding: str | None = None
     language: str | None = None

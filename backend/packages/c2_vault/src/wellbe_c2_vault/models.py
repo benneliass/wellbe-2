@@ -50,6 +50,7 @@ class RawContextEventRow(UUIDPrimaryKeyMixin, Base):
     encoding: Mapped[str | None] = mapped_column(Text, nullable=True)
     language: Mapped[str | None] = mapped_column(Text, nullable=True)
     original_filename_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
+    original_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, server_default="{}")
     adapter_name: Mapped[str] = mapped_column(Text)
     adapter_version: Mapped[str] = mapped_column(Text)

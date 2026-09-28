@@ -93,6 +93,7 @@ class IngestionService:
             encoding=payload.encoding,
             language=payload.language,
             original_filename_hash=provenance.original_filename_hash,
+            original_filename=provenance.original_filename,
             source_metadata=provenance.source_metadata,
         )
 

@@ -10,10 +10,12 @@ import { formatDate } from "@/lib/records-format";
 import { recordsKeys, useDocuments, type DocumentRecord } from "@/lib/records-hooks";
 import styles from "./DocumentsLive.module.css";
 
-const STATUS_ICON: Record<DocumentRecord["status"], string> = {
+const STATUS_ICON: Record<DocumentRecord["processing_status"], string> = {
+  received: "clock",
+  processing: "clock",
   processed: "check-circle-2",
-  waiting: "clock",
-  could_not_read: "file-search",
+  needs_ocr: "file-search",
+  failed: "rotate-ccw",
 };
 
 export function DocumentsLive() {
@@ -125,18 +127,18 @@ function DocumentCard({ doc }: { doc: DocumentRecord }) {
         </span>
         <div className={styles.titles}>
           <h3 id={headingId} className={styles.name}>
-            {doc.display_label}
+            {doc.original_filename ?? doc.display_label}
           </h3>
           <p className={styles.meta}>
-            <span>{doc.type_label}</span>
+            <span>{doc.original_filename ? doc.display_label : doc.type_label}</span>
             <span aria-hidden="true"> · </span>
             <span>Added {formatDate(doc.added_at)}</span>
           </p>
         </div>
       </div>
 
-      <p className={styles.status} data-status={doc.status}>
-        <Icon name={STATUS_ICON[doc.status]} size={16} />
+      <p className={styles.status} data-status={doc.processing_status}>
+        <Icon name={STATUS_ICON[doc.processing_status]} size={16} />
         <span>
           <b>{doc.status_label}.</b> {doc.status_detail}
         </span>

@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Response
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from wellbe_c2_vault import S3BlobStore, VaultRepository
 from wellbe_contracts.c2_vault import RawContextEvent, VaultWriteRequest, VaultWriteResponse
@@ -18,6 +19,17 @@ from wellbe_vault_writer.blob_keys import build_raw_blob_key
 from wellbe_vault_writer.config import VaultWriterSettings
 
 settings = VaultWriterSettings()
+
+DOCUMENT_SOURCE_TYPES = frozenset({"pdf", "photo"})
+
+# Initial row of the document lifecycle (migration 027). Written in the capture
+# transaction so a stored document never exists without a status.
+_INSERT_RECEIVED_STATUS = text(
+    "INSERT INTO processing.document_processing_status"
+    " (raw_context_event_id, patient_id, status)"
+    " VALUES (:id, :pid, 'received')"
+    " ON CONFLICT (raw_context_event_id) DO NOTHING"
+)
 
 _session_factory: AsyncSessionFactory
 _blob_store: S3BlobStore
@@ -139,6 +151,7 @@ async def _create_event(
         encoding=prov.encoding,
         language=prov.language,
         original_filename_hash=prov.original_filename_hash,
+        original_filename=prov.original_filename,
         source_metadata=prov.source_metadata,
         adapter_name=prov.adapter_name,
         adapter_version=prov.adapter_version,
@@ -179,6 +192,9 @@ async def _create_event(
         trace_id=req.trace_id,
         created_at=now,
     )
+
+    if prov.source_type in DOCUMENT_SOURCE_TYPES or capture_type == "document":
+        await session.execute(_INSERT_RECEIVED_STATUS, {"id": inserted_id, "pid": req.patient_id})
 
     await emit_event(
         session,
