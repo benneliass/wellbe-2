@@ -9,6 +9,7 @@ import { SettingsModal } from "@/components/account/SettingsModal";
 import { useRootNav } from "@/components/shell/RootFrame";
 import { ContinuityStrip } from "./ContinuityStrip";
 import { SignalsPanel } from "./SignalsPanel";
+import { useAccount } from "@/lib/account";
 import { LAUNCH_ACTIONS, type LaunchAction } from "@/lib/meta";
 import styles from "./Launcher.module.css";
 
@@ -20,6 +21,7 @@ export function Launcher() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [askValue, setAskValue] = useState("");
+  const account = useAccount();
 
   const goFullView = () => router.push("/workspace");
 
@@ -59,10 +61,12 @@ export function Launcher() {
             type="button"
             className={styles.avatar}
             onClick={() => setProfileOpen(true)}
-            aria-label="Your account"
+            aria-label={`Your account: ${account.name}`}
             aria-haspopup="dialog"
+            title={account.email ?? account.name}
           >
-            A<span className={styles.avatarDot} />
+            {account.initials}
+            <span className={styles.avatarDot} />
           </button>
         </div>
       </header>

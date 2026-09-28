@@ -8,6 +8,18 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+vi.mock("@/lib/useSession", () => ({
+  useSession: () => ({
+    issuer: "https://auth.example",
+    subject: "s1",
+    patientId: "p1",
+    actorType: "controller",
+    onboarded: true,
+    displayName: "Ben Elias",
+    email: "ben@example.com",
+  }),
+}));
+
 vi.mock("./NotificationBell", () => ({
   NotificationBell: () => <button type="button">Notifications</button>,
 }));
@@ -30,6 +42,14 @@ describe("TopBar", () => {
     render(<TopBar title="Workspace" />);
     fireEvent.submit(screen.getByRole("search"));
     expect(push).toHaveBeenCalledWith("/ask");
+  });
+
+  it("shows the signed-in account and opens it", () => {
+    render(<TopBar title="Workspace" />);
+    const btn = screen.getByRole("button", { name: /your account: ben elias/i });
+    expect(btn).toHaveTextContent("BE");
+    fireEvent.click(btn);
+    expect(screen.getByText("ben@example.com")).toBeInTheDocument();
   });
 
   it("renders the notification bell", () => {

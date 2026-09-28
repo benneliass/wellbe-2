@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Icon, Modal } from "@wellbe/ui";
+import { ProfileModal } from "@/components/account/ProfileModal";
+import { SettingsModal } from "@/components/account/SettingsModal";
+import { useAccount } from "@/lib/account";
 import { NotificationBell } from "./NotificationBell";
 import styles from "./TopBar.module.css";
 
@@ -19,6 +22,9 @@ export function TopBar({ title, subtitle, breadcrumb, backHref }: TopBarProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const account = useAccount();
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -65,9 +71,29 @@ export function TopBar({ title, subtitle, breadcrumb, backHref }: TopBarProps) {
         >
           <Icon name="help-circle" size={18} />
         </button>
+        <button
+          type="button"
+          className={styles.avatarBtn}
+          title={account.email ?? account.name}
+          aria-label={`Your account: ${account.name}`}
+          aria-haspopup="dialog"
+          onClick={() => setProfileOpen(true)}
+        >
+          {account.initials}
+        </button>
       </div>
 
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
+      {profileOpen && (
+        <ProfileModal
+          onClose={() => setProfileOpen(false)}
+          onOpenSettings={() => {
+            setProfileOpen(false);
+            setSettingsOpen(true);
+          }}
+        />
+      )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </header>
   );
 }

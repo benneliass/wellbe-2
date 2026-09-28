@@ -21,6 +21,7 @@ export async function establishOidcSession(user: User): Promise<Session> {
     actorType: "controller",
     onboarded: active,
     displayName: data.display_name || profileName,
+    email: user.profile.email ?? null,
   };
   setSession(session);
   return session;

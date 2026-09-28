@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button, Icon, Modal } from "@wellbe/ui";
+import { useAccount } from "@/lib/account";
+import { signOut } from "@/lib/auth";
 import styles from "./AccountModals.module.css";
 
 interface ProfileModalProps {
@@ -10,15 +13,25 @@ interface ProfileModalProps {
 }
 
 /**
- * PROFILE / account — prototype surface.
- *
- * Identity is static mock data today. The rows reflect WellBe's stance: the
- * individual is the data controller, and sharing is always grant-scoped and
- * revocable. Actions are local-only until the account API lands.
+ * PROFILE / account. Shows who is signed in (from the session). The rows reflect
+ * WellBe's stance: the individual is the data controller, and sharing is always
+ * grant-scoped and revocable.
  */
 export function ProfileModal({ onClose, onOpenSettings }: ProfileModalProps) {
+  const router = useRouter();
+  const account = useAccount();
+
+  async function onSignOut() {
+    onClose();
+    await signOut();
+    router.replace("/");
+  }
+
   const footer = (
     <>
+      <Button variant="tertiary" icon="arrow-left" onClick={onSignOut}>
+        Sign out
+      </Button>
       <Button variant="tertiary" icon="settings" onClick={onOpenSettings}>
         Settings
       </Button>
@@ -31,9 +44,13 @@ export function ProfileModal({ onClose, onOpenSettings }: ProfileModalProps) {
   return (
     <Modal title="Your account" icon="circle-user" onClose={onClose} footer={footer}>
       <div className={styles.identity}>
-        <span className={styles.identityAvatar}>A</span>
+        <span className={styles.identityAvatar}>{account.initials}</span>
         <span className={styles.identityMeta}>
-          <span className={styles.identityName}>Your workspace</span>
+          <span className={styles.identityName}>{account.name}</span>
+          {account.email && account.email !== account.name && (
+            <span className={styles.identityEmail}>{account.email}</span>
+          )}
+          <span className={styles.identityEmail}>{account.signInMethod}</span>
           <span className={styles.identityRole}>
             <Icon name="shield-check" size={13} />
             Data controller

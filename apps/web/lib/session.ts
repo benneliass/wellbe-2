@@ -31,6 +31,8 @@ export interface Session {
   actorType: string;
   onboarded: boolean;
   displayName: string | null;
+  /** Login email (OIDC `email` claim); absent for the dev identities. */
+  email?: string | null;
 }
 
 const DEV_ISSUER = "dev-local";

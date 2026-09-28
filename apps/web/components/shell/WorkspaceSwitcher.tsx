@@ -6,6 +6,7 @@ import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
 import { signOut as endSession } from "@/lib/auth";
+import { toInitials } from "@/lib/account";
 import { useSession } from "@/lib/useSession";
 import styles from "./WorkspaceSwitcher.module.css";
 
@@ -134,9 +135,4 @@ function capabilityLabel(w: Workspace): string {
   if (caps.can_contribute) return "You can contribute";
   if (caps.can_read) return "View only";
   return "No data access";
-}
-
-function toInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "YV";
 }

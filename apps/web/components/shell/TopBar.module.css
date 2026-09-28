@@ -96,6 +96,27 @@
   justify-content: center;
   color: var(--fg2);
 }
+.avatarBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--teal-600);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatarBtn:hover {
+  background: var(--teal-700, var(--teal-600));
+}
+.avatarBtn:focus-visible {
+  outline: 2px solid var(--teal-600);
+  outline-offset: 2px;
+}
 .iconbtn:hover {
   background: var(--slate-50);
   color: var(--fg1);
