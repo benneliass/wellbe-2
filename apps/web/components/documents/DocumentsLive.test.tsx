@@ -92,6 +92,69 @@ describe("DocumentsLive", () => {
     expect(document.body.textContent).not.toContain(PROCESSED_ID);
   });
 
+  it("keeps older responses working by mapping the legacy status", async () => {
+    mockFetch({ "GET /v2/documents": () => json(DOCUMENTS) });
+    renderWithQuery(<DocumentsLive />);
+    const list = await screen.findByRole("list", { name: /your documents/i });
+    const statuses = Array.from(list.querySelectorAll("[data-status]")).map((el) =>
+      el.getAttribute("data-status"),
+    );
+    expect(statuses).toEqual(["received", "processed", "needs_ocr"]);
+  });
+
+  it("shows the original filename and the stored processing status", async () => {
+    mockFetch({
+      "GET /v2/documents": () =>
+        json({
+          ...DOCUMENTS,
+          documents: [
+            doc({
+              original_filename: "Blood test — March.pdf",
+              processing_status: "processed",
+            }),
+            doc({
+              document_id: WAITING_ID,
+              display_label: "PDF document",
+              original_filename: null,
+              status: "waiting",
+              processing_status: "processing",
+              status_label: "Being read",
+              status_detail: "WellBe is reading this now.",
+              extracted_total: 0,
+              extracted: [],
+              result_count: 0,
+            }),
+            doc({
+              document_id: UNREADABLE_ID,
+              display_label: "PDF document from Clinic",
+              original_filename: "scan.pdf",
+              status: "could_not_read",
+              processing_status: "failed",
+              status_label: "Couldn't finish reading",
+              status_detail: "WellBe will try again on its own.",
+              extracted_total: 0,
+              extracted: [],
+              result_count: 0,
+            }),
+          ],
+        }),
+    });
+    renderWithQuery(<DocumentsLive />);
+    const list = await screen.findByRole("list", { name: /your documents/i });
+
+    const named = within(list).getByRole("listitem", { name: "Blood test — March.pdf" });
+    expect(within(named).getByText("PDF document from City Lab")).toBeInTheDocument();
+    expect(named.querySelector("[data-status]")).toHaveAttribute("data-status", "processed");
+
+    const fallback = within(list).getByRole("listitem", { name: "PDF document" });
+    expect(within(fallback).getByText(/^Being read\.$/)).toBeInTheDocument();
+    expect(fallback.querySelector("[data-status]")).toHaveAttribute("data-status", "processing");
+
+    const failed = within(list).getByRole("listitem", { name: "scan.pdf" });
+    expect(within(failed).getByText(/^Couldn't finish reading\.$/)).toBeInTheDocument();
+    expect(failed.querySelector("[data-status]")).toHaveAttribute("data-status", "failed");
+  });
+
   it("opens the existing Capture modal on the document type", async () => {
     mockFetch({ "GET /v2/documents": () => json(DOCUMENTS) });
     renderWithQuery(<DocumentsLive />);
