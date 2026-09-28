@@ -1,0 +1,2142 @@
+{
+ "threads": [
+  {
+   "schema_version": "c13.health_thread.v1",
+   "thread_id": "8c26f338-35d7-4db6-ac75-48de1f1e74b1",
+   "patient_id": "de7a0000-0000-4000-8000-000000000001",
+   "title": "Headache",
+   "status": "active_unresolved",
+   "status_version": 2,
+   "created_at": "2026-09-27T10:12:36.791002Z",
+   "updated_at": "2026-09-27T10:12:36.805894Z"
+  },
+  {
+   "schema_version": "c13.health_thread.v1",
+   "thread_id": "649c8330-1e32-487f-92c8-f2d92ac34b01",
+   "patient_id": "de7a0000-0000-4000-8000-000000000001",
+   "title": "Pain",
+   "status": "active_unresolved",
+   "status_version": 2,
+   "created_at": "2026-09-27T10:12:36.764511Z",
+   "updated_at": "2026-09-27T10:12:36.779346Z"
+  },
+  {
+   "schema_version": "c13.health_thread.v1",
+   "thread_id": "c2b8ed07-e837-44a4-8ebd-dd1fc5f0879b",
+   "patient_id": "de7a0000-0000-4000-8000-000000000001",
+   "title": "LDL cholesterol",
+   "status": "chronic_monitoring",
+   "status_version": 3,
+   "created_at": "2026-09-27T10:12:36.706330Z",
+   "updated_at": "2026-09-27T10:12:36.752257Z"
+  },
+  {
+   "schema_version": "c13.health_thread.v1",
+   "thread_id": "105015d5-d885-4770-8ec8-93e95ddedeae",
+   "patient_id": "de7a0000-0000-4000-8000-000000000001",
+   "title": "Vitamin D (25-OH)",
+   "status": "watchful_waiting",
+   "status_version": 3,
+   "created_at": "2026-09-27T10:12:36.665285Z",
+   "updated_at": "2026-09-27T10:12:36.694845Z"
+  },
+  {
+   "schema_version": "c13.health_thread.v1",
+   "thread_id": "48d96d5d-bbb1-4e49-961b-77222e3e9974",
+   "patient_id": "de7a0000-0000-4000-8000-000000000001",
+   "title": "Cough",
+   "status": "waiting_for_result",
+   "status_version": 3,
+   "created_at": "2026-09-27T10:12:36.562408Z",
+   "updated_at": "2026-09-27T10:12:36.653907Z"
+  }
+ ],
+ "graphs": [
+  {
+   "schema_version": "c13.graph.subgraph.v2",
+   "thread_id": "8c26f338-35d7-4db6-ac75-48de1f1e74b1",
+   "nodes": [
+    {
+     "id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "type": "Symptom",
+     "label": "headache",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "last_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "type": "Symptom",
+     "label": "cough",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:26.461638+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.628250+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "type": "Symptom",
+     "label": "pain",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.929996+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.830413+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "type": "Symptom",
+     "label": "fatigue",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "type": "LabResult",
+     "label": "LDL cholesterol",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "type": "LabResult",
+     "label": "Vitamin D (25-OH)",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "type": "LabResult",
+     "label": "Hemoglobin A1c",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "type": "VitalSign",
+     "label": "Blood pressure",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "in_thread": false
+     }
+    }
+   ],
+   "edges": [
+    {
+     "id": "ddb00606-eb3d-4352-9008-b7d4017ef0e4",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "2b54a4a8-c72b-4d08-92ed-f6caa7eed891",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "32c35725-c59b-4ac7-8dff-dec7401c2f22",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "79675d10-78e3-415f-b563-d12fa721c599",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "07c73941-5ec6-4023-9b27-0bce413eb92e",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "bd774e67-3b26-4323-8e78-9a95db3440c2",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "4e73595f-48f9-4c26-b21f-7c47631ca49a",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "818fa993-5b1f-4900-a63c-f85127e260d4",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    }
+   ],
+   "page_info": {
+    "has_more": false,
+    "next_page_token": null,
+    "node_count": 8,
+    "edge_count": 7,
+    "truncated": false
+   }
+  },
+  {
+   "schema_version": "c13.graph.subgraph.v2",
+   "thread_id": "649c8330-1e32-487f-92c8-f2d92ac34b01",
+   "nodes": [
+    {
+     "id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "type": "Symptom",
+     "label": "pain",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.929996+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.830413+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "type": "Symptom",
+     "label": "cough",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:26.461638+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.628250+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "type": "VitalSign",
+     "label": "Blood pressure",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "type": "Symptom",
+     "label": "fatigue",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "type": "Symptom",
+     "label": "headache",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "last_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "type": "LabResult",
+     "label": "LDL cholesterol",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "type": "LabResult",
+     "label": "Hemoglobin A1c",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "type": "LabResult",
+     "label": "Vitamin D (25-OH)",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "in_thread": false
+     }
+    }
+   ],
+   "edges": [
+    {
+     "id": "30801dd3-1c84-4827-9d26-c392ebf23468",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.9,
+     "attributes": {}
+    },
+    {
+     "id": "464e7b7a-6a2c-44d5-bc6d-04e82f0b3980",
+     "source": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "9f02f0a2-d21c-4d80-9e74-4353582375a1",
+     "source": "79675d10-78e3-415f-b563-d12fa721c599",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "2b54a4a8-c72b-4d08-92ed-f6caa7eed891",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "2d17f9ae-d2cd-455b-904a-f439aae01274",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "df73b67f-bddc-487a-b3dc-5124f1c35d97",
+     "source": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "target": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "b9611157-d152-4876-8005-7bc6bcb8bc14",
+     "source": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    }
+   ],
+   "page_info": {
+    "has_more": false,
+    "next_page_token": null,
+    "node_count": 8,
+    "edge_count": 7,
+    "truncated": false
+   }
+  },
+  {
+   "schema_version": "c13.graph.subgraph.v2",
+   "thread_id": "c2b8ed07-e837-44a4-8ebd-dd1fc5f0879b",
+   "nodes": [
+    {
+     "id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "type": "LabResult",
+     "label": "LDL cholesterol",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "type": "Symptom",
+     "label": "pain",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.929996+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.830413+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "type": "Symptom",
+     "label": "cough",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:26.461638+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.628250+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "type": "LabResult",
+     "label": "Vitamin D (25-OH)",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "type": "VitalSign",
+     "label": "Blood pressure",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "type": "LabResult",
+     "label": "Hemoglobin A1c",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "type": "Symptom",
+     "label": "headache",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "last_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "type": "Symptom",
+     "label": "fatigue",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "in_thread": false
+     }
+    }
+   ],
+   "edges": [
+    {
+     "id": "2d17f9ae-d2cd-455b-904a-f439aae01274",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "f0dd7234-4e64-42eb-83c5-36c751a94ac7",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "7d3ee061-fb75-448e-a607-9a35fe3d3ba5",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "88883ea1-3ae7-43b3-a5c3-dcf8e6677b28",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "3261bd50-2499-4736-b72c-3dc8b8d04ef8",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "07c73941-5ec6-4023-9b27-0bce413eb92e",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "0a291189-ca13-4f5c-9320-d8a0b799e43e",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "79675d10-78e3-415f-b563-d12fa721c599",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    }
+   ],
+   "page_info": {
+    "has_more": false,
+    "next_page_token": null,
+    "node_count": 8,
+    "edge_count": 7,
+    "truncated": false
+   }
+  },
+  {
+   "schema_version": "c13.graph.subgraph.v2",
+   "thread_id": "105015d5-d885-4770-8ec8-93e95ddedeae",
+   "nodes": [
+    {
+     "id": "3af03a00-30b6-4019-a809-f604d4224ea5",
+     "type": "Theory",
+     "label": "The ongoing fatigue may relate to the low vitamin D result; the cough seems separate and worth a chest check",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:36.952550+00:00",
+      "last_seen_at": "2026-09-27T10:12:36.952550+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "55526e49-4402-42da-8140-1bb25303749e",
+     "type": "Investigation",
+     "label": "Could the morning cough, afternoon fatigue, and low vitamin D be connected?",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:36.913633+00:00",
+      "last_seen_at": "2026-09-27T10:12:36.913633+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "type": "LabResult",
+     "label": "Vitamin D (25-OH)",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "type": "Symptom",
+     "label": "pain",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.929996+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.830413+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "type": "Symptom",
+     "label": "cough",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:26.461638+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.628250+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "type": "LabResult",
+     "label": "Hemoglobin A1c",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "type": "VitalSign",
+     "label": "Blood pressure",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "type": "LabResult",
+     "label": "LDL cholesterol",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "type": "Symptom",
+     "label": "headache",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "last_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "type": "Symptom",
+     "label": "fatigue",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "in_thread": false
+     }
+    }
+   ],
+   "edges": [
+    {
+     "id": "fd644f6b-fcb4-41b7-8f98-016bfb452edb",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    },
+    {
+     "id": "6c6f7113-48a2-459d-b88c-65c3a52d3063",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "3af03a00-30b6-4019-a809-f604d4224ea5",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    },
+    {
+     "id": "b9611157-d152-4876-8005-7bc6bcb8bc14",
+     "source": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "0d764c2f-3a9c-4c2c-8e1d-b264a9e18086",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "30e8bd4a-1166-4a75-a0e8-23624a3e8e2b",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    },
+    {
+     "id": "5a1a1805-ccc4-400b-a2a5-9eba53bfcbb2",
+     "source": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "target": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "29b9e363-424d-4c0f-b461-c10c771dea5b",
+     "source": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "target": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "7d3ee061-fb75-448e-a607-9a35fe3d3ba5",
+     "source": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3233,
+     "attributes": {}
+    },
+    {
+     "id": "bd774e67-3b26-4323-8e78-9a95db3440c2",
+     "source": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    },
+    {
+     "id": "3531dd20-9438-4c1a-8747-aa81e4a001ed",
+     "source": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "target": "79675d10-78e3-415f-b563-d12fa721c599",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.3,
+     "attributes": {}
+    }
+   ],
+   "page_info": {
+    "has_more": false,
+    "next_page_token": null,
+    "node_count": 10,
+    "edge_count": 10,
+    "truncated": false
+   }
+  },
+  {
+   "schema_version": "c13.graph.subgraph.v2",
+   "thread_id": "48d96d5d-bbb1-4e49-961b-77222e3e9974",
+   "nodes": [
+    {
+     "id": "3af03a00-30b6-4019-a809-f604d4224ea5",
+     "type": "Theory",
+     "label": "The ongoing fatigue may relate to the low vitamin D result; the cough seems separate and worth a chest check",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:36.952550+00:00",
+      "last_seen_at": "2026-09-27T10:12:36.952550+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "55526e49-4402-42da-8140-1bb25303749e",
+     "type": "Investigation",
+     "label": "Could the morning cough, afternoon fatigue, and low vitamin D be connected?",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:36.913633+00:00",
+      "last_seen_at": "2026-09-27T10:12:36.913633+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "type": "Symptom",
+     "label": "cough",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:26.461638+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.628250+00:00",
+      "in_thread": true
+     }
+    },
+    {
+     "id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "type": "Symptom",
+     "label": "pain",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.929996+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.830413+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "type": "LabResult",
+     "label": "Vitamin D (25-OH)",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.266374+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "type": "LabResult",
+     "label": "LDL cholesterol",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.552608+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "type": "Symptom",
+     "label": "fatigue",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.582680+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "type": "LabResult",
+     "label": "Hemoglobin A1c",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "last_seen_at": "2026-09-27T10:12:29.887499+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "type": "VitalSign",
+     "label": "Blood pressure",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "last_seen_at": "2026-09-27T10:12:30.126151+00:00",
+      "in_thread": false
+     }
+    },
+    {
+     "id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "type": "Symptom",
+     "label": "headache",
+     "status": "active",
+     "attributes": {
+      "first_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "last_seen_at": "2026-09-27T10:12:28.724943+00:00",
+      "in_thread": false
+     }
+    }
+   ],
+   "edges": [
+    {
+     "id": "30e8bd4a-1166-4a75-a0e8-23624a3e8e2b",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    },
+    {
+     "id": "6c6f7113-48a2-459d-b88c-65c3a52d3063",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "3af03a00-30b6-4019-a809-f604d4224ea5",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    },
+    {
+     "id": "30801dd3-1c84-4827-9d26-c392ebf23468",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.9,
+     "attributes": {}
+    },
+    {
+     "id": "0d764c2f-3a9c-4c2c-8e1d-b264a9e18086",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "f0dd7234-4e64-42eb-83c5-36c751a94ac7",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "9a48b194-dd85-4e89-9b0b-85e2100a259e",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "79675d10-78e3-415f-b563-d12fa721c599",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "8bbbdb00-c815-444a-8455-198ba0ba80bf",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "6588ffd7-3160-44b5-b361-fcc9ef4920e7",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "ddb00606-eb3d-4352-9008-b7d4017ef0e4",
+     "source": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "target": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "relation": "co_occurs_with",
+     "evidence_weight": 0.6,
+     "attributes": {}
+    },
+    {
+     "id": "fd644f6b-fcb4-41b7-8f98-016bfb452edb",
+     "source": "55526e49-4402-42da-8140-1bb25303749e",
+     "target": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "relation": "investigates",
+     "evidence_weight": 0.3333,
+     "attributes": {}
+    }
+   ],
+   "page_info": {
+    "has_more": false,
+    "next_page_token": null,
+    "node_count": 10,
+    "edge_count": 10,
+    "truncated": false
+   }
+  }
+ ],
+ "memories": [
+  [
+   {
+    "schema_version": "c13.memory_entry.v2",
+    "memory_entry_id": "cc7fc41d-408e-410d-9a37-73ccd4ecf892",
+    "memory_type": "clinical",
+    "lifecycle_state": "visible",
+    "title": "headache",
+    "thread_id": "8c26f338-35d7-4db6-ac75-48de1f1e74b1",
+    "source_refs": [
+     {
+      "source_ref_id": "feeacba0-43e8-558c-b2bf-3b2ef9f24d2e",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+      "source_ref_type": "c6_kg_node",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     }
+    ],
+    "resolved_overlays": [],
+    "projection_stale": false,
+    "created_at": "2026-09-27T11:17:19.215138Z",
+    "audit_refs": []
+   }
+  ],
+  [
+   {
+    "schema_version": "c13.memory_entry.v2",
+    "memory_entry_id": "9b1da3e6-d82d-4079-89e5-5f8c721b20ea",
+    "memory_type": "clinical",
+    "lifecycle_state": "visible",
+    "title": "pain",
+    "thread_id": "649c8330-1e32-487f-92c8-f2d92ac34b01",
+    "source_refs": [
+     {
+      "source_ref_id": "b47d35b5-a7ed-5071-9243-2d36627f9dcf",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+      "source_ref_type": "c6_kg_node",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "6353ad9f-e1e8-5ef9-8a00-a39592894fa4",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     }
+    ],
+    "resolved_overlays": [],
+    "projection_stale": false,
+    "created_at": "2026-09-27T11:17:19.203753Z",
+    "audit_refs": []
+   }
+  ],
+  [
+   {
+    "schema_version": "c13.memory_entry.v2",
+    "memory_entry_id": "6c688c89-8187-4176-aab4-cedb55588b07",
+    "memory_type": "clinical",
+    "lifecycle_state": "visible",
+    "title": "LDL cholesterol",
+    "thread_id": "c2b8ed07-e837-44a4-8ebd-dd1fc5f0879b",
+    "source_refs": [
+     {
+      "source_ref_id": "e88b7ab9-0324-57eb-b2ae-b6e6795e8acc",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+      "source_ref_type": "c6_kg_node",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     }
+    ],
+    "resolved_overlays": [],
+    "projection_stale": false,
+    "created_at": "2026-09-27T11:17:19.179745Z",
+    "audit_refs": []
+   }
+  ],
+  [
+   {
+    "schema_version": "c13.memory_entry.v2",
+    "memory_entry_id": "c277b4b9-a401-44e2-906b-60c6cddbbae0",
+    "memory_type": "clinical",
+    "lifecycle_state": "visible",
+    "title": "Vitamin D (25-OH)",
+    "thread_id": "105015d5-d885-4770-8ec8-93e95ddedeae",
+    "source_refs": [
+     {
+      "source_ref_id": "115b1cce-7835-5ba3-9f91-e020a256ca51",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+      "source_ref_type": "c6_kg_node",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     }
+    ],
+    "resolved_overlays": [],
+    "projection_stale": false,
+    "created_at": "2026-09-27T11:17:19.125944Z",
+    "audit_refs": []
+   }
+  ],
+  [
+   {
+    "schema_version": "c13.memory_entry.v2",
+    "memory_entry_id": "2fa6450b-cead-4c99-8bd6-4b0781579e81",
+    "memory_type": "clinical",
+    "lifecycle_state": "visible",
+    "title": "cough",
+    "thread_id": "48d96d5d-bbb1-4e49-961b-77222e3e9974",
+    "source_refs": [
+     {
+      "source_ref_id": "a0865ca4-fde9-5d06-a7c7-2a7a63921ca8",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+      "source_ref_type": "c6_kg_node",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     },
+     {
+      "source_ref_id": "c1135128-49fe-5470-992b-6f6e9c7ee2ee",
+      "source_ref_type": "c4_extracted_fact",
+      "link_role": "primary",
+      "field_path": null,
+      "source_ref_version": null
+     }
+    ],
+    "resolved_overlays": [],
+    "projection_stale": false,
+    "created_at": "2026-09-27T11:17:19.111475Z",
+    "audit_refs": []
+   }
+  ]
+ ],
+ "pending": [
+  {
+   "schema_version": "c13.pending_item.v2",
+   "pending_item_id": "04516dcc-15b1-4913-af46-15df1f0a9831",
+   "primary_thread_id": "48d96d5d-bbb1-4e49-961b-77222e3e9974",
+   "item_type": "result_pending",
+   "status": "scheduled",
+   "title": "Waiting for a result: Cough",
+   "next_action_code": null,
+   "due_at": "2026-10-04T11:17:19.089387Z",
+   "due_precision": "relative_policy",
+   "investigation_ids": [],
+   "blocks_closure": false,
+   "created_at": "2026-09-27T11:17:19.089387Z",
+   "updated_at": "2026-09-27T20:39:04.834300Z",
+   "audit_refs": []
+  }
+ ],
+ "patterns": [
+  {
+   "id": "30801dd3-1c84-4827-9d26-c392ebf23468",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "stronger_signal",
+   "evidence_weight": 0.9,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "df73b67f-bddc-487a-b3dc-5124f1c35d97",
+   "subject_label": "pain",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "2b54a4a8-c72b-4d08-92ed-f6caa7eed891",
+   "subject_label": "headache",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "464e7b7a-6a2c-44d5-bc6d-04e82f0b3980",
+   "subject_label": "Blood pressure",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "9f02f0a2-d21c-4d80-9e74-4353582375a1",
+   "subject_label": "fatigue",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "2d17f9ae-d2cd-455b-904a-f439aae01274",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "b9611157-d152-4876-8005-7bc6bcb8bc14",
+   "subject_label": "Vitamin D (25-OH)",
+   "relation_phrase": "appears with",
+   "object_label": "pain",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "be44ab0c-50e1-41ee-90ac-0feaada13e4f",
+     "label": "pain"
+    }
+   ]
+  },
+  {
+   "id": "ddb00606-eb3d-4352-9008-b7d4017ef0e4",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "headache",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    }
+   ]
+  },
+  {
+   "id": "6588ffd7-3160-44b5-b361-fcc9ef4920e7",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "Blood pressure",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    }
+   ]
+  },
+  {
+   "id": "8bbbdb00-c815-444a-8455-198ba0ba80bf",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "0d764c2f-3a9c-4c2c-8e1d-b264a9e18086",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "Vitamin D (25-OH)",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    }
+   ]
+  },
+  {
+   "id": "f0dd7234-4e64-42eb-83c5-36c751a94ac7",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "LDL cholesterol",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    }
+   ]
+  },
+  {
+   "id": "9a48b194-dd85-4e89-9b0b-85e2100a259e",
+   "subject_label": "cough",
+   "relation_phrase": "appears with",
+   "object_label": "fatigue",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "moderate_signal",
+   "evidence_weight": 0.6,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": null,
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "11ff1252-58ee-42d6-9a86-6ea850a3bf4e",
+     "label": "cough"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    }
+   ]
+  },
+  {
+   "id": "29b9e363-424d-4c0f-b461-c10c771dea5b",
+   "subject_label": "Vitamin D (25-OH)",
+   "relation_phrase": "appears with",
+   "object_label": "Blood pressure",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    }
+   ]
+  },
+  {
+   "id": "88883ea1-3ae7-43b3-a5c3-dcf8e6677b28",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "Blood pressure",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    }
+   ]
+  },
+  {
+   "id": "848fc18c-5b3f-495b-a84b-95936672998c",
+   "subject_label": "Blood pressure",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "5a1a1805-ccc4-400b-a2a5-9eba53bfcbb2",
+   "subject_label": "Vitamin D (25-OH)",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "3261bd50-2499-4736-b72c-3dc8b8d04ef8",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "7d3ee061-fb75-448e-a607-9a35fe3d3ba5",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "Vitamin D (25-OH)",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3233,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    }
+   ]
+  },
+  {
+   "id": "6f2945f6-74c0-4024-9036-2afb951ccba5",
+   "subject_label": "fatigue",
+   "relation_phrase": "appears with",
+   "object_label": "Blood pressure",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    }
+   ]
+  },
+  {
+   "id": "3fd921cf-da05-43da-ada2-d442f685ffcb",
+   "subject_label": "fatigue",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "32c35725-c59b-4ac7-8dff-dec7401c2f22",
+   "subject_label": "headache",
+   "relation_phrase": "appears with",
+   "object_label": "fatigue",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    }
+   ]
+  },
+  {
+   "id": "3531dd20-9438-4c1a-8747-aa81e4a001ed",
+   "subject_label": "Vitamin D (25-OH)",
+   "relation_phrase": "appears with",
+   "object_label": "fatigue",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    }
+   ]
+  },
+  {
+   "id": "0a291189-ca13-4f5c-9320-d8a0b799e43e",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "fatigue",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "79675d10-78e3-415f-b563-d12fa721c599",
+     "label": "fatigue"
+    }
+   ]
+  },
+  {
+   "id": "818fa993-5b1f-4900-a63c-f85127e260d4",
+   "subject_label": "headache",
+   "relation_phrase": "appears with",
+   "object_label": "Blood pressure",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "b041d0e3-a8b5-41f8-b867-112ff36c66e5",
+     "label": "Blood pressure"
+    }
+   ]
+  },
+  {
+   "id": "4e73595f-48f9-4c26-b21f-7c47631ca49a",
+   "subject_label": "headache",
+   "relation_phrase": "appears with",
+   "object_label": "Hemoglobin A1c",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "eaa82937-be84-4e5b-906a-6e2b0d47e355",
+     "label": "Hemoglobin A1c"
+    }
+   ]
+  },
+  {
+   "id": "07c73941-5ec6-4023-9b27-0bce413eb92e",
+   "subject_label": "LDL cholesterol",
+   "relation_phrase": "appears with",
+   "object_label": "headache",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "198a035d-ef1b-4028-941d-777249fcc07e",
+     "label": "LDL cholesterol"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    }
+   ]
+  },
+  {
+   "id": "bd774e67-3b26-4323-8e78-9a95db3440c2",
+   "subject_label": "headache",
+   "relation_phrase": "appears with",
+   "object_label": "Vitamin D (25-OH)",
+   "relation_code": "co_occurs_with",
+   "evidence_tier": "early_signal",
+   "evidence_weight": 0.3,
+   "caveat": "This is a pattern in your own records \u2014 not a cause, and not a diagnosis.",
+   "alternative_explanations": [
+    "Two things appearing together can be coincidence.",
+    "A shared cause, or how often you log each, could explain it."
+   ],
+   "missing_data_note": "Based on only a little data so far \u2014 this may change as you log more.",
+   "confounder_note": "This links to several things in your records \u2014 a common factor could explain it rather than a direct link.",
+   "is_contradiction": false,
+   "sources": [
+    {
+     "ref_type": "graph_node",
+     "source_id": "372090e8-79f1-4556-94dc-fcaecd2c6aa7",
+     "label": "headache"
+    },
+    {
+     "ref_type": "graph_node",
+     "source_id": "6ab56d0d-c310-4cd9-a81e-22aed8056d31",
+     "label": "Vitamin D (25-OH)"
+    }
+   ]
+  }
+ ],
+ "results": [
+  {
+   "analyte_key": "vital:blood_pressure",
+   "display_label": "Blood pressure",
+   "kind": "vital",
+   "latest": {
+    "value": "128/82",
+    "unit": "mmHg",
+    "numeric_value": null,
+    "reference_range": "<120/80",
+    "range_position": "outside",
+    "range_note": "Outside the reference range shown on the report",
+    "observed_at": "2026-09-27T10:12:26.376916Z",
+    "source": {
+     "kind": "entered_by_you",
+     "display_label": "Entered by you",
+     "capture_id": "f1840677-513a-5a60-af50-6644ed74a900",
+     "document_id": null,
+     "review_marker": "patient-entered"
+    }
+   },
+   "history": [
+    {
+     "value": "128/82",
+     "unit": "mmHg",
+     "numeric_value": null,
+     "reference_range": "<120/80",
+     "range_position": "outside",
+     "range_note": "Outside the reference range shown on the report",
+     "observed_at": "2026-09-27T10:12:26.376916Z",
+     "source": {
+      "kind": "entered_by_you",
+      "display_label": "Entered by you",
+      "capture_id": "f1840677-513a-5a60-af50-6644ed74a900",
+      "document_id": null,
+      "review_marker": "patient-entered"
+     }
+    }
+   ],
+   "threads": []
+  },
+  {
+   "analyte_key": "lab:hemoglobin_a1c",
+   "display_label": "Hemoglobin A1c",
+   "kind": "lab",
+   "latest": {
+    "value": "5.4",
+    "unit": "%",
+    "numeric_value": 5.4,
+    "reference_range": "4.0-5.6",
+    "range_position": "within",
+    "range_note": "Within the reference range shown on the report",
+    "observed_at": "2026-09-27T10:12:26.351201Z",
+    "source": {
+     "kind": "entered_by_you",
+     "display_label": "Entered by you",
+     "capture_id": "db5bb61f-ff57-5522-90d0-e0cdb0cf4466",
+     "document_id": null,
+     "review_marker": "patient-entered"
+    }
+   },
+   "history": [
+    {
+     "value": "5.4",
+     "unit": "%",
+     "numeric_value": 5.4,
+     "reference_range": "4.0-5.6",
+     "range_position": "within",
+     "range_note": "Within the reference range shown on the report",
+     "observed_at": "2026-09-27T10:12:26.351201Z",
+     "source": {
+      "kind": "entered_by_you",
+      "display_label": "Entered by you",
+      "capture_id": "db5bb61f-ff57-5522-90d0-e0cdb0cf4466",
+      "document_id": null,
+      "review_marker": "patient-entered"
+     }
+    }
+   ],
+   "threads": []
+  },
+  {
+   "analyte_key": "lab:ldl_cholesterol",
+   "display_label": "LDL cholesterol",
+   "kind": "lab",
+   "latest": {
+    "value": "165",
+    "unit": "mg/dL",
+    "numeric_value": 165.0,
+    "reference_range": "<130",
+    "range_position": "outside",
+    "range_note": "Outside the reference range shown on the report",
+    "observed_at": "2026-09-27T10:12:26.321819Z",
+    "source": {
+     "kind": "entered_by_you",
+     "display_label": "Entered by you",
+     "capture_id": "7da273b0-523f-515d-85ae-85f2d58742d5",
+     "document_id": null,
+     "review_marker": "patient-entered"
+    }
+   },
+   "history": [
+    {
+     "value": "165",
+     "unit": "mg/dL",
+     "numeric_value": 165.0,
+     "reference_range": "<130",
+     "range_position": "outside",
+     "range_note": "Outside the reference range shown on the report",
+     "observed_at": "2026-09-27T10:12:26.321819Z",
+     "source": {
+      "kind": "entered_by_you",
+      "display_label": "Entered by you",
+      "capture_id": "7da273b0-523f-515d-85ae-85f2d58742d5",
+      "document_id": null,
+      "review_marker": "patient-entered"
+     }
+    }
+   ],
+   "threads": [
+    {
+     "thread_id": "c2b8ed07-e837-44a4-8ebd-dd1fc5f0879b",
+     "title": "LDL cholesterol"
+    }
+   ]
+  },
+  {
+   "analyte_key": "lab:vitamin_d_25_oh",
+   "display_label": "Vitamin D (25-OH)",
+   "kind": "lab",
+   "latest": {
+    "value": "22",
+    "unit": "ng/mL",
+    "numeric_value": 22.0,
+    "reference_range": "30-100",
+    "range_position": "outside",
+    "range_note": "Outside the reference range shown on the report",
+    "observed_at": "2026-09-27T10:12:26.291463Z",
+    "source": {
+     "kind": "entered_by_you",
+     "display_label": "Entered by you",
+     "capture_id": "7def262a-647d-5e6a-9c5a-57a003a8de8f",
+     "document_id": null,
+     "review_marker": "patient-entered"
+    }
+   },
+   "history": [
+    {
+     "value": "22",
+     "unit": "ng/mL",
+     "numeric_value": 22.0,
+     "reference_range": "30-100",
+     "range_position": "outside",
+     "range_note": "Outside the reference range shown on the report",
+     "observed_at": "2026-09-27T10:12:26.291463Z",
+     "source": {
+      "kind": "entered_by_you",
+      "display_label": "Entered by you",
+      "capture_id": "7def262a-647d-5e6a-9c5a-57a003a8de8f",
+      "document_id": null,
+      "review_marker": "patient-entered"
+     }
+    }
+   ],
+   "threads": [
+    {
+     "thread_id": "105015d5-d885-4770-8ec8-93e95ddedeae",
+     "title": "Vitamin D (25-OH)"
+    }
+   ]
+  }
+ ],
+ "investigations": [
+  {
+   "schema_version": "c13.investigation.v2",
+   "investigation_id": "3aa892c2-ace6-4b69-ad90-1fa707552a60",
+   "health_thread_ids": [
+    "48d96d5d-bbb1-4e49-961b-77222e3e9974",
+    "105015d5-d885-4770-8ec8-93e95ddedeae"
+   ],
+   "primary_question": "Could the morning cough, afternoon fatigue, and low vitamin D be connected?",
+   "scope": {},
+   "status": "open",
+   "safety_level": "routine",
+   "workspace_id": "ws_personal_de7a0000-0000-4000-8000-000000000001",
+   "participants": [],
+   "evidence_bundle_ref": "none",
+   "linked_theory_ids": [],
+   "missing_context_items": [],
+   "pending_items": [],
+   "review_cadence": null,
+   "external_context_refs": [],
+   "created_by": {
+    "actor_id": "de7a0000-0000-4000-8000-000000000001",
+    "owner_type": "user"
+   },
+   "created_at": "2026-09-27T10:12:36.910829Z",
+   "updated_at": "2026-09-27T10:12:36.910829Z",
+   "audit_refs": []
+  }
+ ]
+}

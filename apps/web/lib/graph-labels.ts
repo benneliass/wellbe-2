@@ -8,6 +8,8 @@ const NODE_TYPE_LABEL: Record<string, string> = {
   LabResult: "Lab result",
   Lab: "Lab result",
   Observation: "Observation",
+  VitalSign: "Vital sign",
+  Vital: "Vital sign",
   Medication: "Medication",
   Condition: "Condition on record",
   Procedure: "Procedure",

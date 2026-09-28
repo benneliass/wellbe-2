@@ -2,19 +2,37 @@
  * Whole-person graph — full-vision data model (WEL-78, Approach C).
  * Spec: docs/implementation/ui/graph-view-system-design.md
  *
- * Seed fixtures standing in for the budgeted whole-person API (XV.6); the shape
- * mirrors what /v2/graph/person/overview + /nodes/{id}/neighborhood would return.
+ * `GraphModel` is what the cockpit (GraphLive) renders. The live graph builds one
+ * from the person's real records (liveGraphAdapter.ts); the SEED_* fixtures below
+ * only feed the explicitly labelled design preview (/graph?preview=design).
  * Encodes every UI-surfaceable detail in the doc: 7 layers (XV.8), the full
  * relationship vocabulary (XV.3), investigation/theory + external context
- * (Part V.3/VIII), week indices for the time scrubber (V.1), comparison
- * suggestions (V.4), and capture children for on-canvas expansion (III.5).
+ * (Part V.3/VIII), a Replay timeline (V.1), comparison suggestions (V.4), and
+ * capture children for on-canvas expansion (III.5).
  */
 
-export type ClusterId = "head" | "sleep" | "dig";
-export const CLUSTER_HUE: Record<ClusterId, string> = { head: "#0ea5a4", sleep: "#8b5cf6", dig: "#f59e0b" };
-export const CLUSTER_DARK: Record<ClusterId, string> = { head: "#0a5a59", sleep: "#6d28d9", dig: "#b45309" };
+import type { EvidenceSource } from "@wellbe/ui";
 
-export interface Cluster {
+export type ClusterId = string;
+
+export interface ClusterHue {
+  hue: string;
+  dark: string;
+}
+
+/** Concern palette: the original three cockpit hues first, then calm extensions. */
+export const CLUSTER_PALETTE: ClusterHue[] = [
+  { hue: "#0ea5a4", dark: "#0a5a59" },
+  { hue: "#8b5cf6", dark: "#6d28d9" },
+  { hue: "#f59e0b", dark: "#b45309" },
+  { hue: "#0284c7", dark: "#075985" },
+  { hue: "#db2777", dark: "#9d174d" },
+  { hue: "#16a34a", dark: "#166534" },
+];
+export const NEUTRAL_HUE: ClusterHue = { hue: "#64748b", dark: "#334155" };
+export const THEORY_HUE: ClusterHue = { hue: "#8b5cf6", dark: "#6d28d9" };
+
+export interface Cluster extends ClusterHue {
   id: ClusterId;
   label: string;
   cx: number;
@@ -22,9 +40,26 @@ export interface Cluster {
   rx: number;
   ry: number;
   status: "active" | "watch" | "resolved";
+  /** Plain-language status shown on the card; defaults from `status`. */
+  statusLabel?: string;
+  /** Where the concern itself lives (thread page). */
+  href?: string;
+  /** Label anchor when the layout placed it; defaults to the top of the halo. */
+  labelX?: number;
+  labelY?: number;
 }
 
-export type NodeType = "symptom" | "context" | "pending" | "lab" | "visit" | "capture" | "theory" | "external";
+export type NodeType =
+  | "symptom"
+  | "context"
+  | "pending"
+  | "lab"
+  | "vital"
+  | "visit"
+  | "capture"
+  | "theory"
+  | "investigation"
+  | "external";
 // XV.8 layered model
 export type LayerId = "observation" | "concept" | "thread" | "continuity" | "correction" | "investigation" | "external";
 export type SourceType = "lab" | "note" | "doc" | "wearable" | "reported" | "research";
@@ -45,17 +80,23 @@ export interface GraphNode {
   act: number;
   primary: boolean;
   type: NodeType;
+  /** Exact plain-language type (e.g. "Vital sign"); falls back to TYPE_LABEL. */
+  typeLabel?: string;
   layer: LayerId;
   first: string;
   last: string;
-  week: number; // when it entered the records (time scrubber, V.1)
+  week: number; // Replay bucket: when it entered the records (V.1)
   relatedTotal: number;
   pinned?: boolean;
   sources: SourceType[];
   captures?: Capture[];
+  /** Backing sources shown as SourceMarkers and in the EvidenceDrawer. */
+  evidence?: EvidenceSource[];
   cluster?: ClusterId;
   bridge?: ClusterId[]; // a concept shared by ≥2 concerns — rendered as an N-wedge pie
   ghost?: boolean;
+  /** Calm due-state line for an open loop ("Check back Oct 4"). */
+  statusNote?: string;
   aggregate?: boolean; // comparison overlay suggestion (V.4)
   lensRole?: "theory"; // investigation/theory node (V.3)
   anchor?: string; // deferred child: revealed only when its anchor is expanded (III.5)
@@ -66,6 +107,7 @@ export interface GraphNode {
 export type Family = "co" | "time" | "care" | "cand" | "user" | "conflict" | "source" | "hypothesis" | "relevance";
 
 export interface GraphEdge {
+  id?: string;
   a: string;
   b: string;
   s: number; // score_level 1..7 (evidence strength)
@@ -74,6 +116,41 @@ export interface GraphEdge {
   week: number;
   lens?: "for" | "against"; // investigation lens (V.3)
   disputed?: boolean; // IV.6
+  /** Plain relation phrase ("appears with"), never the raw code. */
+  phrase?: string;
+  /** Server-composed caveat for this link (patterns). */
+  note?: string;
+  alternatives?: string[];
+  confounder?: string;
+  evidence?: EvidenceSource[];
+}
+
+export interface NodeAction {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+export interface GraphTimeline {
+  /** Short tick labels, oldest first. The last bucket is "now". */
+  labels: string[];
+  /** Screen-reader value text per bucket. */
+  valueTexts: string[];
+}
+
+export interface GraphModel {
+  kind: "live" | "preview";
+  clusters: Cluster[];
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  timeline: GraphTimeline;
+  /** Positions come from the auto layout rather than the model. */
+  autoLayout: boolean;
+  /** Opt-in aggregate comparison data exists. */
+  comparisonAvailable: boolean;
+  /** Links drawn on the map are kept (preview only — the live API has no user-edge write yet). */
+  canAuthorLinks: boolean;
+  actions: NodeAction[];
 }
 
 export const FAMILY: Record<Family, { label: string; note: string; tone: "tealmid" | "violet" | "neutral" | "amber" }> = {
@@ -93,9 +170,11 @@ export const TYPE_LABEL: Record<NodeType, string> = {
   context: "Personal context",
   pending: "Open loop",
   lab: "Lab result",
+  vital: "Vital sign",
   visit: "Visit",
   capture: "Capture",
   theory: "Working theory",
+  investigation: "Investigation",
   external: "External context",
 };
 export const TYPE_ICON: Record<NodeType, string> = {
@@ -103,9 +182,11 @@ export const TYPE_ICON: Record<NodeType, string> = {
   context: "circle-user",
   pending: "clock",
   lab: "flask-conical",
+  vital: "heart-pulse",
   visit: "calendar",
   capture: "file-text",
   theory: "flask-conical",
+  investigation: "search",
   external: "globe",
 };
 
@@ -128,13 +209,39 @@ export const FLOOR_LABEL: Record<number, string> = {
   6: "Only strongest",
 };
 
-// Months → week index for the time scrubber. Jan'26=0 … Jun'26=5.
+export const NODE_ACTIONS: NodeAction[] = [
+  { id: "ask", icon: "message-circle", label: "Ask about this" },
+  { id: "capture", icon: "plus", label: "Add a capture" },
+  { id: "resolve", icon: "check-circle-2", label: "Mark resolved" },
+  { id: "correct", icon: "pencil", label: "Correct this" },
+  { id: "link", icon: "git-fork", label: "Link to…" },
+  { id: "packet", icon: "folder", label: "Add to visit packet" },
+  { id: "hide", icon: "eye", label: "Hide" },
+];
+
+/** Actions that do something real on the live graph (no local-only fakes). */
+export const LIVE_NODE_ACTIONS: NodeAction[] = [
+  { id: "ask", icon: "message-circle", label: "Ask about this" },
+  { id: "open", icon: "arrow-right", label: "Open concern" },
+  { id: "packet", icon: "folder", label: "Add to visit packet" },
+  { id: "hide", icon: "eye", label: "Hide from map" },
+];
+
+export function sourceLabel(s: SourceType): string {
+  return ({ lab: "lab result", note: "clinical note", doc: "document", wearable: "wearable reading", reported: "self-report", research: "reference" } as Record<SourceType, string>)[s];
+}
+
+/* ------------------------------------------------------------------------- */
+/* Design-preview fixtures — sample data, never the person's records.          */
+/* ------------------------------------------------------------------------- */
+
+// Months → bucket index for the Replay timeline. Jan'26=0 … Jun'26=5.
 export const WEEK_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
 export const SEED_CLUSTERS: Cluster[] = [
-  { id: "head", label: "Headaches", cx: 240, cy: 250, rx: 188, ry: 158, status: "active" },
-  { id: "sleep", label: "Sleep", cx: 612, cy: 168, rx: 158, ry: 140, status: "active" },
-  { id: "dig", label: "Digestive", cx: 452, cy: 470, rx: 170, ry: 104, status: "watch" },
+  { id: "head", label: "Headaches", cx: 240, cy: 250, rx: 188, ry: 158, status: "active", ...CLUSTER_PALETTE[0]! },
+  { id: "sleep", label: "Sleep", cx: 612, cy: 168, rx: 158, ry: 140, status: "active", ...CLUSTER_PALETTE[1]! },
+  { id: "dig", label: "Digestive", cx: 452, cy: 470, rx: 170, ry: 104, status: "watch", ...CLUSTER_PALETTE[2]! },
 ];
 
 export const SEED_NODES: GraphNode[] = [
@@ -213,56 +320,17 @@ export const SEED_EDGES: GraphEdge[] = [
   { a: "light", b: "glare", s: 5, f: "co", layer: "concept", week: 2 },
 ];
 
-export const NODE_ACTIONS: Array<{ id: string; icon: string; label: string }> = [
-  { id: "ask", icon: "message-circle", label: "Ask about this" },
-  { id: "capture", icon: "plus", label: "Add a capture" },
-  { id: "resolve", icon: "check-circle-2", label: "Mark resolved" },
-  { id: "correct", icon: "pencil", label: "Correct this" },
-  { id: "link", icon: "git-fork", label: "Link to…" },
-  { id: "packet", icon: "folder", label: "Add to visit packet" },
-  { id: "hide", icon: "eye", label: "Hide" },
-];
-
-export const COMPARISON_IDS = ["cmp-hydration", "cmp-eyestrain"];
-
-export function sourceLabel(s: SourceType): string {
-  return ({ lab: "lab result", note: "clinical note", doc: "document", wearable: "wearable reading", reported: "self-report", research: "reference" } as Record<SourceType, string>)[s];
-}
-
-export function clusterLabel(id: ClusterId): string {
-  return SEED_CLUSTERS.find((c) => c.id === id)?.label ?? id;
-}
-
-/** Dense-state generator (IX.3): scatter extra concept nodes around clusters. */
-export function densePadding(): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  const extra: GraphNode[] = [];
-  const edges: GraphEdge[] = [];
-  const anchors: ClusterId[] = ["head", "sleep", "dig"];
-  let n = 0;
-  for (const c of SEED_CLUSTERS) {
-    for (let i = 0; i < 9; i++) {
-      const ang = (i / 9) * Math.PI * 2;
-      const id = `dense-${c.id}-${i}`;
-      extra.push({
-        id,
-        label: `Note ${++n}`,
-        x: c.cx + Math.cos(ang) * (c.rx * 0.7),
-        y: c.cy + Math.sin(ang) * (c.ry * 0.7),
-        ev: 1 + (i % 3),
-        conf: 1 + (i % 4),
-        act: 0.3 + (i % 3) * 0.15,
-        primary: false,
-        type: i % 2 ? "context" : "symptom",
-        layer: "concept",
-        first: "—",
-        last: `${i + 1} wks ago`,
-        week: Math.min(5, i % 6),
-        relatedTotal: 2,
-        sources: ["reported"],
-        cluster: c.id,
-      });
-      edges.push({ a: id, b: anchors.includes(c.id) ? `${c.id === "head" ? "headache" : c.id === "sleep" ? "sleep" : "nausea"}` : id, s: 2 + (i % 3), f: "cand", layer: "concept", week: 3 });
-    }
-  }
-  return { nodes: extra, edges };
-}
+export const DESIGN_PREVIEW_MODEL: GraphModel = {
+  kind: "preview",
+  clusters: SEED_CLUSTERS,
+  nodes: SEED_NODES,
+  edges: SEED_EDGES,
+  timeline: {
+    labels: WEEK_LABELS,
+    valueTexts: WEEK_LABELS.map((m, i) => (i === WEEK_LABELS.length - 1 ? "June 2026, all time" : `As of ${m} 2026`)),
+  },
+  autoLayout: false,
+  comparisonAvailable: true,
+  canAuthorLinks: true,
+  actions: NODE_ACTIONS,
+};
