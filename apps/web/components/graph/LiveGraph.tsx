@@ -2,11 +2,13 @@
 
 import { StateNote } from "@/components/placeholder/StateNote";
 import { useLiveGraph } from "@/lib/graph-hooks";
+import { useSession } from "@/lib/useSession";
 import { GraphLive } from "./GraphLive";
 
 /** The person's real graph in the cockpit, with calm loading / empty / error states. */
 export function LiveGraph() {
   const state = useLiveGraph();
+  const patientId = useSession()?.patientId ?? null;
 
   if (state.status === "loading") {
     return <StateNote icon="git-fork" title="Mapping your records…" />;
@@ -32,6 +34,7 @@ export function LiveGraph() {
   return (
     <GraphLive
       model={state.model}
+      patientId={patientId}
       notice={state.partial ? "Some details couldn't be loaded right now, so parts of the map may be missing." : undefined}
     />
   );

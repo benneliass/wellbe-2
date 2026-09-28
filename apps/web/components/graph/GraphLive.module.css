@@ -698,6 +698,17 @@
   transform: scale(1.05);
 }
 
+/* Nodes and concern titles can be dragged with mouse, pen or touch. */
+.node,
+.dragHandle {
+  touch-action: none;
+}
+.dragHandle {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* no default browser focus box on graph nodes — selection/hover ring conveys state */
 .node:focus,
 .node:focus-visible {

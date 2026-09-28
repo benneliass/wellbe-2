@@ -123,6 +123,8 @@ export interface GraphEdge {
   alternatives?: string[];
   confounder?: string;
   evidence?: EvidenceSource[];
+  /** Routed curve from the auto layout (control-point offset, 0 = straight); unset keeps the default bow. */
+  bend?: number;
 }
 
 export interface NodeAction {

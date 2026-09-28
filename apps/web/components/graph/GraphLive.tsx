@@ -22,7 +22,8 @@ import {
   TYPE_LABEL,
 } from "./graphData";
 import { layersWithData } from "./liveGraphAdapter";
-import { canvasLabel, layoutGraph, nodeRadius, COMPACT_VIEW, type ViewBox, WIDE_VIEW } from "./liveGraphLayout";
+import { arrowDelta, clientToSvg, dragTo, loadPositions, passedThreshold, type Positions, savePositions, svgToGraph } from "./graphDrag";
+import { canvasLabel, clusterHalo, clusterLabelBox, defaultBend, edgePathD, layoutGraph, nodeBox, nodeRadius, COMPACT_VIEW, type Pt, type ViewBox, WIDE_VIEW } from "./liveGraphLayout";
 
 type Mode = "overview" | "detail" | "explore";
 type ViewKind = "graph" | "list";
@@ -88,7 +89,7 @@ function useElementWidth<T extends HTMLElement>(): [React.RefObject<T | null>, n
   return [ref, width];
 }
 
-export function GraphLive({ model: input, notice }: { model: GraphModel; notice?: string }) {
+export function GraphLive({ model: input, notice, patientId }: { model: GraphModel; notice?: string; patientId?: string | null }) {
   const router = useRouter();
   const reducedMotion = usePrefersReducedMotion();
   const [colRef, colWidth] = useElementWidth<HTMLDivElement>();
@@ -139,6 +140,14 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const drag = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(null);
   const holdTimer = useRef<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [moved, setMoved] = useState<Positions>({});
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const nodeDrag = useRef<{ pointerId: number; client: Pt; origin: Pt; start: Positions; active: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const viewKey = `${VIEW_W}x${VIEW_H}`;
+  const storeFor = patientId ? `${patientId}|${viewKey}` : null;
 
   useEffect(() => {
     setZoom(fit);
@@ -149,14 +158,29 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
 
   const baseNodes = model.nodes;
   const baseEdges = model.edges;
-  const clusters = model.clusters;
+  const baseClusters = model.clusters;
+
+  // Positions the person dragged to, per patient and view; ids no longer on the map are ignored.
+  useEffect(() => {
+    if (!patientId || !storeFor) {
+      setMoved({});
+      setLoadedFor(null);
+      return;
+    }
+    const ids = new Set([...model.nodes.map((n) => n.id), ...model.clusters.map((c) => `cluster:${c.id}`)]);
+    setMoved(loadPositions(patientId, viewKey, ids));
+    setLoadedFor(storeFor);
+  }, [patientId, viewKey, storeFor, model]);
+  useEffect(() => {
+    if (patientId && storeFor && loadedFor === storeFor && !dragging) savePositions(patientId, viewKey, moved);
+  }, [moved, dragging, patientId, viewKey, storeFor, loadedFor]);
   const hasData = useMemo(() => layersWithData(model), [model]);
 
   const clusterById = useMemo(() => {
     const m: Record<ClusterId, Cluster & { grad: string }> = {};
-    clusters.forEach((c, i) => (m[c.id] = { ...c, grad: `sphere-c${i}` }));
+    baseClusters.forEach((c, i) => (m[c.id] = { ...c, grad: `sphere-c${i}` }));
     return m;
-  }, [clusters]);
+  }, [baseClusters]);
   const hueOf = useCallback((id: ClusterId | undefined) => (id && clusterById[id]?.hue) || NEUTRAL_HUE.hue, [clusterById]);
   const gradOf = useCallback((id: ClusterId | undefined) => `url(#${(id && clusterById[id]?.grad) || "sphere-neutral"})`, [clusterById]);
   const clusterLabel = useCallback((id: ClusterId) => clusterById[id]?.label ?? "Concern", [clusterById]);
@@ -182,19 +206,35 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
   // dock deferred child concepts radially around their anchor (III.5 on-canvas expansion)
   const positioned = useMemo(() => {
     const m: Record<string, { x: number; y: number }> = {};
-    baseNodes.forEach((n) => { if (!n.deferred) m[n.id] = { x: n.x, y: n.y }; });
+    baseNodes.forEach((n) => { if (!n.deferred) m[n.id] = moved[n.id] ?? { x: n.x, y: n.y }; });
     const kids: Record<string, GraphNode[]> = {};
     baseNodes.forEach((n) => { if (n.deferred && n.anchor) (kids[n.anchor] ??= []).push(n); });
     Object.entries(kids).forEach(([aid, list]) => {
       const a = m[aid] ?? { x: VIEW_W / 2, y: VIEW_H / 2 };
       list.forEach((k, i) => {
         const ang = -Math.PI / 2 + ((i + 0.5) / list.length) * Math.PI * 2;
-        m[k.id] = { x: a.x + Math.cos(ang) * 94, y: a.y + Math.sin(ang) * 94 };
+        m[k.id] = moved[k.id] ?? { x: a.x + Math.cos(ang) * 94, y: a.y + Math.sin(ang) * 94 };
       });
     });
     return m;
-  }, [baseNodes, VIEW_W, VIEW_H]);
+  }, [baseNodes, VIEW_W, VIEW_H, moved]);
   const np = useCallback((id: string) => positioned[id] ?? { x: nodeById[id]?.x ?? 0, y: nodeById[id]?.y ?? 0 }, [positioned, nodeById]);
+  const labelPos = useCallback(
+    (c: Cluster): Pt => moved[`cluster:${c.id}`] ?? { x: c.labelX ?? c.cx, y: c.labelY ?? c.cy - c.ry + 24 },
+    [moved],
+  );
+  // Halos re-wrap a concern whose title or own concepts were moved.
+  const clusters = useMemo(
+    () =>
+      baseClusters.map((c) => {
+        const members = baseNodes.filter((n) => n.cluster === c.id && !n.bridge && !n.deferred);
+        if (!moved[`cluster:${c.id}`] && !members.some((n) => moved[n.id])) return c;
+        const lp = labelPos(c);
+        const boxes = members.map((n) => nodeBox({ ...n, ...(positioned[n.id] ?? n) }));
+        return { ...c, ...clusterHalo(clusterLabelBox(c, lp.x, lp.y), boxes), labelX: lp.x, labelY: lp.y };
+      }),
+    [baseClusters, baseNodes, moved, positioned, labelPos],
+  );
   const deferredByAnchor = useMemo(() => {
     const m: Record<string, number> = {};
     baseNodes.forEach((n) => { if (n.deferred && n.anchor) m[n.anchor] = (m[n.anchor] ?? 0) + 1; });
@@ -241,7 +281,9 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
   const visibleEdges = allEdges.filter(edgeVisible);
   const openLoopCount = baseNodes.filter((n) => n.ghost && !hidden.has(n.id)).length;
   const conceptCount = baseNodes.filter((n) => n.layer === "concept" && !n.aggregate && !hidden.has(n.id)).length;
-  const lod: "cluster" | "concept" | "detail" = zoom.k < 0.62 ? "cluster" : zoom.k > 1.55 ? "detail" : "concept";
+  // A canvas grown for a dense graph still opens on its concepts.
+  const clusterBelow = Math.min(0.62, Math.max(0.45, fit.k * 0.9));
+  const lod: "cluster" | "concept" | "detail" = zoom.k < clusterBelow ? "cluster" : zoom.k > 1.55 ? "detail" : "concept";
   const hoverNode = hovered ? nodeById[hovered] ?? null : null;
 
   const selectedNodeId = selection.kind === "node" ? selection.id : null;
@@ -262,16 +304,21 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
     expanded.forEach((pid) => {
       const p = nodeById[pid];
       if (!p || !p.captures || !nodeVisible(p)) return;
+      const at = np(pid);
       const caps = p.captures.slice(0, 6);
       caps.forEach((c, i) => {
         const ang = -Math.PI / 2 + (i / Math.max(caps.length, 1)) * Math.PI * 2;
-        out.push({ id: `cap-${pid}-${i}`, px: p.x, py: p.y, x: p.x + Math.cos(ang) * 64, y: p.y + Math.sin(ang) * 64, source: c.source, parent: pid });
+        out.push({ id: `cap-${pid}-${i}`, px: at.x, py: at.y, x: at.x + Math.cos(ang) * 64, y: at.y + Math.sin(ang) * 64, source: c.source, parent: pid });
       });
     });
     return out;
-  }, [expanded, effLayers.observation, nodeById, nodeVisible]);
+  }, [expanded, effLayers.observation, nodeById, nodeVisible, np]);
 
   function onNodeActivate(id: string) {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     if (shareMode) {
       setShareSel((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
       return;
@@ -365,8 +412,70 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
     });
     setRadial(null);
   }
+  /** Press on a node (or a concern title, which carries its concepts): drags once past the threshold. */
+  function startDrag(ev: React.PointerEvent, start: Positions) {
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    suppressClick.current = false;
+    const svg = svgRef.current;
+    if (!svg) return;
+    nodeDrag.current = { pointerId: ev.pointerId, client: { x: ev.clientX, y: ev.clientY }, origin: svgToGraph(clientToSvg(svg, ev.clientX, ev.clientY, { width: VIEW_W, height: VIEW_H }), zoom), start, active: false };
+    try {
+      (ev.currentTarget as Element).setPointerCapture?.(ev.pointerId);
+    } catch {
+      // Capture is best-effort (unsupported, or the pointer is already gone).
+    }
+  }
+  function moveDrag(ev: React.PointerEvent) {
+    const d = nodeDrag.current;
+    if (!d || d.pointerId !== ev.pointerId) return;
+    if (!d.active) {
+      if (!passedThreshold(ev.clientX - d.client.x, ev.clientY - d.client.y)) return;
+      d.active = true;
+      clearHold();
+      setDragging(true);
+      setRadial(null);
+    }
+    ev.stopPropagation();
+    const svg = svgRef.current;
+    if (!svg) return;
+    const at = svgToGraph(clientToSvg(svg, ev.clientX, ev.clientY, { width: VIEW_W, height: VIEW_H }), zoom);
+    const next = dragTo(d.start, { x: at.x - d.origin.x, y: at.y - d.origin.y });
+    setMoved((prev) => ({ ...prev, ...next }));
+  }
+  function endDrag(ev: React.PointerEvent) {
+    const d = nodeDrag.current;
+    if (!d || d.pointerId !== ev.pointerId) return;
+    nodeDrag.current = null;
+    try {
+      (ev.currentTarget as Element).releasePointerCapture?.(ev.pointerId);
+    } catch {
+      // Already released.
+    }
+    if (!d.active) return;
+    // A drag is not a click: keep the selection and skip the click that follows.
+    ev.stopPropagation();
+    suppressClick.current = ev.type === "pointerup";
+    setDragging(false);
+  }
+  function startNodeDrag(ev: React.PointerEvent, id: string) {
+    startDrag(ev, { [id]: np(id) });
+  }
+  function startClusterDrag(ev: React.PointerEvent, c: Cluster) {
+    const start: Positions = { [`cluster:${c.id}`]: labelPos(c) };
+    baseNodes.forEach((n) => { if (n.cluster === c.id && !n.bridge) start[n.id] = np(n.id); });
+    startDrag(ev, start);
+  }
+  function nudge(id: string, key: string, big: boolean) {
+    const delta = arrowDelta(key, big);
+    if (!delta) return;
+    const p = np(id);
+    setMoved((prev) => ({ ...prev, [id]: { x: p.x + delta.x, y: p.y + delta.y } }));
+  }
+  function resetLayout() {
+    setMoved({});
+  }
   function onPointerDown(ev: React.PointerEvent) {
-    if ((ev.target as Element).closest("[data-node]")) return;
+    if ((ev.target as Element).closest("[data-node], [data-drag]")) return;
     drag.current = { x: ev.clientX, y: ev.clientY, tx: zoom.tx, ty: zoom.ty, moved: false };
   }
   function onPointerMove(ev: React.PointerEvent) {
@@ -481,13 +590,14 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
             <div className={styles.canvas} style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}>
               <p id="wb-graph-narration" className={styles.srOnly}>{narration}</p>
               <svg
+                ref={svgRef}
                 className={styles.svg}
                 viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
                 preserveAspectRatio="xMidYMid meet"
                 role="group"
                 aria-label="Map of your concerns and what they connect to"
                 aria-describedby="wb-graph-narration"
-                style={{ cursor: drag.current ? "grabbing" : shareMode ? "copy" : linkFrom ? "crosshair" : "grab" }}
+                style={{ cursor: drag.current || dragging ? "grabbing" : shareMode ? "copy" : linkFrom ? "crosshair" : "grab" }}
                 onWheel={onWheel}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
@@ -520,13 +630,17 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
                   {/* concern halos (thread layer) */}
                   {effLayers.thread && clusters.map((c) => {
                     const count = visibleNodes.filter((n) => n.cluster === c.id || n.bridge?.includes(c.id)).length;
-                    const lx = c.labelX ?? c.cx;
-                    const ly = c.labelY ?? c.cy - c.ry + 24;
+                    const { x: lx, y: ly } = labelPos(c);
                     return (
                       <g key={c.id} opacity={c.status === "resolved" ? 0.5 : 1} aria-hidden="true">
                         <ellipse cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill={c.hue} opacity={0.1} filter="url(#wb-halo)" />
                         <ellipse cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill="none" stroke={c.hue} strokeWidth={1} strokeDasharray="2 7" opacity={0.4} />
-                        {lod !== "cluster" && <><text x={lx} y={ly} textAnchor="middle" className={styles.clusterLabel} fill={c.dark}>{canvasLabel(c.label, 28)}</text><text x={lx} y={ly + 17} textAnchor="middle" className={styles.clusterCount} fill={c.dark}>{count} shown</text></>}
+                        {lod !== "cluster" && (
+                          <g data-drag data-cluster-drag={c.id} className={styles.dragHandle} onPointerDown={(ev) => startClusterDrag(ev, c)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
+                            <text x={lx} y={ly} textAnchor="middle" className={styles.clusterLabel} fill={c.dark}>{canvasLabel(c.label, 28)}</text>
+                            <text x={lx} y={ly + 17} textAnchor="middle" className={styles.clusterCount} fill={c.dark}>{count} shown</text>
+                          </g>
+                        )}
                       </g>
                     );
                   })}
@@ -562,7 +676,8 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
                         const isDisp = disputed.has(`${e.a}|${e.b}`);
                         const dash = e.f === "user" ? "1 7" : e.f === "conflict" || isDisp ? "8 6" : e.f === "hypothesis" ? "4 5" : e.f === "relevance" ? "2 6" : e.f === "cand" || e.s <= 3 ? "6 6" : undefined;
                         const stroke = e.lens === "against" ? "#94a3b8" : e.lens === "for" ? "#0ea5a4" : e.f === "user" ? "#8b5cf6" : e.f === "conflict" ? "#f59e0b" : e.f === "hypothesis" ? "#8b5cf6" : "#90A4AE";
-                        const d = edgePath(np(e.a), np(e.b));
+                        const pa = np(e.a), pb = np(e.b);
+                        const d = edgePathD(pa, pb, e.bend ?? defaultBend(pa, pb));
                         const active = !faded && (strong || hovered === e.a || hovered === e.b || e.lens === "for");
                         const touch = (id: string | null) => id && (e.a === id || e.b === id);
                         const flow = !faded && !reducedMotion && (touch(hovered) || touch(selectedNodeId));
@@ -602,6 +717,10 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
                             onHoldStart={() => startHold(n.id)}
                             onHoldEnd={clearHold}
                             onArrow={(key) => focusToward(n.id, key)}
+                            onNudge={(key, big) => nudge(n.id, key, big)}
+                            onDragStart={(ev) => startNodeDrag(ev, n.id)}
+                            onDragMove={moveDrag}
+                            onDragEnd={endDrag}
                           />
                         );
                       })}
@@ -612,7 +731,7 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
 
               {radial && nodeById[radial.id] && <RadialMenu radial={radial} actions={actionsFor(nodeById[radial.id]!)} onAction={runAction} onClose={() => setRadial(null)} />}
 
-              {hoverNode && !radial && !drag.current && lod !== "cluster" && (
+              {hoverNode && !radial && !drag.current && !dragging && lod !== "cluster" && (
                 <div className={styles.tooltip} style={{ left: `${((np(hoverNode.id).x * zoom.k + zoom.tx) / VIEW_W) * 100}%`, top: `${((np(hoverNode.id).y * zoom.k + zoom.ty) / VIEW_H) * 100}%` }} role="presentation">
                   <span className={styles.ttTitle}>{hoverNode.label}</span>
                   <span className={styles.ttSub}>{typeLabelOf(hoverNode)}{hoverNode.ghost ? ` · ${hoverNode.statusNote ?? "awaiting result"}` : ` · ${plural(hoverNode.ev, "source")} · ${hoverNode.last}`}</span>
@@ -624,6 +743,7 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
                 <button type="button" className={styles.zoomBtn} aria-label="Zoom out" title="Zoom out" onClick={() => setZoom((z) => ({ ...z, k: Math.max(0.3, z.k * 0.83) }))}><Icon name="chevron-down" size={15} /></button>
                 <button type="button" className={styles.zoomBtn} aria-label="Recenter map" title="Recenter to default view" onClick={recenter}><Icon name="home" size={15} /></button>
                 <button type="button" className={styles.zoomBtn} data-saved={homeSaved || undefined} aria-label="Set current view as default" title="Set current view as default" onClick={saveHome}><Icon name={homeSaved ? "check" : "star"} size={15} /></button>
+                {Object.keys(moved).length > 0 && <button type="button" className={styles.zoomBtn} aria-label="Reset layout" title="Reset layout — put moved items back" onClick={resetLayout}><Icon name="rotate-ccw" size={15} /></button>}
               </div>
               <div className={styles.lodHint}>{lod === "cluster" ? "Concern overview" : lod === "detail" ? "Detail — evidence" : "Concepts"}{lens ? " · investigation lens" : ""}</div>
               <div className={styles.scrubDock}>
@@ -694,9 +814,10 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
 }
 
 /* ---------- SVG node ---------- */
-function NodeGlyph({ n, hue, fill, wedgeFill, lod, dim, hot, selected, selectedForShare, expandedNode, childCount, onSelect, onContext, onHoverIn, onHoverOut, onHoldStart, onHoldEnd, onArrow }: {
+function NodeGlyph({ n, hue, fill, wedgeFill, lod, dim, hot, selected, selectedForShare, expandedNode, childCount, onSelect, onContext, onHoverIn, onHoverOut, onHoldStart, onHoldEnd, onArrow, onNudge, onDragStart, onDragMove, onDragEnd }: {
   n: GraphNode; hue: string; fill: string; wedgeFill: (id: ClusterId) => string; lod: "cluster" | "concept" | "detail"; dim: number; hot: boolean; selected: boolean; selectedForShare: boolean; expandedNode: boolean; childCount: number;
   onSelect: () => void; onContext: () => void; onHoverIn: () => void; onHoverOut: () => void; onHoldStart: () => void; onHoldEnd: () => void; onArrow: (key: string) => void;
+  onNudge: (key: string, big: boolean) => void; onDragStart: (ev: React.PointerEvent) => void; onDragMove: (ev: React.PointerEvent) => void; onDragEnd: (ev: React.PointerEvent) => void;
 }) {
   const theory = n.lensRole === "theory";
   const r = nodeRadius(n);
@@ -719,15 +840,17 @@ function NodeGlyph({ n, hue, fill, wedgeFill, lod, dim, hot, selected, selectedF
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); }
         else if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) { e.preventDefault(); onContext(); }
-        else if (e.key.startsWith("Arrow")) { e.preventDefault(); onArrow(e.key); }
+        else if (e.key.startsWith("Arrow")) { e.preventDefault(); if (e.altKey) onArrow(e.key); else onNudge(e.key, e.shiftKey); }
       }}
       onContextMenu={(e) => { e.preventDefault(); onContext(); }}
       onMouseEnter={onHoverIn}
       onMouseLeave={onHoverOut}
       onFocus={onHoverIn}
       onBlur={onHoverOut}
-      onPointerDown={onHoldStart}
-      onPointerUp={onHoldEnd}
+      onPointerDown={(e) => { onHoldStart(); onDragStart(e); }}
+      onPointerMove={onDragMove}
+      onPointerUp={(e) => { onHoldEnd(); onDragEnd(e); }}
+      onPointerCancel={(e) => { onHoldEnd(); onDragEnd(e); }}
       onPointerLeave={onHoldEnd}
     >
       <circle className={styles.focusRing} cx={n.x} cy={n.y} r={r + 15} />
@@ -797,14 +920,6 @@ function wedgePath(cx: number, cy: number, r: number, i: number, total: number) 
   return `M${cx},${cy} L${p0x.toFixed(1)},${p0y.toFixed(1)} A${r},${r} 0 ${large} 1 ${p1x.toFixed(1)},${p1y.toFixed(1)} Z`;
 }
 
-function edgePath(a: { x: number; y: number }, b: { x: number; y: number }) {
-  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const bow = Math.min(46, len * 0.13);
-  return `M${a.x},${a.y} Q${(mx + (-dy / len) * bow).toFixed(1)},${(my + (dx / len) * bow).toFixed(1)} ${b.x},${b.y}`;
-}
-
 /* ---------- radial menu ---------- */
 function RadialMenu({ radial, actions, onAction, onClose }: { radial: { id: string; xPct: number; yPct: number }; actions: NodeAction[]; onAction: (a: string, id: string) => void; onClose: () => void }) {
   const radius = 82;
@@ -863,7 +978,7 @@ function OverviewPanel({ conceptCount, openLoopCount, clusterCount, bridge, brid
         Tap a <strong>node</strong> to expand its sources and act on it. Tap a <strong>line</strong> for why two items connect. Right-click or long-press for quick actions.
         {bridge && bridgeConcerns.length >= 2 && <> <span className={styles.bridgeName}>{bridge.label}</span> bridges {bridgeConcerns.join(" and ")}{bridgeCount > 1 ? `, one of ${bridgeCount} shared items` : ""}.</>}
       </p>
-      <p className={styles.tipLine}><Icon name="search" size={13} /> Scroll to zoom · drag to pan · Tab and arrow keys move between nodes · use Layers, Lens and Replay to explore.</p>
+      <p className={styles.tipLine}><Icon name="search" size={13} /> Scroll to zoom · drag the background to pan · drag a node or concern title to move it (arrow keys nudge a focused node) · Tab or Alt+arrow keys move between nodes · use Layers, Lens and Replay to explore.</p>
       <div className={styles.safety}><Icon name="shield-check" size={14} /><span>This map shows how items appear in your records — not medical severity. Links are not causes, and never a diagnosis.</span></div>
     </>
   );
