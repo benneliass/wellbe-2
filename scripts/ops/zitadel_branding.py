@@ -22,7 +22,7 @@ from pathlib import Path
 import httpx
 
 REPO = Path(__file__).resolve().parents[2]
-LOGO = REPO / "apps/web/public/wellbe-logo.png"
+LOGO = REPO / "apps/web/public/wellbe-mark.png"
 FONT = REPO / "apps/web/app/fonts/figtree-latin-wght-normal.woff2"
 
 # packages/ui/src/tokens.css: teal-600 keeps white button text above WCAG AA.
@@ -82,6 +82,9 @@ def main() -> int:
     )
 
     def check(resp: httpx.Response, what: str) -> None:
+        if resp.status_code == 400 and "has not been changed" in resp.text:
+            print(f"# {what}: unchanged")
+            return
         if resp.status_code >= 300:
             raise SystemExit(f"{what} failed: {resp.status_code} {resp.text[:300]}")
         print(f"# {what}: ok")

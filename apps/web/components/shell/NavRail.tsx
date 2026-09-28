@@ -82,7 +82,7 @@ export function NavRail({ onCapture }: { onCapture: () => void }) {
     <aside className={styles.rail} data-more-open={moreOpen || undefined}>
       <div className={styles.brand}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={styles.mark} src="/wellbe-logo.png" alt="WellBe" />
+        <img className={styles.mark} src="/wellbe-mark.png" alt="WellBe" />
         <span className={styles.word}>
           Well<b>Be</b>
         </span>

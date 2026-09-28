@@ -55,7 +55,7 @@ function OidcEntryScreen() {
       <div className={styles.card}>
         <div className={styles.brandRow}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-logo.png" alt="" className={styles.mark} />
+          <img src="/wellbe-mark.png" alt="" className={styles.mark} />
           <span className={styles.word}>
             Well<b>Be</b>
           </span>
@@ -133,7 +133,7 @@ function DevEntryScreen() {
       <div className={styles.card}>
         <div className={styles.brandRow}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-logo.png" alt="" className={styles.mark} />
+          <img src="/wellbe-mark.png" alt="" className={styles.mark} />
           <span className={styles.word}>
             Well<b>Be</b>
           </span>
