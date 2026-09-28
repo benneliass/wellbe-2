@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Float, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from wellbe_db import Base
@@ -91,8 +91,8 @@ class DocumentProcessingStatusRow(Base):
     status: Mapped[str] = mapped_column(Text(), nullable=False)
     detail: Mapped[str | None] = mapped_column(Text(), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer(), nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class HealthSignalRow(Base):
