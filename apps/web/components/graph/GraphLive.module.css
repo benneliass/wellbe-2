@@ -1159,6 +1159,35 @@
   }
 }
 
+/* Short laptop screens: keep the map above the fold. Tool buttons go icon-only
+   (names stay for assistive tech and tooltips) and layers become one scrolling row. */
+@media (min-width: 561px) and (max-height: 720px) {
+  .wrap {
+    gap: var(--sp-3);
+  }
+  .toolLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .toolBtn {
+    padding: 8px 10px;
+  }
+  .layerChips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
+  .layerChip {
+    flex-shrink: 0;
+  }
+}
+
 @media (max-width: 560px) {
   .toolbar,
   .filters {

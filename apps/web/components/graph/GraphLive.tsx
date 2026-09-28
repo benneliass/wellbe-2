@@ -406,12 +406,12 @@ export function GraphLive({ model: input, notice }: { model: GraphModel; notice?
         />
         <div className={styles.toolbarRight}>
           {hidden.size > 0 && <button type="button" className={styles.hiddenChip} onClick={() => setHidden(new Set())}><Icon name="eye" size={14} /> {hidden.size} hidden · restore</button>}
-          <button type="button" className={styles.toolBtn} data-active={lens || undefined} aria-pressed={lens} onClick={() => { setLens((v) => !v); }}><Icon name="flask-conical" size={15} /> Lens</button>
-          <button type="button" className={styles.toolBtn} data-active={comparison === "on" || undefined} aria-pressed={comparison === "on"} onClick={() => setComparison((c) => (c === "off" ? "consent" : "off"))}><Icon name="users" size={15} /> Compare</button>
-          <button type="button" className={styles.toolBtn} data-active={shareMode || undefined} aria-pressed={shareMode} onClick={() => { setShareMode((v) => !v); setShareSel(new Set()); }}><Icon name="share" size={15} /> Share</button>
-          <button type="button" className={styles.toolBtn} data-active={explain || undefined} aria-pressed={explain} onClick={() => { setExplain((v) => !v); setSelection({ kind: "none" }); }}><Icon name="sparkles" size={15} /> Explain</button>
+          <button type="button" className={styles.toolBtn} data-active={lens || undefined} aria-pressed={lens} title="Lens" onClick={() => { setLens((v) => !v); }}><Icon name="flask-conical" size={15} /> <span className={styles.toolLabel}>Lens</span></button>
+          <button type="button" className={styles.toolBtn} data-active={comparison === "on" || undefined} aria-pressed={comparison === "on"} title="Compare" onClick={() => setComparison((c) => (c === "off" ? "consent" : "off"))}><Icon name="users" size={15} /> <span className={styles.toolLabel}>Compare</span></button>
+          <button type="button" className={styles.toolBtn} data-active={shareMode || undefined} aria-pressed={shareMode} title="Share" onClick={() => { setShareMode((v) => !v); setShareSel(new Set()); }}><Icon name="share" size={15} /> <span className={styles.toolLabel}>Share</span></button>
+          <button type="button" className={styles.toolBtn} data-active={explain || undefined} aria-pressed={explain} title="Explain" onClick={() => { setExplain((v) => !v); setSelection({ kind: "none" }); }}><Icon name="sparkles" size={15} /> <span className={styles.toolLabel}>Explain</span></button>
           <div className={styles.floorMenu}>
-            <button type="button" className={styles.toolBtn} data-active={floorOpen || undefined} aria-expanded={floorOpen} onClick={() => setFloorOpen((v) => !v)}><Icon name="sliders-horizontal" size={15} /> Link strength <Icon name="chevron-down" size={13} /></button>
+            <button type="button" className={styles.toolBtn} data-active={floorOpen || undefined} aria-expanded={floorOpen} title="Link strength" onClick={() => setFloorOpen((v) => !v)}><Icon name="sliders-horizontal" size={15} /> <span className={styles.toolLabel}>Link strength</span> <Icon name="chevron-down" size={13} /></button>
             {floorOpen && (
               <>
                 <div className={styles.popBackdrop} onClick={() => setFloorOpen(false)} />
