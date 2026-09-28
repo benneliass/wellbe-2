@@ -1,4 +1,4 @@
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 import { API_URL, DEMO_HEADERS, expect, expectCleanPage, snap, test } from "./fixtures";
 import type { PendingItemV2 } from "@/lib/pending";
 import { openPendingItems } from "@/lib/pending";
@@ -158,26 +158,84 @@ test("Prepare builds a visit packet with source-linked statements", async ({ pag
   await snap(page, "08-prepare-packet");
 });
 
-test("Graph renders the patient's real nodes", async ({ page, request }) => {
+const GRAPH_FIXTURE_LABELS = ["MRI referral", "Late caffeine", "Light sensitivity", "Screen time"];
+
+/** Pairs of on-canvas labels (node labels + concern titles) whose boxes intersect. */
+async function overlappingGraphLabels(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const els = Array.from(
+      document.querySelectorAll<SVGTextElement>('svg [class*="nodeLabel"], svg [class*="clusterLabel"]'),
+    );
+    const boxes = els.map((el) => ({ text: el.textContent ?? "", r: el.getBoundingClientRect() }));
+    const out: string[] = [];
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]!.r, b = boxes[j]!.r;
+        if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) {
+          out.push(`${boxes[i]!.text} × ${boxes[j]!.text}`);
+        }
+      }
+    return out;
+  });
+}
+
+test("Graph renders the patient's real data in the cockpit", async ({ page, request }) => {
   const threads = await apiGet<ThreadV1[]>(request, "/v1/threads");
   const labels = new Set<string>();
+  const investigative = new Set<string>();
   for (const t of threads) {
-    const g = await apiGet<{ nodes: { label: string }[] }>(request, `/v2/graph/threads/${t.thread_id}`);
-    g.nodes.forEach((n) => labels.add(n.label));
+    const g = await apiGet<{ nodes: { label: string; type: string }[] }>(request, `/v2/graph/threads/${t.thread_id}`);
+    g.nodes.forEach((n) => (n.type === "Theory" || n.type === "Investigation" ? investigative : labels).add(n.label));
   }
   expect(labels.size).toBeGreaterThan(0);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/graph");
   await expect(page.getByRole("heading", { name: "Open the graph" })).toBeVisible();
-  const map = page.getByRole("img", { name: /Map of your concerns/ });
+  const map = page.getByRole("group", { name: /Map of your concerns/ });
   await expect(map).toBeVisible();
+  for (const t of threads) await expect(map.getByText(t.title, { exact: true }).first()).toBeVisible();
   for (const l of labels) {
-    await expect(map.getByRole("button", { name: new RegExp(`^${escapeRe(l)}, `) })).toBeVisible();
+    await expect(map.getByRole("button", { name: new RegExp(`^${escapeRe(l)}, `, "i") })).toBeVisible();
   }
   // No sample-fixture concepts leak into the person's graph.
-  await expect(page.getByText("MRI referral")).toHaveCount(0);
+  for (const l of GRAPH_FIXTURE_LABELS) await expect(page.getByText(l)).toHaveCount(0);
+  await expect(page.getByText(/Design preview/)).toHaveCount(0);
+
+  for (const [w, h] of [[1440, 900], [1024, 583], [390, 844]] as const) {
+    await page.setViewportSize({ width: w, height: h });
+    await expect(map).toBeVisible();
+    await page.waitForTimeout(400);
+    expect(await overlappingGraphLabels(page), `label overlap at ${w}x${h}`).toEqual([]);
+    await snap(page, `09-graph-${w}x${h}`, { fullPage: false });
+  }
+  await snap(page, "09-graph-390-full");
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  // Theories and investigations live in the Investigation layer (off by default).
+  if (investigative.size) {
+    await page.getByRole("button", { name: "Investigation", exact: true }).click();
+    for (const l of investigative) {
+      await expect(map.getByRole("button", { name: new RegExp(`^${escapeRe(l)}, `, "i") })).toBeVisible();
+    }
+    expect(await overlappingGraphLabels(page), "label overlap with the Investigation layer on").toEqual([]);
+    await snap(page, "09-graph-investigation-1440x900", { fullPage: false });
+    await page.getByRole("button", { name: "Investigation", exact: true }).click();
+  }
+
+  // A node's inspector shows its sources and opens the evidence drawer.
   const first = Array.from(labels)[0]!;
-  await map.getByRole("button", { name: new RegExp(`^${escapeRe(first)}, `) }).click();
-  await expect(page.getByRole("complementary", { name: "Details" })).toContainText(first);
+  await map.getByRole("button", { name: new RegExp(`^${escapeRe(first)}, `, "i") }).click();
+  const details = page.getByRole("complementary", { name: "Details" });
+  await expect(details).toContainText(new RegExp(escapeRe(first), "i"));
+  await expect(details).toContainText("never a diagnosis");
+  const withSources = map.getByRole("button", { name: /, [1-9]\d* sources?, / }).first();
+  await withSources.click();
+  await details.getByRole("button", { name: /Open evidence/ }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await snap(page, "09-graph-evidence", { fullPage: false });
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
   await page.getByRole("tab", { name: "List" }).click();
   for (const t of threads) {
     await expect(page.getByRole("region", { name: t.title, exact: true })).toBeVisible();
@@ -185,6 +243,12 @@ test("Graph renders the patient's real nodes", async ({ page, request }) => {
   await expectCleanPage(page);
   await page.getByRole("tab", { name: "Map" }).click();
   await snap(page, "09-graph");
+});
+
+test("Graph design preview is labelled as sample data", async ({ page }) => {
+  await page.goto("/graph?preview=design");
+  await expect(page.getByText("Design preview with sample data — not your records.").first()).toBeVisible();
+  await snap(page, "09-graph-design-preview", { fullPage: false });
 });
 
 test("Memory groups the memories kept around each thread by type", async ({ page, request }) => {
