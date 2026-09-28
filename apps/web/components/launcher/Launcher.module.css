@@ -73,8 +73,14 @@
   row-gap: var(--sp-3);
   padding: clamp(8px, 1.6vh, 20px) clamp(16px, 3vw, 36px);
 }
-.brand {
+/* Wordmark, preceded by the root nav's compact menu when RootFrame provides one. */
+.lead {
   grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.brand {
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -310,7 +316,9 @@
 }
 
 /* The centered column is in normal flow: it takes the remaining height and
-   centers itself, and simply grows (the page scrolls) when it doesn't fit. */
+   centers itself, and simply grows (the page scrolls) when it doesn't fit.
+   RootFrame sets --wb-launch-dock-inset while its left dock is shown; the inset
+   is applied to both sides so the column stays centered and clear of the dock. */
 .main {
   flex: 1 0 auto;
   width: 100%;
@@ -318,7 +326,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--gap-xs) 16px;
+  padding: var(--gap-xs) max(16px, var(--wb-launch-dock-inset, 0px));
 }
 
 .hero {
@@ -647,10 +655,10 @@
 }
 
 /* Mobile: signals chip takes its own full-width row under the header; pills in
-   a 2-column grid; content clears the fixed bottom navigation. */
+   a 2-column grid. RootFrame's scroll frame ends above the fixed bottom nav. */
 @media (max-width: 639px) {
   .launch {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 88px);
+    padding-bottom: var(--sp-4);
   }
   .top {
     grid-template-columns: auto auto;

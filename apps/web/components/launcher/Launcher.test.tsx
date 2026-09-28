@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Launcher } from "./Launcher";
 
@@ -12,6 +13,12 @@ vi.mock("./SignalsPanel", () => ({
   SignalsPanel: () => <button type="button">Your health signals</button>,
 }));
 
+let rootNav: ReactNode = null;
+
+vi.mock("@/components/shell/RootFrame", () => ({
+  useRootNav: () => rootNav,
+}));
+
 vi.mock("./ContinuityStrip", () => ({
   ContinuityStrip: () => <a href="/workspace">5 threads carrying forward</a>,
 }));
@@ -19,6 +26,21 @@ vi.mock("./ContinuityStrip", () => ({
 describe("Launcher", () => {
   beforeEach(() => {
     push.mockReset();
+    rootNav = null;
+  });
+
+  it("places the root nav in the header before the wordmark, outside the main column", () => {
+    rootNav = <nav aria-label="Primary" />;
+    render(<Launcher />);
+    const nav = within(screen.getByRole("banner")).getByRole("navigation", { name: "Primary" });
+    const brand = screen.getByRole("button", { name: "WellBe" });
+    expect(nav.compareDocumentPosition(brand) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(screen.getByRole("main")).queryByRole("navigation")).toBeNull();
+  });
+
+  it("renders no nav when RootFrame provides none", () => {
+    render(<Launcher />);
+    expect(screen.queryByRole("navigation")).toBeNull();
   });
 
   it("keeps the signals chip in the header, apart from the main column", () => {
