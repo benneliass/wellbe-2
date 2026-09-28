@@ -38,26 +38,24 @@ const intersects = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 /**
- * Launcher (`/`) primary nav: a compact Menu beside the wordmark at every desktop
- * width (no side dock). It may not sit over the pills, the Ask bar or the
- * continuity strip.
+ * Launcher (`/`) on desktop: no separate nav (its own actions and Full View reach
+ * every destination), the column fits the viewport, and the signals chip stays
+ * under Full View.
  */
 for (const [width, height] of [
   [1024, 583],
   [1440, 900],
 ] as const) {
-  test.describe(`launcher nav at ${width}x${height}`, () => {
+  test.describe(`launcher at ${width}x${height}`, () => {
     test.use({ viewport: { width, height } });
 
-    test(`shows the compact nav clear of the launcher column`, async ({ page }) => {
+    test(`has no desktop nav and keeps the header in place`, async ({ page }) => {
       await page.goto("/");
       const ask = page.locator("form").filter({ has: page.getByLabel("Ask WellBe") });
       await expect(ask).toBeVisible();
-      const nav = page.getByRole("navigation", { name: "Primary" });
-      await expect(nav).toHaveCount(1);
-      await expect(nav.getByRole("button", { name: "Menu" })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Menu" })).toHaveCount(0);
 
-      const navBox = (await nav.boundingBox())!;
       const pills = await page.locator("main main button[class*='pill']").all();
       expect(pills).toHaveLength(6);
       const targets: Box[] = [];
@@ -69,7 +67,6 @@ for (const [width, height] of [
       const askBox = (await ask.boundingBox())!;
       const stripBox = (await page.locator("main main [class*='continuity']").first().boundingBox())!;
       targets.push(askBox, stripBox);
-      for (const box of targets) expect(intersects(navBox, box)).toBe(false);
       expect(stripBox.y + stripBox.height).toBeLessThanOrEqual(height);
 
       const { scrollWidth, innerWidth } = await page.evaluate(() => ({
@@ -85,12 +82,10 @@ for (const [width, height] of [
       expect(chip.y).toBeGreaterThanOrEqual(full.y + full.height);
       expect(chip.y - (full.y + full.height)).toBeLessThan(32);
       expect(Math.abs(chip.x + chip.width - (full.x + full.width))).toBeLessThanOrEqual(2);
-      expect(intersects(chip, navBox)).toBe(false);
       for (const box of targets) expect(intersects(chip, box)).toBe(false);
 
-      await nav.getByRole("button", { name: "Menu" }).click();
-      await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
-      await expect(nav.getByRole("link", { name: "Threads" })).toBeVisible();
+      await page.getByRole("button", { name: /Log something/ }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
     });
   });
 }
