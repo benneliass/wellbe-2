@@ -136,6 +136,13 @@ localhost URI requires ZITADEL "dev mode" on the app; drop it with
 Recommended once in the console: Default settings → Login behavior → untick
 "User registration allowed" (only `ben` and `demo` should exist).
 
+Brand the login pages as WellBe (colours, logo, Figtree font, no ZITADEL
+watermark, WellBe wording). Idempotent; re-run after any ZITADEL re-init:
+
+```sh
+cd backend && uv run python ../scripts/ops/zitadel_branding.py   # same ZITADEL_URL / ZITADEL_PAT
+```
+
 ## 4. Link the demo login to the demo patient
 
 The demo patient `de7a0000-0000-4000-8000-000000000001` is bound to the dev
