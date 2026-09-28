@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import uuid
 
+import httpx
 import pytest
 from wellbe_api import dev_seed
 from wellbe_api.routers.capture_v1 import CaptureType
@@ -97,6 +98,38 @@ def test_headers_carry_controller_self_identity() -> None:
     assert headers["X-Wellbe-Actor-Type"] == "controller"
     assert "Idempotency-Key" not in headers
     assert dev_seed._headers(pid, idempotency_key="k")["Idempotency-Key"] == "k"
+
+
+async def test_each_candidate_is_acted_on_at_most_once() -> None:
+    """A broad keyword ("pain") must not re-confirm what "knee" already confirmed.
+
+    Genesis may list "Knee pain" before "Pain"; the candidate snapshot is not
+    refreshed between rules, so without claiming, the second confirm hits 409.
+    """
+    knee, pain = str(uuid.uuid4()), str(uuid.uuid4())
+    candidates = [
+        {"candidate_id": knee, "title": "Knee pain", "status": "pending"},
+        {"candidate_id": pain, "title": "Pain", "status": "pending"},
+    ]
+    confirmed_ids: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path.endswith("/confirm"):
+            cid = path.split("/")[-2]
+            if cid in confirmed_ids:
+                return httpx.Response(409, json={"title": "Candidate is not pending"})
+            confirmed_ids.append(cid)
+            return httpx.Response(200, json={"thread_id": str(uuid.uuid4())})
+        return httpx.Response(200, json={})
+
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(handler), base_url="http://api"
+    ) as client:
+        confirmed = await dev_seed._act_on_candidates(client, str(uuid.uuid4()), candidates)
+
+    assert confirmed_ids == [knee, pain]
+    assert set(confirmed) == {"knee", "pain"}
 
 
 async def test_seed_is_a_noop_when_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
