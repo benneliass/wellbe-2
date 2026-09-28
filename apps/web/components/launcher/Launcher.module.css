@@ -316,9 +316,7 @@
 }
 
 /* The centered column is in normal flow: it takes the remaining height and
-   centers itself, and simply grows (the page scrolls) when it doesn't fit.
-   RootFrame sets --wb-launch-dock-inset while its left dock is shown; the inset
-   is applied to both sides so the column stays centered and clear of the dock. */
+   centers itself, and simply grows (the page scrolls) when it doesn't fit. */
 .main {
   flex: 1 0 auto;
   width: 100%;
@@ -326,7 +324,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--gap-xs) max(16px, var(--wb-launch-dock-inset, 0px));
+  padding: var(--gap-xs) 16px;
 }
 
 .hero {

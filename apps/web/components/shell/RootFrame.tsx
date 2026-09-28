@@ -24,8 +24,7 @@ export function useRootNav(): ReactNode {
  * Landmarks for the root path, which renders outside the workspace AppShell.
  * The front door (no session) gets only a <main>; once a session is onboarded
  * the launcher also gets the primary nav — bottom bar on mobile, a compact menu
- * in the header on mid-width desktops, and a left dock once it fits beside the
- * launcher's pill row.
+ * in the header on desktop.
  */
 export function RootFrame({ children }: { children: ReactNode }) {
   const session = useSession();
@@ -45,8 +44,8 @@ export function RootFrame({ children }: { children: ReactNode }) {
 }
 
 /**
- * Desktop (>= 768px) primary nav. Below the dock breakpoint the destinations
- * sit behind a "Menu" button so they take no width from the pill row.
+ * Desktop (>= 768px) primary nav: the destinations sit behind a "Menu" button
+ * so they take no width from the pill row.
  */
 function LauncherNav({ onCapture }: { onCapture: () => void }) {
   const pathname = usePathname() ?? "/";

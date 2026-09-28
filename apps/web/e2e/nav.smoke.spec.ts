@@ -38,24 +38,24 @@ const intersects = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 /**
- * Launcher (`/`) primary nav: a compact Menu beside the wordmark until the
- * vertical dock fits beside the six fixed-width pills, then the dock. Neither
- * form may sit over the pills, the Ask bar or the continuity strip.
+ * Launcher (`/`) primary nav: a compact Menu beside the wordmark at every desktop
+ * width (no side dock). It may not sit over the pills, the Ask bar or the
+ * continuity strip.
  */
-for (const [width, height, form] of [
-  [1024, 583, "compact"],
-  [1440, 900, "dock"],
+for (const [width, height] of [
+  [1024, 583],
+  [1440, 900],
 ] as const) {
   test.describe(`launcher nav at ${width}x${height}`, () => {
     test.use({ viewport: { width, height } });
 
-    test(`shows the ${form} nav clear of the launcher column`, async ({ page }) => {
+    test(`shows the compact nav clear of the launcher column`, async ({ page }) => {
       await page.goto("/");
       const ask = page.locator("form").filter({ has: page.getByLabel("Ask WellBe") });
       await expect(ask).toBeVisible();
       const nav = page.getByRole("navigation", { name: "Primary" });
       await expect(nav).toHaveCount(1);
-      await expect(nav.getByRole("button", { name: "Menu" })).toBeVisible({ visible: form === "compact" });
+      await expect(nav.getByRole("button", { name: "Menu" })).toBeVisible();
 
       const navBox = (await nav.boundingBox())!;
       const pills = await page.locator("main main button[class*='pill']").all();
@@ -78,7 +78,7 @@ for (const [width, height, form] of [
       }));
       expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
 
-      if (form === "compact") await nav.getByRole("button", { name: "Menu" }).click();
+      await nav.getByRole("button", { name: "Menu" }).click();
       await expect(nav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
       await expect(nav.getByRole("link", { name: "Threads" })).toBeVisible();
     });
