@@ -87,8 +87,10 @@ function client(config: LoginServerConfig, fetchImpl: Fetch) {
 }
 
 const isLocked = (err: ZitadelHttpError) => /locked/i.test(err.body);
-const isPolicyViolation = (err: ZitadelHttpError) =>
-  err.status === 400 && /complexity|password.*(policy|invalid)/i.test(err.body);
+// The current password was verified just before, so an invalid-argument answer to
+// setting the new one means the new password was refused. The messages are
+// localized ("Password is too short"), hence no text matching.
+const isPolicyViolation = (err: ZitadelHttpError) => err.status === 400;
 
 async function passwordRules(call: ReturnType<typeof client>): Promise<PasswordRules | null> {
   try {

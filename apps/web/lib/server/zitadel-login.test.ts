@@ -125,7 +125,7 @@ describe("signInWithPassword", () => {
       ...happy(true),
       "POST /v2/users/u1/password": () => ({
         status: 400,
-        body: { message: "Errors.User.PasswordComplexityPolicy.HasUpper" },
+        body: { code: 3, message: "Password is too short (DOMAIN-HuJf6)" },
       }),
     });
     const result = await signInWithPassword(config, { ...input, newPassword: "weak" }, z.impl);
