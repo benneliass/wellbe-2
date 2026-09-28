@@ -2,13 +2,15 @@ import { loginConfigFromEnv, signInWithPassword, type SignInResult } from "@/lib
 
 export const dynamic = "force-dynamic";
 
+// Outcomes of the form itself are 200 with a `kind` (browsers log every non-2xx
+// fetch as a console error); only protocol errors and outages are non-2xx.
 const STATUS: Record<SignInResult["kind"], number> = {
   ok: 200,
   password_change_required: 200,
-  weak_password: 422,
-  invalid_credentials: 401,
-  locked: 423,
-  expired: 410,
+  weak_password: 200,
+  invalid_credentials: 200,
+  locked: 200,
+  expired: 200,
   unavailable: 502,
 };
 

@@ -1,5 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { API_URL, DEMO_HEADERS, expect, expectCleanPage, snap, test } from "./fixtures";
+import { expectSignedIn, OIDC, signInThroughLoginScreen } from "./oidc-login";
 import type { PendingItemV2 } from "@/lib/pending";
 import { openPendingItems } from "@/lib/pending";
 
@@ -90,12 +91,22 @@ test("Thread page shows its evidence, graph and memories", async ({ page, reques
   await expect(page).toHaveURL(new RegExp(`/threads/${headache.thread_id}$`));
   await expect(page.getByRole("heading", { name: headache.title, level: 1 })).toBeVisible();
 
-  const mem = page.getByRole("region", { name: "Memories" });
-  await expect(mem).toBeVisible();
-  for (const m of memories) await expect(mem.getByText(m.title).first()).toBeVisible();
+  // Memories are the "Your story" lanes; a long story is previewed behind "Show all".
+  const story = page.getByRole("region", { name: "Your story" });
+  await expect(story).toBeVisible();
+  await expect(story.getByText(`${memories.length} kept`)).toBeVisible();
+  const showAll = story.getByRole("button", { name: /Show all/ });
+  if (await showAll.count()) await showAll.click();
+  for (const m of memories) {
+    await expect(story.getByText(new RegExp(escapeRe(m.title || "Untitled entry"), "i")).first()).toBeVisible();
+  }
 
-  const g = page.getByRole("region", { name: "Connected in your records" });
-  await expect(g).toBeVisible();
+  // Connections sit behind a disclosure (L4).
+  await page.getByRole("button", { name: "Explore connections" }).click();
+  const g = page.locator("section", {
+    has: page.getByRole("heading", { name: "Connected in your records" }),
+  });
+  await expect(g.first()).toBeVisible();
   for (const n of graph.nodes) await expect(g.getByText(n.label).first()).toBeVisible();
 
   await expectCleanPage(page);
@@ -296,7 +307,24 @@ for (const r of RECORD_PAGES) {
 test.describe("signed out", () => {
   test.use({ devSession: false });
 
+  test("front door signs in through the WellBe login screen", async ({ page }) => {
+    test.skip(!OIDC, "dev-headers deployment: covered by the Dev workspace test");
+    await signInThroughLoginScreen(page, "definitely-not-the-password-1A!");
+    await expect(page.getByText("That login name and password don't match")).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toHaveValue("");
+    await snap(page, "00-login-wrong-password", { fullPage: false });
+    await signInThroughLoginScreen(page);
+    await expectSignedIn(page);
+    await expectCleanPage(page);
+
+    await page.getByRole("button", { name: /^Your account:/ }).first().click();
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.waitForURL((u) => u.pathname === "/", { timeout: 30_000 });
+    await expect(page.getByRole("button", { name: /Sign in/ })).toBeVisible();
+  });
+
   test("front door offers the Dev workspace and signs in to the launcher", async ({ page }) => {
+    test.skip(OIDC, "OIDC deployment: no dev identities");
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toBeVisible();
     await snap(page, "00-entry");
@@ -306,6 +334,7 @@ test.describe("signed out", () => {
   });
 
   test("onboarding renders its first step", async ({ page }) => {
+    test.skip(OIDC, "needs a fresh identity; scripts/qa/journey.py onboards one");
     // Opening onboarding starts (or resumes) a pending draft. A fixed, labelled
     // subject keeps that idempotent instead of minting a new draft every run.
     await page.addInitScript(() => {

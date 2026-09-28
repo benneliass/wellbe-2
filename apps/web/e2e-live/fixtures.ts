@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { test as base, expect, type Page, type Response } from "@playwright/test";
+import { accessTokenOf, loadAuthState, type StorageDump } from "./oidc-login";
 
 export const BASE_URL = process.env.E2E_BASE_URL ?? "https://wellbe.tail9c487a.ts.net";
 export const API_URL = (process.env.E2E_API_URL ?? "https://wellbe-api.tail9c487a.ts.net").replace(
@@ -43,6 +44,15 @@ export async function injectDevSession(page: Page): Promise<void> {
   await page.addInitScript((session) => {
     window.localStorage.setItem("wellbe.session", JSON.stringify(session));
   }, DEV_SESSION);
+}
+
+/** OIDC mode: the signed-in tab state saved by global-setup.ts, or null in dev mode. */
+const AUTH_STATE = loadAuthState();
+
+async function injectOidcSession(page: Page, state: StorageDump): Promise<void> {
+  await page.addInitScript((entries) => {
+    for (const [key, value] of Object.entries(entries)) window.sessionStorage.setItem(key, value);
+  }, state);
 }
 
 /**
@@ -118,7 +128,10 @@ export const test = base.extend<{ monitor: Monitor; devSession: boolean }>({
       });
 
       if (LOCAL) await proxyApiForLocal(page);
-      if (devSession) await injectDevSession(page);
+      if (devSession) {
+        if (AUTH_STATE) await injectOidcSession(page, AUTH_STATE);
+        else await injectDevSession(page);
+      }
 
       await use(monitor);
 
@@ -206,10 +219,12 @@ export async function snap(page: Page, name: string, opts: { fullPage?: boolean 
 }
 
 /** Headers the web app sends as the demo patient — for read-only API lookups in specs. */
-export const DEMO_HEADERS = {
-  "X-Wellbe-Issuer": DEV_SESSION.issuer,
-  "X-Wellbe-Subject": DEV_SESSION.subject,
-  "X-Wellbe-Actor-Id": DEMO_PATIENT_ID,
-  "X-Wellbe-Patient-Id": DEMO_PATIENT_ID,
-  "X-Wellbe-Actor-Type": DEV_SESSION.actorType,
-};
+export const DEMO_HEADERS: Record<string, string> = AUTH_STATE
+  ? { Authorization: `Bearer ${accessTokenOf(AUTH_STATE)}` }
+  : {
+      "X-Wellbe-Issuer": DEV_SESSION.issuer,
+      "X-Wellbe-Subject": DEV_SESSION.subject,
+      "X-Wellbe-Actor-Id": DEMO_PATIENT_ID,
+      "X-Wellbe-Patient-Id": DEMO_PATIENT_ID,
+      "X-Wellbe-Actor-Type": DEV_SESSION.actorType,
+    };

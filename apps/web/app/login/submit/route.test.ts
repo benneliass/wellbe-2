@@ -60,10 +60,10 @@ describe("POST /login/submit", () => {
     expect(signInWithPassword).not.toHaveBeenCalled();
   });
 
-  it("maps a wrong password to 401", async () => {
+  it("answers a wrong password with 200 and its kind", async () => {
     signInWithPassword.mockResolvedValue({ kind: "invalid_credentials" });
     const res = await POST(req(body));
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ kind: "invalid_credentials" });
   });
 });

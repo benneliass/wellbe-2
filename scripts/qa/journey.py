@@ -9,12 +9,20 @@ asserts on *content*, not just status codes, and the run ends with a pass/fail
 report (exit 1 on any failure).
 
     python scripts/qa/journey.py --api https://wellbe-api.tail9c487a.ts.net
+
+On an OIDC deployment (the web app's /auth-config.js says mode "oidc") identity
+headers are ignored, so the journey creates two throwaway ZITADEL users (the
+patient and a second person for the grant checks), signs both in through WellBe's
+login screen, and deletes them at the end. That needs the instance admin token:
+
+    ZITADEL_PAT=... python scripts/qa/journey.py --web https://wellbe.tail9c487a.ts.net
 """
 
 from __future__ import annotations
 
 import argparse
 import base64
+import os
 import sys
 import time
 import traceback
@@ -25,6 +33,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
+from oidc_identities import AuthConfig, ThrowawayUsers, fetch_auth_config, sign_in
 
 
 @dataclass
@@ -41,17 +50,36 @@ class Journey:
     results: list[Result] = field(default_factory=list)
     ctx: dict[str, Any] = field(default_factory=dict)
 
+    # OIDC mode: bearer tokens of the patient and of the second person.
+    token: str | None = None
+    other_token: str | None = None
+
     def __post_init__(self) -> None:
         self.client = httpx.Client(base_url=self.api, timeout=30.0)
         self.subject = f"qa-{uuid.uuid4().hex[:10]}"
 
+    @property
+    def oidc(self) -> bool:
+        return self.token is not None
+
     # ------------------------------------------------------------------ http
     def identity_headers(self) -> dict[str, str]:
-        return {
-            "X-Wellbe-Issuer": "qa-journey",
-            "X-Wellbe-Subject": self.subject,
-            "X-Correlation-Id": f"qa-{uuid.uuid4().hex[:12]}",
-        }
+        h = {"X-Correlation-Id": f"qa-{uuid.uuid4().hex[:12]}"}
+        if self.oidc:
+            h["Authorization"] = f"Bearer {self.token}"
+        else:
+            h.update({"X-Wellbe-Issuer": "qa-journey", "X-Wellbe-Subject": self.subject})
+        return h
+
+    def other_actor(self) -> str:
+        """The second person: an onboarded OIDC user, or any unknown id in dev mode."""
+        return self.ctx["other_id"] if self.oidc else str(uuid.uuid4())
+
+    def other_controller_headers(self) -> dict[str, str]:
+        """The second person acting on their own (empty) workspace."""
+        if self.oidc:
+            return {"Authorization": f"Bearer {self.other_token}"}
+        return {"X-Wellbe-Actor-Id": self.other_actor(), "X-Wellbe-Actor-Type": "controller"}
 
     def headers(self, actor: str | None = None, **extra: str) -> dict[str, str]:
         pid = self.ctx["patient_id"]
@@ -62,6 +90,10 @@ class Journey:
             "X-Correlation-Id": f"qa-{uuid.uuid4().hex[:12]}",
         }
         h.update(extra)
+        if self.oidc:
+            # The token decides the actor; X-Wellbe-Actor-* are ignored by the API.
+            as_other = actor is not None and actor == self.ctx.get("other_id")
+            h["Authorization"] = f"Bearer {self.other_token if as_other else self.token}"
         return h
 
     def call(
@@ -736,7 +768,7 @@ def run(j: Journey) -> None:
 
     # ------------------------------------------------------ access / grants / audit
     def grants() -> str:
-        other = str(uuid.uuid4())
+        other = j.other_actor()
         tid = next(iter(j.ctx["threads"].values()))
         r = c.get(f"/v1/threads/{tid}", headers=j.headers(actor=other, **{
             "X-Wellbe-Actor-Type": "caregiver"}))
@@ -798,8 +830,7 @@ def run(j: Journey) -> None:
         j.step("corrections", corrections)
 
     def isolation() -> str:
-        other = str(uuid.uuid4())
-        h = {"X-Wellbe-Actor-Id": other, "X-Wellbe-Actor-Type": "controller"}
+        h = j.other_controller_headers()
         th = c.get("/v1/threads", headers=h).json()
         assert not items_of(th, "threads"), f"leak: {th}"
         pt = c.get("/v2/patterns", headers=h).json()
@@ -809,14 +840,55 @@ def run(j: Journey) -> None:
     j.step("patient isolation", isolation)
 
 
+def onboard_other(j: Journey) -> None:
+    """Make the second OIDC person an active account, so grants can name them."""
+    h = {"Authorization": f"Bearer {j.other_token}"}
+    c = j.client
+    c.post("/v1/onboarding/start", json={"display_name": "QA Other"}, headers=h)
+    s = c.post("/v1/onboarding/finalize", json={"accept_core_consent": True}, headers=h).json()
+    assert s.get("status") == "active", f"second person onboarding: {s}"
+    j.ctx["other_id"] = s["controller_patient_id"]
+
+
+def start_oidc(j: Journey, web: str, config: AuthConfig, users: ThrowawayUsers) -> None:
+    main_name, other_name = f"{j.subject}", f"{j.subject}-other"
+    main_pw = users.create(main_name, "QA Journey")
+    other_pw = users.create(other_name, "QA Other")
+    j.token = sign_in(web, config, main_name, main_pw)
+    j.other_token = sign_in(web, config, other_name, other_pw)
+    onboard_other(j)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--api", default="https://wellbe-api.tail9c487a.ts.net")
+    ap.add_argument(
+        "--web",
+        default="https://wellbe.tail9c487a.ts.net",
+        help="web origin; its /auth-config.js decides dev-headers vs OIDC identities",
+    )
     ap.add_argument("--pipeline-timeout", type=float, default=90)
     args = ap.parse_args()
     j = Journey(api=args.api, pipeline_timeout=args.pipeline_timeout)
-    print(f"QA journey against {args.api} as subject {j.subject}")
-    run(j)
+    web = args.web.rstrip("/")
+    config = fetch_auth_config(web)
+    users: ThrowawayUsers | None = None
+    if config.mode == "oidc":
+        admin = os.environ.get("ZITADEL_PAT", "").strip()
+        if not admin:
+            sys.exit("OIDC deployment: set ZITADEL_PAT (instance admin token) to create QA users")
+        users = ThrowawayUsers(config.issuer, admin)
+    try:
+        if users:
+            start_oidc(j, web, config, users)
+            print(f"QA journey against {args.api} as OIDC users {j.subject}(+-other), "
+                  f"signed in via {web}/login")
+        else:
+            print(f"QA journey against {args.api} as subject {j.subject}")
+        run(j)
+    finally:
+        if users:
+            users.cleanup()
     failed = [r for r in j.results if not r.ok]
     print(f"\n{len(j.results) - len(failed)}/{len(j.results)} passed")
     for r in failed:

@@ -233,6 +233,15 @@ app goes back to ZITADEL's pages. Check: Sign in on the front door shows the
 WellBe card at `/login`, a wrong password says the login and password don't match,
 and a correct one lands in the workspace.
 
+QA against an OIDC deployment signs in through the same screen:
+
+```sh
+# Two throwaway ZITADEL users (created and deleted by the run), full API journey.
+ZITADEL_PAT=... uv run python ../scripts/qa/journey.py
+# Live browser suite as demo (global setup signs in once via /login).
+cd apps/web && E2E_LOGIN_PASSWORD=... npm run e2e:live
+```
+
 To undo, re-run the bootstrap without `ZITADEL_LOGIN_V2_BASE_URI` (the web
 settings can stay; `/login` is simply never reached). A login locked by the
 lockout policy is unlocked in the ZITADEL console, or with

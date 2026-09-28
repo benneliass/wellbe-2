@@ -8,6 +8,8 @@ import { defineConfig, devices } from "@playwright/test";
  *   E2E_BASE_URL   web origin (default: the homeserver deployment)
  *   E2E_API_URL    API origin (default: the homeserver API)
  *   E2E_SCREENSHOT_DIR  where full-page route screenshots are written
+ *   E2E_LOGIN_PASSWORD  OIDC deployments: sign in through /login (e2e-live/oidc-login.ts)
+ *   E2E_LOGIN_NAME      login for that (default: demo)
  *
  * When E2E_BASE_URL is a localhost URL, a local `next dev` is started against
  * E2E_API_URL, and the specs proxy API calls through Playwright (the live API's
@@ -23,6 +25,7 @@ export const DEMO_PATIENT_ID = "de7a0000-0000-4000-8000-000000000001";
 
 export default defineConfig({
   testDir: "./e2e-live",
+  globalSetup: "./e2e-live/global-setup.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,

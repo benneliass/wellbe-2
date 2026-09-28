@@ -41,7 +41,7 @@ describe("LoginScreen", () => {
   });
 
   it("shows a generic error and clears the password when credentials are wrong", async () => {
-    reply({ kind: "invalid_credentials" }, 401);
+    reply({ kind: "invalid_credentials" });
     render(<LoginScreen authRequestId="V2_1" />);
     fillCredentials();
     expect(await screen.findByRole("alert")).toHaveTextContent("don't match");
