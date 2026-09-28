@@ -101,7 +101,10 @@ def main() -> int:
             )
     with FONT.open("rb") as f:
         check(
-            client.post("/assets/v1/instance/policy/label/font", files={"file": (FONT.name, f, "font/woff2")}),
+            client.post(
+                "/assets/v1/instance/policy/label/font",
+                files={"file": (FONT.name, f, "font/woff2")},
+            ),
             "upload font",
         )
 
