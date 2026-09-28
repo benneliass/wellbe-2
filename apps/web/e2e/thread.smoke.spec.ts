@@ -82,7 +82,9 @@ const API: Record<string, unknown> = {
 };
 
 async function stubApi(page: Page) {
-  await page.route(/^https?:\/\/api\.localhost\//, async (route) => {
+  // Match by path, not host: the kind build bakes an empty NEXT_PUBLIC_WELLBE_API_URL,
+  // so the client calls the API same-origin rather than on api.localhost.
+  await page.route((url) => /^\/v[12]\//.test(url.pathname), async (route) => {
     const path = new URL(route.request().url()).pathname;
     const body = path in API ? API[path] : [];
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
