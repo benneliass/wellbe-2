@@ -169,9 +169,7 @@ class TheoryV2(StrictBaseModel):
 
 
 class TheoryEvaluationResultV2(StrictBaseModel):
-    schema_version: Literal["c13.theory_evaluation_result.v2"] = (
-        "c13.theory_evaluation_result.v2"
-    )
+    schema_version: Literal["c13.theory_evaluation_result.v2"] = "c13.theory_evaluation_result.v2"
     theory: TheoryV2
     evaluation: TheoryEvaluationV2
 
@@ -359,11 +357,18 @@ class NotificationListV2(StrictBaseModel):
 
 
 class NotificationsMarkedReadV2(StrictBaseModel):
-    schema_version: Literal["c13.notifications_marked_read.v2"] = (
-        "c13.notifications_marked_read.v2"
-    )
+    schema_version: Literal["c13.notifications_marked_read.v2"] = "c13.notifications_marked_read.v2"
     marked_read: int
     unread_count: int = 0
+
+
+class MemorySourceTextV2(StrictBaseModel):
+    """Original vault wording behind one memory source pointer."""
+
+    source_ref_type: str
+    source_ref_id: str
+    label: str
+    text: str
 
 
 class MemoryEntryV2(StrictBaseModel):
@@ -375,6 +380,9 @@ class MemoryEntryV2(StrictBaseModel):
     thread_id: str
     # Pointers only — C8 never exposes displayed clinical values from its own payload.
     source_refs: list[dict[str, Any]] = Field(default_factory=list)
+    # Original wording loaded from the vault for those pointers. Empty when the
+    # raw text could not be read; the pointers above still stand.
+    source_texts: list[MemorySourceTextV2] = Field(default_factory=list)
     resolved_overlays: list[dict[str, Any]] = Field(default_factory=list)
     projection_stale: bool = False
     created_at: datetime | None = None
@@ -454,6 +462,7 @@ __all__ = [
     "GrantV2",
     "InvestigationV2",
     "MemoryEntryV2",
+    "MemorySourceTextV2",
     "NotificationListV2",
     "NotificationsMarkedReadV2",
     "NotificationV2",

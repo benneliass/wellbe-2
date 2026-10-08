@@ -16,16 +16,15 @@ proposes a "thing noticed" candidate, which the user then confirms into a thread
 
 So this seed only ever:
 
-1. **Injects inputs** — captures (symptom / lab / note) through ``POST /v1/capture``.
-   These flow through the real C3→C2→C4→C5→C6→genesis pipeline asynchronously.
-2. **Performs user actions** — exactly what a person would do in the UI:
-   - waits for genesis to surface candidates, then **confirms** a chosen subset
-     into Health Threads (``POST /v1/things-noticed/{id}/confirm``) and walks a
-     few through their lifecycle,
-   - **dismisses** one candidate,
-   - leaves the rest **pending** so "Things noticed" has content,
-   - opens an **Investigation** over a confirmed thread and records a **Theory**,
-   - builds a **Visit packet** from confirmed threads.
+1. **Injects inputs** — one note per published Research C case through
+   ``POST /v1/capture``. These flow through the real C3→C2→C4→C5→C6→genesis
+   pipeline asynchronously. The note text is the published case wording; the
+   ``source`` is ``published-case:{id}`` so genesis can keep each case on its
+   own concern key.
+2. **Performs user actions** — when ``CANDIDATE_PLAN`` is empty, confirms every
+   pending candidate once and walks it to ``active_unresolved``. Candidates that
+   are already confirmed are skipped. No candidate is dismissed, and no
+   investigation or visit packet is invented.
 
 Everything else (facts, evidence, graph nodes, candidate creation, thread genesis,
 audit) is produced by the system, exactly as in production. The resulting threads
@@ -49,8 +48,8 @@ Guarantees
   re-seeded so the committed dataset is exactly reproduced. Captures additionally use
   deterministic ``Idempotency-Key`` values, so even a forced replay cannot create
   duplicate raw records.
-- **Self-contained data.** The dataset lives in this file (``CAPTURES`` /
-  ``CANDIDATE_PLAN`` / ``INVESTIGATION`` / ``VISIT_PACKET``) — plain, diff-reviewable.
+- **Self-contained data.** Published case wording lives in ``published_cases``;
+  this file only lists the captures and the (currently empty) user-action plan.
 
 The dev identity is the controller acting on their own data (actor_id ==
 patient_id, actor_type "controller"), which the boundary grants self-access to
@@ -71,13 +70,14 @@ from wellbe_c1_consent import OnboardingService
 from wellbe_db import create_engine, create_session_factory
 
 from wellbe_api.config import ApiSettings
+from wellbe_api.published_cases import PUBLISHED_CASES
 
 logger = logging.getLogger("wellbe.dev_seed")
 
 # Bump this whenever the committed dataset or the seeding flow changes. On the next
 # run the marker mismatch triggers a one-time reset + re-seed of the dev workspace
 # so the cluster reflects the new dataset (rather than the idempotent no-op).
-SEED_REVISION = "3-genesis-driven"
+SEED_REVISION = "4-published-cases"
 
 # The dev identity is a real federated identity, just like any user's. It is one
 # selectable workspace — never auto-entered. The web "Dev workspace" sign-in uses
@@ -91,156 +91,51 @@ _SEED_NS = uuid.UUID("5f3b1d22-0c47-4a8e-9b6f-7c2d4e1a9f00")
 
 
 # ---------------------------------------------------------------------------
-# 1) INPUTS — captures that flow through the real pipeline.
+# 1) INPUTS — one published Research C case per note.
 #
-# Descriptions are intentionally specific so the extractor and concern-key
-# derivation have real content to work with. Each capture becomes one or more
-# C4 facts → C6 nodes → a genesis candidate.
+# The note body is the published wording (no invented labs, quotes, or
+# outcomes). ``source`` is what genesis uses to keep two cases from sharing a
+# thread. Thread titles still come from the extractor, not the case title.
 # ---------------------------------------------------------------------------
 CAPTURES: list[dict[str, Any]] = [
     {
-        "capture_type": "symptom",
-        "payload": {
-            "description": (
-                "Dry cough most mornings for about three weeks, with unusual "
-                "tiredness in the afternoons. No fever."
-            ),
-            "severity": "moderate",
-        },
-    },
-    {
-        "capture_type": "symptom",
-        "payload": {
-            "description": (
-                "Tension headaches in the evening, usually after long screen "
-                "time. Dull, both sides, eases with rest."
-            ),
-            "severity": "mild",
-        },
-    },
-    {
-        "capture_type": "symptom",
-        "payload": {
-            "description": (
-                "Right knee pain after runs longer than 5km. Mild swelling, "
-                "settles within a day."
-            ),
-            "severity": "mild",
-        },
-    },
-    {
-        "capture_type": "lab",
-        "payload": {
-            "test_name": "Vitamin D (25-OH)",
-            "value": "22",
-            "unit": "ng/mL",
-            "reference_range": "30-100",
-        },
-    },
-    {
-        "capture_type": "lab",
-        "payload": {
-            "test_name": "LDL cholesterol",
-            "value": "165",
-            "unit": "mg/dL",
-            "reference_range": "<130",
-        },
-    },
-    {
-        "capture_type": "lab",
-        "payload": {
-            "test_name": "Hemoglobin A1c",
-            "value": "5.4",
-            "unit": "%",
-            "reference_range": "4.0-5.6",
-        },
-    },
-    {
-        "capture_type": "lab",
-        "payload": {
-            "test_name": "Blood pressure",
-            "value": "128/82",
-            "unit": "mmHg",
-            "reference_range": "<120/80",
-        },
-    },
-    {
         "capture_type": "note",
-        "payload": {
-            "text": (
-                "Ask the doctor whether the low vitamin D could explain the "
-                "ongoing fatigue, and whether the cough needs a chest check."
-            ),
-        },
-    },
-    {
-        "capture_type": "note",
-        "payload": {
-            "text": (
-                "Want to understand if the knee pain is just overuse or "
-                "something that needs physio before it gets worse."
-            ),
-        },
-    },
+        "source": f"published-case:{case['case_id']}",
+        "payload": {"text": case["text"]},
+    }
+    for case in PUBLISHED_CASES
 ]
 
 
 # ---------------------------------------------------------------------------
 # 2) USER ACTIONS — what the controller does with what genesis surfaced.
 #
-# Each entry matches a genesis candidate by a keyword in its (calm) display
-# title. ``action`` is one of:
-#   - "confirm" : promote the candidate into a Health Thread, then apply ``walk``
-#                 (an ordered list of lifecycle transitions from the create-time
-#                 status). Produces a real, concern-key-backed thread.
-#   - "dismiss" : the user decides it is not worth tracking.
-#   - "leave"   : left pending so the "Things noticed" surface has content.
-# Candidates not matched by any rule are simply left pending.
+# An empty plan means: confirm every pending candidate once, then walk it with
+# ``CONFIRM_WALK``. Nothing is dismissed. A non-empty plan keeps the keyword
+# rules (confirm / dismiss / leave) for tests and any future curated dataset.
 # ---------------------------------------------------------------------------
-CANDIDATE_PLAN: list[dict[str, Any]] = [
-    {"match": "cough", "action": "confirm", "walk": ["active_unresolved", "waiting_for_result"]},
-    {"match": "vitamin d", "action": "confirm", "walk": ["active_unresolved", "watchful_waiting"]},
-    {
-        "match": "cholesterol",
-        "action": "confirm",
-        "walk": ["active_unresolved", "chronic_monitoring"],
-    },
-    {"match": "knee", "action": "confirm", "walk": ["active_unresolved"]},
-    {"match": "pain", "action": "confirm", "walk": ["active_unresolved"]},
-    {"match": "headache", "action": "confirm", "walk": ["active_unresolved"]},
-    {"match": "a1c", "action": "dismiss"},
-    {"match": "fatigue", "action": "leave"},
-    {"match": "blood pressure", "action": "leave"},
-]
+CANDIDATE_PLAN: list[dict[str, Any]] = []
+CONFIRM_WALK: list[str] = ["active_unresolved"]
 
-# An Investigation opened over confirmed threads, plus a (non-diagnostic) Theory.
-# Threads are referenced by the same keyword used in CANDIDATE_PLAN.
+# No invented investigation or visit packet. Empty link lists make both seeders
+# return without writing.
 INVESTIGATION: dict[str, Any] = {
-    "primary_question": (
-        "Could the morning cough, afternoon fatigue, and low vitamin D be connected?"
-    ),
-    "link_threads": ["cough", "vitamin d"],
-    "theory": {
-        "theory_text": (
-            "The ongoing fatigue may relate to the low vitamin D result; the cough "
-            "seems separate and worth a chest check."
-        ),
-        "theory_type": "symptom_cause",
-    },
+    "primary_question": "",
+    "link_threads": [],
+    "theory": None,
 }
-
-# A Visit packet built from confirmed threads (the prepare-for-a-visit surface).
 VISIT_PACKET: dict[str, Any] = {
-    "title": "Visit prep: cough, fatigue, and vitamin D",
-    "link_threads": ["cough", "vitamin d", "cholesterol"],
-    "include_summary": True,
+    "title": "",
+    "link_threads": [],
+    "include_summary": False,
 }
 
 
 def _capture_idempotency_key(index: int, capture: dict[str, Any]) -> str:
     """Deterministic key so a replay maps to the same raw record."""
     items = sorted(capture["payload"].items())
-    natural = f"{index}:{capture['capture_type']}:{items!r}"
+    source = capture.get("source") or ""
+    natural = f"{index}:{capture['capture_type']}:{source}:{items!r}"
     return str(uuid.uuid5(_SEED_NS, natural))
 
 
@@ -274,13 +169,16 @@ async def _seed_captures(client: httpx.AsyncClient, patient_id: str) -> int:
     created = 0
     for index, capture in enumerate(CAPTURES):
         key = _capture_idempotency_key(index, capture)
+        body: dict[str, Any] = {
+            "capture_type": capture["capture_type"],
+            "payload": capture["payload"],
+        }
+        if capture.get("source"):
+            body["source"] = capture["source"]
         resp = await client.post(
             "/v1/capture",
             headers=_headers(patient_id, idempotency_key=key),
-            json={
-                "capture_type": capture["capture_type"],
-                "payload": capture["payload"],
-            },
+            json=body,
         )
         resp.raise_for_status()
         created += 1
@@ -315,9 +213,7 @@ async def _wait_for_candidates(
     return cast(list[dict[str, Any]], resp.json())
 
 
-def _match_candidate(
-    candidates: list[dict[str, Any]], keyword: str
-) -> dict[str, Any] | None:
+def _match_candidate(candidates: list[dict[str, Any]], keyword: str) -> dict[str, Any] | None:
     kw = keyword.lower()
     for c in candidates:
         if c.get("status") == "pending" and kw in (c.get("title") or "").lower():
@@ -351,16 +247,49 @@ async def _walk_thread(
         logger.info("  transitioned %s -> %s", thread_id, target)
 
 
+async def _confirm_pending(
+    client: httpx.AsyncClient,
+    patient_id: str,
+    candidate: dict[str, Any],
+    walk: list[str],
+) -> str | None:
+    """Confirm one pending candidate and walk the new thread. Already-confirmed is a skip."""
+    cid = candidate["candidate_id"]
+    resp = await client.post(f"/v1/things-noticed/{cid}/confirm", headers=_headers(patient_id))
+    if resp.status_code == 409:
+        logger.info("candidate %s already confirmed; skipping", cid)
+        return None
+    resp.raise_for_status()
+    thread_id = str(resp.json()["thread_id"])
+    logger.info("confirmed '%s' -> thread %s", candidate.get("title"), thread_id)
+    await _walk_thread(client, patient_id, thread_id, walk)
+    return thread_id
+
+
 async def _act_on_candidates(
     client: httpx.AsyncClient, patient_id: str, candidates: list[dict[str, Any]]
 ) -> dict[str, str]:
-    """Execute the CANDIDATE_PLAN; return {keyword: thread_id} for confirmations.
+    """Confirm genesis candidates; return {keyword: thread_id} for confirmations.
 
-    ``candidates`` is a snapshot, so each candidate is claimed by the first rule that
-    matches it: a later, broader keyword ("pain") must not re-act on a candidate an
-    earlier rule ("knee") already confirmed, which the API rejects with 409.
+    An empty ``CANDIDATE_PLAN`` confirms every still-pending candidate once and
+    walks it with ``CONFIRM_WALK``. Nothing is dismissed.
+
+    When a plan is set, ``candidates`` is a snapshot and each candidate is claimed
+    by the first rule that matches it: a later, broader keyword ("pain") must not
+    re-act on a candidate an earlier rule ("knee") already confirmed, which the
+    API rejects with 409.
     """
     confirmed: dict[str, str] = {}
+    if not CANDIDATE_PLAN:
+        for candidate in candidates:
+            if candidate.get("status") != "pending":
+                continue
+            thread_id = await _confirm_pending(client, patient_id, candidate, list(CONFIRM_WALK))
+            if thread_id is None:
+                continue
+            confirmed[str(candidate["candidate_id"])] = thread_id
+        return confirmed
+
     for rule in CANDIDATE_PLAN:
         keyword = str(rule["match"])
         candidate = _match_candidate(candidates, keyword)
@@ -371,15 +300,11 @@ async def _act_on_candidates(
         action = rule["action"]
         candidate["status"] = "claimed_by_seed"
         if action == "confirm":
-            resp = await client.post(
-                f"/v1/things-noticed/{cid}/confirm", headers=_headers(patient_id)
+            thread_id = await _confirm_pending(
+                client, patient_id, candidate, list(rule.get("walk") or [])
             )
-            resp.raise_for_status()
-            thread_id = resp.json()["thread_id"]
-            confirmed[keyword] = thread_id
-            logger.info("confirmed '%s' -> thread %s", candidate["title"], thread_id)
-            walk: list[str] = list(rule.get("walk") or [])
-            await _walk_thread(client, patient_id, thread_id, walk)
+            if thread_id is not None:
+                confirmed[keyword] = thread_id
         elif action == "dismiss":
             resp = await client.post(
                 f"/v1/things-noticed/{cid}/dismiss", headers=_headers(patient_id)
@@ -394,7 +319,9 @@ async def _act_on_candidates(
 async def _seed_investigation(
     client: httpx.AsyncClient, patient_id: str, confirmed: dict[str, str]
 ) -> None:
-    link_threads: list[str] = INVESTIGATION["link_threads"]
+    link_threads: list[str] = list(INVESTIGATION["link_threads"])
+    if not link_threads:
+        return
     thread_ids = [confirmed[k] for k in link_threads if k in confirmed]
     resp = await client.post(
         "/v2/investigations",
@@ -550,8 +477,7 @@ async def _reset_dev_data() -> None:
             literals = ",".join(f"'{t}'" for t in _RESET_TABLES)
             result = await session.execute(
                 text(
-                    f"SELECT n FROM unnest(ARRAY[{literals}]) AS n "
-                    "WHERE to_regclass(n) IS NOT NULL"
+                    f"SELECT n FROM unnest(ARRAY[{literals}]) AS n WHERE to_regclass(n) IS NOT NULL"
                 )
             )
             existing = [row[0] for row in result]

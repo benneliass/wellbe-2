@@ -104,8 +104,18 @@ const SOURCE_REF: Record<string, { label: string; component: SourceComponent }> 
   c6_kg_node: { label: "Linked concept", component: "c5" },
 };
 
-/** MemoryEntryV2.source_refs as evidence sources; ids are keys only, never labels. */
+/** Prefer original vault wording; otherwise source_refs. Ids are keys only, never labels. */
 export function memorySources(entry: MemoryEntryV2): EvidenceSource[] {
+  const texts = entry.source_texts ?? [];
+  if (texts.length > 0) {
+    return texts.map((item, i) => ({
+      id: `${item.source_ref_id}:${i}`,
+      displayLabel: item.label,
+      component: "c2" as const,
+      kind: "reported" as const,
+      excerpt: item.text,
+    }));
+  }
   return (entry.source_refs ?? []).map((ref, i) => {
     const type = typeof ref.source_ref_type === "string" ? ref.source_ref_type : "";
     const meta = SOURCE_REF[type] ?? { label: "Source", component: "c5" as const };

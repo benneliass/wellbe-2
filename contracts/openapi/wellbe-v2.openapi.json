@@ -1751,6 +1751,13 @@
             "title": "Source Refs",
             "type": "array"
           },
+          "source_texts": {
+            "items": {
+              "$ref": "#/components/schemas/MemorySourceTextV2"
+            },
+            "title": "Source Texts",
+            "type": "array"
+          },
           "thread_id": {
             "title": "Thread Id",
             "type": "string"
@@ -1768,6 +1775,36 @@
           "thread_id"
         ],
         "title": "MemoryEntryV2",
+        "type": "object"
+      },
+      "MemorySourceTextV2": {
+        "additionalProperties": false,
+        "description": "Original vault wording behind one memory source pointer.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "source_ref_id": {
+            "title": "Source Ref Id",
+            "type": "string"
+          },
+          "source_ref_type": {
+            "title": "Source Ref Type",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_ref_type",
+          "source_ref_id",
+          "label",
+          "text"
+        ],
+        "title": "MemorySourceTextV2",
         "type": "object"
       },
       "NotificationListV2": {

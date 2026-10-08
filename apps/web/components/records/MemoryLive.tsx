@@ -76,7 +76,7 @@ export function MemoryLive() {
     <div className={styles.wrap}>
       <p className={styles.hint}>
         <Icon name="lock" size={14} />
-        Your longitudinal record — every memory links back to what you added.
+        Summaries WellBe kept. Open one to read the original wording it came from.
       </p>
 
       <div className={styles.filters} role="group" aria-label="Show memory type">

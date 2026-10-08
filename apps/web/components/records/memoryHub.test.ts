@@ -52,6 +52,31 @@ describe("memoryHub adapters", () => {
     ]);
   });
 
+  it("prefers original source text over pointer labels", () => {
+    const sources = memorySources(
+      entry({
+        source_texts: [
+          {
+            source_ref_type: "c4_extracted_fact",
+            source_ref_id: "fact-1",
+            label: "Published sample case C001: Dismissed and silenced hospital assessment",
+            text: "Published sample case C001: Dismissed and silenced hospital assessment\n\nPatient attended hospital.",
+          },
+        ],
+        source_refs: [{ source_ref_id: "node-1", source_ref_type: "c6_kg_node" }],
+      }),
+    );
+    expect(sources).toEqual([
+      {
+        id: "fact-1:0",
+        displayLabel: "Published sample case C001: Dismissed and silenced hospital assessment",
+        component: "c2",
+        kind: "reported",
+        excerpt: "Published sample case C001: Dismissed and silenced hospital assessment\n\nPatient attended hospital.",
+      },
+    ]);
+  });
+
   it("marks overlays as corrections and groups by type, newest first", () => {
     const a = toHubEntry(entry({ memory_entry_id: "a", created_at: "2026-01-01T00:00:00Z" }), "Cough");
     const b = toHubEntry(

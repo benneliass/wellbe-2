@@ -1860,10 +1860,26 @@ export interface components {
             source_refs?: {
                 [key: string]: unknown;
             }[];
+            /** Source Texts */
+            source_texts?: components["schemas"]["MemorySourceTextV2"][];
             /** Thread Id */
             thread_id: string;
             /** Title */
             title: string;
+        };
+        /**
+         * MemorySourceTextV2
+         * @description Original vault wording behind one memory source pointer.
+         */
+        MemorySourceTextV2: {
+            /** Label */
+            label: string;
+            /** Source Ref Id */
+            source_ref_id: string;
+            /** Source Ref Type */
+            source_ref_type: string;
+            /** Text */
+            text: string;
         };
         /** NotificationListV2 */
         NotificationListV2: {

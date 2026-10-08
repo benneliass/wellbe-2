@@ -51,9 +51,7 @@ _FACT_TYPE_TO_SOURCE_CONTEXT: dict[str, SourceContextClass] = {
 }
 
 # Fact types that, on their own, are not active concerns to track.
-_NON_CONCERN_FACT_TYPES: frozenset[str] = frozenset(
-    {"other", "family_history", "social_history"}
-)
+_NON_CONCERN_FACT_TYPES: frozenset[str] = frozenset({"other", "family_history", "social_history"})
 
 # Fact types where a clinical source has itself asserted the concern (a diagnosis
 # or clinical finding). These auto-open a thread (subject to dedup).
@@ -72,6 +70,22 @@ def _episode_bucket(when: datetime) -> str:
     return f"{when.year:04d}-{when.month:02d}"
 
 
+def published_case_concept_id(normalized_key: str, source: object) -> str | None:
+    """Scope a concept id to one published sample case.
+
+    Real captures (any other source) return ``None`` so graph nodes and thread
+    titles stay keyed on ``normalized_key`` / the extractor label. Two published
+    cases that mention the same concept must not share a thread, so the concern
+    key carries ``{normalized_key}|published-case:{id}``.
+    """
+    if not isinstance(source, str) or not source.startswith("published-case:"):
+        return None
+    case_id = source.removeprefix("published-case:")
+    if not case_id or any(ch.isspace() for ch in case_id):
+        return None
+    return f"{normalized_key}|published-case:{case_id}"
+
+
 def derive_concern_key(
     *,
     user_id: uuid.UUID,
@@ -86,9 +100,7 @@ def derive_concern_key(
     """
     concept_id = fact.normalized_concept_id or f"fallback:{fact.normalized_key}"
     concern_type = _FACT_TYPE_TO_CONCERN_TYPE.get(fact.fact_type, ConcernType.OTHER)
-    source_context = _FACT_TYPE_TO_SOURCE_CONTEXT.get(
-        fact.fact_type, SourceContextClass.USER_NOTE
-    )
+    source_context = _FACT_TYPE_TO_SOURCE_CONTEXT.get(fact.fact_type, SourceContextClass.USER_NOTE)
     episode_when = fact.event_date or captured_at
     return ConcernKey(
         user_id=user_id,
