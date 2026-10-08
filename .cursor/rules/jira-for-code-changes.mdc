@@ -1,0 +1,19 @@
+---
+description: Pair meaningful code changes with an existing WEL Jira issue, without blocking the change when Jira is already covered or unreachable.
+alwaysApply: true
+---
+
+# Jira key on code changes
+
+A meaningful code change names the WEL issue it belongs to. Look up an open issue that already covers the work before creating one. Put the key in the commit message: `WEL-85: Short reason`.
+
+## Do the work anyway
+
+- One issue covers the whole change. Do not open a new issue for each file, test, or follow-up edit.
+- Typo fixes, formatting, generated files, lockfiles, and image-updater tag writes do not need an issue.
+- If Jira cannot be reached, or the matching issue is unclear, make the code change and say which issue you would have used.
+- Do not refuse a commit, push, or local edit because a key is missing.
+
+## Creating an issue
+
+Create one only when nothing open covers the work. Use the existing epic. Stories and tasks can be created directly. Creating or moving an epic still waits for explicit approval.
