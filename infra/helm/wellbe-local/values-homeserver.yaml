@@ -5,10 +5,18 @@
 #
 # Differences from the local kind chart:
 #   * Custom images come from ghcr.io/benneliass/* (CI-built) instead of
-#     kind-loaded :local tags. Tags are managed by argocd-image-updater, which
-#     writes resolved versions to .argocd-source-wellbe.yaml.
-#   * Every pod is pinned to node home-server-worker via nodeSelector, keeping
-#     all WellBe workloads OFF the control-plane node home-server (192.168.1.200).
+#     kind-loaded :local tags. The image lines in this file are fallbacks for
+#     a render that does not load parameters. On this cluster the live tags
+#     are the Helm parameters in .argocd-source-wellbe.yaml, which
+#     argocd-image-updater rewrites and which override these literals.
+#     Read that file to see what is deployed. The updater keeps the tags
+#     there so a commit that changes auth.mode in this file is not racing
+#     an image bump in the same keys.
+#   * Every pod is pinned to node home-server-worker. That node is also the
+#     k3s API server: https://192.168.1.201:6443 (kubeconfig context
+#     home-server). 192.168.1.200 (home-server) is a worker only and does not
+#     serve the Kubernetes API. From a Mac already on 192.168.1.0/24, Tailscale's
+#     advertised subnet route is not used; see docs/runbooks/homeserver-access.md.
 #   * Ingress uses Traefik + nip.io hosts anchored at the Traefik LB 192.168.1.164
 #     so the stack is reachable on the LAN without extra DNS.
 #   * Every container has requests/limits. home-server-worker is shared with the

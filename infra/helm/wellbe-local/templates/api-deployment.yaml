@@ -16,7 +16,7 @@ spec:
       labels:
         app: api
       annotations:
-        checksum/api-config: {{ include (print $.Template.BasePath "/configmap-api.yaml") . | sha256sum }}
+        {{- include "wellbe-local.configChecksum" (dict "root" $ "file" "/configmap-api.yaml") | nindent 8 }}
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:

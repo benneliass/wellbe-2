@@ -48,6 +48,10 @@ Guarantees
   re-seeded so the committed dataset is exactly reproduced. Captures additionally use
   deterministic ``Idempotency-Key`` values, so even a forced replay cannot create
   duplicate raw records.
+- **No reset until the API accepts the seed.** ``/health`` is unauthenticated, so a
+  healthy OIDC pod is not proof the seed can write. The run waits until
+  ``GET /v1/threads`` with the dev identity headers returns 200, and only then
+  reads the marker or truncates. A 401 leaves patient data untouched.
 - **Self-contained data.** Published case wording lives in ``published_cases``;
   this file only lists the captures and the (currently empty) user-action plan.
 
@@ -163,6 +167,38 @@ async def _wait_for_api(client: httpx.AsyncClient, *, attempts: int = 60) -> Non
             pass
         await asyncio.sleep(2.0)
     raise RuntimeError("API never became reachable; aborting dev seed")
+
+
+async def _wait_for_dev_header_access(
+    client: httpx.AsyncClient, patient_id: str, *, attempts: int = 60
+) -> None:
+    """Block until this API trusts the seed's dev identity headers.
+
+    /health succeeds on an OIDC pod. Truncating before a patient route accepts
+    X-Wellbe-* headers wipes the workspace and then fails the reseed with 401.
+    A persistent 401 aborts with patient data still in place. Any other HTTP
+    error fails immediately; connection errors retry, same as /health.
+    """
+    last_status: int | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            resp = await client.get("/v1/threads", headers=_headers(patient_id), timeout=10.0)
+        except httpx.HTTPError:
+            await asyncio.sleep(2.0)
+            continue
+        if resp.status_code == 200:
+            logger.info("API accepted dev headers after %d attempt(s)", attempt)
+            return
+        last_status = resp.status_code
+        if resp.status_code != 401:
+            resp.raise_for_status()
+        logger.info("API still rejecting dev headers (401); attempt %d/%d", attempt, attempts)
+        await asyncio.sleep(2.0)
+    raise RuntimeError(
+        "API did not accept dev headers "
+        f"(last status {last_status}). Refusing to reset patient data. "
+        "Set auth.mode to dev-headers, wait until the new API pods are serving, then rerun."
+    )
 
 
 async def _seed_captures(client: httpx.AsyncClient, patient_id: str) -> int:
@@ -398,6 +434,19 @@ _RESET_TABLES = (
 )
 
 
+def _patient_has_other_account(issuer: str | None, subject: str | None) -> bool:
+    """True when this patient is already owned by an identity other than the dev seed.
+
+    A patient has at most one controller account. The homeserver demo user is that
+    account. Inserting dev-local / dev-controller for the same patient raises, and
+    the seed used to die there. Leaving the existing account in place lets the
+    captures land on the patient Try the demo already opens.
+    """
+    if issuer is None:
+        return False
+    return (issuer, subject) != (DEV_ISSUER, DEV_SUBJECT)
+
+
 async def _seed_dev_account(patient_id: uuid.UUID) -> None:
     """Provision the dev identity's account + personal workspace (idempotent)."""
     settings = ApiSettings()
@@ -405,6 +454,23 @@ async def _seed_dev_account(patient_id: uuid.UUID) -> None:
     factory = create_session_factory(engine)
     try:
         async with factory() as session:
+            existing = (
+                await session.execute(
+                    text(
+                        "SELECT issuer, subject FROM identity.accounts "
+                        "WHERE controller_patient_id = :pid"
+                    ),
+                    {"pid": patient_id},
+                )
+            ).first()
+            if existing is not None and _patient_has_other_account(existing[0], existing[1]):
+                logger.info(
+                    "patient %s already has account (%s, %s); leaving it in place",
+                    patient_id,
+                    existing[0],
+                    existing[1],
+                )
+                return
             svc = OnboardingService(session)
             account = await svc.get_or_create_account(
                 issuer=DEV_ISSUER,
@@ -511,23 +577,28 @@ async def seed() -> None:
         SEED_REVISION,
     )
 
-    # Always ensure the dev account exists (cheap + idempotent) so the "Dev
-    # workspace" sign-in works even when the dataset seed is a no-op.
-    await _seed_dev_account(patient_uuid)
-
-    current = await _read_seed_revision()
-    if current == SEED_REVISION:
-        logger.info("dev workspace already at revision %s; seed is a no-op", SEED_REVISION)
-        return
-    # Any other state — no marker yet, or an older revision — means the workspace is
-    # not at the committed dataset (e.g. legacy/hand-seeded data). Reset first so the
-    # seed reproduces the dataset exactly. On a truly fresh cluster the tables are
-    # empty and the reset is a harmless no-op.
-    logger.info("seed revision %s -> %s; resetting dev workspace", current, SEED_REVISION)
-    await _reset_dev_data()
-
     async with httpx.AsyncClient(base_url=base_url, timeout=30.0) as client:
         await _wait_for_api(client)
+        # Prove the serving pods trust dev headers before any database write.
+        # A revision mismatch truncates patient tables; doing that against an
+        # OIDC pod deletes the workspace and then fails the reseed.
+        await _wait_for_dev_header_access(client, patient_id)
+
+        # Ensure the dev account exists (cheap + idempotent) so the "Dev
+        # workspace" sign-in works even when the dataset seed is a no-op.
+        await _seed_dev_account(patient_uuid)
+
+        current = await _read_seed_revision()
+        if current == SEED_REVISION:
+            logger.info("dev workspace already at revision %s; seed is a no-op", SEED_REVISION)
+            return
+        # Any other state — no marker yet, or an older revision — means the workspace is
+        # not at the committed dataset (e.g. legacy/hand-seeded data). Reset first so the
+        # seed reproduces the dataset exactly. On a truly fresh cluster the tables are
+        # empty and the reset is a harmless no-op.
+        logger.info("seed revision %s -> %s; resetting dev workspace", current, SEED_REVISION)
+        await _reset_dev_data()
+
         captures = await _seed_captures(client, patient_id)
         # Expect roughly one candidate per concern; wait for the batch to settle.
         candidates = await _wait_for_candidates(client, patient_id, min_count=max(1, captures - 3))

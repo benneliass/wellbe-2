@@ -217,3 +217,76 @@ async def test_seed_requires_patient_id_when_enabled(
     monkeypatch.delenv("WELLBE_DEV_PATIENT_ID", raising=False)
     with pytest.raises(RuntimeError):
         await dev_seed.seed()
+
+
+class _HeaderClient:
+    """Stand-in for the seed's HTTP client. No network."""
+
+    def __init__(self, threads_status: list[int]) -> None:
+        self._threads_status = list(threads_status)
+
+    async def __aenter__(self) -> _HeaderClient:
+        return self
+
+    async def __aexit__(self, *_exc: object) -> bool:
+        return False
+
+    async def get(self, path: str, **_kwargs: object) -> httpx.Response:
+        if path == "/health":
+            return httpx.Response(200, json={"status": "ok"})
+        if path == "/v1/threads":
+            status = self._threads_status.pop(0) if self._threads_status else 401
+            return httpx.Response(status, json={})
+        raise AssertionError(path)
+
+
+def _install_seed_doubles(monkeypatch: pytest.MonkeyPatch, threads_status: list[int]) -> list[str]:
+    order: list[str] = []
+
+    def client(*_args: object, **_kwargs: object) -> _HeaderClient:
+        return _HeaderClient(threads_status)
+
+    async def account(_patient_id: uuid.UUID) -> None:
+        order.append("account")
+
+    async def read() -> str:
+        order.append("read")
+        return dev_seed.SEED_REVISION
+
+    async def reset() -> None:
+        order.append("reset")
+
+    async def no_sleep(*_args: object, **_kwargs: object) -> None:
+        return None
+
+    monkeypatch.setenv("WELLBE_DEV_SEED_ENABLED", "true")
+    monkeypatch.setenv("WELLBE_DEV_PATIENT_ID", str(uuid.uuid4()))
+    monkeypatch.setattr(dev_seed.httpx, "AsyncClient", client)
+    monkeypatch.setattr(dev_seed, "_seed_dev_account", account)
+    monkeypatch.setattr(dev_seed, "_read_seed_revision", read)
+    monkeypatch.setattr(dev_seed, "_reset_dev_data", reset)
+    monkeypatch.setattr(dev_seed.asyncio, "sleep", no_sleep)
+    return order
+
+
+async def test_seed_does_not_reset_when_dev_headers_are_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    order = _install_seed_doubles(monkeypatch, [401])
+    with pytest.raises(RuntimeError, match="Refusing to reset"):
+        await dev_seed.seed()
+    assert order == []
+
+
+async def test_matching_revision_skips_reset_after_dev_headers_succeed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    order = _install_seed_doubles(monkeypatch, [401, 200])
+    await dev_seed.seed()
+    assert order == ["account", "read"]
+
+
+def test_patient_with_another_account_is_left_in_place() -> None:
+    assert dev_seed._patient_has_other_account("https://wellbe-auth.example", "demo")
+    assert not dev_seed._patient_has_other_account(None, None)
+    assert not dev_seed._patient_has_other_account("dev-local", "dev-controller")

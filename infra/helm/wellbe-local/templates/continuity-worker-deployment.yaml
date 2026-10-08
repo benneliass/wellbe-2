@@ -16,6 +16,8 @@ spec:
     metadata:
       labels:
         app: continuity-worker
+      annotations:
+        {{- include "wellbe-local.configChecksum" (dict "root" $ "file" "/configmap-continuity-worker.yaml") | nindent 8 }}
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       # Give the worker time to drain in-flight activities on rollout.
