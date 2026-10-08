@@ -167,8 +167,8 @@ web:
     limits: {cpu: 500m, memory: 512Mi}
 
 devSeed:
-  enabled: true
-  image: ghcr.io/benneliass/wellbe-api:0.1.45
+  enabled: false
+  image: ghcr.io/benneliass/wellbe-api:0.1.4
   imagePullPolicy: IfNotPresent
 
 # ---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ devSeed:
 # scripts/ops/zitadel_bootstrap.py and filled in the ids below.
 # ---------------------------------------------------------------------------
 auth:
-  mode: dev-headers
+  mode: oidc
   oidc:
     issuer: "https://wellbe-auth.tail9c487a.ts.net"
     audience: ["392740357705564486", "392740358343164230"]
