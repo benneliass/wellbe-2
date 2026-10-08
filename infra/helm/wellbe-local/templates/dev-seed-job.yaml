@@ -29,6 +29,9 @@ spec:
           imagePullPolicy: {{ .Values.devSeed.imagePullPolicy }}
           {{- include "wellbe-local.resources" .Values.jobResources | nindent 10 }}
           command: ["python", "-m", "wellbe_api.dev_seed"]
+          envFrom:
+            - configMapRef:
+                name: api-config
           env:
             - name: WELLBE_DEV_SEED_ENABLED
               value: "true"
