@@ -167,8 +167,8 @@ web:
     limits: {cpu: 500m, memory: 512Mi}
 
 devSeed:
-  enabled: false
-  image: ghcr.io/benneliass/wellbe-api:0.1.4
+  enabled: true
+  image: ghcr.io/benneliass/wellbe-api:0.1.45
   imagePullPolicy: IfNotPresent
 
 # ---------------------------------------------------------------------------
