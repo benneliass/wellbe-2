@@ -328,16 +328,17 @@ async def _act_on_candidates(
 
     for rule in CANDIDATE_PLAN:
         keyword = str(rule["match"])
-        candidate = _match_candidate(candidates, keyword)
-        if candidate is None:
+        # Own name: the loop above already bound `candidate` as a confirmed dict.
+        matched = _match_candidate(candidates, keyword)
+        if matched is None:
             logger.info("no pending candidate matched '%s'; skipping", keyword)
             continue
-        cid = candidate["candidate_id"]
+        cid = matched["candidate_id"]
         action = rule["action"]
-        candidate["status"] = "claimed_by_seed"
+        matched["status"] = "claimed_by_seed"
         if action == "confirm":
             thread_id = await _confirm_pending(
-                client, patient_id, candidate, list(rule.get("walk") or [])
+                client, patient_id, matched, list(rule.get("walk") or [])
             )
             if thread_id is not None:
                 confirmed[keyword] = thread_id
@@ -346,9 +347,9 @@ async def _act_on_candidates(
                 f"/v1/things-noticed/{cid}/dismiss", headers=_headers(patient_id)
             )
             resp.raise_for_status()
-            logger.info("dismissed '%s'", candidate["title"])
+            logger.info("dismissed '%s'", matched["title"])
         else:  # leave
-            logger.info("left '%s' pending", candidate["title"])
+            logger.info("left '%s' pending", matched["title"])
     return confirmed
 
 
