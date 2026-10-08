@@ -3,16 +3,19 @@
 These complete the MVP read surface the UI needs: open loops (pending items),
 thread memory (pointers + C11-resolved overlays), and the correction ledger.
 Memory never exposes displayed clinical values from C8's own payload — only
-pointers and resolved overlay state.
+pointers, the original vault wording those pointers came from, and resolved
+overlay state.
 """
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
+import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 from wellbe_c8_memories import MemoryService
@@ -29,10 +32,15 @@ from wellbe_contracts.c13_api import (
     CorrectionTargetV2,
     CorrectionV2,
     MemoryEntryV2,
+    MemorySourceTextV2,
     PendingItemV2,
 )
 
+from wellbe_api.config import ApiSettings
 from wellbe_api.deps import PrincipalDep, SessionDep, audit_ref, require_access
+from wellbe_api.records.memory_sources import source_texts_for_facts
+
+logger = logging.getLogger("wellbe.api.phase5")
 
 router = APIRouter(prefix="/v2", tags=["v2-continuity-memory-correction"])
 
@@ -56,9 +64,7 @@ class RequestCorrectionRequest(BaseModel):
 
 
 @router.get("/pending-items", response_model=list[PendingItemV2])
-async def list_pending_items(
-    principal: PrincipalDep, session: SessionDep
-) -> list[PendingItemV2]:
+async def list_pending_items(principal: PrincipalDep, session: SessionDep) -> list[PendingItemV2]:
     await require_access(principal, session, action="read", resource_type="pending_item")
     repo = ContinuityRepository(session)
     rows = await repo.list_for_patient(principal.patient_id)
@@ -89,26 +95,85 @@ async def thread_memories(
         principal, session, action="read", resource_type="memory", resource_id=thread_id
     )
     svc = MemoryService(session)
-    entries = await svc.read_thread_memory(
-        patient_id=principal.patient_id, thread_id=thread_id
-    )
-    return dedupe_memories(
-        [
-            MemoryEntryV2(
-                memory_entry_id=str(e.memory_entry_id),
-                memory_type=str(e.memory_type),
-                lifecycle_state=str(e.lifecycle_state),
-                title=e.title or "",
-                thread_id=str(thread_id),
-                source_refs=[ref.model_dump(mode="json") for ref in e.source_refs],
-                resolved_overlays=list(e.resolved_overlays),
-                projection_stale=e.projection_stale,
-                created_at=e.created_at,
-                authorship_mode=str(e.authorship_mode) if e.authorship_mode else None,
+    entries = await svc.read_thread_memory(patient_id=principal.patient_id, thread_id=thread_id)
+    built = [
+        MemoryEntryV2(
+            memory_entry_id=str(e.memory_entry_id),
+            memory_type=str(e.memory_type),
+            lifecycle_state=str(e.lifecycle_state),
+            title=e.title or "",
+            thread_id=str(thread_id),
+            source_refs=[ref.model_dump(mode="json") for ref in e.source_refs],
+            resolved_overlays=list(e.resolved_overlays),
+            projection_stale=e.projection_stale,
+            created_at=e.created_at,
+            authorship_mode=str(e.authorship_mode) if e.authorship_mode else None,
+        )
+        for e in entries
+    ]
+    await _attach_source_texts(session, principal.patient_id, built)
+    return dedupe_memories(built)
+
+
+def _fact_ids(entries: list[MemoryEntryV2]) -> list[uuid.UUID]:
+    ids: list[uuid.UUID] = []
+    for entry in entries:
+        for ref in entry.source_refs:
+            if ref.get("source_ref_type") != "c4_extracted_fact":
+                continue
+            raw = ref.get("source_ref_id")
+            try:
+                ids.append(uuid.UUID(str(raw)))
+            except (TypeError, ValueError):
+                continue
+    return ids
+
+
+async def _attach_source_texts(
+    session: Any, patient_id: uuid.UUID, entries: list[MemoryEntryV2]
+) -> None:
+    """Fill ``source_texts`` from the vault. Sessions without ``execute`` skip this.
+
+    A vault or SQL failure is logged and the memories are still returned.
+    """
+    if not hasattr(session, "execute"):
+        return
+    fact_ids = _fact_ids(entries)
+    if not fact_ids:
+        return
+    settings = ApiSettings()
+    base = settings.vault_writer_url.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+
+            async def fetch_text(event_id: uuid.UUID) -> bytes | None:
+                try:
+                    resp = await client.get(f"{base}/vault/events/{event_id}/content")
+                    resp.raise_for_status()
+                    return resp.content
+                except Exception:
+                    logger.warning("vault content unavailable for %s", event_id, exc_info=True)
+                    return None
+
+            texts = await source_texts_for_facts(
+                session,
+                patient_id=patient_id,
+                fact_ids=fact_ids,
+                fetch_text=fetch_text,
             )
-            for e in entries
-        ]
-    )
+    except Exception:
+        logger.warning("memory source text lookup failed", exc_info=True)
+        return
+    by_id = {item.source_ref_id: item for item in texts}
+    for entry in entries:
+        attached: list[MemorySourceTextV2] = []
+        for ref in entry.source_refs:
+            if ref.get("source_ref_type") != "c4_extracted_fact":
+                continue
+            item = by_id.get(str(ref.get("source_ref_id")))
+            if item is not None:
+                attached.append(item)
+        entry.source_texts = attached
 
 
 def _ref_key(ref: dict[str, Any]) -> tuple[Any, ...]:
@@ -149,6 +214,8 @@ def dedupe_memories(entries: list[MemoryEntryV2]) -> list[MemoryEntryV2]:
             continue
         refs = {_ref_key(r) for r in head.source_refs}
         head.source_refs += [r for r in m.source_refs if _ref_key(r) not in refs]
+        seen_text = {t.source_ref_id for t in head.source_texts}
+        head.source_texts += [t for t in m.source_texts if t.source_ref_id not in seen_text]
         overlays = head.resolved_overlays
         head.resolved_overlays += [o for o in m.resolved_overlays if o not in overlays]
         head.projection_stale = head.projection_stale or m.projection_stale
@@ -156,9 +223,7 @@ def dedupe_memories(entries: list[MemoryEntryV2]) -> list[MemoryEntryV2]:
 
 
 @router.get("/corrections", response_model=list[CorrectionV2])
-async def list_corrections(
-    principal: PrincipalDep, session: SessionDep
-) -> list[CorrectionV2]:
+async def list_corrections(principal: PrincipalDep, session: SessionDep) -> list[CorrectionV2]:
     await require_access(principal, session, action="read", resource_type="correction")
     repo = CorrectionRepository(session)
     rows = await repo.list_for_patient(principal.patient_id)

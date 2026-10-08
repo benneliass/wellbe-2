@@ -158,7 +158,9 @@ async def _extract_facts(event_json: str) -> None:
                 text_span_start=result.text_span_start,
                 text_span_end=result.text_span_end,
                 source_text_excerpt_hash=(
-                    hashlib.sha256(raw_text[result.text_span_start:result.text_span_end].encode()).hexdigest()[:16]
+                    hashlib.sha256(
+                        raw_text[result.text_span_start : result.text_span_end].encode()
+                    ).hexdigest()[:16]
                     if result.text_span_start is not None and result.text_span_end is not None
                     else None
                 ),
@@ -175,14 +177,16 @@ async def _extract_facts(event_json: str) -> None:
             await evidence_service.link_fact(
                 fact_id=fact_id,
                 patient_id=event.patient_id,
-                evidence_refs=[EvidenceRef(
-                    raw_context_event_id=event.id,
-                    link_type=EvidenceLinkType.PRIMARY,
-                    confidence=result.extraction_confidence,
-                    confidence_basis=ConfidenceBasis.EXTRACTION_MODEL,
-                    relevance_span_start=result.text_span_start,
-                    relevance_span_end=result.text_span_end,
-                )],
+                evidence_refs=[
+                    EvidenceRef(
+                        raw_context_event_id=event.id,
+                        link_type=EvidenceLinkType.PRIMARY,
+                        confidence=result.extraction_confidence,
+                        confidence_basis=ConfidenceBasis.EXTRACTION_MODEL,
+                        relevance_span_start=result.text_span_start,
+                        relevance_span_end=result.text_span_end,
+                    )
+                ],
                 correlation_id=event.correlation_id,
                 trace_id=event.trace_id,
             )
@@ -284,16 +288,20 @@ async def _link_co_occurrence(
     async with session_factory() as session:
         graph = GraphRepository(session)
         rows = (
-            await session.execute(
-                _CO_OCCURRENCE_SQL,
-                {
-                    "pid": patient_id,
-                    "types": _CO_OCCURRENCE_FACT_TYPES,
-                    "start": captured - CO_OCCURRENCE_WINDOW,
-                    "end": captured + CO_OCCURRENCE_WINDOW,
-                },
+            (
+                await session.execute(
+                    _CO_OCCURRENCE_SQL,
+                    {
+                        "pid": patient_id,
+                        "types": _CO_OCCURRENCE_FACT_TYPES,
+                        "start": captured - CO_OCCURRENCE_WINDOW,
+                        "end": captured + CO_OCCURRENCE_WINDOW,
+                    },
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
 
         nodes: dict[str, Any] = {}
         for r in rows:
@@ -343,6 +351,7 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
     """Assemble and emit genesis.input_ready for a fully-processed capture."""
     from wellbe_c4_processing import ProcessingRepository
     from wellbe_c6_graph import GraphRepository
+    from wellbe_c9_continuity.genesis import published_case_concept_id
     from wellbe_contracts.genesis import (
         GENESIS_INPUT_READY,
         GenesisFactInput,
@@ -367,6 +376,7 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
         if not fact_rows:
             return
 
+        raw_source = (event.source_metadata or {}).get("source")
         genesis_facts: list[GenesisFactInput] = []
         resolved = 0
         for row in fact_rows:
@@ -383,6 +393,7 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
                     entity_label=row.entity_label,
                     normalized_key=row.normalized_key,
                     extraction_confidence=row.extraction_confidence,
+                    normalized_concept_id=published_case_concept_id(row.normalized_key, raw_source),
                     graph_node_id=node.id if node is not None else None,
                     event_date=_aware(row.captured_at),
                     is_negated=row.is_negated,
@@ -419,9 +430,7 @@ async def _emit_genesis_input_ready(event: RawContextEvent) -> None:
         await session.commit()
 
 
-def _deterministic_fact_id(
-    raw_event_id: uuid.UUID, result: ExtractionResult
-) -> uuid.UUID:
+def _deterministic_fact_id(raw_event_id: uuid.UUID, result: ExtractionResult) -> uuid.UUID:
     """Derive a stable fact id from the raw event and the fact's natural key.
 
     Re-processing the same raw context event yields the same fact id, which makes
