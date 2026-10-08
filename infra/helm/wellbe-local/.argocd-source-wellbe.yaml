@@ -1,13 +1,13 @@
 helm:
   parameters:
   - name: api.image
-    value: ghcr.io/benneliass/wellbe-api:0.1.32
+    value: ghcr.io/benneliass/wellbe-api:0.1.45
     forcestring: true
   - name: devSeed.image
-    value: ghcr.io/benneliass/wellbe-api:0.1.32
+    value: ghcr.io/benneliass/wellbe-api:0.1.45
     forcestring: true
   - name: web.image
-    value: ghcr.io/benneliass/wellbe-web:0.1.44
+    value: ghcr.io/benneliass/wellbe-web:0.1.45
     forcestring: true
   - name: vaultWriter.image
     value: ghcr.io/benneliass/wellbe-vault-writer:0.1.45
