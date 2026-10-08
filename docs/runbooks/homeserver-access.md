@@ -1,38 +1,26 @@
 # Homeserver access
 
-The WellBe chart on the k3s cluster is GitOps. Argo CD (app `wellbe` in
+WellBe is `https://wellbe.tail9c487a.ts.net/`.
+
+The chart on the k3s cluster is GitOps. Argo CD (app `wellbe` in
 `benneliass/home-server`, `argocd/apps/wellbe.yaml`) tracks `main` at
 `infra/helm/wellbe-local` with `values-homeserver.yaml`. Image builds run on
 push to `main` only.
 
 ## Kubernetes API
 
-The API server is `https://192.168.1.201:6443` on node `home-server-worker`.
-That node is the control plane. `192.168.1.200` (`home-server`) is a worker
-and does not listen for the Kubernetes API. The kubeconfig that matches this
-is `~/.kube/clusters/home-server`.
+`kubectl` uses `~/.kube/clusters/home-server`. The control plane is node
+`home-server-worker` (`192.168.1.201`). `192.168.1.200` (`home-server`) is a
+worker only.
 
 ```sh
 export KUBECONFIG=$HOME/.kube/clusters/home-server
 kubectl get nodes
 ```
 
-A Mac that is already on `192.168.1.0/24` will not use the Tailscale subnet
-route advertised by `home-server`. The kernel prefers the directly connected
-LAN route. `tailscale status` can show the route as available while packets
-still go out `en0`. `connect: no route to host` on `:6443` is the node's
-firewall rejecting the TCP connection, not a missing route. SSH on `.200` and
-`.201` is closed from the Mac as well. Tailscale's `home-server` address
-(`100.81.46.1`) does not serve `:6443`.
-
 Argo CD is `https://argocd.tail9c487a.ts.net` (username and password, no SSO).
 The app UI shows whether a sync happened and whether the `dev-workspace-seed`
-hook Job failed. That is the path when `kubectl` cannot reach `.201`.
-
-To reach the API from the tailnet, on `home-server-worker` (console or an
-existing admin session), allow `:6443` on the tailscale interface and add the
-node's Tailscale name to the k3s TLS SANs, then restart k3s. Until that is
-done, this Mac cannot list pods or Job logs.
+hook Job failed.
 
 ## Which image is running
 
