@@ -15,6 +15,8 @@ spec:
     metadata:
       labels:
         app: safety-gate
+      annotations:
+        {{- include "wellbe-local.configChecksum" (dict "root" $ "file" "/configmap-safety-gate.yaml") | nindent 8 }}
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       containers:

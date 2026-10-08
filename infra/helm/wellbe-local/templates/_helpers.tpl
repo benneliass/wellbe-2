@@ -73,3 +73,13 @@ stores come up before the services that depend on them. Plain Helm ignores it.
 {{- define "wellbe-local.syncWave" -}}
 argocd.argoproj.io/sync-wave: {{ . | quote }}
 {{- end }}
+
+{{/*
+Pod-template annotation that rolls a workload when the ConfigMap it reads
+changes. A ConfigMap update does not restart pods by itself; the checksum is
+part of the pod template, so Argo CD rolls the Deployment. `file` is the
+configmap template name with a leading slash, e.g. "/configmap-api.yaml".
+*/}}
+{{- define "wellbe-local.configChecksum" -}}
+checksum/config: {{ include (print .root.Template.BasePath .file) .root | sha256sum }}
+{{- end }}

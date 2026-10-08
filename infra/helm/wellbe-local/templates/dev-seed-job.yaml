@@ -1,9 +1,14 @@
 {{- if .Values.devSeed.enabled }}
-# Dev-workspace seed (local kind only). Runs as a post-install/post-upgrade hook
-# AFTER the alembic migration (hook-weight 2 > migration's 1) so the schema
-# exists. The seed itself polls the API /health and is idempotent (no-op when the
-# dev patient already has threads), so it tolerates the api pod not yet being
-# ready and repeated upgrades without duplicating data.
+# Dev-workspace seed. Runs as a post-install/post-upgrade hook AFTER the alembic
+# migration (hook-weight 2 > migration's 1) so the schema exists. Argo CD maps
+# that Helm hook to a PostSync hook.
+#
+# The process polls /health, then GET /v1/threads with the dev identity headers.
+# It truncates patient tables only after that call returns 200 and the stored
+# seed revision differs. A 401 fails the Job and leaves the data in place.
+# A matching revision is a no-op. Enable this only after auth.mode is
+# dev-headers and the new API pods are serving; the chart refuses to render
+# oidc and devSeed.enabled together.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -39,4 +44,8 @@ spec:
               value: {{ .Values.devSeed.patientId | quote }}
             - name: WELLBE_DEV_SEED_API_BASE
               value: "http://api:{{ .Values.api.port }}"
+            # Wins over api-config. Same helper every other workload uses, so the
+            # seed cannot fall back to the image's default DSN.
+            - name: WELLBE_DATABASE_URL
+              value: {{ include "wellbe-local.databaseUrlAsync" . | quote }}
 {{- end }}

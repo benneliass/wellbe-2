@@ -181,11 +181,14 @@ auth:
   zitadel: ...            # unchanged
 ```
 
-Check the render, commit, push; ArgoCD rolls api (config map) and web (env):
+Check the render, commit, push. Argo CD rolls the API and every worker whose
+pod template carries `checksum/config`, and rolls web because its auth env is
+on the pod template. A manual restart is only needed if a workload was missed:
 
 ```sh
 helm template wellbe infra/helm/wellbe-local -f infra/helm/wellbe-local/values-homeserver.yaml >/dev/null
-kubectl -n wellbe rollout restart deploy/api deploy/web   # config map changes do not restart pods
+# fallback if a Deployment has no checksum/config annotation:
+# kubectl -n wellbe rollout restart deploy/api deploy/web
 ```
 
 ## 6. Verify
@@ -267,10 +270,32 @@ lockout policy is unlocked in the ZITADEL console, or with
 
 ## Rollback
 
-Set `auth.mode: dev-headers` and `devSeed.enabled: true`, and re-bind the demo
-patient to the dev identity (otherwise the dev seed's account step conflicts):
+Flip auth first, with the seed still off. One sync that sets `auth.mode:
+dev-headers` and `devSeed.enabled: true` together starts the seed hook while
+old OIDC pods may still be serving. The seed now refuses to truncate until
+`GET /v1/threads` with the dev headers returns 200, but that guard is in the
+API image: do not enable the seed on an image built before that guard.
+
+1. Set `auth.mode: dev-headers` and leave `devSeed.enabled: false`. Sync.
+   Wait until the API pods are the new ones and this returns 200:
 
 ```sh
-kubectl -n wellbe exec -i deploy/api -- python - --issuer dev-local --subject dev-controller \
-  --patient-id de7a0000-0000-4000-8000-000000000001 --replace < scripts/ops/link_identity.py
+curl -s -o /dev/null -w '%{http_code}\n' https://wellbe-api.tail9c487a.ts.net/v1/threads \
+  -H 'X-Wellbe-Actor-Id: de7a0000-0000-4000-8000-000000000001' \
+  -H 'X-Wellbe-Patient-Id: de7a0000-0000-4000-8000-000000000001' \
+  -H 'X-Wellbe-Actor-Type: controller'
 ```
+
+2. Set `devSeed.enabled: true` and point `devSeed.image` at that API tag. Sync.
+   Watch the `dev-workspace-seed` Job to Complete. A failed Job is not a
+   successful reseed. Try the demo is off for this whole window.
+3. Confirm the seed revision and the published-case notes. The seed leaves an
+   existing controller account on that patient in place (the ZITADEL `demo`
+   user), and writes the captures to `de7a0000-0000-4000-8000-000000000001`.
+   Re-bind `demo` with the section 4 command only if a query shows that user on
+   a different patient.
+4. Set `auth.mode: oidc` and `devSeed.enabled: false` and sync again. Leaving
+   dev-headers on keeps Try the demo disabled.
+
+Cluster access, the live image file, and the seed Job are in
+`docs/runbooks/homeserver-access.md`.

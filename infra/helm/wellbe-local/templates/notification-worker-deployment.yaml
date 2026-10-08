@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: notification-worker
+      annotations:
+        {{- include "wellbe-local.configChecksum" (dict "root" $ "file" "/configmap-notification-worker.yaml") | nindent 8 }}
     spec:
       {{- include "wellbe-local.podScheduling" . | nindent 6 }}
       terminationGracePeriodSeconds: 20
