@@ -177,7 +177,7 @@ devSeed:
 # scripts/ops/zitadel_bootstrap.py and filled in the ids below.
 # ---------------------------------------------------------------------------
 auth:
-  mode: oidc
+  mode: dev-headers
   oidc:
     issuer: "https://wellbe-auth.tail9c487a.ts.net"
     audience: ["392740357705564486", "392740358343164230"]
