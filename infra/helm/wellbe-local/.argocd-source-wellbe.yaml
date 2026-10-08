@@ -10,22 +10,22 @@ helm:
     value: ghcr.io/benneliass/wellbe-web:0.1.44
     forcestring: true
   - name: vaultWriter.image
-    value: ghcr.io/benneliass/wellbe-vault-writer:0.1.29
+    value: ghcr.io/benneliass/wellbe-vault-writer:0.1.45
     forcestring: true
   - name: ingestionWorker.image
-    value: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.29
+    value: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.45
     forcestring: true
   - name: processingWorker.image
-    value: ghcr.io/benneliass/wellbe-processing-worker:0.1.29
+    value: ghcr.io/benneliass/wellbe-processing-worker:0.1.45
     forcestring: true
   - name: safetyGate.image
-    value: ghcr.io/benneliass/wellbe-safety-gate:0.1.29
+    value: ghcr.io/benneliass/wellbe-safety-gate:0.1.45
     forcestring: true
   - name: auditService.image
-    value: ghcr.io/benneliass/wellbe-audit-service:0.1.29
+    value: ghcr.io/benneliass/wellbe-audit-service:0.1.45
     forcestring: true
   - name: continuityWorker.image
-    value: ghcr.io/benneliass/wellbe-continuity-worker:0.1.29
+    value: ghcr.io/benneliass/wellbe-continuity-worker:0.1.45
     forcestring: true
   - name: migration.image
     value: ghcr.io/benneliass/wellbe-migrations:0.1.29
