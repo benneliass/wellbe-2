@@ -47,6 +47,8 @@ export interface EvidenceSource {
   date?: string | Date;
   /** Short excerpt from the source, shown in the drawer only. */
   excerpt?: string;
+  /** Page for this input, when one exists. Notes and reported wording stay in the drawer. */
+  href?: string;
   /** C5 confidence, 0..1, only when the backend provided one. */
   confidence?: number;
   /** C5 confidence_basis. */

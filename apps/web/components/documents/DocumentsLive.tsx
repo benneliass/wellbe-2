@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Icon } from "@wellbe/ui";
@@ -18,7 +18,7 @@ const STATUS_ICON: Record<DocumentRecord["processing_status"], string> = {
   failed: "rotate-ccw",
 };
 
-export function DocumentsLive() {
+export function DocumentsLive({ fileName }: { fileName?: string }) {
   const { data, isPending, isError, refetch, signedIn } = useDocuments();
   const queryClient = useQueryClient();
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -89,7 +89,14 @@ export function DocumentsLive() {
       ) : (
         <ul className={styles.list} aria-label="Your documents">
           {data.documents.map((d) => (
-            <DocumentCard key={d.document_id} doc={d} />
+            <DocumentCard
+              key={d.document_id}
+              doc={d}
+              focused={
+                Boolean(fileName) &&
+                (d.original_filename === fileName || d.display_label === fileName)
+              }
+            />
           ))}
         </ul>
       )}
@@ -112,14 +119,20 @@ function extractedSummary(doc: DocumentRecord): string {
   return doc.extracted.map((e) => `${e.count} ${e.label}`).join(", ");
 }
 
-function DocumentCard({ doc }: { doc: DocumentRecord }) {
+function DocumentCard({ doc, focused }: { doc: DocumentRecord; focused?: boolean }) {
   const headingId = `document-${doc.document_id}-title`;
+  const cardRef = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (focused) cardRef.current?.scrollIntoView({ block: "center" });
+  }, [focused]);
   return (
     <li
+      ref={cardRef}
       id={`document-${doc.document_id}`}
       className={styles.card}
       aria-labelledby={headingId}
       tabIndex={-1}
+      data-focus={focused ? "true" : undefined}
     >
       <div className={styles.cardHead}>
         <span className={styles.typeIcon} aria-hidden="true">

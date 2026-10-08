@@ -72,8 +72,34 @@ describe("memoryHub adapters", () => {
         displayLabel: "Published sample case C001: Dismissed and silenced hospital assessment",
         component: "c2",
         kind: "reported",
+        href: undefined,
         excerpt: "Published sample case C001: Dismissed and silenced hospital assessment\n\nPatient attended hospital.",
       },
+    ]);
+  });
+
+  it("links a result memory to that result and a file memory to that file", () => {
+    const sources = memorySources(
+      entry({
+        source_texts: [
+          {
+            source_ref_type: "c4_extracted_fact",
+            source_ref_id: "fact-ldl",
+            label: "Result · LDL cholesterol",
+            text: "LDL cholesterol: 168 mg/dL",
+          },
+          {
+            source_ref_type: "c4_extracted_fact",
+            source_ref_id: "fact-file",
+            label: "File · scan.pdf",
+            text: "This file was kept unchanged.",
+          },
+        ],
+      }),
+    );
+    expect(sources.map((s) => [s.kind, s.href])).toEqual([
+      ["lab", "/results?analyte=LDL%20cholesterol"],
+      ["doc", "/documents?file=scan.pdf"],
     ]);
   });
 

@@ -125,7 +125,7 @@ The top-level product should stay small:
 - **Threads**: all Health Threads, grouped by state
 - **Capture**: add symptom, mood/energy, document, result, referral, medication/access clue
 - **Packets**: visit packets, share links, exports
-- **Memory**: full personal health memory, sources, corrections, grants
+- **Memory**: full personal health memory, sources, corrections, grants. Opening a memory names the input it came from — Result, Note, What you reported, or File — and opens that result or file. A note or something reported stays on the memory, as the original wording.
 
 On mobile, this maps naturally to bottom navigation with no more than five destinations. On larger screens, a left sidebar can expose the same structure with thread filters and grants.
 

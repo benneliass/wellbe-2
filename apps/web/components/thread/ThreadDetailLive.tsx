@@ -155,7 +155,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
           component={changeLead.component}
           kind={changeLead.kind}
           count={changeSources.length}
-          onOpen={() => openEvidence("Where this came from", eventTitle(change), changeSources)}
+          onOpen={() => openEvidence("Sources", eventTitle(change), changeSources)}
         />
       )}
     </span>
@@ -249,7 +249,7 @@ export function ThreadDetailLive({ id }: { id: string }) {
                 <>
                   <StoryLanes
                     entries={shownEntries}
-                    onOpenSources={(e) => openEvidence("Where this came from", e.text, e.sources ?? [])}
+                    onOpenSources={(e) => openEvidence("Sources", e.text, e.sources ?? [])}
                     onAddToStory={() => setCapture({})}
                   />
                   {shownEntries.length < entries.length && (

@@ -177,7 +177,7 @@ describe("MemoryLive (Memory hub)", () => {
     const clinical = await screen.findByRole("region", { name: "Clinical" });
     fireEvent.click(within(clinical).getByRole("button", { name: /Open evidence/ }));
 
-    const drawer = await screen.findByRole("dialog", { name: "Where this came from" });
+    const drawer = await screen.findByRole("dialog", { name: "Sources" });
     expect(within(drawer).getByText("Fact from what you added")).toBeInTheDocument();
     expect(within(drawer).getByText("Linked concept")).toBeInTheDocument();
     expect(within(drawer).getByRole("link", { name: "Cough" })).toHaveAttribute("href", `/threads/${COUGH}`);

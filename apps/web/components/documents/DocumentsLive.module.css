@@ -93,6 +93,7 @@
 }
 
 .card:target,
+.card[data-focus="true"],
 .card:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);

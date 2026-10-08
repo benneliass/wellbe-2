@@ -65,7 +65,7 @@ export function ThreadConnections({
                 displayLabel={src.displayLabel}
                 component={src.component}
                 date={src.date}
-                onOpen={() => onOpenEvidence("Where this came from", label, [src])}
+                onOpen={() => onOpenEvidence("Sources", label, [src])}
               />
             </li>
           );

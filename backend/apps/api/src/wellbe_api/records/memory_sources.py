@@ -25,23 +25,32 @@ def text_for_event(
     source_type: str,
     original_filename: str | None,
     content: bytes | str | None,
+    capture_type: str | None = None,
+    test_name: str | None = None,
 ) -> tuple[str, str]:
     """Return ``(label, text)`` for one vault event.
 
-    Manual text is decoded and capped at 8000 characters. A file capture is not
-    dumped: the label is the original filename (or "What you added") and the
-    text only says the file was kept unchanged. A published sample case uses
-    its first line as the label.
+    The label names the input kind so Memory can open the matching view.
+    Manual text is decoded and capped at 8000 characters. A file is not dumped:
+    the text only says the file was kept unchanged. A published sample case
+    uses its first line as the label.
     """
     if source_type != "manual_text":
         name = (original_filename or "").strip()
-        return name or "What you added", _FILE_KEPT
+        return (f"File · {name}" if name else "File"), _FILE_KEPT
 
     raw = content.decode("utf-8", errors="replace") if isinstance(content, bytes) else content or ""
     body = raw[:_MAX_CHARS]
     first = body.split("\n", 1)[0].strip()
     if first.startswith("Published sample case"):
         return first, body
+    if capture_type == "lab":
+        name = (test_name or "").strip()
+        return (f"Result · {name}" if name else "Result"), body
+    if capture_type == "symptom":
+        return "What you reported", body
+    if capture_type == "note":
+        return "Note", body
     return "What you added", body
 
 
@@ -61,7 +70,9 @@ async def source_texts_for_facts(
         return []
     statement = text(
         "SELECT f.id AS fact_id, e.id AS event_id, e.source_type, "
-        "e.original_filename "
+        "e.original_filename, "
+        "e.source_metadata->>'capture_type' AS capture_type, "
+        "e.source_metadata->>'test_name' AS test_name "
         "FROM processing.extracted_facts AS f "
         "JOIN vault.raw_context_events AS e "
         "ON e.id = f.raw_context_event_id "
@@ -92,6 +103,8 @@ async def source_texts_for_facts(
                 source_type=row.source_type,
                 original_filename=row.original_filename,
                 content=content,
+                capture_type=row.capture_type,
+                test_name=row.test_name,
             )
         rendered = loaded[event_id]
         if rendered is None:

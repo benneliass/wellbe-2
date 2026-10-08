@@ -114,7 +114,7 @@ test("L0–L2 are visible without scrolling on a 390px phone", async ({ page }) 
 test("a source marker opens the evidence drawer", async ({ page }) => {
   await page.goto(`/threads/${THREAD}`);
   await page.getByRole("button", { name: /cough.*Open evidence/ }).first().click();
-  const drawer = page.getByRole("dialog", { name: "Where this came from" });
+  const drawer = page.getByRole("dialog", { name: "Sources" });
   await expect(drawer).toBeVisible();
   await expect(drawer.getByText("Well supported")).toBeVisible();
   await page.waitForTimeout(600);

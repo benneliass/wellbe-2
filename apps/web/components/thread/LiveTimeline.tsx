@@ -75,7 +75,7 @@ export function LiveTimeline({
                       kind={lead.kind}
                       date={lead.date}
                       count={sources.length}
-                      onOpen={() => onOpenEvidence("Where this came from", title, sources)}
+                      onOpen={() => onOpenEvidence("Sources", title, sources)}
                     />
                   )}
                 </div>

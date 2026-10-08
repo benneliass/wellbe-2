@@ -15,7 +15,7 @@ THREAD = str(uuid.uuid4())
 def test_file_content_is_not_returned_as_raw_bytes() -> None:
     raw = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3 binary \x00\xff"
     label, text = text_for_event(source_type="pdf", original_filename="scan.pdf", content=raw)
-    assert label == "scan.pdf"
+    assert label == "File · scan.pdf"
     assert isinstance(text, str)
     assert "kept unchanged" in text
     assert "%PDF" not in text
@@ -24,7 +24,7 @@ def test_file_content_is_not_returned_as_raw_bytes() -> None:
     fallback_label, fallback_text = text_for_event(
         source_type="image", original_filename="  ", content=raw
     )
-    assert fallback_label == "What you added"
+    assert fallback_label == "File"
     assert fallback_text == text
 
 
@@ -40,6 +40,32 @@ def test_manual_text_is_capped_and_published_case_line_is_the_label() -> None:
     )
     assert plain_label == "What you added"
     assert plain == "Just a note"
+
+    result_label, result_text = text_for_event(
+        source_type="manual_text",
+        original_filename=None,
+        content="LDL cholesterol: 168 mg/dL",
+        capture_type="lab",
+        test_name="LDL cholesterol",
+    )
+    assert result_label == "Result · LDL cholesterol"
+    assert result_text == "LDL cholesterol: 168 mg/dL"
+
+    reported_label, _reported = text_for_event(
+        source_type="manual_text",
+        original_filename=None,
+        content="Morning cough",
+        capture_type="symptom",
+    )
+    assert reported_label == "What you reported"
+
+    note_label, _note = text_for_event(
+        source_type="manual_text",
+        original_filename=None,
+        content="Ask about the cough",
+        capture_type="note",
+    )
+    assert note_label == "Note"
 
 
 def test_equal_timestamps_keep_both_source_texts_in_original_order() -> None:

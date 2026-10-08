@@ -100,6 +100,11 @@
   gap: 12px;
 }
 
+.card[data-focus="true"] {
+  outline: 2px solid var(--wb-link, #0f766e);
+  outline-offset: 2px;
+}
+
 .card {
   border: 1px solid var(--border);
   border-radius: var(--r-xl);

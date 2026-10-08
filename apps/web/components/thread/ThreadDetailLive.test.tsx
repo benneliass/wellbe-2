@@ -196,7 +196,7 @@ describe("ThreadDetailLive", () => {
     setup();
     const lane = (await screen.findByRole("heading", { name: "WellBe summaries" })).closest("section")!;
     fireEvent.click(await within(lane).findByRole("button", { name: /Morning cough.*Open evidence/ }));
-    const drawer = await screen.findByRole("dialog", { name: "Where this came from" });
+    const drawer = await screen.findByRole("dialog", { name: "Sources" });
     expect(within(drawer).getByText("Morning cough")).toBeInTheDocument();
     expect(within(drawer).getByText("Well supported")).toBeInTheDocument();
     expect(within(drawer).getByText("Your words")).toBeInTheDocument();

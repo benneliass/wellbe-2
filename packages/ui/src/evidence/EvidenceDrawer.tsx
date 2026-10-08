@@ -116,6 +116,15 @@ export function EvidenceDrawer({
           onOpen={onOpenSource ? () => onOpenSource(source) : undefined}
         />
         {source.excerpt && <p className={styles.excerpt}>{source.excerpt}</p>}
+        {source.href && (
+          <a className={styles.open} href={source.href}>
+            {source.kind === "lab"
+              ? "Open this result"
+              : source.kind === "doc"
+                ? "Open this file"
+                : "Open"}
+          </a>
+        )}
         {(hasReview || hasConfidence || source.correction || source.qualityTier) && (
           <div className={styles.details}>
             {hasReview && <ReviewMarkerList values={source.reviewMarkers ?? []} safetyApproved={safetyApproved} />}

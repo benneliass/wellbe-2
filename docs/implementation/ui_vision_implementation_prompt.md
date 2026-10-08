@@ -178,6 +178,8 @@ Represent memory types distinctly:
 
 Always distinguish authored memory from derived memory.
 
+A memory names the input it came from. Result opens that result. File opens that file. Note and What you reported show the original wording on the memory, because those inputs have no separate page. From a result, the person can step to the thread and back to Memory.
+
 ## Progressive Journey Behavior
 
 Use "Progress Over Pages" and "Journey Funnel" everywhere.

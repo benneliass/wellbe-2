@@ -6,6 +6,7 @@ import type {
   SourceComponent,
   StoryEntry,
 } from "@wellbe/ui";
+import { sourceHrefForLabel, sourceKindForLabel } from "./sourceLink";
 
 type MemoryEntryV2 = components["schemas"]["MemoryEntryV2"];
 
@@ -112,7 +113,8 @@ export function memorySources(entry: MemoryEntryV2): EvidenceSource[] {
       id: `${item.source_ref_id}:${i}`,
       displayLabel: item.label,
       component: "c2" as const,
-      kind: "reported" as const,
+      kind: sourceKindForLabel(item.label) ?? ("reported" as const),
+      href: sourceHrefForLabel(item.label),
       excerpt: item.text,
     }));
   }

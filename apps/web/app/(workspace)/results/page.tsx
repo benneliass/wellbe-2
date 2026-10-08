@@ -5,15 +5,16 @@ import { ResultsLive } from "@/components/results/ResultsLive";
 export default async function ResultsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ document?: string | string[] }>;
+  searchParams: Promise<{ document?: string | string[]; analyte?: string | string[] }>;
 }) {
-  const { document } = await searchParams;
+  const { document, analyte } = await searchParams;
   const documentId = Array.isArray(document) ? document[0] : document;
+  const analyteName = Array.isArray(analyte) ? analyte[0] : analyte;
   return (
     <>
       <TopBar title="Results" breadcrumb="Results" backHref="/" />
       <PageBody>
-        <ResultsLive documentId={documentId || undefined} />
+        <ResultsLive documentId={documentId || undefined} analyteName={analyteName || undefined} />
       </PageBody>
     </>
   );

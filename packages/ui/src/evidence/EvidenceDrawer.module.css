@@ -181,6 +181,13 @@
   margin: 0;
 }
 
+.open {
+  color: var(--wb-link, #0f766e);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .details {
   display: flex;
   flex-direction: column;

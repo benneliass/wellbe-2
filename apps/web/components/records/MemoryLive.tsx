@@ -13,6 +13,7 @@ import {
   type HubEntry,
   type MemoryTypeId,
 } from "./memoryHub";
+import { drawerTitleForLabels } from "./sourceLink";
 import styles from "./MemoryHub.module.css";
 
 type GroupId = MemoryTypeId | "other";
@@ -33,14 +34,19 @@ function copyFor(type: GroupId) {
  * (/v2/threads/{id}/memories), grouped by the six C8 memory types. Within a type,
  * StoryLanes keeps your own words apart from WellBe's summaries (WEL-146).
  */
-export function MemoryLive() {
+export function MemoryLive({ threadId }: { threadId?: string }) {
   const threads = useThreads();
   const list = threads.data ?? [];
   const memories = useMemoriesForThreads(list.map((t) => t.id));
   const [filter, setFilter] = useState<Filter>("all");
   const [inspecting, setInspecting] = useState<HubEntry | null>(null);
 
-  const entries = list.flatMap((t, i) => (memories[i]?.data ?? []).map((m) => toHubEntry(m, t.title)));
+  const entries = list
+    .filter((t) => !threadId || t.id === threadId)
+    .flatMap((t) => {
+      const query = memories[list.findIndex((row) => row.id === t.id)];
+      return (query?.data ?? []).map((m) => toHubEntry(m, t.title));
+    });
   const groups = groupByType(entries);
 
   if (threads.isLoading) return <StateNote icon="clock" title="Loading your memory…" />;
@@ -76,8 +82,13 @@ export function MemoryLive() {
     <div className={styles.wrap}>
       <p className={styles.hint}>
         <Icon name="lock" size={14} />
-        Summaries WellBe kept. Open one to read the original wording it came from.
+        Summaries WellBe kept. Open one to see the result, note, report, or file it came from.
       </p>
+      {threadId && (
+        <p className={styles.quiet}>
+          <Link href="/memory">All memories</Link>
+        </p>
+      )}
 
       <div className={styles.filters} role="group" aria-label="Show memory type">
         <FilterButton active={filter === "all"} onClick={() => setFilter("all")} count={entries.length}>
@@ -121,7 +132,7 @@ export function MemoryLive() {
       <EvidenceDrawer
         open={inspecting !== null}
         onClose={() => setInspecting(null)}
-        title="Where this came from"
+        title={drawerTitleForLabels((inspecting?.sources ?? []).map((source) => source.displayLabel))}
         sources={inspecting?.sources ?? []}
         claim={
           inspecting && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Icon } from "@wellbe/ui";
@@ -33,7 +33,13 @@ function sourceIcon(kind: string): string {
   return "file-text";
 }
 
-export function ResultsLive({ documentId }: { documentId?: string }) {
+export function ResultsLive({
+  documentId,
+  analyteName,
+}: {
+  documentId?: string;
+  analyteName?: string;
+}) {
   const { data, isPending, isError, refetch, signedIn } = useResults();
   const queryClient = useQueryClient();
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -75,22 +81,25 @@ export function ResultsLive({ documentId }: { documentId?: string }) {
     );
   }
 
-  const analytes = documentId
-    ? data.analytes.filter((a) => a.history.some((o) => o.source.document_id === documentId))
-    : data.analytes;
+  const named = analyteName?.trim().toLowerCase();
+  const analytes = data.analytes.filter((a) => {
+    if (documentId && !a.history.some((o) => o.source.document_id === documentId)) return false;
+    if (named && a.display_label.trim().toLowerCase() !== named) return false;
+    return true;
+  });
 
   return (
     <div className={styles.wrap}>
       <section className={styles.intro} aria-labelledby="results-headline">
         <h2 id="results-headline" className={styles.headline}>
-          {documentId ? "Results found in one document" : data.headline}
+          {named ? analyteName : documentId ? "Results found in one document" : data.headline}
         </h2>
         <p className={styles.note}>{data.note}</p>
         <div className={styles.actions}>
           <Button variant="primary" icon="plus" onClick={() => setCaptureOpen(true)}>
             Add a result
           </Button>
-          {documentId && (
+          {(documentId || named) && (
             <Link href="/results" className={styles.textLink}>
               Show all results
             </Link>
@@ -107,17 +116,25 @@ export function ResultsLive({ documentId }: { documentId?: string }) {
       {analytes.length === 0 ? (
         <StateNote
           icon="flask-conical"
-          title={documentId ? "No results from this document" : "Add your first result"}
+          title={
+            named
+              ? "That result is not here"
+              : documentId
+                ? "No results from this document"
+                : "Add your first result"
+          }
           description={
-            documentId
-              ? "WellBe didn't find lab or test values in that document."
-              : "When you add a lab or test result — typed in or from a document — it will appear here with its date, reference range, and source."
+            named
+              ? "It may still be waiting to be read, or it was entered under a different name."
+              : documentId
+                ? "WellBe didn't find lab or test values in that document."
+                : "When you add a lab or test result — typed in or from a document — it will appear here with its date, reference range, and source."
           }
         />
       ) : (
         <ul className={styles.list} aria-label="Your results">
-          {analytes.map((a) => (
-            <AnalyteCard key={a.analyte_key} analyte={a} />
+            {analytes.map((a) => (
+            <AnalyteCard key={a.analyte_key} analyte={a} focused={Boolean(named)} />
           ))}
         </ul>
       )}
@@ -136,7 +153,11 @@ export function ResultsLive({ documentId }: { documentId?: string }) {
   );
 }
 
-function AnalyteCard({ analyte: a }: { analyte: AnalyteResult }) {
+function AnalyteCard({ analyte: a, focused }: { analyte: AnalyteResult; focused?: boolean }) {
+  const cardRef = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (focused) cardRef.current?.scrollIntoView({ block: "center" });
+  }, [focused]);
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const headingId = useId();
@@ -145,7 +166,12 @@ function AnalyteCard({ analyte: a }: { analyte: AnalyteResult }) {
   const change = previous ? compareWithPrevious(latest, previous) : null;
 
   return (
-    <li className={styles.card} aria-labelledby={headingId}>
+    <li
+      ref={cardRef}
+      className={styles.card}
+      aria-labelledby={headingId}
+      data-focus={focused ? "true" : undefined}
+    >
       <div className={styles.cardHead}>
         <h3 id={headingId} className={styles.name}>
           {a.display_label}
@@ -187,6 +213,11 @@ function AnalyteCard({ analyte: a }: { analyte: AnalyteResult }) {
               <Link href={`/threads/${t.thread_id}`} className={styles.thread}>
                 <Icon name="git-fork" size={15} />
                 <span>In your thread: {t.title}</span>
+                <Icon name="arrow-right" size={15} />
+              </Link>
+              <Link href={`/memory?thread=${t.thread_id}`} className={styles.thread}>
+                <Icon name="book" size={15} />
+                <span>In Memory</span>
                 <Icon name="arrow-right" size={15} />
               </Link>
             </li>
