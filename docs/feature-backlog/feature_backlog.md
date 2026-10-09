@@ -1,5 +1,7 @@
 # WellBe feature backlog
 
+The `phase` and `status` columns are product intent, not implementation status. What runs in the code today is [docs/current/capability-index.md](../current/capability-index.md).
+
 |feature_id|feature_name|phase|primary_user|problem_solved|evidence_strength|risk_level|status|
 |---|---|---|---|---|---|---|---|
 |WB2-F001|Health Thread core|MVP|patient|Symptoms, visits, tests and questions are scattered instead of one unresolved concern.|strong|high|core build|

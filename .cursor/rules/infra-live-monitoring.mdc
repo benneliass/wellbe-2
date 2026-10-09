@@ -1,6 +1,6 @@
 ---
 description: Active monitoring protocol for long-running cluster operations — no passive timeout waits
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Infra Live Monitoring

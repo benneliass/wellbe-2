@@ -1,6 +1,6 @@
 ---
 description: Enforce systematic, root-cause-first approach to every bug fix, issue fix, or refactor
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Systematic Fixing Protocol

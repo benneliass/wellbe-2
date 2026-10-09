@@ -14,6 +14,10 @@ A meaningful code change names the WEL issue it belongs to. Look up an open issu
 - If Jira cannot be reached, or the matching issue is unclear, make the code change and say which issue you would have used.
 - Do not refuse a commit, push, or local edit because a key is missing.
 
+## Capability index
+
+If the change alters what a capability does, update `docs/current/capability-index.md` in that same change and run `python3 scripts/check-capability-index.py`. The procedure is in `.cursor/rules/agent-context.mdc`.
+
 ## Creating an issue
 
 Create one only when nothing open covers the work. Use the existing epic. Stories and tasks can be created directly. Creating or moving an epic still waits for explicit approval.

@@ -1,18 +1,17 @@
 ---
-description: Always commit completed work to git with clear, meaningful messages
-alwaysApply: true
+description: Commit message format to use when the user has asked for a commit.
+alwaysApply: false
 ---
 
 # Always Commit Work
 
-After completing any meaningful change, always create a git commit. Never leave work uncommitted.
+Create a git commit when the user has asked for one. Do not commit only because a change is finished.
 
 ## When to Commit
 
-- After completing a feature, fix, or refactor
-- After creating or deleting files
-- After updating configuration or dependencies
-- Before switching to a different task
+- When the user has asked for a commit after a feature, fix, or refactor
+- When the user has asked for a commit after files were created or deleted
+- When the user has asked for a commit after configuration or dependencies changed
 
 ## Commit Message Format
 

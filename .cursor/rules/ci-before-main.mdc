@@ -1,0 +1,20 @@
+---
+description: Checks to run before a push or a merge so main stays green. Load before any push, merge to main, or subagent that could push.
+alwaysApply: false
+---
+
+# CI before main
+
+A subagent does not push and does not merge. The parent says that in the launch prompt. The parent is the only one that pushes, and only after the checks below pass.
+
+Do not push to `main` unless the user explicitly asked to push or merge there. Do not force-push `main`. Land on a pull request. Cloud Agents already work on their own branch and open a pull request. Do not tell one to push `main`.
+
+Before the push or merge, run the checks that match the files changed. Stop if any fail.
+
+- `backend/`, `uv.lock`, or `scripts/qa/check_workspace_deps.py`: from `backend/`, `uv lock --check`, `uv run ruff check .`, `uv run mypy packages/ apps/`, and `uv run pytest --tb=short`. From the repo root, `uv run --no-project python scripts/qa/check_workspace_deps.py`.
+- `apps/`, `packages/`, `package.json`, or `package-lock.json`: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`.
+- A path listed in `.github/workflows/safety-gate.yml`: from `evals/safety`, `uv run --project ../../backend pytest tests/ -v --tb=short`.
+- `db/**` or `infra/local/Dockerfile.postgres`: do not merge until the DB migrations check on the pull request has passed.
+- `docs/current/capability-index.md`: `python3 scripts/check-capability-index.py`.
+
+A green pull request is not the full main gate. A push to `main` also runs the kind cluster e2e in `.github/workflows/ci.yml` and the image build in `.github/workflows/build-images.yml`. After a merge to `main`, watch those two workflows. If either fails, say so and fix it before the next change.

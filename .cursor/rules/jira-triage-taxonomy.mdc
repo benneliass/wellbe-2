@@ -26,6 +26,7 @@ Every item must have exactly one `layer:` label.
 | `layer:feature-api` | API surface and contracts. Endpoints, schemas, versioning. |
 | `layer:feature-integration` | External integrations. Wearables, EHR import, third-party data sources. |
 | `layer:feature-workspace` | Audience workspace surfaces (L9). Clinician, shared, institution, and research workspaces over the shared primitives, always grant-scoped. |
+| `layer:process` | Repo process and current-behavior docs, not a product layer. Use only for the capability index and `agent-context.mdc`. |
 
 ---
 
@@ -60,6 +61,7 @@ Every item must have exactly one `component:` label. Components map directly to 
 | `component:external-evidence` | `docs/system-design/knowledge_graph.md` — C16: External Evidence Graph + Research Watch, source-quality tiers, relevance links |
 | `component:workspace-grant` | `docs/safety/privacy_and_consent_model.md` — C17: deep Grant/Role model + role-specific workspaces (clinician, shared, institution, research) |
 | `component:live-metrics` | `docs/system-design/integrations.md` — F-LIVE: Live Metrics Safety Monitor (baseline-deviation safe escalation) |
+| `component:agent-context` | `docs/current/capability-index.md` — current-behavior index and `.cursor/rules/agent-context.mdc`. Not a product component. An index edit that rides along with product code does not use this label. |
 
 ---
 

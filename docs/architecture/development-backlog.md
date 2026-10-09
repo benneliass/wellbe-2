@@ -1,12 +1,14 @@
 # Development Backlog
 
-Structured dev work items for **everything referenced across the design that still needs to be built**. This is the "any doc that refers to something that needs to be developed" deliverable. It is the bridge between the design docs and Jira.
+Work that is still unbuilt. What already runs is [../current/capability-index.md](../current/capability-index.md).
 
 - **Component** → `component-map.md` (`Cn` core, `F-*` feature).
 - **Phase** → `mvp` / `post-mvp` / `deferred`, consistent with `../feature-backlog/feature_backlog.md`.
-- IDs `WB-DEV-NNN` are local to this doc and map to proposed Jira Stories in the last section.
+- IDs `WB-DEV-NNN` are local to this doc.
 
-> **Jira status (2026-05-30, updated):** All 10 Epics are present (WEL-12 through WEL-21). **28 Stories were filed** under the correct Epics during triage session `triage-2026-05-30-002` (WEL-64 through WEL-91). See the filed-story mapping in the last section.
+Open epics are looked up in Jira. Do not treat the May 2026 epic list as current.
+
+Rows below are remaining gaps. A row is removed when the capability index marks that behavior `shipped` with no gap.
 
 ---
 
@@ -14,24 +16,16 @@ Structured dev work items for **everything referenced across the design that sti
 
 | ID | Component | What to build | Depends on | Phase |
 |---|---|---|---|---|
-| WB-DEV-001 | C1 Trust & Consent | OIDC integration (ZITADEL) + WebAuthn/passkey login; session/token issuance. | — | mvp |
-| WB-DEV-002 | C1 Trust & Consent | Consent-scope + Share-Grant domain model (scoped, time-boxed, revocable) + revocation log. | WB-DEV-001 | mvp |
+| WB-DEV-001 | C1 Trust & Consent | WebAuthn/passkey login. OIDC session issuance is shipped. | — | mvp |
 | WB-DEV-003 | C1 Trust & Consent | Cross-patient opt-in gate (off by default; no data path unless enabled). | WB-DEV-002 | post-mvp |
-| WB-DEV-004 | C2 Raw Context Vault | Immutable, append-only RawContextEvent store (Postgres + S3 object-lock) with full provenance fields. | WB-DEV-001 | mvp |
-| WB-DEV-005 | C3 Ingestion Layer | Adapter framework + manual/photo/PDF/SMS adapters writing to the Vault. | WB-DEV-004 | mvp |
-| WB-DEV-006 | C4 Processing Pipeline | Entity/fact/signal extraction + quality/confidence scoring; emits `fact.extracted`, `health_signal.created`. | WB-DEV-004 | mvp |
-| WB-DEV-007 | C4 / OCR | Hybrid OCR pipeline (self-host PaddleOCR-VL/Tesseract → vision-LLM fallback) with hash-based caching and structured (Pydantic) extraction. | WB-DEV-006 | mvp |
-| WB-DEV-008 | C5 Evidence & Provenance | Evidence-link service (reasons per `../implementation/api_event_model.md`); enforce "no orphan claims". | WB-DEV-006 | mvp |
-| WB-DEV-009 | C6 Knowledge Graph | Graph store (Postgres + Apache AGE) with typed nodes + scored edges per `../system-design/knowledge_graph.md`; PotentialScore computation. | WB-DEV-008 | mvp (minimal) / post-mvp (full) |
+| WB-DEV-005 | C3 Ingestion Layer | SMS and photo adapters writing to the Vault. Manual text and documents are shipped. | WB-DEV-004 | mvp |
+| WB-DEV-006 | C4 Processing Pipeline | Model-based entity extraction and confidence scoring beyond the shipped keyword extractor. | WB-DEV-004 | mvp |
+| WB-DEV-007 | C4 / OCR | Vision-LLM and PaddleOCR fallback. Local Tesseract in the processing worker is shipped. Temporal OCR activities are still placeholders. | WB-DEV-006 | mvp |
 | WB-DEV-010 | C6 Knowledge Graph | Auto-linking background worker (co-occurrence/temporal/semantic) with pgvector embeddings. | WB-DEV-009 | post-mvp |
-| WB-DEV-011 | C7 Health Thread Engine | Health Thread object + lifecycle state machine (`../system-design/health_thread_state_machine.md`); thread↔subgraph linking. | WB-DEV-008 | mvp |
-| WB-DEV-012 | C8 Six Memories | Story / Clinical / Pattern / Decision / Responsibility / Equity memory models around threads. | WB-DEV-011 | mvp (Story/Clinical/Responsibility) / post-mvp (rest) |
-| WB-DEV-013 | C9 Continuity & Closure | Pending Item Ledger + durable due-date timers (Temporal) emitting `pending_item.due`. | WB-DEV-011 | mvp |
 | WB-DEV-014 | C9 Continuity & Closure | Referral lifecycle tracker + result tracker + post-visit plan checker + repeat-visit view. | WB-DEV-013 | mvp / near-term |
-| WB-DEV-015 | C10 Safety Gate | Layered safety service: deterministic rule checks (do-not-diagnose lexicon, panic language, provenance-present) + NeMo Guardrails + Llama Guard; fail-closed; emits `ai_output.blocked`. | WB-DEV-008, WB-DEV-011 | mvp |
-| WB-DEV-016 | C11 Correction Service | Correction-request model that adds a new source-linked layer; never mutates raw/derived. | WB-DEV-008 | mvp |
-| WB-DEV-017 | C12 Notification & Audit | Append-only audit log of all event types + low-alarm, closure-oriented notifications. | WB-DEV-001 | mvp |
-| WB-DEV-018 | C13 API & Contracts | FastAPI REST surface + OpenAPI 3.1; generated TS client; webhook intake endpoints. | WB-DEV-011, WB-DEV-015 | mvp |
+| WB-DEV-015 | C10 Safety Gate | NeMo Guardrails and Llama Guard in front of user-facing model output. The deterministic fail-closed gate is shipped. | WB-DEV-008, WB-DEV-011 | mvp |
+| WB-DEV-017 | C12 Notification & Audit | Durable audit ledger. In-app notifications are shipped. The standalone audit service ledger is still in memory. | WB-DEV-001 | mvp |
+| WB-DEV-018 | C13 API & Contracts | Webhook intake endpoints. The FastAPI surface and generated TypeScript client are shipped. | WB-DEV-011, WB-DEV-015 | mvp |
 | WB-DEV-019 | Platform | Event backbone: transactional outbox + Redis Streams for the event taxonomy in `../implementation/technical_architecture_notes.md`. | WB-DEV-004 | mvp |
 | WB-DEV-020 | Platform | Temporal deployment + base workflow library (imports, timers, engine pipeline, agent steps). | WB-DEV-019 | mvp |
 
@@ -42,9 +36,7 @@ Structured dev work items for **everything referenced across the design that sti
 | ID | Component | What to build | Depends on | Phase |
 |---|---|---|---|---|
 | WB-DEV-101 | F-MOOD | Mood/energy capture UI + signal model feeding the graph. | WB-DEV-006, WB-DEV-009 | mvp |
-| WB-DEV-102 | F-PACKET | Visit Packet generator (concise, source-linked) + scoped share link/export. | WB-DEV-011, WB-DEV-015 | mvp |
 | WB-DEV-103 | F-SAFENET | Normal-test safety net (keep unresolved symptoms visible after normal result). | WB-DEV-014, WB-DEV-015 | mvp |
-| WB-DEV-104 | F-KG-VIZ | Graph visualization: Cytoscape.js thread view + Sigma.js investigation landscape; click-to-source drill-down. | WB-DEV-009 | post-mvp |
 | WB-DEV-105 | F-ENGINES | Pattern Detection engine (`../system-design/intelligence_engines.md`). | WB-DEV-010 | post-mvp |
 | WB-DEV-106 | F-ENGINES | Temporal Analysis engine. | WB-DEV-105 | post-mvp |
 | WB-DEV-107 | F-ENGINES | Confounder Detection engine (guards spurious patterns). | WB-DEV-105 | post-mvp |
@@ -75,7 +67,9 @@ Structured dev work items for **everything referenced across the design that sti
 
 ## Filed Jira Stories — triage-2026-05-30-002
 
-All stories filed on 2026-05-30. All 10 Epics confirmed present before filing. Triage session label: `triage-2026-05-30-002`. Priority mapping used: P1-critical → High, P2-important → Medium, P3-backlog → Low (Jira standard names).
+This table is the May 2026 filing map. Open epics are looked up in Jira. Do not treat the parent epic keys below as the current epic list.
+
+All stories filed on 2026-05-30. Triage session label: `triage-2026-05-30-002`. Priority mapping used: P1-critical → High, P2-important → Medium, P3-backlog → Low (Jira standard names).
 
 > **Note on P0-blocker in the original table:** Stories cannot carry P0 priority per `jira-prioritization-logic.mdc`. WB-DEV-004 and WB-DEV-011 were proposed as P0-blocker in the draft table but filed as P1-critical (High) with the safety-gate and dependency-chain rationale preserved in their descriptions.
 

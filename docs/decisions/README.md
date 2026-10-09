@@ -16,6 +16,8 @@ A Decision Record is a permanent, append-only account of one decision about a co
 
 Records are not speculation documents. They do not capture what might be decided — only what was decided, by whom, and on what basis.
 
+Approving a record does not mean the behavior is `shipped`. Current behavior is [docs/current/capability-index.md](../current/capability-index.md).
+
 ---
 
 ## How Records Get Created

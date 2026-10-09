@@ -25,6 +25,7 @@ The following files are bible files. No agent may modify, rename, move, or delet
 | `docs/safety/do_not_diagnose_rules.md` | Diagnosis prohibition rules |
 | `.cursor/rules/wellbe-vision-guardrails.mdc` | Vision guardrails for agents |
 | `.cursor/rules/audience-guardrails.mdc` | Audience rules for agents |
+| `.cursor/rules/infra-constraints.mdc` | Kubernetes-native infrastructure constraints |
 
 **Any text that appears in a bible file is the authoritative version.** If another document contradicts a bible file, the bible file wins until a formal doc re-eval approves the update.
 
@@ -39,7 +40,7 @@ Fire the re-eval protocol when any of the following is true:
 **Triggers — run DETECT immediately:**
 - A new feature is added that serves an audience not described in `platform_identity.md`
 - A feature is added or removed that changes the platform's purpose or identity (e.g., adding a clinician workflow feature shifts the product identity)
-- The operating loop (Capture → Connect → Clarify → Close → Correct) is modified
+- The operating loop (Capture → Connect → Investigate → Clarify → Close → Correct) is modified
 - The core object model changes (Health Thread definition is altered)
 - A safety rule in `safety_model.md` or `do_not_diagnose_rules.md` is relaxed, extended, or reinterpreted
 - The audience of the system is expanded or narrowed (e.g., adding "clinicians" as a primary audience)

@@ -1,11 +1,11 @@
 ---
 description: Keep the UI vision document aligned with product feature changes
-alwaysApply: true
+alwaysApply: false
 ---
 
 # UI Vision Sync
 
-When a meaningful product feature is added, removed, deferred, reprioritized, or materially changed in Jira, docs, or code, check whether `docs/implementation/ui_vision.md` needs an update.
+When a meaningful product feature is added, removed, deferred, reprioritized, or materially changed in Jira, docs, or code, check whether `docs/implementation/ui_vision.md` needs an update. Whether the behavior exists is recorded in `docs/current/capability-index.md`. Direction and existence are separate. Both can apply to one change.
 
 Run this check for:
 

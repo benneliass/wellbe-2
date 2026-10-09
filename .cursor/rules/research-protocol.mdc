@@ -1,6 +1,6 @@
 ---
 description: Research protocol — Spike-gated research for core component work. Agents raise the flag, users do the research, agents record and propose, users approve.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Research Protocol
@@ -164,7 +164,7 @@ Every Decision Record lives at `docs/decisions/<slug>.md`. The template is at `d
 
 | Situation | Agent action |
 |---|---|
-| Story touches a core component (C1–C13) | Stop. Output "⚑ RESEARCH REQUIRED" block. Create Jira Spike. Create Decision Record stub. Wait. |
+| Story touches a core component (C1–C17) | Stop. Output "⚑ RESEARCH REQUIRED" block. Create Jira Spike. Create Decision Record stub. Wait. |
 | Spike is open against a Story | Do not implement. Do not self-research. May work on unrelated Stories. |
 | User provides research results | Record faithfully → write Approaches + proposed Decision → present "DECISION RECORD READY FOR APPROVAL" → wait. |
 | User approves decision | Update record status → close Spike → unblock Story → commit record → begin implementation. |

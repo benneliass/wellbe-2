@@ -25,7 +25,7 @@ WellBe is a **patient‑centered Health Investigation OS** built on a sovereign 
 it captures, connects, and surfaces patterns from data the user has submitted, always traceable to its
 source.
 
-The product runs an operating loop: **Capture → Connect → Clarify → Close → Correct.** The core object
+The product runs an operating loop: **Capture → Connect → Investigate → Clarify → Close → Correct.** The core object
 is the **Health Thread** — one ongoing health concern (e.g. "Recurring headaches since February"), with
 a lifecycle state.
 

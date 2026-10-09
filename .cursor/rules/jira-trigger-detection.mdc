@@ -1,6 +1,6 @@
 ---
 description: Defines what constitutes a meaningful change that triggers the Jira triage flow, and what does not. The agent uses this to decide whether to invoke the triage protocol without being explicitly told.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Trigger Detection

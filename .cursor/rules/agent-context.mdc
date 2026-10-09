@@ -1,0 +1,41 @@
+---
+description: Routes questions to the right WellBe source and says when to load the other project rules.
+alwaysApply: true
+---
+
+# Agent context
+
+Four truths. Do not mix them.
+
+- What runs today: read `docs/current/capability-index.md`, then the evidence path on the row. If that path is missing, read the code, fix the row, and run `python3 scripts/check-capability-index.py` before answering.
+- What we intend: `docs/architecture/component-map.md` and `docs/feature-backlog/feature_backlog.md`. Phase columns are intent.
+- What is still unbuilt: `docs/architecture/development-backlog.md`.
+- Why: `docs/decisions/`. What must not change: the bible files in `AGENTS.md`. UI direction: `docs/implementation/ui_vision.md`.
+
+`docs/system-overview.md` is a pointer, not proof that something runs. A Jira status is not proof either. Approving a decision record does not set `shipped`.
+
+## When behavior changes
+
+Use the WEL issue that already covers the code. Do not open a second issue only to update the index. In that same change: update the index row and run the checker; if the row is `shipped` with no gap, remove the matching still-to-build row from the development backlog; leave the feature-backlog phase column alone. If UI direction changed, read `ui-vision-sync.mdc` and then `ui-vision-prompt-sync.mdc`. Shipping a route that already matches the vision does not change those files.
+
+Writing an index row is not a core-component implementation. If the edit changes how C1–C17 works, read `research-protocol.mdc` and stop for a Spike before implementing.
+
+Commit only when the user has asked for a commit. Push or merge to `main` only after reading `ci-before-main.mdc`.
+
+## Subagents
+
+A subagent starts clean and does not receive these rules. When you launch one, put this in the prompt: do not push, do not merge, and do not commit unless the user asked. Work one small step unless the user asked for the whole thing. Return the diff. The parent is the only one that pushes.
+
+## Load these rules when
+
+- Meaningful product or scope change: `jira-trigger-detection.mdc`, then `jira-triage-protocol.mdc` and `jira-autonomy-thresholds.mdc`.
+- Before any Jira create or update: `jira-writing-standards.mdc`, `jira-triage-taxonomy.mdc`, `jira-epic-priorities.mdc`, `jira-prioritization-logic.mdc`, and `jira-post-execution-comments.mdc`.
+- Before implementing a C1–C17 behavior change: `research-protocol.mdc`.
+- Before a bug fix or refactor: `systematic-fixing.mdc`.
+- Before a cluster change: `infra-live-monitoring.mdc`.
+- Before infra, Helm, Kubernetes, or Dockerfile edits: `infra-constraints.mdc`.
+- When user-facing behavior or UI direction changes: `ui-vision-sync.mdc`. If `ui_vision.md` changes, also `ui-vision-prompt-sync.mdc`.
+- When the user asked for a commit: `always-commit.mdc`.
+- Before a push, a merge to `main`, or a subagent that could push: `ci-before-main.mdc`.
+
+`layer:process` and `component:agent-context` are only for this index and this rule. Product issues keep their own component.

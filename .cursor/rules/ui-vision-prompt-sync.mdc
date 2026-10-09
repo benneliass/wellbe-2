@@ -1,6 +1,6 @@
 ---
 description: Keep the UI implementation prompt synchronized with the UI vision
-alwaysApply: true
+alwaysApply: false
 ---
 
 # UI Vision Prompt Sync

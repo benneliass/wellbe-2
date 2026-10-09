@@ -8,11 +8,11 @@ It builds on, and cross-references, the design source of truth in `../system-des
 
 | Doc | What it covers |
 |---|---|
-| [component-map.md](component-map.md) | The canonical split of **CORE components** (the spine, `C1`–`C13`) vs **FEATURE components** (`F-*`), with purpose and dependencies for each, and the tier-boundary rule. |
+| [component-map.md](component-map.md) | The canonical split of **CORE components** (the spine, `C1`–`C17`) vs **FEATURE components** (`F-*`), with purpose and dependencies for each, and the tier-boundary rule. |
 | [tech-stack.md](tech-stack.md) | Chosen technology per concern (backend, workers, datastore, vector/graph/time-series, events, API, auth, LLM + safety, OCR, FHIR, wearables, frontend, graph viz) with version, rationale, alternatives, and sources. |
 | [infra-stack.md](infra-stack.md) | Deployment/runtime, IaC, CI/CD, observability, secrets, and PHI compliance posture. Two profiles: Lean (MVP) and Platform (scale). |
 | [core-stack-relations.md](core-stack-relations.md) | How core components and the core stack relate: end-to-end data flow, dependency direction, and the load-bearing relationships. Includes mermaid diagrams. |
-| [development-backlog.md](development-backlog.md) | Structured dev work items (`WB-DEV-*`) for everything still to build, plus proposed Jira Stories to file under the WEL Epics. |
+| [development-backlog.md](development-backlog.md) | Work that is still unbuilt (`WB-DEV-*`). What already runs is [../current/capability-index.md](../current/capability-index.md). |
 
 ## Guardrails honored here
 
@@ -29,4 +29,4 @@ Every decision in this area respects `../../.cursor/rules/wellbe-vision-guardrai
 1. `component-map.md` — what the pieces are and which tier they live in.
 2. `core-stack-relations.md` — how the core pieces connect and depend on each other.
 3. `tech-stack.md` + `infra-stack.md` — what each piece is built and run with.
-4. `development-backlog.md` — the work to build it, and how it maps to Jira.
+4. `development-backlog.md` — what is still unbuilt. What exists today is `../current/capability-index.md`.

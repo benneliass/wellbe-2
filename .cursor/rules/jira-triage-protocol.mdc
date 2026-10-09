@@ -1,6 +1,6 @@
 ---
 description: The mandatory 8-step triage protocol for all Jira operations in WellBe. Every meaningful change must go through this flow in order. No steps may be skipped or combined.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Triage Protocol

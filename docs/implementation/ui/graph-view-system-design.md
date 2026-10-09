@@ -20,10 +20,11 @@ Health information for a single person is fragmented across time, devices, docum
 ### I.3 The operating loop
 Everything in WellBe moves through one loop:
 
-**Capture → Connect → Clarify → Close → Correct.**
+**Capture → Connect → Investigate → Clarify → Close → Correct.**
 
 - **Capture** — the user submits anything (a message, a photo of a lab, a document, a wearable export).
 - **Connect** — WellBe extracts entities, links them to evidence, and relates them across time and source.
+- **Investigate** — the person opens an Investigation and evaluates Theories against their own evidence.
 - **Clarify** — intelligence surfaces patterns, open questions, and what's worth attention.
 - **Close** — pending results, referrals, and follow-ups are tracked to resolution.
 - **Correct** — the user can correct anything; corrections layer over source data without destroying it.

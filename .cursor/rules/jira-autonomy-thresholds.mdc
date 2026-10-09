@@ -1,6 +1,6 @@
 ---
 description: Defines what the triage agent can do autonomously vs. what requires explicit user approval, based on impact radius and Jira object type.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Jira Autonomy Thresholds

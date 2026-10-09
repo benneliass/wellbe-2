@@ -6,7 +6,7 @@ They describe behavior, structure, states, and data bindings rather than a speci
 
 ## Status
 
-There is a working product frontend. `apps/mobile` is still an Expo package shell.
+There is a working product frontend. `apps/mobile` is still an Expo package shell. Product-wide status of what exists in code is [docs/current/capability-index.md](../../current/capability-index.md). This README stays the UI contract.
 
 - **`apps/web`** — Next.js 15 (App Router) workspace, deployed as the `wellbe-web` image (`apps/web/Dockerfile`, `.github/workflows/build-images.yml`). It reads the live API through `@wellbe/api-client` + TanStack Query (`apps/web/lib/hooks.ts`, `lib/records-hooks.ts`), authenticates via the dev-headers adapter or OIDC (`lib/auth-config.ts`, `lib/session.ts`), and self-hosts its fonts (`apps/web/app/fonts/`) so builds need no network.
 - **`packages/ui` (`@wellbe/ui`)** — the design system: tokens (`src/tokens.css`, `src/tokens.ts`), base primitives (`src/primitives/`), calm state components (`src/components/`), and the evidence primitives from these specs (`src/evidence/`). Component tests live in `apps/web/components/__primitives__/`.

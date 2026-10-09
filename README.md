@@ -41,12 +41,13 @@ The product organizes around threads — not documents, metrics, visits, or isol
 
 ## Operating loop
 
-**Capture → Connect → Clarify → Close → Correct**
+**Capture → Connect → Investigate → Clarify → Close → Correct**
 
 | Step | What it does |
 |---|---|
 | Capture | Collect raw and structured context (symptoms, labs, referrals, wearable trends) |
 | Connect | Link signals into Health Threads |
+| Investigate | Run a structured research process over a thread: open an Investigation, evaluate Theories, and see what changed |
 | Clarify | Show what is known, unknown, missing, pending, and worsening |
 | Close | Track open loops until resolved, explained, monitored, or safely handed off |
 | Correct | Let the user repair the memory |

@@ -28,47 +28,7 @@ Full list:
 
 ---
 
-## Jira MCP — Personal Only
+## Current behavior
 
-**This is a personal repository. ALWAYS use `user-mcp-jira-personal` for all Jira operations.**
-**NEVER use `user-mcp-jira-work`.** Not for reads, writes, searches, or any operation.
+What the code does today is [docs/current/capability-index.md](docs/current/capability-index.md). Intent, decisions, and the bible list above stay in their own files. The rule that tells an agent which file to read is `.cursor/rules/agent-context.mdc`.
 
-Full enforcement rule: `.cursor/rules/jira-mcp-selection.mdc`
-
----
-
-## Always Commit Work
-
-After completing any meaningful change, always create a git commit. Never leave work uncommitted.
-
-### When to Commit
-
-- After completing a feature, fix, or refactor
-- After creating or deleting files
-- After updating configuration or dependencies
-- Before switching to a different task
-
-### Commit Message Format
-
-Use the imperative mood and be specific:
-
-```
-# ✅ GOOD
-git commit -m "Add user authentication flow"
-git commit -m "Fix null pointer in payment handler"
-git commit -m "Remove deprecated API endpoints"
-
-# ❌ BAD
-git commit -m "changes"
-git commit -m "fix"
-git commit -m "wip"
-```
-
-### Rules
-
-- Stage all relevant files before committing (`git add`)
-- Never use `--no-verify` to skip hooks unless explicitly asked
-- Never force-push to `main`/`master`
-- One logical change per commit — don't batch unrelated changes
-
-## Imported Claude Cowork project instructions
