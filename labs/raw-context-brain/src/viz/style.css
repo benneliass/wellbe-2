@@ -138,10 +138,46 @@ main {
   opacity: 0.72;
 }
 
+.degree-labels span.memory-word {
+  color: #1b1408;
+  font-weight: 700;
+  opacity: 0.82;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.degree-labels span.hover-id {
+  color: #f4f0e6;
+  font-weight: 650;
+  opacity: 1;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  background: rgb(20 24 31 / 88%);
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+.keyword-tag {
+  display: inline-block;
+  margin-right: 8px;
+  color: #f4f0e6;
+  font-weight: 650;
+}
+
+.record-tag {
+  display: inline-block;
+  margin-right: 8px;
+  color: #8b8478;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
 .degree-labels .trail-ring {
+  box-sizing: border-box;
   border: 3px solid #ffe08a;
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgb(27 20 8 / 35%), 0 0 12px rgb(255 224 138 / 55%);
+  box-shadow: 0 0 0 1px rgb(27 20 8 / 35%), 0 0 8px rgb(255 224 138 / 45%);
 }
 
 .degree-labels .trail-ring.is-start {
@@ -369,6 +405,11 @@ button.quiet {
   border: 1px solid #3a4450;
   border-radius: 10px;
   background: #1b2129;
+}
+
+.opened-note.is-hovered {
+  border-color: #edb85c;
+  box-shadow: 0 0 0 1px rgb(237 184 92 / 55%);
 }
 
 .opened-note summary {

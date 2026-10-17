@@ -2,6 +2,8 @@ import { Graph } from "@cosmos.gl/graph";
 import { loadCasePeople, labFromCase } from "../cases.js";
 import { RELATION_LABEL, arrivalName, independenceName, sourceName } from "../relation.js";
 import { RawContextLab } from "../router.js";
+import { memoryKeyword } from "./keyword.js";
+import { growLook, HOP_DIAMETERS, type Point } from "./look-layout.js";
 const stage = required(document.querySelector<HTMLDivElement>("#stage"));
 const degreeLabels = required(document.querySelector<HTMLElement>("#degree-labels"));
 const noteFacts = required(document.querySelector<HTMLElement>("#note-facts"));
@@ -55,6 +57,13 @@ let trail: string[] = [];
 const openBlocks = new Set<string>();
 let drawnIds: string[] = [];
 let labelState: Array<{ id: string; x: number; y: number; degree: number; size: number }> = [];
+/** Last coordinates painted on the full map, keyed by note id. */
+const mapPositions = new Map<string, Point>();
+/** Coordinates of the opened look. Notes already here stay put. */
+const lookPositions = new Map<string, Point>();
+/** Space scale from the first frame of this look. Later clicks reuse it. */
+let frozenScale: { x: (value: number) => number; y: (value: number) => number } | null = null;
+let fitToken = 0;
 
 function layout(view: { nodes: Array<{ degree: number }>; links: Array<{ source: number; target: number }> }): Float32Array {
   const count = view.nodes.length;
@@ -80,30 +89,27 @@ function layout(view: { nodes: Array<{ degree: number }>; links: Array<{ source:
   return pos;
 }
 
-const CIRCLE_MIN = 16;
-const CIRCLE_MAX = 50;
+const STAGE_BG: [number, number, number] = [20 / 255, 24 / 255, 31 / 255];
 
-// Link count in this view maps onto the circle scale. The fewest links sit at
-// the small end and the most links at the large end. Equal counts share a size.
-// A difference of one link stays a different size, so this does not round.
+// One link count is one size, on the full map and on every step of a path.
+// A count of 3 is a little larger than 2. The view does not restretch them.
+function circleSize(degree: number): number {
+  return 32 + degree * 4;
+}
+
 function circleSizes(degrees: ArrayLike<number>): Float32Array {
-  const count = degrees.length;
-  const sizes = new Float32Array(count);
-  if (count === 0) return sizes;
-  let lowest = Infinity;
-  let highest = -Infinity;
-  for (let index = 0; index < count; index += 1) {
-    const degree = degrees[index] ?? 0;
-    if (degree < lowest) lowest = degree;
-    if (degree > highest) highest = degree;
-  }
-  const span = highest - lowest;
-  const mid = (CIRCLE_MIN + CIRCLE_MAX) / 2;
-  for (let index = 0; index < count; index += 1) {
-    const degree = degrees[index] ?? 0;
-    sizes[index] = span === 0 ? mid : CIRCLE_MIN + ((degree - lowest) / span) * (CIRCLE_MAX - CIRCLE_MIN);
-  }
+  const sizes = new Float32Array(degrees.length);
+  for (let index = 0; index < degrees.length; index += 1) sizes[index] = circleSize(degrees[index] ?? 0);
   return sizes;
+}
+
+function paintColor(rgb: [number, number, number], alpha: number): [number, number, number, number] {
+  return [
+    rgb[0] * alpha + STAGE_BG[0] * (1 - alpha),
+    rgb[1] * alpha + STAGE_BG[1] * (1 - alpha),
+    rgb[2] * alpha + STAGE_BG[2] * (1 - alpha),
+    1,
+  ];
 }
 
 // Cosmos simulationCollision treats a circle's pixel size as a map unit, so it
@@ -233,82 +239,8 @@ function segmentsCross(
     && side(cx, cy, dx, dy, ax, ay) * side(cx, cy, dx, dy, bx, by) < 0;
 }
 
-// The opened look is a path. Notes you clicked sit on a loose arc.
-// Each of their other links fans out on the open side, clear of the path.
-function arrangeLook(flat: Float32Array, ids: string[], pairs: Array<[number, number]>, sizes: Float32Array): void {
-  const at = new Map(ids.map((id, index) => [id, index]));
-  const spine = trail.flatMap((id) => {
-    const index = at.get(id);
-    return index === undefined ? [] : [index];
-  });
-  if (spine.length === 0) return;
-  const radius = (index: number) => (sizes[index] ?? CIRCLE_MIN) * 0.5;
-  const air = 42;
-  const along = [0];
-  for (let step = 1; step < spine.length; step += 1) {
-    const previous = spine[step - 1] ?? 0;
-    const here = spine[step] ?? 0;
-    along.push((along[step - 1] ?? 0) + radius(previous) + radius(here) + air);
-  }
-  const center = (along[along.length - 1] ?? 0) / 2;
-  const bow = Math.max(48, (along[along.length - 1] ?? 0) * 0.2);
-  spine.forEach((index, step) => {
-    const x = (along[step] ?? 0) - center;
-    const t = spine.length <= 1 ? 0.5 : step / (spine.length - 1);
-    flat[index * 2] = x;
-    flat[index * 2 + 1] = Math.sin(t * Math.PI) * bow;
-  });
-  const onSpine = new Set(spine);
-  const sprouts = new Map<number, number[]>();
-  for (const [left, right] of pairs) {
-    const parent = onSpine.has(left) ? left : onSpine.has(right) ? right : -1;
-    const child = parent === left ? right : parent === right ? left : -1;
-    if (parent < 0 || child < 0 || onSpine.has(child)) continue;
-    const list = sprouts.get(parent) ?? [];
-    if (!list.includes(child)) list.push(child);
-    sprouts.set(parent, list);
-  }
-  spine.forEach((index, step) => {
-    const children = sprouts.get(index) ?? [];
-    if (children.length === 0) return;
-    const previous = spine[step - 1];
-    const next = spine[step + 1];
-    const px = flat[index * 2] ?? 0;
-    const py = flat[index * 2 + 1] ?? 0;
-    let tx = 1;
-    let ty = 0;
-    if (previous !== undefined && next !== undefined) {
-      tx = (flat[next * 2] ?? 0) - (flat[previous * 2] ?? 0);
-      ty = (flat[next * 2 + 1] ?? 0) - (flat[previous * 2 + 1] ?? 0);
-    } else if (next !== undefined) {
-      tx = (flat[next * 2] ?? 0) - px;
-      ty = (flat[next * 2 + 1] ?? 0) - py;
-    } else if (previous !== undefined) {
-      tx = px - (flat[previous * 2] ?? 0);
-      ty = py - (flat[previous * 2 + 1] ?? 0);
-    }
-    const span = Math.hypot(tx, ty) || 1;
-    const flip = step % 2 === 0 ? 1 : -1;
-    const base = Math.atan2((tx / span) * flip, (-ty / span) * flip);
-    children.forEach((child, childIndex) => {
-      const spread = children.length === 1 ? 0 : (childIndex - (children.length - 1) / 2) * 0.72;
-      const angle = base + spread;
-      const dist = radius(index) + radius(child) + air;
-      flat[child * 2] = px + Math.cos(angle) * dist;
-      flat[child * 2 + 1] = py + Math.sin(angle) * dist;
-    });
-  });
-}
-
-// Each view moves a note off a link it does not belong to, and eases crossed links apart.
-function clearCrossings(
-  flat: Float32Array,
-  pairs: Array<[number, number]>,
-  sizes: Float32Array,
-  rounds: number,
-  pinned: Set<number>,
-  firm: boolean,
-): void {
+// The full map eases a note off a link it does not belong to, and eases crossed links apart.
+function clearCrossings(flat: Float32Array, pairs: Array<[number, number]>, sizes: Float32Array, rounds: number): void {
   const count = flat.length / 2;
   if (count < 2 || pairs.length < 1) return;
   for (let round = 0; round < rounds; round += 1) {
@@ -339,16 +271,9 @@ function clearCrossings(
           dy = abx;
           dist = Math.hypot(dx, dy) || 1;
         }
-        const push = (need - dist) * (firm ? 1 : 0.72);
-        if (pinned.has(index)) {
-          const free = pinned.has(left) ? (pinned.has(right) ? -1 : right) : left;
-          if (free < 0) continue;
-          flat[free * 2] = (flat[free * 2] ?? 0) - (dx / dist) * push;
-          flat[free * 2 + 1] = (flat[free * 2 + 1] ?? 0) - (dy / dist) * push;
-        } else {
-          flat[index * 2] = px + (dx / dist) * push;
-          flat[index * 2 + 1] = py + (dy / dist) * push;
-        }
+        const push = (need - dist) * 0.72;
+        flat[index * 2] = px + (dx / dist) * push;
+        flat[index * 2 + 1] = py + (dy / dist) * push;
       }
     }
     for (let first = 0; first < pairs.length; first += 1) {
@@ -368,20 +293,17 @@ function clearCrossings(
         const abx = bx - ax;
         const aby = by - ay;
         const span = Math.hypot(abx, aby) || 1;
-        const step = firm
-          ? Math.max(18, ((radii[a] ?? 0) + (radii[c] ?? 0)) * 0.35)
-          : ((radii[a] ?? 0) + (radii[c] ?? 0)) * 0.08;
+        const step = ((radii[a] ?? 0) + (radii[c] ?? 0)) * 0.08;
         const px = (-aby / span) * step;
         const py = (abx / span) * step;
-        const nudge = (index: number, sign: number) => {
-          if (pinned.has(index)) return;
-          flat[index * 2] = (flat[index * 2] ?? 0) + px * sign;
-          flat[index * 2 + 1] = (flat[index * 2 + 1] ?? 0) + py * sign;
-        };
-        nudge(a, -1);
-        nudge(b, -1);
-        nudge(c, 1);
-        nudge(d, 1);
+        flat[a * 2] = ax - px;
+        flat[a * 2 + 1] = ay - py;
+        flat[b * 2] = bx - px;
+        flat[b * 2 + 1] = by - py;
+        flat[c * 2] = cx + px;
+        flat[c * 2 + 1] = cy + py;
+        flat[d * 2] = dx + px;
+        flat[d * 2 + 1] = dy + py;
       }
     }
   }
@@ -460,10 +382,16 @@ async function mount(): Promise<void> {
     onZoomEnd: () => placeDegreeLabels(),
     fitViewOnInit: true,
     fitViewDelay: 300,
+    onPointMouseOver: (index) => {
+      const id = drawnIds[index];
+      highlightOpened(id ?? null);
+    },
+    onPointMouseOut: () => highlightOpened(null),
     onPointClick: (index) => {
       const id = drawnIds[index];
+      const keepCamera = !showAll && lookPositions.size > 0;
       if (!id || !openNote(id)) return;
-      paint(true);
+      paint(!keepCamera);
     },
   });
   graph = created;
@@ -502,8 +430,16 @@ function renderOpenedNotes(): void {
     ];
     const block = document.createElement("details");
     block.className = "opened-note";
+    block.dataset.noteId = id;
     const summary = document.createElement("summary");
-    summary.textContent = noteTitle(id);
+    const word = document.createElement("span");
+    word.className = "keyword-tag";
+    word.textContent = memoryKeyword(event?.text ?? "");
+    const tag = document.createElement("span");
+    tag.className = "record-tag";
+    tag.textContent = event?.id ?? id;
+    if (word.textContent) summary.append(word);
+    summary.append(tag, document.createTextNode(` ${noteTitle(id)}`));
     block.append(summary);
     for (const [label, value] of rows) {
       const row = document.createElement("div");
@@ -528,6 +464,7 @@ function renderOpenedNotes(): void {
     block.open = openBlocks.has(id);
     noteFacts.append(block);
   }
+  paintOpenedHover();
 }
 
 function openNote(id: string): boolean {
@@ -594,6 +531,36 @@ function linkColor(sourceId: string, targetId: string, clicked: Set<string>): [n
   return FAINT_LINK;
 }
 
+function fullMapPlaces(ids: readonly string[]): Map<string, Point> {
+  const full = new Map<string, Point>();
+  for (const [id, point] of mapPositions) full.set(id, { x: point.x, y: point.y });
+  const view = lab.view(personId);
+  for (const id of ids) {
+    if (full.has(id)) continue;
+    const index = view.nodes.findIndex((node) => node.id === id);
+    if (index < 0) continue;
+    full.set(id, { x: positions[index * 2] ?? 0, y: positions[index * 2 + 1] ?? 0 });
+  }
+  return full;
+}
+
+function lookRadii(ids: readonly string[], sizes: Float32Array): Map<string, number> {
+  const radii = new Map<string, number>();
+  ids.forEach((id, index) => {
+    radii.set(id, (sizes[index] ?? circleSize(0)) / 2);
+  });
+  return radii;
+}
+
+// A few hops should fit on the short side. The circle stays large enough to read.
+function lookZoom(): number {
+  const canvas = stage.querySelector("canvas");
+  const shorter = Math.max(320, Math.min(canvas?.clientWidth || 900, canvas?.clientHeight || 700));
+  const hopPx = shorter / 5.2;
+  const diameter = hopPx / HOP_DIAMETERS;
+  return diameter / circleSize(2);
+}
+
 function paint(fit: boolean): void {
   if (!graph) return;
   const view = lab.view(personId);
@@ -622,9 +589,10 @@ function paint(fit: boolean): void {
     const nextToLatest = latest !== undefined && (neighbors.get(latest) ?? []).includes(id);
     const rgb = KIND_RGB[kind] ?? KIND_RGB.hub ?? [0.62, 0.66, 0.7];
     const alpha = showAll || clicked.has(id) || nextToLatest ? 1 : 0.38;
-    colors.set([rgb[0], rgb[1], rgb[2], alpha], index * 4);
+    const tint = paintColor(rgb, alpha);
+    colors.set(tint, index * 4);
     const degree = degrees[index] ?? 0;
-    const size = sizes[index] ?? CIRCLE_MIN;
+    const size = sizes[index] ?? circleSize(0);
     labelState.push({ id, x, y, degree, size });
   });
   const drawnIndex = new Map(drawnIds.map((id, index) => [id, index]));
@@ -641,14 +609,27 @@ function paint(fit: boolean): void {
     const right = drawnIndex.get(targetId);
     return left === undefined || right === undefined ? [] : [[left, right] as [number, number]];
   });
-  const pinned = new Set<number>();
   if (showAll) {
     settle(pointPositions, pairs, 96, 14, 0.045);
   } else {
-    drawnIds.forEach((id, index) => {
-      if (trail.includes(id)) pinned.add(index);
+    const radii = lookRadii(drawnIds, sizes);
+    const latest = trail[trail.length - 1] ?? drawnIds[0] ?? "";
+    const placed = growLook({
+      stored: lookPositions,
+      shownIds: drawnIds,
+      latestId: latest,
+      fullMap: fullMapPlaces(drawnIds),
+      radii,
+      origin: { x: SPACE_SIZE / 2, y: SPACE_SIZE / 2 },
     });
-    arrangeLook(pointPositions, drawnIds, pairs, sizes);
+    lookPositions.clear();
+    for (const [id, point] of placed) lookPositions.set(id, point);
+    drawnIds.forEach((id, index) => {
+      const point = lookPositions.get(id);
+      if (!point) return;
+      pointPositions[index * 2] = point.x;
+      pointPositions[index * 2 + 1] = point.y;
+    });
   }
   const stepDirection = new Map<string, [string, string]>();
   for (const [from, toward] of trailSteps()) {
@@ -676,16 +657,34 @@ function paint(fit: boolean): void {
   });
   if (showAll) {
     spreadCircles(pointPositions, sizes);
-    clearCrossings(pointPositions, pairs, sizes, 8, pinned, false);
+    clearCrossings(pointPositions, pairs, sizes, 8);
     spreadCircles(pointPositions, sizes);
-  } else {
-    clearCrossings(pointPositions, pairs, sizes, 12, pinned, true);
+    mapPositions.clear();
+    drawnIds.forEach((id, index) => {
+      mapPositions.set(id, { x: pointPositions[index * 2] ?? 0, y: pointPositions[index * 2 + 1] ?? 0 });
+    });
+    lookPositions.clear();
+    frozenScale = null;
   }
   labelState.forEach((item, index) => {
     item.x = pointPositions[index * 2] ?? item.x;
     item.y = pointPositions[index * 2 + 1] ?? item.y;
   });
-  graph.setPointPositions(pointPositions);
+  let drawPositions = pointPositions;
+  if (!showAll) {
+    // Positions are already in space units, one unit per circle-size unit.
+    // Squeezing them into a fitted box made every link a large slice of the screen.
+    if (!frozenScale) frozenScale = { x: (value) => value, y: (value) => value };
+    const scale = frozenScale;
+    drawPositions = new Float32Array(pointPositions.length);
+    for (let index = 0; index < pointPositions.length; index += 2) {
+      drawPositions[index] = scale.x(pointPositions[index] ?? 0);
+      drawPositions[index + 1] = scale.y(pointPositions[index + 1] ?? 0);
+    }
+    graph.setPointPositions(drawPositions, true);
+  } else {
+    graph.setPointPositions(pointPositions, !fit);
+  }
   graph.setPointColors(colors);
   graph.setPointSizes(sizes);
   graph.setLinks(links);
@@ -694,8 +693,11 @@ function paint(fit: boolean): void {
   graph.setLinkStyles(linkStyles);
   graph.render(undefined, 0);
   focusOpenedNote();
-  if (fit && pointPositions.length > 0) fitPicture(pointPositions);
-  else placeDegreeLabels();
+  if (fit && drawPositions.length > 0) fitPicture(drawPositions);
+  else {
+    fitToken += 1;
+    placeDegreeLabels();
+  }
 }
 
 function focusOpenedNote(): void {
@@ -705,16 +707,23 @@ function focusOpenedNote(): void {
 }
 
 function fitPicture(pointPositions: Float32Array): void {
+  const token = ++fitToken;
+  const opened = !showAll;
   const positions = Array.from(pointPositions);
   const apply = (): void => {
-    if (!graph) return;
+    if (!graph || token !== fitToken) return;
     graph.pause();
-    graph.fitViewByPointPositions(positions, 0, 0.2, false);
+    if (opened) graph.setZoomTransformByPointPositions(Float32Array.from(positions), 0, lookZoom(), 0.2, false);
+    else graph.fitViewByPointPositions(positions, 0, 0.2, false);
   };
   apply();
   requestAnimationFrame(() => {
+    if (token !== fitToken) return;
     apply();
-    requestAnimationFrame(() => placeDegreeLabels());
+    requestAnimationFrame(() => {
+      if (token !== fitToken) return;
+      placeDegreeLabels();
+    });
   });
 }
 
@@ -743,6 +752,9 @@ capture.addEventListener("submit", (event) => {
       trail = [result.eventId];
       selectedId = result.eventId;
       showAll = false;
+      mapPositions.clear();
+      lookPositions.clear();
+      frozenScale = null;
       renderOpenedNotes();
       suggestStatus.textContent = `Saved. ${counts.link} may relate, ${counts.no_link} do not appear related, ${counts.uncertain} not sure yet. A “does not appear related” stays in this list and does not erase a recorded link.`;
       paint(true);
@@ -755,6 +767,7 @@ capture.addEventListener("submit", (event) => {
 function clearChoice(): void {
   trail = [];
   openBlocks.clear();
+  lookPositions.clear();
   selectedId = null;
   showAll = true;
   renderOpenedNotes();
@@ -774,6 +787,37 @@ function conicPoint(
   const y = remain * remain * start.y + 2 * remain * t * weight * control.y + t * t * end.y;
   const divisor = remain * remain + 2 * remain * t * weight + t * t;
   return { x: x / divisor, y: y / divisor };
+}
+
+let hoveredId: string | null = null;
+
+function paintOpenedHover(): void {
+  for (const block of noteFacts.querySelectorAll<HTMLElement>(".opened-note")) {
+    block.classList.toggle("is-hovered", hoveredId !== null && block.dataset.noteId === hoveredId);
+  }
+}
+
+function highlightOpened(id: string | null): void {
+  hoveredId = id;
+  paintOpenedHover();
+  paintHoverId();
+}
+
+function fillDiameter(size: number): number {
+  if (!graph) return size;
+  // Cosmos draws the fill as size × zoom, up to the hardware point-size limit.
+  // The ring, the digit, and the link end use that same diameter.
+  return Math.min(size * graph.getZoomLevel(), pointSizeCap());
+}
+
+function pointSizeCap(): number {
+  const canvas = stage.querySelector("canvas");
+  const gl = canvas?.getContext("webgl2") ?? canvas?.getContext("webgl");
+  const ratio = window.devicePixelRatio || 1;
+  if (!gl) return 64;
+  const range = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as [number, number] | null;
+  const hardware = range?.[1] ?? 64 * ratio;
+  return hardware / ratio;
 }
 
 function placeMovingPipes(
@@ -807,7 +851,7 @@ function placeMovingPipes(
       const x = offsetX + sx;
       const y = offsetY + sy;
       const blocked = [...screen.values()].some(
-        (spot) => Math.hypot(x - spot.x, y - spot.y) < spot.radius + 7,
+        (spot) => Math.hypot(x - spot.x, y - spot.y) < spot.radius + 2,
       );
       samples.push({ x, y, open: !blocked });
     }
@@ -849,11 +893,11 @@ function placeDegreeLabels(): void {
     flat[index * 2] = item.x;
     flat[index * 2 + 1] = item.y;
   });
-  const rescale = rescaleToSpace(flat);
+  const rescale = frozenScale ?? rescaleToSpace(flat);
   const screen = new Map<string, { x: number; y: number; radius: number }>();
   const space = new Map<string, { x: number; y: number }>();
   for (const item of labelState) {
-    const diameter = Math.min(item.size * graph.getZoomLevel(), 64);
+    const diameter = fillDiameter(item.size);
     const x = rescale.x(item.x);
     const y = rescale.y(item.y);
     const [sx, sy] = graph.spaceToScreenPosition([x, y]);
@@ -871,32 +915,52 @@ function placeDegreeLabels(): void {
     if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
     const ring = document.createElement("i");
     ring.className = isOrigin ? "trail-ring is-start" : "trail-ring";
-    const box = spot.radius * 2 + (isOrigin ? 16 : 10);
+    const box = spot.radius * 2 + Math.max(6, spot.radius * 0.08);
     ring.style.left = `${spot.x}px`;
     ring.style.top = `${spot.y}px`;
     ring.style.width = `${box}px`;
     ring.style.height = `${box}px`;
+    ring.style.borderWidth = `${Math.max(3, spot.radius * 0.06)}px`;
     degreeLabels.appendChild(ring);
   }
-  const placed: Array<{ x: number; y: number; radius: number }> = [];
-  const ordered = [...labelState].sort((left, right) => right.size - left.size);
-  for (const item of ordered) {
-    const digits = String(item.degree).length;
-    const diameter = Math.min(item.size * graph.getZoomLevel(), 64);
-    if (diameter < (digits > 1 ? 34 : 24)) continue;
-    const [sx, sy] = graph.spaceToScreenPosition([rescale.x(item.x), rescale.y(item.y)]);
-    if (sx < -20 || sy < -20 || sx > canvas.clientWidth + 20 || sy > canvas.clientHeight + 20) continue;
-    const radius = diameter / 2;
-    const crowded = placed.some((other) => Math.hypot(other.x - sx, other.y - sy) < (other.radius + radius) * 0.82);
-    if (crowded) continue;
-    placed.push({ x: sx, y: sy, radius });
-    const span = document.createElement("span");
-    span.textContent = String(item.degree);
-    span.style.left = `${offsetX + sx}px`;
-    span.style.top = `${offsetY + sy}px`;
-    span.style.fontSize = `${Math.min(15, diameter * 0.34)}px`;
-    degreeLabels.appendChild(span);
+  labelSpots.clear();
+  for (const item of labelState) {
+    const spot = screen.get(item.id);
+    if (!spot) continue;
+    labelSpots.set(item.id, spot);
+    const word = memoryKeyword(lab.vault.get(item.id)?.text ?? "");
+    if (!word) continue;
+    const diameter = spot.radius * 2;
+    if (diameter < 22) continue;
+    if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
+    let font = Math.min(18, diameter * 0.28);
+    const fitted = (diameter * 0.78) / (word.length * 0.56);
+    if (fitted < font) font = fitted;
+    if (font < 8) continue;
+    const label = document.createElement("span");
+    label.className = "memory-word";
+    label.textContent = word;
+    label.style.left = `${spot.x}px`;
+    label.style.top = `${spot.y}px`;
+    label.style.fontSize = `${font}px`;
+    degreeLabels.appendChild(label);
   }
+  paintHoverId();
+}
+
+let labelSpots = new Map<string, { x: number; y: number; radius: number }>();
+
+function paintHoverId(): void {
+  degreeLabels.querySelector(".hover-id")?.remove();
+  if (!hoveredId) return;
+  const spot = labelSpots.get(hoveredId);
+  if (!spot) return;
+  const mark = document.createElement("span");
+  mark.className = "hover-id";
+  mark.textContent = lab.vault.get(hoveredId)?.id ?? hoveredId;
+  mark.style.left = `${spot.x}px`;
+  mark.style.top = `${spot.y - spot.radius - 18}px`;
+  degreeLabels.append(mark);
 }
 
 function rescaleToSpace(flat: Float32Array): { x: (value: number) => number; y: (value: number) => number } {
@@ -947,7 +1011,55 @@ function neighborMap(): Map<string, string[]> {
   return neighbors;
 }
 
+function copyPath(throughId: string): void {
+  const end = trail.indexOf(throughId);
+  if (end < 0) return;
+  const text = trail
+    .slice(0, end + 1)
+    .map((id) => lab.vault.get(id)?.id ?? id)
+    .join(", ");
+  const hint = document.querySelector("aside .hint");
+  const previous = hint?.textContent ?? "";
+  const confirm = (): void => {
+    if (!hint) return;
+    hint.textContent = "Path copied.";
+    window.setTimeout(() => {
+      if (hint.textContent === "Path copied.") hint.textContent = previous;
+    }, 1600);
+  };
+  const fallback = (): void => {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.append(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    confirm();
+  };
+  if (!navigator.clipboard?.writeText) {
+    fallback();
+    return;
+  }
+  void navigator.clipboard.writeText(text).then(confirm).catch(fallback);
+}
+
 resetButton.addEventListener("click", () => clearChoice());
+
+noteFacts.addEventListener(
+  "click",
+  (event) => {
+    const block = event.target instanceof Element ? event.target.closest(".opened-note") : null;
+    const id = block instanceof HTMLElement ? block.dataset.noteId : undefined;
+    if (!block || !id) return;
+    const wasOpen = block instanceof HTMLDetailsElement ? block.open : false;
+    event.preventDefault();
+    window.setTimeout(() => {
+      if (block instanceof HTMLDetailsElement) block.open = wasOpen;
+    }, 0);
+    copyPath(id);
+  },
+  true,
+);
 
 function markPeople(): void {
   for (const button of peopleNav.querySelectorAll("button")) {
@@ -959,6 +1071,8 @@ function useLab(next: RawContextLab, id: string): void {
   personId = id;
   lab = next;
   positions = layout(lab.view(personId));
+  mapPositions.clear();
+  lookPositions.clear();
   trail = [];
   openBlocks.clear();
   selectedId = null;
