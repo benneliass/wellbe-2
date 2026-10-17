@@ -1,0 +1,998 @@
+{
+  "principles": "lab-node-separation-v1",
+  "caseId": "C01",
+  "personId": "case-c01",
+  "label": "Person 1",
+  "mode": "blind_pre_diagnosis",
+  "nodes": [
+    {
+      "id": "c01-n000",
+      "sourceEventId": "3d438afc-ea3e-5d1e-872b-f718b11eeccc",
+      "sequence": 0,
+      "sourceType": "note",
+      "text": "Loose stools for many years, described as beginning in childhood.",
+      "capturedAt": "2018-01-01T00:00:00Z",
+      "relativeTime": "childhood_to_adulthood",
+      "lineageId": "3d438afc-ea3e-5d1e-872b-f718b11eeccc",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n001",
+      "sourceEventId": "61a180a6-630c-5c13-b5f6-5b1fbf2693e2",
+      "sequence": 1,
+      "sourceType": "note",
+      "text": "Recurrent fever and migratory asymmetric joint symptoms began to drive repeated evaluation.",
+      "capturedAt": "2018-01-01T01:00:00Z",
+      "relativeTime": "year_0",
+      "lineageId": "61a180a6-630c-5c13-b5f6-5b1fbf2693e2",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n002",
+      "sourceEventId": "696f2c7f-27cf-5121-a6d5-31bba31489be",
+      "sequence": 2,
+      "sourceType": "note",
+      "text": "Rheumatology workup showed high inflammatory markers and multiple negative immune/infectious screens.",
+      "capturedAt": "2018-01-01T02:00:00Z",
+      "relativeTime": "year_0_to_year_2",
+      "lineageId": "696f2c7f-27cf-5121-a6d5-31bba31489be",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n003",
+      "sourceEventId": "dfe1452f-bd23-54d4-a853-5640c309aa7d",
+      "sequence": 3,
+      "sourceType": "note",
+      "text": "Inflammation and fever persisted despite prednisone and methotrexate.",
+      "capturedAt": "2018-01-01T03:00:00Z",
+      "relativeTime": "month_6_after_methotrexate",
+      "lineageId": "dfe1452f-bd23-54d4-a853-5640c309aa7d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n004",
+      "sourceEventId": "bd34a93a-5c72-5a7d-9f1a-e39ad66e25b2",
+      "sequence": 4,
+      "sourceType": "note",
+      "text": "Additional immunomodulatory agents were trialed; symptoms persisted or progressed.",
+      "capturedAt": "2018-01-01T04:00:00Z",
+      "relativeTime": "subsequent_years",
+      "lineageId": "bd34a93a-5c72-5a7d-9f1a-e39ad66e25b2",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n005",
+      "sourceEventId": "e232b811-57cc-5eef-aeb6-a8d4b60445ae",
+      "sequence": 5,
+      "sourceType": "note",
+      "text": "Marked deterioration with edema, explosive diarrhea, and more than 45 kg unintentional weight loss.",
+      "capturedAt": "2018-01-01T05:00:00Z",
+      "relativeTime": "late_course",
+      "lineageId": "e232b811-57cc-5eef-aeb6-a8d4b60445ae",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n006",
+      "sourceEventId": "7775c904-66b1-53fc-b26f-218ae10fe981",
+      "sequence": 6,
+      "sourceType": "note",
+      "text": "Age and sex: 40-year-old white male Polish descent; raised in New Jersey; network engineer.",
+      "capturedAt": "2018-01-01T06:00:00Z",
+      "relativeTime": "baseline/history",
+      "lineageId": "7775c904-66b1-53fc-b26f-218ae10fe981",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n007",
+      "sourceEventId": "8dbbf85d-2d91-58dd-8876-8b3b34b6fb5b",
+      "sequence": 7,
+      "sourceType": "note",
+      "text": "Longstanding bowel pattern: Loose stools for many years, described as present since childhood. No final gastrointestinal label provided in model-facing file.",
+      "capturedAt": "2018-01-01T07:00:00Z",
+      "relativeTime": "baseline/history",
+      "lineageId": "8dbbf85d-2d91-58dd-8876-8b3b34b6fb5b",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n008",
+      "sourceEventId": "a2e6fb2f-52b2-5994-9b56-fbfccec976b6",
+      "sequence": 8,
+      "sourceType": "note",
+      "text": "Joint episodes: Recurrent migratory, asymmetrical polyarticular inflammatory pain involving ankles and wrists; episodes lasted hours to days. Partially relieved by NSAIDs.",
+      "capturedAt": "2018-01-01T08:00:00Z",
+      "relativeTime": "year_0_to_year_2",
+      "lineageId": "a2e6fb2f-52b2-5994-9b56-fbfccec976b6",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n009",
+      "sourceEventId": "0a933130-696b-5c01-bc0a-809216666cec",
+      "sequence": 9,
+      "sourceType": "note",
+      "text": "Fever episodes: Fever associated with joint flares. No rash, deformity, or nodules reported at first assessment.",
+      "capturedAt": "2018-01-01T09:00:00Z",
+      "relativeTime": "year_0_to_year_2",
+      "lineageId": "0a933130-696b-5c01-bc0a-809216666cec",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n010",
+      "sourceEventId": "c96eb10e-eb17-5a34-bc60-2c281bca03cb",
+      "sequence": 10,
+      "sourceType": "lab_text",
+      "text": "ESR: 52 mm/h (reference <15)",
+      "capturedAt": "2018-01-01T10:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "c96eb10e-eb17-5a34-bc60-2c281bca03cb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n011",
+      "sourceEventId": "c0bc3cd1-ce9f-58a7-b29c-327b17494ea5",
+      "sequence": 11,
+      "sourceType": "lab_text",
+      "text": "CRP: 50 mg/dL (reference <0.3)",
+      "capturedAt": "2018-01-01T11:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "c0bc3cd1-ce9f-58a7-b29c-327b17494ea5",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n012",
+      "sourceEventId": "86a2bc5a-2467-51f8-be2d-24c3c56c5ad2",
+      "sequence": 12,
+      "sourceType": "lab_text",
+      "text": "ACE: 73 ug/L (reference <40)",
+      "capturedAt": "2018-01-01T12:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "86a2bc5a-2467-51f8-be2d-24c3c56c5ad2",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n013",
+      "sourceEventId": "5ad6b12f-4b1d-5e27-a87a-ad6c26d819be",
+      "sequence": 13,
+      "sourceType": "lab_text",
+      "text": "ASO: 689 IU/mL (reference <200)",
+      "capturedAt": "2018-01-01T13:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "5ad6b12f-4b1d-5e27-a87a-ad6c26d819be",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n014",
+      "sourceEventId": "3c87a7d3-830b-529b-b275-9663e095133a",
+      "sequence": 14,
+      "sourceType": "lab_text",
+      "text": "DNAase: Elevated Exact value not published.",
+      "capturedAt": "2018-01-01T14:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "3c87a7d3-830b-529b-b275-9663e095133a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n015",
+      "sourceEventId": "35ec1c2b-b2fd-53e6-95a2-ef8f394f0552",
+      "sequence": 15,
+      "sourceType": "lab_text",
+      "text": "Albumin/globulin ratio: 0.6 (reference 1.1-2.5)",
+      "capturedAt": "2018-01-01T15:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "35ec1c2b-b2fd-53e6-95a2-ef8f394f0552",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n016",
+      "sourceEventId": "7196cb1e-cb80-583e-bbcf-540d5bd17ed5",
+      "sequence": 16,
+      "sourceType": "lab_text",
+      "text": "Rheumatoid factor: Negative",
+      "capturedAt": "2018-01-01T16:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "7196cb1e-cb80-583e-bbcf-540d5bd17ed5",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n017",
+      "sourceEventId": "5bd97065-2d41-510a-9e97-1c5ee62fca80",
+      "sequence": 17,
+      "sourceType": "lab_text",
+      "text": "ANCA: Negative",
+      "capturedAt": "2018-01-01T17:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "5bd97065-2d41-510a-9e97-1c5ee62fca80",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n018",
+      "sourceEventId": "e0defec3-1e99-5e4b-aba7-c0e49c2f6855",
+      "sequence": 18,
+      "sourceType": "lab_text",
+      "text": "MPO antibodies: Negative",
+      "capturedAt": "2018-01-01T18:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "e0defec3-1e99-5e4b-aba7-c0e49c2f6855",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n019",
+      "sourceEventId": "5b4281d9-79da-50bc-879e-c45089632f88",
+      "sequence": 19,
+      "sourceType": "lab_text",
+      "text": "HLA-B27: Negative",
+      "capturedAt": "2018-01-01T19:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "5b4281d9-79da-50bc-879e-c45089632f88",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n020",
+      "sourceEventId": "68ecca0c-1b1f-5433-91de-794db4f26d3c",
+      "sequence": 20,
+      "sourceType": "lab_text",
+      "text": "Hepatitis panel: Negative",
+      "capturedAt": "2018-01-01T20:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "68ecca0c-1b1f-5433-91de-794db4f26d3c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n021",
+      "sourceEventId": "8796d2ba-7de6-59fa-ac01-563b6c2453dd",
+      "sequence": 21,
+      "sourceType": "lab_text",
+      "text": "Lyme disease testing: Negative Reported as negative during early workup.",
+      "capturedAt": "2018-01-01T21:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "8796d2ba-7de6-59fa-ac01-563b6c2453dd",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n022",
+      "sourceEventId": "db302de6-18c3-55a3-ab70-5dbc5c4f3543",
+      "sequence": 22,
+      "sourceType": "lab_text",
+      "text": "Uric acid: Negative or not supportive Publication reports uric acid among negative/not supportive tests.",
+      "capturedAt": "2018-01-01T22:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "db302de6-18c3-55a3-ab70-5dbc5c4f3543",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n023",
+      "sourceEventId": "b59f6665-df6c-5bea-93ef-237c0c927ea9",
+      "sequence": 23,
+      "sourceType": "lab_text",
+      "text": "STD testing: Negative",
+      "capturedAt": "2018-01-01T23:00:00Z",
+      "relativeTime": "initial_rheumatology_workup",
+      "lineageId": "b59f6665-df6c-5bea-93ef-237c0c927ea9",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n024",
+      "sourceEventId": "8f563d06-1b15-509c-b03a-91a0635697ea",
+      "sequence": 24,
+      "sourceType": "note",
+      "text": "Prednisone: Trialed Given for inflammatory symptoms.",
+      "capturedAt": "2018-01-02T00:00:00Z",
+      "relativeTime": "after_initial_workup",
+      "lineageId": "8f563d06-1b15-509c-b03a-91a0635697ea",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n025",
+      "sourceEventId": "d9ce0718-bf01-5439-9079-4270fd298ec4",
+      "sequence": 25,
+      "sourceType": "note",
+      "text": "Methotrexate: Trialed Added after prednisone.",
+      "capturedAt": "2018-01-02T01:00:00Z",
+      "relativeTime": "after_initial_workup",
+      "lineageId": "d9ce0718-bf01-5439-9079-4270fd298ec4",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n026",
+      "sourceEventId": "d1ce0627-2ef4-5ae7-a9af-48eeba7c7694",
+      "sequence": 26,
+      "sourceType": "lab_text",
+      "text": "CRP after methotrexate trial: 40 mg/dL (reference <0.3) Inflammation persisted.",
+      "capturedAt": "2018-01-02T02:00:00Z",
+      "relativeTime": "six_months_after_methotrexate",
+      "lineageId": "d1ce0627-2ef4-5ae7-a9af-48eeba7c7694",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n027",
+      "sourceEventId": "fb26983f-ebe2-5d06-a37f-e1a0b2e6115f",
+      "sequence": 27,
+      "sourceType": "note",
+      "text": "Fever: 38.9 C",
+      "capturedAt": "2018-01-02T03:00:00Z",
+      "relativeTime": "six_months_after_methotrexate",
+      "lineageId": "fb26983f-ebe2-5d06-a37f-e1a0b2e6115f",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n028",
+      "sourceEventId": "8e4a5163-3921-5bfb-bf74-650c39fa96cf",
+      "sequence": 28,
+      "sourceType": "note",
+      "text": "Empirical antimicrobial/anti-inflammatory treatment: Treatment was given for two suspected named conditions. Named suspected conditions withheld from blind file to avoid label leakage.",
+      "capturedAt": "2018-01-02T04:00:00Z",
+      "relativeTime": "subsequent_course",
+      "lineageId": "8e4a5163-3921-5bfb-bf74-650c39fa96cf",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n029",
+      "sourceEventId": "8bb6c697-cc18-5092-a694-9c3f78f3820e",
+      "sequence": 29,
+      "sourceType": "note",
+      "text": "New musculoskeletal symptoms: Bilateral hip and lower back pain, prolonged morning stiffness, and wrist immobility.",
+      "capturedAt": "2018-01-02T05:00:00Z",
+      "relativeTime": "subsequent_course",
+      "lineageId": "8bb6c697-cc18-5092-a694-9c3f78f3820e",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n030",
+      "sourceEventId": "c64dc8bf-3068-50bd-a5d5-fafea7b5da04",
+      "sequence": 30,
+      "sourceType": "note",
+      "text": "Adalimumab: Added; symptoms persisted.",
+      "capturedAt": "2018-01-02T06:00:00Z",
+      "relativeTime": "subsequent_course",
+      "lineageId": "c64dc8bf-3068-50bd-a5d5-fafea7b5da04",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n031",
+      "sourceEventId": "23bd32bc-9c6d-5170-bfec-b41b87d41638",
+      "sequence": 31,
+      "sourceType": "note",
+      "text": "Skin eruption: Generalized pruritic maculopapular rash.",
+      "capturedAt": "2018-01-02T07:00:00Z",
+      "relativeTime": "subsequent_course",
+      "lineageId": "23bd32bc-9c6d-5170-bfec-b41b87d41638",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n032",
+      "sourceEventId": "b9ca50cd-04a2-5b54-a00f-d658157a0147",
+      "sequence": 32,
+      "sourceType": "note",
+      "text": "Mucosal and nodular lesions: Oral sores, penile sores, and tender nodular leg lesions. Poor response to steroids and normal ferritin were reported in this phase.",
+      "capturedAt": "2018-01-02T08:00:00Z",
+      "relativeTime": "later_course",
+      "lineageId": "b9ca50cd-04a2-5b54-a00f-d658157a0147",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n033",
+      "sourceEventId": "9a9a9953-a14a-5c2d-a15b-d700ea89e248",
+      "sequence": 33,
+      "sourceType": "note",
+      "text": "Colchicine: Trialed",
+      "capturedAt": "2018-01-02T09:00:00Z",
+      "relativeTime": "later_course",
+      "lineageId": "9a9a9953-a14a-5c2d-a15b-d700ea89e248",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n034",
+      "sourceEventId": "80614855-878b-559e-b467-f597219506ec",
+      "sequence": 34,
+      "sourceType": "image_caption",
+      "text": "CT chest: No diagnostic finding reported. Used as part of expanded workup.",
+      "capturedAt": "2018-01-02T10:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "80614855-878b-559e-b467-f597219506ec",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n035",
+      "sourceEventId": "0fb445a1-30bb-57b8-b263-1486b3c132fc",
+      "sequence": 35,
+      "sourceType": "lab_text",
+      "text": "HLA-B51: Negative",
+      "capturedAt": "2018-01-02T11:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "0fb445a1-30bb-57b8-b263-1486b3c132fc",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n036",
+      "sourceEventId": "30c31757-9ed5-53ca-8693-f45b96b2ee74",
+      "sequence": 36,
+      "sourceType": "note",
+      "text": "Ophthalmology assessment: Negative for relevant inflammatory ocular findings.",
+      "capturedAt": "2018-01-02T12:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "30c31757-9ed5-53ca-8693-f45b96b2ee74",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n037",
+      "sourceEventId": "bf790754-52af-5107-8900-7e75cbb87e6b",
+      "sequence": 37,
+      "sourceType": "note",
+      "text": "Pathergy testing: Negative",
+      "capturedAt": "2018-01-02T13:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "bf790754-52af-5107-8900-7e75cbb87e6b",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n038",
+      "sourceEventId": "fea0e205-19eb-5429-a4f1-7a741a22d34a",
+      "sequence": 38,
+      "sourceType": "image_caption",
+      "text": "Bone scan: Increased isotope uptake in ribs and proximal femur.",
+      "capturedAt": "2018-01-02T14:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "fea0e205-19eb-5429-a4f1-7a741a22d34a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n039",
+      "sourceEventId": "939304c7-b295-5e9a-b2af-6260d41dcace",
+      "sequence": 39,
+      "sourceType": "pdf_extract",
+      "text": "Bone biopsy: Normal",
+      "capturedAt": "2018-01-02T15:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "939304c7-b295-5e9a-b2af-6260d41dcace",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n040",
+      "sourceEventId": "f79e3f21-71ca-5935-9d18-69b4e9451c38",
+      "sequence": 40,
+      "sourceType": "image_caption",
+      "text": "Malignancy screening: No evidence of lymphoma, hypernephroma, or myeloma on labs/imaging and hematology assessment. Testing included SPEP, UPEP, and CT studies.",
+      "capturedAt": "2018-01-02T16:00:00Z",
+      "relativeTime": "later_workup",
+      "lineageId": "f79e3f21-71ca-5935-9d18-69b4e9451c38",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n041",
+      "sourceEventId": "bc0f6bc5-65e4-522a-a4ce-2e1d95337ac9",
+      "sequence": 41,
+      "sourceType": "note",
+      "text": "Tofacitinib: Trialed with no improvement.",
+      "capturedAt": "2018-01-02T17:00:00Z",
+      "relativeTime": "later_course",
+      "lineageId": "bc0f6bc5-65e4-522a-a4ce-2e1d95337ac9",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n042",
+      "sourceEventId": "1690871d-7ec1-5fa3-8e6e-c103372778e0",
+      "sequence": 42,
+      "sourceType": "note",
+      "text": "Tocilizumab: Trialed with no improvement.",
+      "capturedAt": "2018-01-02T18:00:00Z",
+      "relativeTime": "later_course",
+      "lineageId": "1690871d-7ec1-5fa3-8e6e-c103372778e0",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n043",
+      "sourceEventId": "46f23cd8-1389-534e-afa5-0cda44a87d9c",
+      "sequence": 43,
+      "sourceType": "note",
+      "text": "Lower extremity swelling: Bilateral pitting edema.",
+      "capturedAt": "2018-01-02T19:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "46f23cd8-1389-534e-afa5-0cda44a87d9c",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n044",
+      "sourceEventId": "1f7a4f98-8223-58fa-8742-dead03d4bab2",
+      "sequence": 44,
+      "sourceType": "note",
+      "text": "Diarrhea: Explosive diarrhea.",
+      "capturedAt": "2018-01-02T20:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "1f7a4f98-8223-58fa-8742-dead03d4bab2",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n045",
+      "sourceEventId": "41d8580c-4061-57dd-8cef-a88c4712a9ce",
+      "sequence": 45,
+      "sourceType": "note",
+      "text": "Weight loss: >45 kg Unintentional.",
+      "capturedAt": "2018-01-02T21:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "41d8580c-4061-57dd-8cef-a88c4712a9ce",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n046",
+      "sourceEventId": "96f668e0-16ed-571a-85c1-5217b5a859bf",
+      "sequence": 46,
+      "sourceType": "lab_text",
+      "text": "Fecal calprotectin: Normal",
+      "capturedAt": "2018-01-02T22:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "96f668e0-16ed-571a-85c1-5217b5a859bf",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n047",
+      "sourceEventId": "0b5f8547-91c0-5da1-8a94-0c1b3e64e52d",
+      "sequence": 47,
+      "sourceType": "pdf_extract",
+      "text": "Colonoscopy: Normal",
+      "capturedAt": "2018-01-02T23:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "0b5f8547-91c0-5da1-8a94-0c1b3e64e52d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n048",
+      "sourceEventId": "d0263f69-75a3-5c2a-b982-d5747936f9a2",
+      "sequence": 48,
+      "sourceType": "lab_text",
+      "text": "Iron-deficiency anemia: Persistent despite oral supplementation.",
+      "capturedAt": "2018-01-03T00:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "d0263f69-75a3-5c2a-b982-d5747936f9a2",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n049",
+      "sourceEventId": "c4916ad5-a98b-57df-bfa0-3afccabc4589",
+      "sequence": 49,
+      "sourceType": "lab_text",
+      "text": "Albumin: 2.6 g/dL (reference 3.4-5.4) Reversed albumin/globulin ratio also reported.",
+      "capturedAt": "2018-01-03T01:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "c4916ad5-a98b-57df-bfa0-3afccabc4589",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c01-n050",
+      "sourceEventId": "e3e984af-e0e7-5c5a-a1e8-878796ae7afb",
+      "sequence": 50,
+      "sourceType": "lab_text",
+      "text": "ASCA IgA: Positive",
+      "capturedAt": "2018-01-03T02:00:00Z",
+      "relativeTime": "late_deterioration",
+      "lineageId": "e3e984af-e0e7-5c5a-a1e8-878796ae7afb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    }
+  ],
+  "links": [
+    {
+      "from": "c01-n002",
+      "to": "c01-n008",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n008",
+      "to": "c01-n009",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n010",
+      "to": "c01-n011",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n011",
+      "to": "c01-n012",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n012",
+      "to": "c01-n013",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n013",
+      "to": "c01-n014",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n014",
+      "to": "c01-n015",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n015",
+      "to": "c01-n016",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n016",
+      "to": "c01-n017",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n017",
+      "to": "c01-n018",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n018",
+      "to": "c01-n019",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n019",
+      "to": "c01-n020",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n020",
+      "to": "c01-n021",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n021",
+      "to": "c01-n022",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n022",
+      "to": "c01-n023",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n024",
+      "to": "c01-n025",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n026",
+      "to": "c01-n027",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n028",
+      "to": "c01-n029",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n029",
+      "to": "c01-n030",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n030",
+      "to": "c01-n031",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n032",
+      "to": "c01-n033",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n033",
+      "to": "c01-n041",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n041",
+      "to": "c01-n042",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n034",
+      "to": "c01-n035",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n035",
+      "to": "c01-n036",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n036",
+      "to": "c01-n037",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n037",
+      "to": "c01-n038",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n038",
+      "to": "c01-n039",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n039",
+      "to": "c01-n040",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n043",
+      "to": "c01-n044",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n044",
+      "to": "c01-n045",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n045",
+      "to": "c01-n046",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n046",
+      "to": "c01-n047",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n048",
+      "to": "c01-n049",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n049",
+      "to": "c01-n050",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c01-n000",
+      "to": "c01-n001",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n001",
+      "to": "c01-n002",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n002",
+      "to": "c01-n003",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n003",
+      "to": "c01-n004",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n004",
+      "to": "c01-n005",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n007",
+      "to": "c01-n008",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n009",
+      "to": "c01-n010",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n023",
+      "to": "c01-n024",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n025",
+      "to": "c01-n026",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n027",
+      "to": "c01-n028",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n031",
+      "to": "c01-n032",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n033",
+      "to": "c01-n034",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n040",
+      "to": "c01-n041",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n042",
+      "to": "c01-n043",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c01-n000",
+      "to": "c01-n007",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c01-n003",
+      "to": "c01-n026",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c01-n001",
+      "to": "c01-n009",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c01-n005",
+      "to": "c01-n044",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c01-n024",
+      "to": "c01-n028",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    }
+  ]
+}

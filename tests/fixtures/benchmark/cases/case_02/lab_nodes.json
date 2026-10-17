@@ -1,0 +1,928 @@
+{
+  "principles": "lab-node-separation-v1",
+  "caseId": "C02",
+  "personId": "case-c02",
+  "label": "Person 2",
+  "mode": "blind_pre_diagnosis",
+  "nodes": [
+    {
+      "id": "c02-n000",
+      "sourceEventId": "c8fbbdda-eed3-52df-af64-1e4df778d290",
+      "sequence": 0,
+      "sourceType": "note",
+      "text": "Isolated acute pericarditis.",
+      "capturedAt": "2019-01-01T00:00:00Z",
+      "relativeTime": "age_28",
+      "lineageId": "c8fbbdda-eed3-52df-af64-1e4df778d290",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n001",
+      "sourceEventId": "7bfd1c0b-26a8-5ae9-b53c-36e12999f918",
+      "sequence": 1,
+      "sourceType": "note",
+      "text": "Diastolic hypertension developed.",
+      "capturedAt": "2019-01-01T01:00:00Z",
+      "relativeTime": "age_43",
+      "lineageId": "7bfd1c0b-26a8-5ae9-b53c-36e12999f918",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n002",
+      "sourceEventId": "2f5648fa-6781-58d0-b268-8a7f1308f0b1",
+      "sequence": 2,
+      "sourceType": "note",
+      "text": "Confusion, insomnia, visual hallucinations, visual impairment, and reasoning difficulty.",
+      "capturedAt": "2019-01-01T02:00:00Z",
+      "relativeTime": "months_before_admission",
+      "lineageId": "2f5648fa-6781-58d0-b268-8a7f1308f0b1",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n003",
+      "sourceEventId": "884352f4-2051-529c-ab0f-f3115f34b83d",
+      "sequence": 3,
+      "sourceType": "note",
+      "text": "Brain CT/MRI and ophthalmology were not diagnostic; psychiatric hospitalization occurred.",
+      "capturedAt": "2019-01-01T03:00:00Z",
+      "relativeTime": "initial_workup",
+      "lineageId": "884352f4-2051-529c-ab0f-f3115f34b83d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n004",
+      "sourceEventId": "ac18c0a5-29a5-5d19-ab61-3da35a4069c6",
+      "sequence": 4,
+      "sourceType": "note",
+      "text": "Renal function worsened and renal biopsy showed chronic thrombotic microangiopathy-like injury with immune deposits.",
+      "capturedAt": "2019-01-01T04:00:00Z",
+      "relativeTime": "same_period",
+      "lineageId": "ac18c0a5-29a5-5d19-ab61-3da35a4069c6",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n005",
+      "sourceEventId": "8ffeff03-dc0e-50b9-962e-a9b8b8b410f4",
+      "sequence": 5,
+      "sourceType": "note",
+      "text": "Severe cognitive, motor, language, and gait decline developed.",
+      "capturedAt": "2019-01-01T05:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "8ffeff03-dc0e-50b9-962e-a9b8b8b410f4",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n006",
+      "sourceEventId": "0a3a633a-0591-52e3-aee2-6851b19e1c08",
+      "sequence": 6,
+      "sourceType": "note",
+      "text": "MRI/PET abnormalities, negative CSF/autoimmune screen, and brain biopsy without neoplasm/vasculitis/encephalitis.",
+      "capturedAt": "2019-01-01T06:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "0a3a633a-0591-52e3-aee2-6851b19e1c08",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n007",
+      "sourceEventId": "2ec3013f-65dc-5516-bb32-a06a450110ab",
+      "sequence": 7,
+      "sourceType": "note",
+      "text": "A complement-directed therapy was given during an acute thrombotic microangiopathy-like syndrome without improvement.",
+      "capturedAt": "2019-01-01T07:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "2ec3013f-65dc-5516-bb32-a06a450110ab",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n008",
+      "sourceEventId": "7cb12629-ad74-5b80-b140-e8862a22da51",
+      "sequence": 8,
+      "sourceType": "note",
+      "text": "Age and sex: 45-year-old Italian male Business manager.",
+      "capturedAt": "2019-01-01T08:00:00Z",
+      "relativeTime": "baseline",
+      "lineageId": "7cb12629-ad74-5b80-b140-e8862a22da51",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n009",
+      "sourceEventId": "bbe7ab0b-236a-5b71-abe4-87ad06b683a7",
+      "sequence": 9,
+      "sourceType": "note",
+      "text": "Prior acute pericarditis: Isolated episode of acute pericarditis.",
+      "capturedAt": "2019-01-01T09:00:00Z",
+      "relativeTime": "age_28",
+      "lineageId": "bbe7ab0b-236a-5b71-abe4-87ad06b683a7",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n010",
+      "sourceEventId": "6634218d-81a3-506d-aa9c-263663bc1f24",
+      "sequence": 10,
+      "sourceType": "note",
+      "text": "Blood pressure: Diastolic hypertension, average 140/90. mmHg",
+      "capturedAt": "2019-01-01T10:00:00Z",
+      "relativeTime": "age_43_onward",
+      "lineageId": "6634218d-81a3-506d-aa9c-263663bc1f24",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n011",
+      "sourceEventId": "fa0a2620-6a77-5eab-8be1-8b5694c24734",
+      "sequence": 11,
+      "sourceType": "note",
+      "text": "Confusion episodes: Episodes of confusion with inability to interact with surroundings and subjective slowing. Initially classified as panic attacks in the context of anxiety/depressive symptoms.",
+      "capturedAt": "2019-01-01T11:00:00Z",
+      "relativeTime": "months_before_hospitalization",
+      "lineageId": "fa0a2620-6a77-5eab-8be1-8b5694c24734",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n012",
+      "sourceEventId": "d8104800-fc76-53aa-8414-6d897c6a1f89",
+      "sequence": 12,
+      "sourceType": "note",
+      "text": "Sleep, perception, vision, cognition: Insomnia, visual hallucinations, sight impairment, difficulty following complex reasoning.",
+      "capturedAt": "2019-01-01T12:00:00Z",
+      "relativeTime": "months_before_hospitalization",
+      "lineageId": "d8104800-fc76-53aa-8414-6d897c6a1f89",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n013",
+      "sourceEventId": "80b39675-3a1c-5e22-bf71-8da4f656bd11",
+      "sequence": 13,
+      "sourceType": "image_caption",
+      "text": "Brain CT and MRI with contrast: No significant organic lesion reported.",
+      "capturedAt": "2019-01-01T13:00:00Z",
+      "relativeTime": "initial_neuropsych_workup",
+      "lineageId": "80b39675-3a1c-5e22-bf71-8da4f656bd11",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n014",
+      "sourceEventId": "1afd093e-f92f-511e-b022-a138954b724e",
+      "sequence": 14,
+      "sourceType": "note",
+      "text": "Ophthalmology: Normal.",
+      "capturedAt": "2019-01-01T14:00:00Z",
+      "relativeTime": "initial_neuropsych_workup",
+      "lineageId": "1afd093e-f92f-511e-b022-a138954b724e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n015",
+      "sourceEventId": "191749c0-41fb-5fc9-928e-a94757e52487",
+      "sequence": 15,
+      "sourceType": "note",
+      "text": "Psychiatric hospitalization: Hospitalized for two months; memory and attention decline noted. Symptoms attributed to stress and difficulty coping with managerial demands.",
+      "capturedAt": "2019-01-01T15:00:00Z",
+      "relativeTime": "psychiatric_hospitalization",
+      "lineageId": "191749c0-41fb-5fc9-928e-a94757e52487",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n016",
+      "sourceEventId": "72c9f388-213d-5e76-b065-37a9c055d8bb",
+      "sequence": 16,
+      "sourceType": "lab_text",
+      "text": "Serum creatinine: 2.13 mg/dL (reference 0.4-1.0) Prior normal before age 44; one year earlier 1.12 mg/dL.",
+      "capturedAt": "2019-01-01T16:00:00Z",
+      "relativeTime": "first_confusion_episode",
+      "lineageId": "72c9f388-213d-5e76-b065-37a9c055d8bb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n017",
+      "sourceEventId": "4f19dfcf-db53-5cdc-8174-ca0bfaf037f3",
+      "sequence": 17,
+      "sourceType": "lab_text",
+      "text": "Proteinuria: 207-500 mg/24h (reference <300) Reported range across measures.",
+      "capturedAt": "2019-01-01T17:00:00Z",
+      "relativeTime": "renal_workup",
+      "lineageId": "4f19dfcf-db53-5cdc-8174-ca0bfaf037f3",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n018",
+      "sourceEventId": "3974d20b-da52-5bab-8044-18cf61dda3af",
+      "sequence": 18,
+      "sourceType": "pdf_extract",
+      "text": "Renal biopsy light microscopy: Chronic thrombotic microangiopathy-like features, extensive double contours, focal mesangial cell interposition, and early intravascular thrombi.",
+      "capturedAt": "2019-01-01T18:00:00Z",
+      "relativeTime": "renal_biopsy",
+      "lineageId": "3974d20b-da52-5bab-8044-18cf61dda3af",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n019",
+      "sourceEventId": "74ab2563-2689-5019-8e4a-50430ce8b30c",
+      "sequence": 19,
+      "sourceType": "pdf_extract",
+      "text": "Renal biopsy immunofluorescence: Strong IgG and C1q, moderate IgM and C4, and punctate deposits reported. Initially interpreted in a different renal immune-pattern category.",
+      "capturedAt": "2019-01-01T19:00:00Z",
+      "relativeTime": "renal_biopsy",
+      "lineageId": "74ab2563-2689-5019-8e4a-50430ce8b30c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n020",
+      "sourceEventId": "c7a224f1-8578-5259-82d4-298038396790",
+      "sequence": 20,
+      "sourceType": "pdf_extract",
+      "text": "Renal biopsy electron microscopy: Electron-dense deposits reported.",
+      "capturedAt": "2019-01-01T20:00:00Z",
+      "relativeTime": "renal_biopsy",
+      "lineageId": "c7a224f1-8578-5259-82d4-298038396790",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n021",
+      "sourceEventId": "d6c636f3-3dba-59d3-871c-5b35e0d2c03f",
+      "sequence": 21,
+      "sourceType": "lab_text",
+      "text": "Rheumatoid factor: Negative",
+      "capturedAt": "2019-01-01T21:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "d6c636f3-3dba-59d3-871c-5b35e0d2c03f",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n022",
+      "sourceEventId": "fac1d288-254c-5364-b8e9-a258608bbe4f",
+      "sequence": 22,
+      "sourceType": "lab_text",
+      "text": "HCV antibodies: Negative",
+      "capturedAt": "2019-01-01T22:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "fac1d288-254c-5364-b8e9-a258608bbe4f",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n023",
+      "sourceEventId": "ed2769ec-d985-51f3-a356-6f77668efb5c",
+      "sequence": 23,
+      "sourceType": "lab_text",
+      "text": "Circulating cryoglobulins: Absent",
+      "capturedAt": "2019-01-01T23:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "ed2769ec-d985-51f3-a356-6f77668efb5c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n024",
+      "sourceEventId": "b310934a-a317-529b-902e-b71841db6dcf",
+      "sequence": 24,
+      "sourceType": "lab_text",
+      "text": "Complement levels: No hypocomplementemia in early renal workup.",
+      "capturedAt": "2019-01-02T00:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "b310934a-a317-529b-902e-b71841db6dcf",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n025",
+      "sourceEventId": "bcf57bef-3729-5da4-9ac9-50d83cf323bb",
+      "sequence": 25,
+      "sourceType": "lab_text",
+      "text": "Platelets: 156000 /uL (reference 156000-405000) No schistocytes reported at this stage.",
+      "capturedAt": "2019-01-02T01:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "bcf57bef-3729-5da4-9ac9-50d83cf323bb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n026",
+      "sourceEventId": "c48e3f2e-d466-5d18-ba4f-d7fa04cd6f48",
+      "sequence": 26,
+      "sourceType": "lab_text",
+      "text": "LDH: 458 U/L (reference 230-500)",
+      "capturedAt": "2019-01-02T02:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "c48e3f2e-d466-5d18-ba4f-d7fa04cd6f48",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n027",
+      "sourceEventId": "96bc4de1-76bb-5f8b-9871-4e2b653a1466",
+      "sequence": 27,
+      "sourceType": "lab_text",
+      "text": "Haptoglobin: 93 mg/dL (reference 40-240)",
+      "capturedAt": "2019-01-02T03:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "96bc4de1-76bb-5f8b-9871-4e2b653a1466",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n028",
+      "sourceEventId": "5d725669-8bb4-5fbd-94cd-040b6b1425dd",
+      "sequence": 28,
+      "sourceType": "lab_text",
+      "text": "ADAMTS13 and complement factor H: Normal No anti-factor H antibodies.",
+      "capturedAt": "2019-01-02T04:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "5d725669-8bb4-5fbd-94cd-040b6b1425dd",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n029",
+      "sourceEventId": "fea4354b-2809-506b-85ea-246676deeb18",
+      "sequence": 29,
+      "sourceType": "lab_text",
+      "text": "Complement/TMA gene panel: No pathogenic variants in CFH, CFI, CFB, C3, CD46, THBD, DGKE, CFHR1, CFHR3, CFHR5.",
+      "capturedAt": "2019-01-02T05:00:00Z",
+      "relativeTime": "renal_followup",
+      "lineageId": "fea4354b-2809-506b-85ea-246676deeb18",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n030",
+      "sourceEventId": "dcf6ed21-cba9-5538-b910-ca4f0b064e86",
+      "sequence": 30,
+      "sourceType": "note",
+      "text": "Functional decline: Social withdrawal and inability to work.",
+      "capturedAt": "2019-01-02T06:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "dcf6ed21-cba9-5538-b910-ca4f0b064e86",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n031",
+      "sourceEventId": "75e2061c-2ad6-5746-91f3-781f452aa717",
+      "sequence": 31,
+      "sourceType": "note",
+      "text": "Cognitive and motor findings: Severe cognitive decline, psychomotor slowing, language impairment, and spastic ataxic gait.",
+      "capturedAt": "2019-01-02T07:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "75e2061c-2ad6-5746-91f3-781f452aa717",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n032",
+      "sourceEventId": "571f7155-d9b2-5302-916f-3d4c6867d5a1",
+      "sequence": 32,
+      "sourceType": "note",
+      "text": "Reflexes and upper motor neuron signs: Exaggerated deep tendon reflexes in all extremities; abnormal Babinski; bilateral positive Hoffmann.",
+      "capturedAt": "2019-01-02T08:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "571f7155-d9b2-5302-916f-3d4c6867d5a1",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n033",
+      "sourceEventId": "b502035d-ea03-5e34-a930-0d1a53eddd30",
+      "sequence": 33,
+      "sourceType": "image_caption",
+      "text": "Brain MRI: Extensive hyperintense T2 signal in subcortical white matter bilaterally in temporal, occipital, and parietal regions; cortical atrophy. Pattern compared in the publication to posterior reversible encephalopathy syndrome.",
+      "capturedAt": "2019-01-02T09:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "b502035d-ea03-5e34-a930-0d1a53eddd30",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n034",
+      "sourceEventId": "401be8d2-2748-5470-b29f-8dc4779f8669",
+      "sequence": 34,
+      "sourceType": "note",
+      "text": "Fundus examination: Normal.",
+      "capturedAt": "2019-01-02T10:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "401be8d2-2748-5470-b29f-8dc4779f8669",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n035",
+      "sourceEventId": "8f2df3da-d5f1-57b2-8656-9812c55568e8",
+      "sequence": 35,
+      "sourceType": "image_caption",
+      "text": "Brain PET: Suggested inflammatory process in bilateral occipital regions.",
+      "capturedAt": "2019-01-02T11:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "8f2df3da-d5f1-57b2-8656-9812c55568e8",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n036",
+      "sourceEventId": "57323708-a6c1-573c-9073-9ba196fc892d",
+      "sequence": 36,
+      "sourceType": "lab_text",
+      "text": "CSF and autoimmune CNS screen: Negative.",
+      "capturedAt": "2019-01-02T12:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "57323708-a6c1-573c-9073-9ba196fc892d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n037",
+      "sourceEventId": "a5268c72-ca35-5646-9bf7-4578e4e48a9a",
+      "sequence": 37,
+      "sourceType": "pdf_extract",
+      "text": "Brain biopsy: White matter hypercellularity with macrophages, perivascular small lymphocytes, and demyelination; no neoplasm, vasculitis, or encephalitis.",
+      "capturedAt": "2019-01-02T13:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "a5268c72-ca35-5646-9bf7-4578e4e48a9a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n038",
+      "sourceEventId": "88de5703-ea6c-5f97-b0df-7d6f35d99907",
+      "sequence": 38,
+      "sourceType": "note",
+      "text": "High-dose steroids: No response.",
+      "capturedAt": "2019-01-02T14:00:00Z",
+      "relativeTime": "progression",
+      "lineageId": "88de5703-ea6c-5f97-b0df-7d6f35d99907",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n039",
+      "sourceEventId": "a249dc47-6d75-5db1-9af8-ba285457d924",
+      "sequence": 39,
+      "sourceType": "lab_text",
+      "text": "Platelets during acute syndrome: 87000 /uL",
+      "capturedAt": "2019-01-02T15:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "a249dc47-6d75-5db1-9af8-ba285457d924",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n040",
+      "sourceEventId": "64f56900-fded-5706-b97f-d3ff0dbed8f1",
+      "sequence": 40,
+      "sourceType": "lab_text",
+      "text": "Schistocytes: >1 %",
+      "capturedAt": "2019-01-02T16:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "64f56900-fded-5706-b97f-d3ff0dbed8f1",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n041",
+      "sourceEventId": "57116df6-4dee-56ab-9e00-e553b2917c21",
+      "sequence": 41,
+      "sourceType": "lab_text",
+      "text": "LDH during acute syndrome: 557 U/L",
+      "capturedAt": "2019-01-02T17:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "57116df6-4dee-56ab-9e00-e553b2917c21",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n042",
+      "sourceEventId": "5ce17464-885f-5a9a-a49c-77f1f2cbefe4",
+      "sequence": 42,
+      "sourceType": "lab_text",
+      "text": "C3: 77 mg/dL (reference 84-160)",
+      "capturedAt": "2019-01-02T18:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "5ce17464-885f-5a9a-a49c-77f1f2cbefe4",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n043",
+      "sourceEventId": "e5d96c1b-ed25-5b2d-b9d6-720828af91fd",
+      "sequence": 43,
+      "sourceType": "lab_text",
+      "text": "Hemoglobin: 12.6 g/dL",
+      "capturedAt": "2019-01-02T19:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "e5d96c1b-ed25-5b2d-b9d6-720828af91fd",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n044",
+      "sourceEventId": "309f9bf7-911a-559a-950b-2705af13d2dc",
+      "sequence": 44,
+      "sourceType": "lab_text",
+      "text": "MCV: 94 fL (reference 80-100)",
+      "capturedAt": "2019-01-02T20:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "309f9bf7-911a-559a-950b-2705af13d2dc",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n045",
+      "sourceEventId": "67ea093c-e528-5247-8782-10dc0baf8fa7",
+      "sequence": 45,
+      "sourceType": "lab_text",
+      "text": "Vitamin B12: 875 pg/mL (reference 212-911)",
+      "capturedAt": "2019-01-02T21:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "67ea093c-e528-5247-8782-10dc0baf8fa7",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c02-n046",
+      "sourceEventId": "e33c025a-5d89-58e4-b7a4-17b9c66591ce",
+      "sequence": 46,
+      "sourceType": "note",
+      "text": "Eculizumab: Given; no improvement.",
+      "capturedAt": "2019-01-02T22:00:00Z",
+      "relativeTime": "acute_deterioration",
+      "lineageId": "e33c025a-5d89-58e4-b7a4-17b9c66591ce",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    }
+  ],
+  "links": [
+    {
+      "from": "c02-n000",
+      "to": "c02-n009",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n005",
+      "to": "c02-n006",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n011",
+      "to": "c02-n012",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n013",
+      "to": "c02-n014",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n018",
+      "to": "c02-n019",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n019",
+      "to": "c02-n020",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n021",
+      "to": "c02-n022",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n022",
+      "to": "c02-n023",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n024",
+      "to": "c02-n025",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n025",
+      "to": "c02-n026",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n026",
+      "to": "c02-n027",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n027",
+      "to": "c02-n028",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n028",
+      "to": "c02-n029",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n030",
+      "to": "c02-n031",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n031",
+      "to": "c02-n032",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n032",
+      "to": "c02-n033",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n033",
+      "to": "c02-n034",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n034",
+      "to": "c02-n035",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n035",
+      "to": "c02-n036",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n036",
+      "to": "c02-n037",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n037",
+      "to": "c02-n038",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n039",
+      "to": "c02-n040",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n040",
+      "to": "c02-n041",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n041",
+      "to": "c02-n042",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n042",
+      "to": "c02-n043",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n043",
+      "to": "c02-n044",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n044",
+      "to": "c02-n045",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n045",
+      "to": "c02-n046",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c02-n000",
+      "to": "c02-n001",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n001",
+      "to": "c02-n002",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n002",
+      "to": "c02-n003",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n003",
+      "to": "c02-n004",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n004",
+      "to": "c02-n005",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n006",
+      "to": "c02-n007",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n009",
+      "to": "c02-n010",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n010",
+      "to": "c02-n011",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n012",
+      "to": "c02-n013",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n014",
+      "to": "c02-n015",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n015",
+      "to": "c02-n016",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n016",
+      "to": "c02-n017",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n017",
+      "to": "c02-n018",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n020",
+      "to": "c02-n021",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n029",
+      "to": "c02-n030",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n038",
+      "to": "c02-n039",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c02-n002",
+      "to": "c02-n012",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n006",
+      "to": "c02-n037",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n004",
+      "to": "c02-n018",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n005",
+      "to": "c02-n031",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n001",
+      "to": "c02-n010",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n003",
+      "to": "c02-n015",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c02-n007",
+      "to": "c02-n046",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    }
+  ]
+}

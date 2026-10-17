@@ -1,0 +1,542 @@
+{
+  "principles": "lab-node-separation-v1",
+  "caseId": "C05",
+  "personId": "case-c05",
+  "label": "Person 5",
+  "mode": "blind_pre_diagnosis",
+  "nodes": [
+    {
+      "id": "c05-n000",
+      "sourceEventId": "768caf1f-dba3-56c3-a6a0-0c606a966327",
+      "sequence": 0,
+      "sourceType": "note",
+      "text": "Abdominal pain, diarrhea, and significant weight loss began a prolonged workup.",
+      "capturedAt": "2022-01-01T00:00:00Z",
+      "relativeTime": "jan_2022",
+      "lineageId": "768caf1f-dba3-56c3-a6a0-0c606a966327",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n001",
+      "sourceEventId": "2115e93e-44c9-57ab-8a02-cce107f09ec5",
+      "sequence": 1,
+      "sourceType": "note",
+      "text": "CT/gastroscopy/EUS found a 15 mm submucosal distal oesophagus/cardia lesion; biopsy showed leiomyoma.",
+      "capturedAt": "2022-01-01T01:00:00Z",
+      "relativeTime": "jan_2022",
+      "lineageId": "2115e93e-44c9-57ab-8a02-cce107f09ec5",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n002",
+      "sourceEventId": "67ef9e93-3959-576b-96c2-725a8601b059",
+      "sequence": 2,
+      "sourceType": "note",
+      "text": "Second opinion with negative sigmoidoscopy and PET-CT; antihypertensive changed because medication-related enteropathy was considered.",
+      "capturedAt": "2022-01-01T02:00:00Z",
+      "relativeTime": "may_2022",
+      "lineageId": "67ef9e93-3959-576b-96c2-725a8601b059",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n003",
+      "sourceEventId": "a32f948f-e983-5630-90dd-63e6b0b8ece1",
+      "sequence": 3,
+      "sourceType": "note",
+      "text": "Severe diarrhea more than 10 times per day, orthostatic presyncope, fatigue, and reduced exercise tolerance.",
+      "capturedAt": "2022-01-01T03:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "a32f948f-e983-5630-90dd-63e6b0b8ece1",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n004",
+      "sourceEventId": "b3a38168-ed7a-5e9a-9751-3d6813afdc3a",
+      "sequence": 4,
+      "sourceType": "image_caption",
+      "text": "CT showed bilateral pleural effusions and subcutaneous edema; no cardiac workup performed at that time.",
+      "capturedAt": "2022-01-01T04:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "b3a38168-ed7a-5e9a-9751-3d6813afdc3a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n005",
+      "sourceEventId": "8c51bc29-91c6-50c4-9254-510086f4055c",
+      "sequence": 5,
+      "sourceType": "note",
+      "text": "Tertiary referral for postprandial syncope and approximately 50 kg weight loss over two years; weight 60 kg.",
+      "capturedAt": "2022-01-01T05:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "8c51bc29-91c6-50c4-9254-510086f4055c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n006",
+      "sourceEventId": "51d52135-bcd5-5d6e-929f-25e2c0011bda",
+      "sequence": 6,
+      "sourceType": "note",
+      "text": "72-hour fecal collection showed stool volume and bile acid loss well above upper limits.",
+      "capturedAt": "2022-01-01T06:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "51d52135-bcd5-5d6e-929f-25e2c0011bda",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n007",
+      "sourceEventId": "a7ae2a7b-cf27-5da4-8ac7-f2cef6631bd4",
+      "sequence": 7,
+      "sourceType": "note",
+      "text": "Age and sex: 68-year-old man, second-generation Italian immigrant family.",
+      "capturedAt": "2022-01-01T07:00:00Z",
+      "relativeTime": "baseline",
+      "lineageId": "a7ae2a7b-cf27-5da4-8ac7-f2cef6631bd4",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n008",
+      "sourceEventId": "a0420e99-8fd8-5c42-9f75-d94ffd5315b9",
+      "sequence": 8,
+      "sourceType": "note",
+      "text": "Past medical history: Curative colon adenocarcinoma resection in 2016; transurethral prostate resection in 2020.",
+      "capturedAt": "2022-01-01T08:00:00Z",
+      "relativeTime": "baseline",
+      "lineageId": "a0420e99-8fd8-5c42-9f75-d94ffd5315b9",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n009",
+      "sourceEventId": "767873c1-282b-51fc-8fba-e674e4d81c96",
+      "sequence": 9,
+      "sourceType": "note",
+      "text": "Medications at start: Aspirin for primary prevention, olmesartan/amlodipine, simvastatin.",
+      "capturedAt": "2022-01-01T09:00:00Z",
+      "relativeTime": "baseline",
+      "lineageId": "767873c1-282b-51fc-8fba-e674e4d81c96",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n010",
+      "sourceEventId": "7ba0b23a-41b9-56c6-91ea-773fb44889c5",
+      "sequence": 10,
+      "sourceType": "note",
+      "text": "Initial gastrointestinal symptoms: Abdominal pain, diarrhea, and significant weight loss.",
+      "capturedAt": "2022-01-01T10:00:00Z",
+      "relativeTime": "jan_2022",
+      "lineageId": "7ba0b23a-41b9-56c6-91ea-773fb44889c5",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n011",
+      "sourceEventId": "3db74660-ffe8-5dbf-843d-5c7d87626aeb",
+      "sequence": 11,
+      "sourceType": "image_caption",
+      "text": "CT, gastroscopy, and endoscopic ultrasound: 15 mm submucosal lesion in distal oesophagus/cardia.",
+      "capturedAt": "2022-01-01T11:00:00Z",
+      "relativeTime": "jan_2022",
+      "lineageId": "3db74660-ffe8-5dbf-843d-5c7d87626aeb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n012",
+      "sourceEventId": "6c2a615a-0efd-574f-88fb-af686a7b8f58",
+      "sequence": 12,
+      "sourceType": "pdf_extract",
+      "text": "Biopsies of submucosal lesion: Leiomyoma. Did not explain symptoms in the source report.",
+      "capturedAt": "2022-01-01T12:00:00Z",
+      "relativeTime": "jan_2022",
+      "lineageId": "6c2a615a-0efd-574f-88fb-af686a7b8f58",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n013",
+      "sourceEventId": "810979bb-7be9-5ecb-bfc7-42f5a6224ee6",
+      "sequence": 13,
+      "sourceType": "note",
+      "text": "Initial plan: Watchful waiting and symptomatic treatment.",
+      "capturedAt": "2022-01-01T13:00:00Z",
+      "relativeTime": "jan_2022_plan",
+      "lineageId": "810979bb-7be9-5ecb-bfc7-42f5a6224ee6",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n014",
+      "sourceEventId": "6392bd1e-baa6-5b47-97e4-835339f67856",
+      "sequence": 14,
+      "sourceType": "note",
+      "text": "Second opinion: Further evaluation for persistent symptoms.",
+      "capturedAt": "2022-01-01T14:00:00Z",
+      "relativeTime": "may_2022",
+      "lineageId": "6392bd1e-baa6-5b47-97e4-835339f67856",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n015",
+      "sourceEventId": "1d8dd71b-3d2a-5af2-b620-69ce3e55819c",
+      "sequence": 15,
+      "sourceType": "image_caption",
+      "text": "Sigmoidoscopy and PET-CT: Negative.",
+      "capturedAt": "2022-01-01T15:00:00Z",
+      "relativeTime": "may_2022",
+      "lineageId": "1d8dd71b-3d2a-5af2-b620-69ce3e55819c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n016",
+      "sourceEventId": "de3d7cb8-499c-5a8e-bb99-4f02af7157c3",
+      "sequence": 16,
+      "sourceType": "note",
+      "text": "Antihypertensive change: Olmesartan-related enteropathy was considered; medication changed from olmesartan/amlodipine to ramipril. This was a working consideration, not final diagnosis.",
+      "capturedAt": "2022-01-01T16:00:00Z",
+      "relativeTime": "may_2022",
+      "lineageId": "de3d7cb8-499c-5a8e-bb99-4f02af7157c3",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n017",
+      "sourceEventId": "2107a263-768e-5155-81a5-c44ee5824be4",
+      "sequence": 17,
+      "sourceType": "note",
+      "text": "Severe diarrhea episode: More than 10 bowel movements per day.",
+      "capturedAt": "2022-01-01T17:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "2107a263-768e-5155-81a5-c44ee5824be4",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n018",
+      "sourceEventId": "923950ce-af75-5e5d-9d07-073ad8b50a3a",
+      "sequence": 18,
+      "sourceType": "note",
+      "text": "Presyncope, fatigue, exercise capacity: Orthostatic presyncope, fatigue, markedly reduced exercise tolerance.",
+      "capturedAt": "2022-01-01T18:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "923950ce-af75-5e5d-9d07-073ad8b50a3a",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n019",
+      "sourceEventId": "687b02e3-d48b-5471-916d-ce98de4f77df",
+      "sequence": 19,
+      "sourceType": "image_caption",
+      "text": "Repeat CT: Third spacing with bilateral pleural effusions and subcutaneous edema. No cardiac workup was performed at that time according to the source.",
+      "capturedAt": "2022-01-01T19:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "687b02e3-d48b-5471-916d-ce98de4f77df",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n020",
+      "sourceEventId": "2ad32847-df8a-5288-b3ab-b7e8eb8feb28",
+      "sequence": 20,
+      "sourceType": "note",
+      "text": "Malnutrition and weight loss: Severe malnutrition and profound weight loss. Effusions were presumed non-cardiac due to hypoalbuminemia/protein-losing enteropathy in the source narrative.",
+      "capturedAt": "2022-01-01T20:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "2ad32847-df8a-5288-b3ab-b7e8eb8feb28",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n021",
+      "sourceEventId": "120b1b43-1ca5-5237-9fcc-7264e4da7498",
+      "sequence": 21,
+      "sourceType": "note",
+      "text": "Extensive investigations: Unrevealing. A chronic functional diarrhea working label was used before later tertiary evaluation.",
+      "capturedAt": "2022-01-01T21:00:00Z",
+      "relativeTime": "jul_2023",
+      "lineageId": "120b1b43-1ca5-5237-9fcc-7264e4da7498",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n022",
+      "sourceEventId": "5d00f89d-ef2d-5afd-b27f-6e87ced3e48f",
+      "sequence": 22,
+      "sourceType": "note",
+      "text": "Tertiary referral: Referral due to postprandial syncope and total weight loss of approximately 50 kg over two years. Weight at referral: 60 kg.",
+      "capturedAt": "2022-01-01T22:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "5d00f89d-ef2d-5afd-b27f-6e87ced3e48f",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n023",
+      "sourceEventId": "46e5d40d-5e06-5d25-aaa5-333abe471c38",
+      "sequence": 23,
+      "sourceType": "lab_text",
+      "text": "Weight: 60 kg After approximately 50 kg total weight loss.",
+      "capturedAt": "2022-01-01T23:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "46e5d40d-5e06-5d25-aaa5-333abe471c38",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n024",
+      "sourceEventId": "44fdcb39-93fb-5b02-89f4-a03d74eed529",
+      "sequence": 24,
+      "sourceType": "lab_text",
+      "text": "72-hour fecal collection: stool volume: 766 g (reference ULN 200)",
+      "capturedAt": "2022-01-02T00:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "44fdcb39-93fb-5b02-89f4-a03d74eed529",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n025",
+      "sourceEventId": "ae45cf9d-8e3d-5417-bbb3-2b1d2ee69747",
+      "sequence": 25,
+      "sourceType": "lab_text",
+      "text": "72-hour fecal collection: fecal bile acid loss: 4.26 mmol/day (reference ULN 1.11) Suggestive of malabsorption in source narrative.",
+      "capturedAt": "2022-01-02T01:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "ae45cf9d-8e3d-5417-bbb3-2b1d2ee69747",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c05-n026",
+      "sourceEventId": "477b8145-3519-5026-a9b7-d3dcbc79685a",
+      "sequence": 26,
+      "sourceType": "pdf_extract",
+      "text": "Gastroduodenoscopy and colonoscopy with biopsies: Performed. Decisive tissue results appear in full-results set.",
+      "capturedAt": "2022-01-02T02:00:00Z",
+      "relativeTime": "oct_2023",
+      "lineageId": "477b8145-3519-5026-a9b7-d3dcbc79685a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    }
+  ],
+  "links": [
+    {
+      "from": "c05-n000",
+      "to": "c05-n001",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n001",
+      "to": "c05-n010",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n010",
+      "to": "c05-n011",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n011",
+      "to": "c05-n012",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n002",
+      "to": "c05-n014",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n014",
+      "to": "c05-n015",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n015",
+      "to": "c05-n016",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n003",
+      "to": "c05-n004",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n004",
+      "to": "c05-n017",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n017",
+      "to": "c05-n018",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n018",
+      "to": "c05-n019",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n019",
+      "to": "c05-n020",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n020",
+      "to": "c05-n021",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n005",
+      "to": "c05-n006",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n006",
+      "to": "c05-n022",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n022",
+      "to": "c05-n023",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n008",
+      "to": "c05-n009",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n024",
+      "to": "c05-n025",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n025",
+      "to": "c05-n026",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c05-n001",
+      "to": "c05-n002",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n004",
+      "to": "c05-n005",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n006",
+      "to": "c05-n008",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n009",
+      "to": "c05-n010",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n012",
+      "to": "c05-n013",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n016",
+      "to": "c05-n017",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n021",
+      "to": "c05-n022",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c05-n002",
+      "to": "c05-n016",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c05-n003",
+      "to": "c05-n018",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c05-n005",
+      "to": "c05-n023",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c05-n020",
+      "to": "c05-n025",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    }
+  ]
+}
