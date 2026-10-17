@@ -1,0 +1,689 @@
+{
+  "principles": "lab-node-separation-v1",
+  "caseId": "C04",
+  "personId": "case-c04",
+  "label": "Person 4",
+  "mode": "blind_pre_diagnosis",
+  "nodes": [
+    {
+      "id": "c04-n000",
+      "sourceEventId": "28b31906-b9c2-55bf-a749-d29295b892ee",
+      "sequence": 0,
+      "sourceType": "note",
+      "text": "Insect bite followed by bullseye-like rash.",
+      "capturedAt": "2021-01-01T00:00:00Z",
+      "relativeTime": "six_months_before_event",
+      "lineageId": "28b31906-b9c2-55bf-a749-d29295b892ee",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n001",
+      "sourceEventId": "92a71b3e-ed92-512f-928b-3fbc45991076",
+      "sequence": 1,
+      "sourceType": "note",
+      "text": "Constipation and urinary difficulty.",
+      "capturedAt": "2021-01-01T01:00:00Z",
+      "relativeTime": "two_weeks_before_ED",
+      "lineageId": "92a71b3e-ed92-512f-928b-3fbc45991076",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n002",
+      "sourceEventId": "9096b946-d565-529a-a9dc-0af79f3fec50",
+      "sequence": 2,
+      "sourceType": "note",
+      "text": "Sudden resolving chest pain followed by progressive right lower limb weakness.",
+      "capturedAt": "2021-01-01T02:00:00Z",
+      "relativeTime": "ED_onset",
+      "lineageId": "9096b946-d565-529a-a9dc-0af79f3fec50",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n003",
+      "sourceEventId": "f3881b48-0098-5aef-8e25-4ccc13c4d032",
+      "sequence": 3,
+      "sourceType": "note",
+      "text": "Progressed to bilateral severe flaccid lower limb paresis with bladder retention and reduced anal tone.",
+      "capturedAt": "2021-01-01T03:00:00Z",
+      "relativeTime": "first_24_hours",
+      "lineageId": "f3881b48-0098-5aef-8e25-4ccc13c4d032",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n004",
+      "sourceEventId": "b11a7c0a-5521-5f40-b54b-7f346a3584ec",
+      "sequence": 4,
+      "sourceType": "note",
+      "text": "MRI showed anterior spinal cord T2 signal from T4 to conus without enhancement.",
+      "capturedAt": "2021-01-01T04:00:00Z",
+      "relativeTime": "initial_workup",
+      "lineageId": "b11a7c0a-5521-5f40-b54b-7f346a3584ec",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n005",
+      "sourceEventId": "4626ce07-4506-579f-ac0d-10678489671e",
+      "sequence": 5,
+      "sourceType": "note",
+      "text": "IV methylprednisolone followed by improved exam and interval MRI resolution.",
+      "capturedAt": "2021-01-01T05:00:00Z",
+      "relativeTime": "hospital_day_3_to_10",
+      "lineageId": "4626ce07-4506-579f-ac0d-10678489671e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n006",
+      "sourceEventId": "e4e8d582-5171-5365-9a9c-fcc23c10b231",
+      "sequence": 6,
+      "sourceType": "note",
+      "text": "Age and sex: 55-year-old right-handed man. Delivery driver; hypertension on beta blocker; ex-smoker, 30 pack-year history.",
+      "capturedAt": "2021-01-01T06:00:00Z",
+      "relativeTime": "baseline",
+      "lineageId": "e4e8d582-5171-5365-9a9c-fcc23c10b231",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n007",
+      "sourceEventId": "50b989f2-d8f5-5edc-b0ec-2673f770ab07",
+      "sequence": 7,
+      "sourceType": "note",
+      "text": "Skin exposure event: Insect bite followed by erythematous bullseye-like rash. No recent travel, vaccination, or unusual animal exposure reported.",
+      "capturedAt": "2021-01-01T07:00:00Z",
+      "relativeTime": "six_months_before_event",
+      "lineageId": "50b989f2-d8f5-5edc-b0ec-2673f770ab07",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n008",
+      "sourceEventId": "4e739242-3499-5691-817c-62d34f0032a1",
+      "sequence": 8,
+      "sourceType": "note",
+      "text": "Bowel and urinary symptoms: Constipation and difficulty passing urine.",
+      "capturedAt": "2021-01-01T08:00:00Z",
+      "relativeTime": "two_weeks_before_ED",
+      "lineageId": "4e739242-3499-5691-817c-62d34f0032a1",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n009",
+      "sourceEventId": "fec420d9-ae39-53ee-9e59-f9d039123027",
+      "sequence": 9,
+      "sourceType": "note",
+      "text": "Chest pain: Sudden central chest pain while walking, lasting approximately 20 minutes and resolving spontaneously.",
+      "capturedAt": "2021-01-01T09:00:00Z",
+      "relativeTime": "ED_onset",
+      "lineageId": "fec420d9-ae39-53ee-9e59-f9d039123027",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n010",
+      "sourceEventId": "2e1db72d-124c-57d0-99ba-3b4df27ad6f9",
+      "sequence": 10,
+      "sourceType": "note",
+      "text": "Right lower limb weakness: Gradually worsening right lower limb weakness after chest pain; still able to drive and walk one hour after onset.",
+      "capturedAt": "2021-01-01T10:00:00Z",
+      "relativeTime": "ED_onset",
+      "lineageId": "2e1db72d-124c-57d0-99ba-3b4df27ad6f9",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n011",
+      "sourceEventId": "ddcb188b-c0c4-5f99-ad6e-5d425d1b9f18",
+      "sequence": 11,
+      "sourceType": "lab_text",
+      "text": "General status: Afebrile and vitals stable. Cardiorespiratory and abdominal examinations unremarkable. ECG showed normal sinus rhythm with T-wave inversion in aVL and V1.",
+      "capturedAt": "2021-01-01T11:00:00Z",
+      "relativeTime": "admission_exam",
+      "lineageId": "ddcb188b-c0c4-5f99-ad6e-5d425d1b9f18",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n012",
+      "sourceEventId": "48b8348a-8fef-56e0-b59e-7c21a2f9d71e",
+      "sequence": 12,
+      "sourceType": "note",
+      "text": "Mental and cranial nerves: Alert and oriented; no cranial neuropathy.",
+      "capturedAt": "2021-01-01T12:00:00Z",
+      "relativeTime": "admission_neuro_exam",
+      "lineageId": "48b8348a-8fef-56e0-b59e-7c21a2f9d71e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n013",
+      "sourceEventId": "5713c726-b220-5cc4-975d-eec84d16bf76",
+      "sequence": 13,
+      "sourceType": "note",
+      "text": "Right lower limb tone and strength: Reduced tone; hip/knee flexion 3/5, hip extension 3/5, knee extension 2/5, ankle dorsiflexion 3/5, plantarflexion 2/5.",
+      "capturedAt": "2021-01-01T13:00:00Z",
+      "relativeTime": "admission_neuro_exam",
+      "lineageId": "5713c726-b220-5cc4-975d-eec84d16bf76",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n014",
+      "sourceEventId": "6110d7de-09da-58c4-bac1-5f012f6ca021",
+      "sequence": 14,
+      "sourceType": "note",
+      "text": "Reflexes and plantar response: Absent right lower limb reflexes; normal elsewhere; plantar responses downgoing bilaterally.",
+      "capturedAt": "2021-01-01T14:00:00Z",
+      "relativeTime": "admission_neuro_exam",
+      "lineageId": "6110d7de-09da-58c4-bac1-5f012f6ca021",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n015",
+      "sourceEventId": "90ef3016-5919-5770-a420-09b818757ce8",
+      "sequence": 15,
+      "sourceType": "note",
+      "text": "Sensory and coordination: Sensory exam normal; no ataxia.",
+      "capturedAt": "2021-01-01T15:00:00Z",
+      "relativeTime": "admission_neuro_exam",
+      "lineageId": "90ef3016-5919-5770-a420-09b818757ce8",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n016",
+      "sourceEventId": "dd26bcb7-da79-5db2-a945-6b05a474bb5d",
+      "sequence": 16,
+      "sourceType": "note",
+      "text": "Progression to bilateral paresis: Bilateral severe flaccid lower-limb paresis. Right: hip flexion 2/5, extension 3/5, abduction/adduction 3/5, knee flexion/extension 2/5, ankle dorsiflexion 1/5, plantarflexion 2/5. Left: hip flexion 3/5, extension 4/5, abduction/adduction 3/5, knee flexion/extension 3/5, ankle dorsiflexion/plantarflexion 4/5.",
+      "capturedAt": "2021-01-01T16:00:00Z",
+      "relativeTime": "next_24_hours",
+      "lineageId": "dd26bcb7-da79-5db2-a945-6b05a474bb5d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n017",
+      "sourceEventId": "58410507-0648-5120-8adb-95bc98937aab",
+      "sequence": 17,
+      "sourceType": "note",
+      "text": "Reflexes after progression: Bilateral absent knee and ankle reflexes; upgoing plantar responses.",
+      "capturedAt": "2021-01-01T17:00:00Z",
+      "relativeTime": "next_24_hours",
+      "lineageId": "58410507-0648-5120-8adb-95bc98937aab",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n018",
+      "sourceEventId": "724de41c-ec89-5373-b8bb-553977182935",
+      "sequence": 18,
+      "sourceType": "note",
+      "text": "Sensation and sacral findings: Patchy pinprick impairment in upper chest; proprioception, light touch, and temperature intact; post-void bladder scan 410 mL; reduced anal tone with intact sensation.",
+      "capturedAt": "2021-01-01T18:00:00Z",
+      "relativeTime": "next_24_hours",
+      "lineageId": "724de41c-ec89-5373-b8bb-553977182935",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n019",
+      "sourceEventId": "54ae8f4d-3f7e-5aa2-9dfe-9005f6d5ef20",
+      "sequence": 19,
+      "sourceType": "lab_text",
+      "text": "CBC: Normal except macrocytosis. MCV 106 fL.",
+      "capturedAt": "2021-01-01T19:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "54ae8f4d-3f7e-5aa2-9dfe-9005f6d5ef20",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n020",
+      "sourceEventId": "03d10c8b-ea1a-58cc-b5ee-d72b04f0b477",
+      "sequence": 20,
+      "sourceType": "lab_text",
+      "text": "MCV: 106 fL",
+      "capturedAt": "2021-01-01T20:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "03d10c8b-ea1a-58cc-b5ee-d72b04f0b477",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n021",
+      "sourceEventId": "00630223-dd3d-5352-8d9b-0bb46cea0aba",
+      "sequence": 21,
+      "sourceType": "lab_text",
+      "text": "Liver and renal function: Normal.",
+      "capturedAt": "2021-01-01T21:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "00630223-dd3d-5352-8d9b-0bb46cea0aba",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n022",
+      "sourceEventId": "348c6d41-7820-5e06-b10f-e2e4d538a143",
+      "sequence": 22,
+      "sourceType": "lab_text",
+      "text": "CRP: <5 mg/L",
+      "capturedAt": "2021-01-01T22:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "348c6d41-7820-5e06-b10f-e2e4d538a143",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n023",
+      "sourceEventId": "2179ce55-70e1-571d-8856-6afe96f923eb",
+      "sequence": 23,
+      "sourceType": "lab_text",
+      "text": "ESR: 18 mm/h",
+      "capturedAt": "2021-01-01T23:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "2179ce55-70e1-571d-8856-6afe96f923eb",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n024",
+      "sourceEventId": "6eabfdfe-9dc3-5d17-bb92-00cac72b0ce2",
+      "sequence": 24,
+      "sourceType": "lab_text",
+      "text": "Troponin serial and D-dimer: Negative.",
+      "capturedAt": "2021-01-02T00:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "6eabfdfe-9dc3-5d17-bb92-00cac72b0ce2",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n025",
+      "sourceEventId": "eaf3943e-d3ab-582f-a8c1-1c0568fe093f",
+      "sequence": 25,
+      "sourceType": "lab_text",
+      "text": "Blood alcohol: 161 mg/dL",
+      "capturedAt": "2021-01-02T01:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "eaf3943e-d3ab-582f-a8c1-1c0568fe093f",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n026",
+      "sourceEventId": "2a9ff8cc-429d-5e68-986b-2e2c7bef4e1e",
+      "sequence": 26,
+      "sourceType": "lab_text",
+      "text": "LDL cholesterol: 4.9 mmol/L",
+      "capturedAt": "2021-01-02T02:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "2a9ff8cc-429d-5e68-986b-2e2c7bef4e1e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n027",
+      "sourceEventId": "70e7219a-0218-5b8a-b4fa-13257b9d7606",
+      "sequence": 27,
+      "sourceType": "lab_text",
+      "text": "HDL cholesterol: 1.3 mmol/L",
+      "capturedAt": "2021-01-02T03:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "70e7219a-0218-5b8a-b4fa-13257b9d7606",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n028",
+      "sourceEventId": "9e21ea80-522c-559c-a6f4-fa42e1256f32",
+      "sequence": 28,
+      "sourceType": "lab_text",
+      "text": "Hematinics, thyroid, HbA1c, ACE: Normal. Included B12, folate, iron, thyroid, HbA1c, and ACE.",
+      "capturedAt": "2021-01-02T04:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "9e21ea80-522c-559c-a6f4-fa42e1256f32",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n029",
+      "sourceEventId": "b2c58efc-9005-5986-a4d9-6d10b5bcde4c",
+      "sequence": 29,
+      "sourceType": "lab_text",
+      "text": "SARS-CoV-2 RNA and IgG: Negative.",
+      "capturedAt": "2021-01-02T05:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "b2c58efc-9005-5986-a4d9-6d10b5bcde4c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n030",
+      "sourceEventId": "083e3afe-3977-59a1-a0d0-edd31401a774",
+      "sequence": 30,
+      "sourceType": "image_caption",
+      "text": "Chest X-ray: No acute pathology.",
+      "capturedAt": "2021-01-02T06:00:00Z",
+      "relativeTime": "initial_imaging",
+      "lineageId": "083e3afe-3977-59a1-a0d0-edd31401a774",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n031",
+      "sourceEventId": "a6af8c91-096a-5cf7-8564-4fb82b46dd84",
+      "sequence": 31,
+      "sourceType": "image_caption",
+      "text": "CT brain: Mild cerebral atrophy and periventricular low-density changes consistent with chronic microvascular disease.",
+      "capturedAt": "2021-01-02T07:00:00Z",
+      "relativeTime": "initial_imaging",
+      "lineageId": "a6af8c91-096a-5cf7-8564-4fb82b46dd84",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n032",
+      "sourceEventId": "ef7b75d8-fe78-5032-bcd3-2ce4cf77110a",
+      "sequence": 32,
+      "sourceType": "image_caption",
+      "text": "MRI brain and whole spine with contrast: Abnormal increased T2 signal in anterior spinal cord from T4 to conus; no cord edema or enhancement. Axial non-enhancing anterior/centromedullary T2 hyperintensity; DWI insufficient resolution.",
+      "capturedAt": "2021-01-02T08:00:00Z",
+      "relativeTime": "initial_mri",
+      "lineageId": "ef7b75d8-fe78-5032-bcd3-2ce4cf77110a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n033",
+      "sourceEventId": "d0a34b74-f0a2-5764-b6d5-c45b233d121e",
+      "sequence": 33,
+      "sourceType": "note",
+      "text": "IV methylprednisolone: 1 g daily; improvement after first dose; 3-day course.",
+      "capturedAt": "2021-01-02T09:00:00Z",
+      "relativeTime": "hospital_day_3",
+      "lineageId": "d0a34b74-f0a2-5764-b6d5-c45b233d121e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n034",
+      "sourceEventId": "e2f7ec16-c0e9-530a-acea-cd477aa538c0",
+      "sequence": 34,
+      "sourceType": "note",
+      "text": "Aspirin: 300 mg started.",
+      "capturedAt": "2021-01-02T10:00:00Z",
+      "relativeTime": "hospital_day_4",
+      "lineageId": "e2f7ec16-c0e9-530a-acea-cd477aa538c0",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c04-n035",
+      "sourceEventId": "ae57de30-fae5-5770-a13b-92396469298e",
+      "sequence": 35,
+      "sourceType": "image_caption",
+      "text": "Repeat MRI: Interval resolution of lower cord/conus T2 signal.",
+      "capturedAt": "2021-01-02T11:00:00Z",
+      "relativeTime": "hospital_day_10",
+      "lineageId": "ae57de30-fae5-5770-a13b-92396469298e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    }
+  ],
+  "links": [
+    {
+      "from": "c04-n000",
+      "to": "c04-n007",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n001",
+      "to": "c04-n008",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n002",
+      "to": "c04-n009",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n009",
+      "to": "c04-n010",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n012",
+      "to": "c04-n013",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n013",
+      "to": "c04-n014",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n014",
+      "to": "c04-n015",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n016",
+      "to": "c04-n017",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n017",
+      "to": "c04-n018",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n019",
+      "to": "c04-n020",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n020",
+      "to": "c04-n021",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n021",
+      "to": "c04-n022",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n022",
+      "to": "c04-n023",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n024",
+      "to": "c04-n025",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n025",
+      "to": "c04-n026",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n026",
+      "to": "c04-n027",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n027",
+      "to": "c04-n028",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n028",
+      "to": "c04-n029",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n030",
+      "to": "c04-n031",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c04-n000",
+      "to": "c04-n001",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n002",
+      "to": "c04-n003",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n004",
+      "to": "c04-n005",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n007",
+      "to": "c04-n008",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n010",
+      "to": "c04-n011",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n015",
+      "to": "c04-n016",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n018",
+      "to": "c04-n019",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n029",
+      "to": "c04-n030",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n031",
+      "to": "c04-n032",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n033",
+      "to": "c04-n034",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c04-n013",
+      "to": "c04-n016",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c04-n004",
+      "to": "c04-n032",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c04-n014",
+      "to": "c04-n017",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c04-n002",
+      "to": "c04-n010",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c04-n003",
+      "to": "c04-n018",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c04-n005",
+      "to": "c04-n035",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    }
+  ]
+}

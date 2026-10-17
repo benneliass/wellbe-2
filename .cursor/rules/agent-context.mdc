@@ -37,5 +37,6 @@ A subagent starts clean and does not receive these rules. When you launch one, p
 - When user-facing behavior or UI direction changes: `ui-vision-sync.mdc`. If `ui_vision.md` changes, also `ui-vision-prompt-sync.mdc`.
 - When the user asked for a commit: `always-commit.mdc`.
 - Before a push, a merge to `main`, or a subagent that could push: `ci-before-main.mdc`.
+- Starting, stopping, or restarting the Raw Context Brain lab server: run `labs/raw-context-brain/dev-server.sh`. Do not start Vite on port 5199 by hand.
 
 `layer:process` and `component:agent-context` are only for this index and this rule. Product issues keep their own component.

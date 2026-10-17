@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raw Context Brain lab</title>
+    <link rel="stylesheet" href="/src/viz/style.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">WEL-87 theory lab</p>
+        <h1>Raw Context Brain</h1>
+      </div>
+      <p class="legend">
+        Synthetic context only. Color is the kind of record. A larger circle has more links. This is not a diagnosis.
+      </p>
+      <nav class="views" id="people" aria-label="People"></nav>
+    </header>
+    <main>
+      <section class="stage-wrap">
+        <div class="key" aria-hidden="true">
+          <span><i class="swatch note"></i> Note</span>
+          <span><i class="swatch result"></i> Result</span>
+          <span><i class="swatch image"></i> Image</span>
+          <span><i class="swatch file"></i> File</span>
+        </div>
+        <div class="stage" id="stage"></div>
+        <div class="degree-labels" id="degree-labels"></div>
+        <div class="examples" id="examples">
+          <button type="button" id="reset">Clear choice and show the full map</button>
+        </div>
+        <div class="note-add" id="note-add" hidden>
+          <form class="note-pop" id="capture" hidden>
+            <p class="hint">A new note for this person only. A guess does not erase a recorded link.</p>
+            <p id="suggest-status" class="status">Nothing saved yet.</p>
+            <ul id="assessments"></ul>
+            <label>
+              Add a note
+              <textarea id="note" rows="3">short sleep woke early fatigue</textarea>
+            </label>
+            <button type="submit" id="store">Save and see what may relate</button>
+          </form>
+          <button type="button" id="new-note">New note</button>
+        </div>
+      </section>
+      <aside>
+        <section>
+          <h2>Opened notes</h2>
+          <p class="hint">Each note you open stays here, in that order. The latest one is open.</p>
+          <div id="note-facts"></div>
+          <p id="source">Click a note on the map.</p>
+        </section>
+      </aside>
+    </main>
+    <script type="module" src="/src/viz/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,695 @@
+{
+  "principles": "lab-node-separation-v1",
+  "caseId": "C03",
+  "personId": "case-c03",
+  "label": "Person 3",
+  "mode": "blind_pre_diagnosis",
+  "nodes": [
+    {
+      "id": "c03-n000",
+      "sourceEventId": "9d1ef48a-3e36-5d60-90d1-bb5d8d1293d9",
+      "sequence": 0,
+      "sourceType": "note",
+      "text": "High-grade evening fevers, diffuse arthralgia, fatigue, and sore throat.",
+      "capturedAt": "2020-01-01T00:00:00Z",
+      "relativeTime": "two_weeks_before_ED",
+      "lineageId": "9d1ef48a-3e36-5d60-90d1-bb5d8d1293d9",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n001",
+      "sourceEventId": "4cb8c714-adb5-525c-ada9-63e036798f28",
+      "sequence": 1,
+      "sourceType": "note",
+      "text": "Febrile and uncomfortable with joint tenderness; no visible rash, lymphadenopathy, or hepatosplenomegaly.",
+      "capturedAt": "2020-01-01T01:00:00Z",
+      "relativeTime": "ED_presentation",
+      "lineageId": "4cb8c714-adb5-525c-ada9-63e036798f28",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n002",
+      "sourceEventId": "2e9627db-939a-5b36-b640-7add3b29ad58",
+      "sequence": 2,
+      "sourceType": "note",
+      "text": "Very high CRP and ferritin, mild ESR elevation, liver enzyme abnormalities, normal creatinine, normal smear and platelets within reference range.",
+      "capturedAt": "2020-01-01T02:00:00Z",
+      "relativeTime": "initial_workup",
+      "lineageId": "2e9627db-939a-5b36-b640-7add3b29ad58",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n003",
+      "sourceEventId": "4965fe4c-06d9-5067-8f5c-b65d51e188f7",
+      "sequence": 3,
+      "sourceType": "note",
+      "text": "Cultures, broad infectious serologies, autoimmune serologies, complements, and CT imaging were unrevealing.",
+      "capturedAt": "2020-01-01T03:00:00Z",
+      "relativeTime": "hospital_workup",
+      "lineageId": "4965fe4c-06d9-5067-8f5c-b65d51e188f7",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n004",
+      "sourceEventId": "98ec3460-d91e-5711-9e74-a41a1ea5aae0",
+      "sequence": 4,
+      "sourceType": "note",
+      "text": "Fevers and inflammatory markers persisted despite broad-spectrum antibiotics.",
+      "capturedAt": "2020-01-01T04:00:00Z",
+      "relativeTime": "hospital_workup",
+      "lineageId": "98ec3460-d91e-5711-9e74-a41a1ea5aae0",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n005",
+      "sourceEventId": "c1b4382a-5587-5cc6-b5ec-01a809db8aae",
+      "sequence": 5,
+      "sourceType": "note",
+      "text": "Age, sex, background: 34-year-old previously healthy Asian man in the United Arab Emirates.",
+      "capturedAt": "2020-01-01T05:00:00Z",
+      "relativeTime": "presentation",
+      "lineageId": "c1b4382a-5587-5cc6-b5ec-01a809db8aae",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n006",
+      "sourceEventId": "cfaccd32-4808-589b-b189-fe4b62fa3cd8",
+      "sequence": 6,
+      "sourceType": "note",
+      "text": "Fever duration and pattern: Two weeks of high-grade evening fevers.",
+      "capturedAt": "2020-01-01T06:00:00Z",
+      "relativeTime": "presentation",
+      "lineageId": "cfaccd32-4808-589b-b189-fe4b62fa3cd8",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n007",
+      "sourceEventId": "a0275465-e51c-56cc-a3ee-8aa4b0a2dc9f",
+      "sequence": 7,
+      "sourceType": "note",
+      "text": "Joint and constitutional symptoms: Diffuse arthralgia, fatigue, and sore throat.",
+      "capturedAt": "2020-01-01T07:00:00Z",
+      "relativeTime": "presentation",
+      "lineageId": "a0275465-e51c-56cc-a3ee-8aa4b0a2dc9f",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n008",
+      "sourceEventId": "832bbe58-6ba8-5de6-9496-73059b32ea34",
+      "sequence": 8,
+      "sourceType": "note",
+      "text": "Symptoms/exposures denied: Denied weight loss, cough, gastrointestinal symptoms, urinary symptoms, night sweats, sick contacts, recent travel, unpasteurized dairy, livestock, water, or zoonotic exposure.",
+      "capturedAt": "2020-01-01T08:00:00Z",
+      "relativeTime": "presentation",
+      "lineageId": "832bbe58-6ba8-5de6-9496-73059b32ea34",
+      "independence": "source_family",
+      "sourceArrival": "typed",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n009",
+      "sourceEventId": "c88155b5-e5d6-545e-a049-a78556f65097",
+      "sequence": 9,
+      "sourceType": "note",
+      "text": "General appearance: Visibly unwell, febrile, diaphoretic, and uncomfortable. Hemodynamically stable, alert, and oriented.",
+      "capturedAt": "2020-01-01T09:00:00Z",
+      "relativeTime": "presentation_exam",
+      "lineageId": "c88155b5-e5d6-545e-a049-a78556f65097",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n010",
+      "sourceEventId": "d0858e60-40b9-5690-a421-1e8e6d453d38",
+      "sequence": 10,
+      "sourceType": "note",
+      "text": "Joint exam: Joint tenderness and restricted mobility.",
+      "capturedAt": "2020-01-01T10:00:00Z",
+      "relativeTime": "presentation_exam",
+      "lineageId": "d0858e60-40b9-5690-a421-1e8e6d453d38",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n011",
+      "sourceEventId": "2d1b864e-1f54-5c31-a93a-40d2021f71b3",
+      "sequence": 11,
+      "sourceType": "note",
+      "text": "Skin/lymph/organ exam: No visible rash, no lymphadenopathy, no hepatosplenomegaly. Cardiopulmonary and abdominal exams unremarkable.",
+      "capturedAt": "2020-01-01T11:00:00Z",
+      "relativeTime": "presentation_exam",
+      "lineageId": "2d1b864e-1f54-5c31-a93a-40d2021f71b3",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n012",
+      "sourceEventId": "484d1eb7-cf06-581d-8ce4-d6d62f532a20",
+      "sequence": 12,
+      "sourceType": "lab_text",
+      "text": "CRP: >240 mg/L (reference <5)",
+      "capturedAt": "2020-01-01T12:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "484d1eb7-cf06-581d-8ce4-d6d62f532a20",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n013",
+      "sourceEventId": "7c508917-7400-5028-b96d-7dbbe7eea8de",
+      "sequence": 13,
+      "sourceType": "lab_text",
+      "text": "ESR: 24 mm/h (reference <20)",
+      "capturedAt": "2020-01-01T13:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "7c508917-7400-5028-b96d-7dbbe7eea8de",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n014",
+      "sourceEventId": "c11006fa-52ff-5bc0-aae6-9360afd4f371",
+      "sequence": 14,
+      "sourceType": "lab_text",
+      "text": "Ferritin: 6900 ng/mL (reference 30-400)",
+      "capturedAt": "2020-01-01T14:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "c11006fa-52ff-5bc0-aae6-9360afd4f371",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n015",
+      "sourceEventId": "eed1aad3-3b53-538a-bb86-7c22de98b03c",
+      "sequence": 15,
+      "sourceType": "lab_text",
+      "text": "ALT: 126 U/L (reference <40)",
+      "capturedAt": "2020-01-01T15:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "eed1aad3-3b53-538a-bb86-7c22de98b03c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n016",
+      "sourceEventId": "59bc4ee8-4751-5cc7-89f2-a07dda7b0182",
+      "sequence": 16,
+      "sourceType": "lab_text",
+      "text": "AST: 76 U/L (reference <40)",
+      "capturedAt": "2020-01-01T16:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "59bc4ee8-4751-5cc7-89f2-a07dda7b0182",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n017",
+      "sourceEventId": "2cd81fca-edb1-51be-8266-ddd169700dd9",
+      "sequence": 17,
+      "sourceType": "lab_text",
+      "text": "ALP: 170 U/L (reference 40-120)",
+      "capturedAt": "2020-01-01T17:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "2cd81fca-edb1-51be-8266-ddd169700dd9",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n018",
+      "sourceEventId": "97f1a289-fe27-512f-930a-bab5f8adb081",
+      "sequence": 18,
+      "sourceType": "lab_text",
+      "text": "GGT: 249 U/L (reference <60)",
+      "capturedAt": "2020-01-01T18:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "97f1a289-fe27-512f-930a-bab5f8adb081",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n019",
+      "sourceEventId": "b493baa5-eeee-5ffc-9b08-9bc92f09e755",
+      "sequence": 19,
+      "sourceType": "lab_text",
+      "text": "Total bilirubin: 22 umol/L (reference 5-21)",
+      "capturedAt": "2020-01-01T19:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "b493baa5-eeee-5ffc-9b08-9bc92f09e755",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n020",
+      "sourceEventId": "e7141198-9c0b-5225-b41f-d566daf89dc9",
+      "sequence": 20,
+      "sourceType": "lab_text",
+      "text": "Direct bilirubin: 10.9 umol/L (reference <5)",
+      "capturedAt": "2020-01-01T20:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "e7141198-9c0b-5225-b41f-d566daf89dc9",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n021",
+      "sourceEventId": "2c2fad1a-4d3a-52e0-879c-a2bf8e62c61c",
+      "sequence": 21,
+      "sourceType": "lab_text",
+      "text": "Platelets initial: 160-170 x10^9/L (reference 150-450)",
+      "capturedAt": "2020-01-01T21:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "2c2fad1a-4d3a-52e0-879c-a2bf8e62c61c",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n022",
+      "sourceEventId": "c2b16bdd-a399-50cb-b782-2b22c0acf786",
+      "sequence": 22,
+      "sourceType": "lab_text",
+      "text": "Platelets later: >200 x10^9/L (reference 150-450)",
+      "capturedAt": "2020-01-01T22:00:00Z",
+      "relativeTime": "later_labs",
+      "lineageId": "c2b16bdd-a399-50cb-b782-2b22c0acf786",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n023",
+      "sourceEventId": "bb4e2936-d089-578e-bacf-8aea3d0a11df",
+      "sequence": 23,
+      "sourceType": "lab_text",
+      "text": "Peripheral smear: Normal.",
+      "capturedAt": "2020-01-01T23:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "bb4e2936-d089-578e-bacf-8aea3d0a11df",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n024",
+      "sourceEventId": "110c1069-4376-58c5-8da8-045330a1dc6b",
+      "sequence": 24,
+      "sourceType": "lab_text",
+      "text": "Triglycerides: 1.4 mmol/L (reference <1.7)",
+      "capturedAt": "2020-01-02T00:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "110c1069-4376-58c5-8da8-045330a1dc6b",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n025",
+      "sourceEventId": "456d9d82-47b8-5cd3-aab1-eef0a431dc0a",
+      "sequence": 25,
+      "sourceType": "lab_text",
+      "text": "Cholesterol: 3.82 mmol/L (reference <5.2)",
+      "capturedAt": "2020-01-02T01:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "456d9d82-47b8-5cd3-aab1-eef0a431dc0a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n026",
+      "sourceEventId": "17fcc173-0bb8-570f-954b-855132d59b6a",
+      "sequence": 26,
+      "sourceType": "lab_text",
+      "text": "Creatinine: 78 umol/L (reference 64-104)",
+      "capturedAt": "2020-01-02T02:00:00Z",
+      "relativeTime": "initial_labs",
+      "lineageId": "17fcc173-0bb8-570f-954b-855132d59b6a",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n027",
+      "sourceEventId": "87312413-0723-5b05-a974-b7879281de92",
+      "sequence": 27,
+      "sourceType": "lab_text",
+      "text": "Blood, urine, and sputum cultures: Negative.",
+      "capturedAt": "2020-01-02T03:00:00Z",
+      "relativeTime": "infectious_workup",
+      "lineageId": "87312413-0723-5b05-a974-b7879281de92",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n028",
+      "sourceEventId": "9a866792-3078-5172-80bc-4cf37924ec1e",
+      "sequence": 28,
+      "sourceType": "lab_text",
+      "text": "Dengue, chikungunya, leptospirosis, brucellosis, typhoid: Negative.",
+      "capturedAt": "2020-01-02T04:00:00Z",
+      "relativeTime": "infectious_workup",
+      "lineageId": "9a866792-3078-5172-80bc-4cf37924ec1e",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n029",
+      "sourceEventId": "b068c9d7-530a-564a-a64a-ea26598229d7",
+      "sequence": 29,
+      "sourceType": "lab_text",
+      "text": "EBV, CMV, HIV, hepatitis A/B/C: Negative.",
+      "capturedAt": "2020-01-02T05:00:00Z",
+      "relativeTime": "infectious_workup",
+      "lineageId": "b068c9d7-530a-564a-a64a-ea26598229d7",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n030",
+      "sourceEventId": "981cecb6-bdf0-5ab2-becb-3814bc897e77",
+      "sequence": 30,
+      "sourceType": "lab_text",
+      "text": "Malaria testing and Quantiferon: Negative/nonreactive.",
+      "capturedAt": "2020-01-02T06:00:00Z",
+      "relativeTime": "infectious_workup",
+      "lineageId": "981cecb6-bdf0-5ab2-becb-3814bc897e77",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n031",
+      "sourceEventId": "1acb7382-f246-5913-b918-5e6a71bb2ba7",
+      "sequence": 31,
+      "sourceType": "lab_text",
+      "text": "ANA, dsDNA, RF, anti-CCP, ENA: Negative.",
+      "capturedAt": "2020-01-02T07:00:00Z",
+      "relativeTime": "autoimmune_workup",
+      "lineageId": "1acb7382-f246-5913-b918-5e6a71bb2ba7",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n032",
+      "sourceEventId": "d76b3ba4-fc97-5d5f-9b7b-e3defd26ade8",
+      "sequence": 32,
+      "sourceType": "lab_text",
+      "text": "Complement levels: Normal/preserved.",
+      "capturedAt": "2020-01-02T08:00:00Z",
+      "relativeTime": "autoimmune_workup",
+      "lineageId": "d76b3ba4-fc97-5d5f-9b7b-e3defd26ade8",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n033",
+      "sourceEventId": "033bfd29-6a36-5b64-8d2a-bbc796186a8d",
+      "sequence": 33,
+      "sourceType": "image_caption",
+      "text": "CT chest, abdomen, and brain: No malignancy, granulomatous disease, or abscess detected.",
+      "capturedAt": "2020-01-02T09:00:00Z",
+      "relativeTime": "imaging_workup",
+      "lineageId": "033bfd29-6a36-5b64-8d2a-bbc796186a8d",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n034",
+      "sourceEventId": "5606e83f-0d38-525d-85fb-da3d06cda1b4",
+      "sequence": 34,
+      "sourceType": "note",
+      "text": "Broad-spectrum antibiotics: Meropenem and linezolid were given.",
+      "capturedAt": "2020-01-02T10:00:00Z",
+      "relativeTime": "empirical_treatment",
+      "lineageId": "5606e83f-0d38-525d-85fb-da3d06cda1b4",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    },
+    {
+      "id": "c03-n035",
+      "sourceEventId": "7bdc5105-56d2-5265-82ee-55481972fed4",
+      "sequence": 35,
+      "sourceType": "note",
+      "text": "Response to broad-spectrum antibiotics: Fevers and inflammatory markers persisted.",
+      "capturedAt": "2020-01-02T11:00:00Z",
+      "relativeTime": "after_antibiotics",
+      "lineageId": "7bdc5105-56d2-5265-82ee-55481972fed4",
+      "independence": "source_family",
+      "sourceArrival": "imported",
+      "copiedFromId": null
+    }
+  ],
+  "links": [
+    {
+      "from": "c03-n003",
+      "to": "c03-n004",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n006",
+      "to": "c03-n007",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n007",
+      "to": "c03-n008",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n009",
+      "to": "c03-n010",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n010",
+      "to": "c03-n011",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n012",
+      "to": "c03-n013",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n013",
+      "to": "c03-n014",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n014",
+      "to": "c03-n015",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n015",
+      "to": "c03-n016",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n016",
+      "to": "c03-n017",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n017",
+      "to": "c03-n018",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n018",
+      "to": "c03-n019",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n019",
+      "to": "c03-n020",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n020",
+      "to": "c03-n021",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n021",
+      "to": "c03-n023",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n024",
+      "to": "c03-n025",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n025",
+      "to": "c03-n026",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n027",
+      "to": "c03-n028",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n028",
+      "to": "c03-n029",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n029",
+      "to": "c03-n030",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n031",
+      "to": "c03-n032",
+      "relation": "same_record_group",
+      "reason": "same record"
+    },
+    {
+      "from": "c03-n000",
+      "to": "c03-n001",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n001",
+      "to": "c03-n002",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n002",
+      "to": "c03-n003",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n008",
+      "to": "c03-n009",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n011",
+      "to": "c03-n012",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n021",
+      "to": "c03-n022",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n022",
+      "to": "c03-n023",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n026",
+      "to": "c03-n027",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n030",
+      "to": "c03-n031",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n032",
+      "to": "c03-n033",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n033",
+      "to": "c03-n034",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n034",
+      "to": "c03-n035",
+      "relation": "near_in_time",
+      "reason": "close in time"
+    },
+    {
+      "from": "c03-n004",
+      "to": "c03-n035",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c03-n000",
+      "to": "c03-n007",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    },
+    {
+      "from": "c03-n001",
+      "to": "c03-n011",
+      "relation": "possible_semantic_association",
+      "reason": "may relate"
+    }
+  ]
+}
