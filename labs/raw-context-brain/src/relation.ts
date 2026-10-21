@@ -32,11 +32,19 @@ export function independenceName(independence: Independence | undefined): string
   return "Known";
 }
 
+/** One record kind: the name on the key, the swatch, and the circle fill. */
+export const RECORD_KINDS = {
+  note: { label: "Note", hex: "#ed9e38", rgb: [0.93, 0.62, 0.22] },
+  lab_text: { label: "Result", hex: "#5494e6", rgb: [0.33, 0.58, 0.9] },
+  image_caption: { label: "Image", hex: "#59c77a", rgb: [0.35, 0.78, 0.48] },
+  pdf_extract: { label: "File", hex: "#b86bd1", rgb: [0.72, 0.42, 0.82] },
+  hub: { label: "Record", hex: "#9ea8b3", rgb: [0.62, 0.66, 0.7] },
+} as const;
+
+export const LEGEND_KINDS = ["note", "lab_text", "image_caption", "pdf_extract"] as const;
+
 /** Names a source the way Memory does: Note, Result, Image, or File. */
 export function sourceName(sourceType: string): string {
-  if (sourceType === "note") return "Note";
-  if (sourceType === "lab_text") return "Result";
-  if (sourceType === "image_caption") return "Image";
-  if (sourceType === "pdf_extract") return "File";
-  return "Record";
+  const known = RECORD_KINDS[sourceType as keyof typeof RECORD_KINDS];
+  return known?.label ?? "Record";
 }

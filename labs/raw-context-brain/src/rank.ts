@@ -19,8 +19,16 @@ export function compareRank(a: Rankable, b: Rankable): number {
   return a.id < b.id ? -1 : 1;
 }
 
+export function degreeDivisor(degree: number): number {
+  return Math.log2(2 + degree);
+}
+
 export function degreeNormalized(similarity: number, degree: number): number {
-  return similarity / Math.log2(2 + degree);
+  return similarity / degreeDivisor(degree);
+}
+
+export function inverseDegree(degree: number): number {
+  return 1 / degreeDivisor(degree);
 }
 
 export function provenanceRank(origin: "model" | "user_correction" | "policy"): number {

@@ -99,6 +99,23 @@ function canonicalDigest(edges: Map<string, AcceptedEdge>): string {
   return sha256(lines.join("\n") || "empty");
 }
 
+function dropsAcceptedEdge(ad: LinkAdvertisement): boolean {
+  return ad.withdrawn || (ad.origin === "user_correction" && ad.judgment !== "link");
+}
+
+function acceptedEdge(ad: LinkAdvertisement): AcceptedEdge {
+  return {
+    adId: ad.id,
+    fromId: ad.fromId,
+    toId: ad.toId,
+    confidence: ad.confidence,
+    reasonCode: ad.reasonCode,
+    relation: ad.relation,
+    evidenceIds: [...ad.evidenceIds],
+    origin: ad.origin,
+  };
+}
+
 export class Projection {
   revision = 0;
   status: "ready" | "rebuilding" = "ready";
@@ -132,7 +149,7 @@ export class Projection {
 
   apply(ad: LinkAdvertisement): boolean {
     const key = edgeKey(ad.fromId, ad.toId);
-    if (ad.withdrawn || (ad.origin === "user_correction" && ad.judgment !== "link")) {
+    if (dropsAcceptedEdge(ad)) {
       if (!this.edges.has(key)) return false;
       this.edges.delete(key);
       this.unlink(ad.fromId, ad.toId);
@@ -140,16 +157,7 @@ export class Projection {
       return true;
     }
     if (ad.judgment !== "link") return false;
-    const next: AcceptedEdge = {
-      adId: ad.id,
-      fromId: ad.fromId,
-      toId: ad.toId,
-      confidence: ad.confidence,
-      reasonCode: ad.reasonCode,
-      relation: ad.relation,
-      evidenceIds: [...ad.evidenceIds],
-      origin: ad.origin,
-    };
+    const next = acceptedEdge(ad);
     const previous = this.edges.get(key);
     this.edges.set(key, next);
     this.link(ad.fromId, ad.toId);
@@ -170,7 +178,7 @@ export class Projection {
     this.adjacency.clear();
     for (const ad of ads) {
       const key = edgeKey(ad.fromId, ad.toId);
-      if (ad.withdrawn || (ad.origin === "user_correction" && ad.judgment !== "link")) {
+      if (dropsAcceptedEdge(ad)) {
         if (this.edges.has(key)) {
           this.edges.delete(key);
           this.unlink(ad.fromId, ad.toId);
@@ -178,16 +186,7 @@ export class Projection {
         continue;
       }
       if (ad.judgment !== "link") continue;
-      this.edges.set(key, {
-        adId: ad.id,
-        fromId: ad.fromId,
-        toId: ad.toId,
-        confidence: ad.confidence,
-        reasonCode: ad.reasonCode,
-        relation: ad.relation,
-        evidenceIds: [...ad.evidenceIds],
-        origin: ad.origin,
-      });
+      this.edges.set(key, acceptedEdge(ad));
       this.link(ad.fromId, ad.toId);
     }
     this.digest = canonicalDigest(this.edges);

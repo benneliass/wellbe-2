@@ -208,11 +208,6 @@ main {
   vertical-align: -1px;
 }
 
-.swatch.note { background: #ed9e38; }
-.swatch.result { background: #5494e6; }
-.swatch.image { background: #59c77a; }
-.swatch.file { background: #b86bd1; }
-
 .degree-labels {
   position: absolute;
   inset: 0;

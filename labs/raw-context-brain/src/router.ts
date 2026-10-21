@@ -1,5 +1,5 @@
 import { heuristicJudge, sanitizeDecision } from "./judge.js";
-import { applyHysteresis, compareRank, degreeNormalized, provenanceRank } from "./rank.js";
+import { applyHysteresis, compareRank, degreeNormalized, inverseDegree, provenanceRank } from "./rank.js";
 import { mapRelation, sourceName } from "./relation.js";
 import { AdvertisementLog, Projection, Vault, emptyPointer, type AdvertisementDraft } from "./store.js";
 import { HnswIndex } from "./hnsw.js";
@@ -25,6 +25,8 @@ import {
   type TerminalReason,
   type VaultEvent,
 } from "./types.js";
+
+const LINEAGE_CAP = 2;
 
 interface FrontierItem {
   nodeId: string;
@@ -727,7 +729,7 @@ export class RawContextLab {
         provenance: 1,
         relevance: degreeNormalized(similarity, degree),
         novelty: 1,
-        inverseDegree: 1 / Math.log2(2 + degree),
+        inverseDegree: inverseDegree(degree),
         inverseHop: 1,
         lineage: event?.lineageId ?? id,
       });
@@ -738,7 +740,7 @@ export class RawContextLab {
     const kept: string[] = [];
     for (const item of ordered) {
       const seen = counts.get(item.lineage) ?? 0;
-      if (seen >= 2) {
+      if (seen >= LINEAGE_CAP) {
         this.metrics.pruned.push({ reason: "lineage_cap", count: 1 });
         continue;
       }
@@ -955,7 +957,7 @@ export class RawContextLab {
       if (record.frontier.some((item) => item.nodeId === other)) continue;
       const lineage = this.vault.get(other)?.lineageId ?? other;
       const seen = lineageCounts.get(lineage) ?? 0;
-      if (seen >= 2) {
+      if (seen >= LINEAGE_CAP) {
         this.metrics.pruned.push({ reason: "lineage_cap", count: 1 });
         continue;
       }
@@ -997,7 +999,7 @@ export class RawContextLab {
         provenance: provenanceRank("policy"),
         relevance: degreeNormalized(confidence, degree),
         novelty: degree === 0 ? 1 : 0.5,
-        inverseDegree: 1 / Math.log2(2 + degree),
+        inverseDegree: inverseDegree(degree),
         inverseHop: 1 / (1 + hop),
       },
     };

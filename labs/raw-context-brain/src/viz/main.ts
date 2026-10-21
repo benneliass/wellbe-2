@@ -1,9 +1,10 @@
 import { Graph } from "@cosmos.gl/graph";
 import { loadCasePeople, labFromCase } from "../cases.js";
-import { RELATION_LABEL, arrivalName, independenceName, sourceName } from "../relation.js";
+import { LEGEND_KINDS, RECORD_KINDS, RELATION_LABEL, arrivalName, independenceName, sourceName } from "../relation.js";
 import { RawContextLab } from "../router.js";
 import { memoryKeyword } from "./keyword.js";
 import { growLook, HOP_DIAMETERS, type Point } from "./look-layout.js";
+import { mapSettings } from "./settings.js";
 const stage = required(document.querySelector<HTMLDivElement>("#stage"));
 const degreeLabels = required(document.querySelector<HTMLElement>("#degree-labels"));
 const noteFacts = required(document.querySelector<HTMLElement>("#note-facts"));
@@ -18,6 +19,25 @@ const source = required(document.querySelector<HTMLElement>("#source"));
 const capture = required(document.querySelector<HTMLFormElement>("#capture"));
 const noteInput = required(document.querySelector<HTMLTextAreaElement>("#note"));
 const resetButton = required(document.querySelector<HTMLButtonElement>("#reset"));
+
+function paintRecordKey(): void {
+  const key = document.querySelector("#record-key");
+  if (!key) return;
+  key.replaceChildren(
+    ...LEGEND_KINDS.map((id) => {
+      const kind = RECORD_KINDS[id];
+      const row = document.createElement("span");
+      const swatch = document.createElement("i");
+      swatch.className = "swatch";
+      swatch.style.background = kind.hex;
+      row.append(swatch, document.createTextNode(kind.label));
+      return row;
+    }),
+  );
+}
+
+paintRecordKey();
+source.textContent = mapSettings.copy.emptyMap;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
@@ -38,13 +58,9 @@ const SPACE_SIZE = 4096;
 const CONNECTOR_LINK: [number, number, number, number] = [0.2, 0.25, 0.33, 0.72];
 const FAINT_LINK: [number, number, number, number] = [0.39, 0.45, 0.55, 0.38];
 const MAP_LINK: [number, number, number, number] = [0.39, 0.45, 0.55, 0.55];
-const KIND_RGB: Record<string, [number, number, number]> = {
-  note: [0.93, 0.62, 0.22],
-  lab_text: [0.33, 0.58, 0.9],
-  image_caption: [0.35, 0.78, 0.48],
-  pdf_extract: [0.72, 0.42, 0.82],
-  hub: [0.62, 0.66, 0.7],
-};
+const KIND_RGB: Record<string, readonly [number, number, number]> = Object.fromEntries(
+  Object.entries(RECORD_KINDS).map(([id, kind]) => [id, kind.rgb]),
+);
 
 let personId = "";
 let lab = new RawContextLab({ seed: 7, pageSize: 1, hopLimit: 24, expansionBudget: 400 });
@@ -83,7 +99,7 @@ function layout(view: { nodes: Array<{ degree: number }>; links: Array<{ source:
       : Math.sqrt(Math.max(rank - core, 0)) * spacing * (1 + wobble * 0.12);
     const angle = inCore
       ? (rank / core) * Math.PI * 2 + wobble * 0.25
-      : rank * 2.399963 + wobble * 0.55;
+      : rank * mapSettings.turn + wobble * 0.55;
     pos[item.index * 2] = Math.cos(angle) * radius;
     pos[item.index * 2 + 1] = Math.sin(angle) * radius;
   });
@@ -95,7 +111,7 @@ const STAGE_BG: [number, number, number] = [20 / 255, 24 / 255, 31 / 255];
 // One link count is one size, on the full map and on every step of a path.
 // A count of 3 is a little larger than 2. The view does not restretch them.
 function circleSize(degree: number): number {
-  return 36 + degree * 8;
+  return mapSettings.circle.base + degree * mapSettings.circle.perLink;
 }
 
 function circleSizes(degrees: ArrayLike<number>): Float32Array {
@@ -104,13 +120,44 @@ function circleSizes(degrees: ArrayLike<number>): Float32Array {
   return sizes;
 }
 
-function paintColor(rgb: [number, number, number], alpha: number): [number, number, number, number] {
+function paintColor(rgb: readonly [number, number, number], alpha: number): [number, number, number, number] {
   return [
     rgb[0] * alpha + STAGE_BG[0] * (1 - alpha),
     rgb[1] * alpha + STAGE_BG[1] * (1 - alpha),
     rgb[2] * alpha + STAGE_BG[2] * (1 - alpha),
     1,
   ];
+}
+
+// Pixel size of a circle, turned back into layout units after the cloud is fitted.
+function reservedRadii(flat: Float32Array, sizes: Float32Array, pad: number): Float32Array {
+  const count = sizes.length;
+  const radii = new Float32Array(count);
+  const canvas = stage.querySelector("canvas");
+  const clearance = mapSettings.clearance;
+  const width = canvas?.clientWidth || stage.clientWidth || clearance.fallbackWidth;
+  const height = canvas?.clientHeight || stage.clientHeight || clearance.fallbackHeight;
+  const content = Math.max(clearance.minContent, Math.min(width, height) * clearance.contentFraction);
+  const zoom = content / (SPACE_SIZE * clearance.fittedFraction);
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (let index = 0; index < count; index += 1) {
+    const x = flat[index * 2] ?? 0;
+    const y = flat[index * 2 + 1] ?? 0;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const span = Math.max(maxX - minX, maxY - minY, 1);
+  const unit = span / content;
+  for (let index = 0; index < count; index += 1) {
+    const drawn = Math.min((sizes[index] ?? clearance.fallbackSize) * zoom, clearance.pointCap);
+    radii[index] = (drawn / 2 + pad) * unit;
+  }
+  return radii;
 }
 
 // Cosmos simulationCollision treats a circle's pixel size as a map unit, so it
@@ -120,34 +167,10 @@ function paintColor(rgb: [number, number, number], alpha: number): [number, numb
 function spreadCircles(flat: Float32Array, sizes: Float32Array): void {
   const count = sizes.length;
   if (count < 2) return;
-  const canvas = stage.querySelector("canvas");
-  const width = canvas?.clientWidth || stage.clientWidth || 900;
-  const height = canvas?.clientHeight || stage.clientHeight || 700;
-  const content = Math.max(120, Math.min(width, height) * 0.6);
-  const zoom = content / (SPACE_SIZE * 0.1);
-  const spanOf = (): number => {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (let index = 0; index < count; index += 1) {
-      const x = flat[index * 2] ?? 0;
-      const y = flat[index * 2 + 1] ?? 0;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-    return Math.max(maxX - minX, maxY - minY, 1);
-  };
-  const span = spanOf();
-  const radii = new Float32Array(count);
+  const radii = reservedRadii(flat, sizes, mapSettings.clearance.spreadPad);
   let maxRadius = 1;
   for (let index = 0; index < count; index += 1) {
-    const drawn = Math.min((sizes[index] ?? 12) * zoom, 64);
-    const radius = (drawn / 2 + 4) * (span / content);
-    radii[index] = radius;
-    if (radius > maxRadius) maxRadius = radius;
+    if ((radii[index] ?? 0) > maxRadius) maxRadius = radii[index] ?? 1;
   }
   for (let pass = 0; pass < 40; pass += 1) {
     const cell = maxRadius * 2;
@@ -174,7 +197,7 @@ function spreadCircles(flat: Float32Array, sizes: Float32Array): void {
             const min = (radii[index] ?? 0) + (radii[other] ?? 0);
             if (dist >= min) continue;
             if (dist < 1e-4) {
-              const angle = (index + 1) * 2.399963;
+              const angle = (index + 1) * mapSettings.turn;
               dx = Math.cos(angle);
               dy = Math.sin(angle);
               dist = 1;
@@ -196,32 +219,7 @@ function spreadCircles(flat: Float32Array, sizes: Float32Array): void {
 }
 
 function worldRadii(flat: Float32Array, sizes: Float32Array): Float32Array {
-  const count = sizes.length;
-  const radii = new Float32Array(count);
-  const canvas = stage.querySelector("canvas");
-  const width = canvas?.clientWidth || stage.clientWidth || 900;
-  const height = canvas?.clientHeight || stage.clientHeight || 700;
-  const content = Math.max(120, Math.min(width, height) * 0.6);
-  const zoom = content / (SPACE_SIZE * 0.1);
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (let index = 0; index < count; index += 1) {
-    const x = flat[index * 2] ?? 0;
-    const y = flat[index * 2 + 1] ?? 0;
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  }
-  const span = Math.max(maxX - minX, maxY - minY, 1);
-  const unit = span / content;
-  for (let index = 0; index < count; index += 1) {
-    const drawn = Math.min((sizes[index] ?? 12) * zoom, 64);
-    radii[index] = (drawn / 2 + 10) * unit;
-  }
-  return radii;
+  return reservedRadii(flat, sizes, mapSettings.clearance.linkPad);
 }
 
 function segmentsCross(
@@ -259,7 +257,7 @@ function clearCrossings(flat: Float32Array, pairs: Array<[number, number]>, size
         const px = flat[index * 2] ?? 0;
         const py = flat[index * 2 + 1] ?? 0;
         const along = Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / length2));
-        if (along < 0.12 || along > 0.88) continue;
+        if (along < mapSettings.linkBand.start || along > mapSettings.linkBand.end) continue;
         const qx = ax + abx * along;
         const qy = ay + aby * along;
         let dx = px - qx;
@@ -321,7 +319,7 @@ function settle(flat: Float32Array, pairs: Array<[number, number]>, ideal: numbe
       let dy = (flat[right * 2 + 1] ?? 0) - (flat[left * 2 + 1] ?? 0);
       let dist = Math.hypot(dx, dy);
       if (dist < 1e-3) {
-        const angle = (left + 1) * 2.399963;
+        const angle = (left + 1) * mapSettings.turn;
         dx = Math.cos(angle);
         dy = Math.sin(angle);
         dist = 1;
@@ -341,7 +339,7 @@ function settle(flat: Float32Array, pairs: Array<[number, number]>, ideal: numbe
         let dist = Math.hypot(dx, dy);
         if (dist >= gap) continue;
         if (dist < 1e-3) {
-          const angle = (left + 1) * 2.399963;
+          const angle = (left + 1) * mapSettings.turn;
           dx = Math.cos(angle);
           dy = Math.sin(angle);
           dist = 1;
@@ -376,8 +374,8 @@ async function mount(): Promise<void> {
     linkDefaultWidth: 1.4,
     scalePointsOnZoom: true,
     curvedLinks: true,
-    curvedLinkWeight: 0.42,
-    curvedLinkControlPointDistance: 0.07,
+    curvedLinkWeight: mapSettings.curve.weight,
+    curvedLinkControlPointDistance: mapSettings.curve.control,
     linkDashLength: 11,
     linkDashGap: 8,
     renderHoveredPointRing: true,
@@ -417,7 +415,7 @@ function noteKeyword(event: { text: string; keyword?: string } | undefined): str
   return memoryKeyword(event?.text ?? "");
 }
 
-const ASIDE_TITLE_LIMIT = 48;
+const ASIDE_TITLE_LIMIT = mapSettings.headline.asideLimit;
 
 /** Words a person can match against the keyword. Splits on punctuation, so HLA-B51 yields hla and b51. */
 function asideTokens(value: string): string[] {
@@ -435,7 +433,7 @@ function asideTitle(text: string, keyword: string): string {
   const keywordIsAWord = key.length > 0 && asideTokens(line).includes(key);
   const colon = line.indexOf(":");
   let extra = "";
-  if (colon > 0 && colon <= 48) {
+  if (colon > 0 && colon <= mapSettings.headline.colonWindow) {
     const label = line.slice(0, colon).trim();
     const value = line.slice(colon + 1).trim();
     const labelTokens = asideTokens(label);
@@ -454,7 +452,7 @@ function clipAside(value: string): string {
   if (value.length <= ASIDE_TITLE_LIMIT) return value;
   const room = value.slice(0, ASIDE_TITLE_LIMIT - 1);
   const space = room.lastIndexOf(" ");
-  const trimmed = (space > 16 ? room.slice(0, space) : room).trimEnd();
+  const trimmed = (space > mapSettings.headline.clipBreakAfter ? room.slice(0, space) : room).trimEnd();
   return `${trimmed}…`;
 }
 
@@ -465,7 +463,7 @@ function renderOpenedNotes(): void {
   noteFacts.replaceChildren();
   if (trail.length === 0) {
     source.hidden = false;
-    source.textContent = "Click a note on the map.";
+    source.textContent = mapSettings.copy.emptyMap;
     return;
   }
   source.hidden = true;
@@ -890,7 +888,7 @@ function separateOverlaps(flat: Float32Array, radii: Float32Array, pinned: Reado
         const min = (radii[left] ?? 0) + (radii[right] ?? 0) + pad;
         if (dist >= min) continue;
         if (dist < 1e-4) {
-          const angle = (left + 1) * 2.399963;
+          const angle = (left + 1) * mapSettings.turn;
           dx = Math.cos(angle);
           dy = Math.sin(angle);
           dist = 1;
@@ -931,7 +929,7 @@ function driftAround(home: number[]): void {
     });
     const drifted = new Float32Array(anchor.length);
     for (let index = 0; index < labelState.length; index += 1) {
-      const phase = index * 2.399963;
+      const phase = index * mapSettings.turn;
       const held = draggingIndex === index ? dragPoint : null;
       drifted[index * 2] = held ? held.x : (anchor[index * 2] ?? 0) + Math.sin(elapsed * 0.55 + phase) * 9;
       drifted[index * 2 + 1] = held ? held.y : (anchor[index * 2 + 1] ?? 0) + Math.cos(elapsed * 0.4 + phase) * 9;
@@ -1012,7 +1010,7 @@ function conicPoint(
   t: number,
 ): { x: number; y: number } {
   const remain = 1 - t;
-  const weight = 0.42;
+  const weight = mapSettings.curve.weight;
   const x = remain * remain * start.x + 2 * remain * t * weight * control.x + t * t * end.x;
   const y = remain * remain * start.y + 2 * remain * t * weight * control.y + t * t * end.y;
   const divisor = remain * remain + 2 * remain * t * weight + t * t;
@@ -1201,8 +1199,8 @@ function placeMovingPipes(
     const dy = end.y - start.y;
     const length = Math.hypot(dx, dy) || 1;
     const control = {
-      x: (start.x + end.x) / 2 + (-dy / length) * length * 0.07,
-      y: (start.y + end.y) / 2 + (dx / length) * length * 0.07,
+      x: (start.x + end.x) / 2 + (-dy / length) * length * mapSettings.curve.control,
+      y: (start.y + end.y) / 2 + (dx / length) * length * mapSettings.curve.control,
     };
     const samples: Array<{ x: number; y: number; open: boolean }> = [];
     for (let index = 0; index <= 32; index += 1) {
@@ -1272,15 +1270,16 @@ function labelScreens(): {
   return { screen, space, offsetX, offsetY, canvas };
 }
 
-// One size for every keyword: a 6-letter word still fits in the smallest circle.
+// One size for every keyword: a word of fittedLetters still fits in the smallest circle.
 function sharedKeywordFont(screen: Map<string, { radius: number }>): number {
+  const keyword = mapSettings.keyword;
   let smallest = Infinity;
   for (const spot of screen.values()) {
     const diameter = spot.radius * 2;
-    if (diameter >= 8 && diameter < smallest) smallest = diameter;
+    if (diameter >= keyword.minDiameter && diameter < smallest) smallest = diameter;
   }
-  if (!Number.isFinite(smallest)) return 11;
-  return (smallest * 0.78) / (6 * 0.56);
+  if (!Number.isFinite(smallest)) return keyword.fallbackPx;
+  return (smallest * keyword.fillOfDiameter) / (keyword.fittedLetters * keyword.charWidthRatio);
 }
 
 function placeRing(id: string, spot: { x: number; y: number; radius: number }, origin: string | undefined): void {

@@ -1,3 +1,5 @@
+import { mapSettings } from "./settings.js";
+
 export type Point = { x: number; y: number };
 
 const AIR = 42;
@@ -149,7 +151,7 @@ function segmentHits(start: Point, end: Point, center: Point, radius: number): b
   const aby = end.y - start.y;
   const length2 = abx * abx + aby * aby || 1;
   const along = Math.max(0, Math.min(1, ((center.x - start.x) * abx + (center.y - start.y) * aby) / length2));
-  if (along < 0.12 || along > 0.88) return false;
+  if (along < mapSettings.linkBand.start || along > mapSettings.linkBand.end) return false;
   const closestX = start.x + abx * along;
   const closestY = start.y + aby * along;
   return Math.hypot(center.x - closestX, center.y - closestY) < radius;

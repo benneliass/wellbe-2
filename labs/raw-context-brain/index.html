@@ -19,12 +19,7 @@
     </header>
     <main>
       <section class="stage-wrap">
-        <div class="key" aria-hidden="true">
-          <span><i class="swatch note"></i> Note</span>
-          <span><i class="swatch result"></i> Result</span>
-          <span><i class="swatch image"></i> Image</span>
-          <span><i class="swatch file"></i> File</span>
-        </div>
+        <div class="key" id="record-key" aria-hidden="true"></div>
         <div class="stage" id="stage"></div>
         <div class="degree-labels" id="degree-labels"></div>
         <div class="examples" id="examples">
@@ -49,7 +44,7 @@
           <h2>Opened notes</h2>
           <p class="hint">Each note you open stays here, in that order. Copy path copies from the first note through that one.</p>
           <div id="note-facts"></div>
-          <p id="source">Click a note on the map.</p>
+          <p id="source"></p>
         </section>
       </aside>
     </main>
