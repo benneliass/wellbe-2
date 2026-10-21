@@ -1,0 +1,26 @@
+---
+description: WellBe UI/UX practice for screens, flows, Figma implementation, and visual edits. Load the ui-design-practice skill before changing UI.
+globs: apps/web/**/*.{tsx,jsx,css},apps/mobile/**/*.{tsx,jsx},packages/ui/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# UI design practice
+
+Before designing or editing UI, read and follow `.cursor/skills/ui-design-practice/SKILL.md`.
+
+Precedence, highest first:
+
+1. The user's current request
+2. WellBe guardrails, safety rules, and `docs/implementation/ui_vision.md`
+3. The contracts in `docs/implementation/ui/`
+4. Existing `@wellbe/ui` components and `packages/ui/src/tokens.css`
+5. The direction agreed for this task
+6. Any imported design skill
+
+A spacing or copy fix stays a spacing or copy fix. A new flow starts from `.cursor/skills/ui-design-practice/brief.md`.
+
+Use `@wellbe/ui`. Do not add a component or styling library.
+
+Phone-width in the browser checks web layout. Native checks happen on the running `apps/mobile` app.
+
+When the user asks for a review, follow `.cursor/skills/ui-design-review/SKILL.md` and do not edit.
