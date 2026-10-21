@@ -21,6 +21,10 @@ Use only `blind_pre_diagnosis/raw_events`. Do not open `answer_key`, `full_resul
 - If `notes` is a non-empty string and is not already contained in the text, append it after a space.
 - Do not add words such as suggests, explains, caused, or diagnosis.
 
+## Keyword
+
+Each node has `keyword`: a short referral already in that note’s text, at most 6 characters. It is a whole token, or the start of a token, from `text`. The same kind of note uses the same keyword across people when the text shares that token, such as ESR, CRP, Age, or Fever. It is not a new clinical label.
+
 ## Kind and arrival
 
 Read `category` as `original.category`, otherwise `original.event_type`. Read `rule` as `benchmark.source_mapping_rule`.
@@ -51,4 +55,4 @@ Apply in this order. Later rules skip a pair that is already linked.
 
 4. **May relate.** Tokens are lowercase words of length at least 5, minus this stop list: patient, history, normal, result, laboratory, negative, positive, symptom, symptoms, treatment, years, months, weeks, days, after, before, during, with, from, this, that, were, was, and, the, for, had, has, have, not, but, his, her, she, they, their, been, into, over, under, about, which, when, then, than, also, other, more, most, some, such, only, very, reported, noted, shows, showed, showing, left, right, bilateral, mild, severe, acute, chronic, test, tests, level, levels, range, reference, value, values, clinical, medical, note, notes, time, year, month, week, day, old, male, female, man, woman. A pair may relate only when both are not demographics, they are not already linked, at least one side is a `note`, they share at least two tokens, and both nodes would still have total degree at most 3 after the link. Each node gets at most one such link. Choose the pair with the most shared tokens, then the earlier sequence. Relation `possible_semantic_association`, reason `may relate`.
 
-Write `cases/case_0N/lab_nodes.json` only. Pretty-print with two-space indent. Keys on each node, in order: `id`, `sourceEventId`, `sequence`, `sourceType`, `text`, `capturedAt`, `relativeTime`, `lineageId`, `independence`, `sourceArrival`, `copiedFromId`. Link keys: `from`, `to`, `relation`, `reason`. Top-level keys: `principles`, `caseId`, `personId`, `label`, `mode`, `nodes`, `links`. `principles` is `lab-node-separation-v1`. `mode` is `blind_pre_diagnosis`.
+Write `cases/case_0N/lab_nodes.json` only. Pretty-print with two-space indent. Keys on each node, in order: `id`, `sourceEventId`, `sequence`, `sourceType`, `text`, `keyword`, `capturedAt`, `relativeTime`, `lineageId`, `independence`, `sourceArrival`, `copiedFromId`. Link keys: `from`, `to`, `relation`, `reason`. Top-level keys: `principles`, `caseId`, `personId`, `label`, `mode`, `nodes`, `links`. `principles` is `lab-node-separation-v1`. `mode` is `blind_pre_diagnosis`.

@@ -44,6 +44,8 @@ export interface VaultEvent {
   capturedAt: string;
   sourceType: string;
   text: string;
+  /** Short referral already in the note text. Omitted on a note typed in the lab. */
+  keyword?: string;
   contentHash: string;
   lineageId: string;
   /** Omitted means source_family, so older fixtures keep a known family. */

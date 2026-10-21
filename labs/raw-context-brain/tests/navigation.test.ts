@@ -200,4 +200,23 @@ describe("bounded navigation", () => {
     const byText = lab.candidateSplit("p1", "zephyrquartz alpha only", "");
     expect(byText.exact).toContain("a");
   });
+
+  it("describes an opened trail with the same counts as an exploration", () => {
+    const lab = new RawContextLab({ seed: 1, pageSize: 1 });
+    lab.addFixture(event("a", "alpha fever"));
+    lab.addFixture(event("b", "beta crp"));
+    lab.addFixture(event("c", "gamma esr"));
+    lab.linkStructural("a", "b", "recorded_association");
+    lab.linkStructural("b", "c", "temporal_neighbour");
+    const opened = lab.describeTrail("p1", ["a", "b", "c"]);
+    expect(opened.page.hopDepth).toBe(2);
+    expect(opened.counts.exploredCount).toBe(3);
+    expect(opened.counts.reachableCount).toBe(3);
+    expect(opened.page.directLinkCount).toBe(1);
+    expect(opened.page.breadcrumb).toHaveLength(3);
+    expect(opened.page.detail.toLowerCase()).not.toContain("no relevant context");
+    const stopped = lab.describeTrail("p1", ["a", "c"]);
+    expect(stopped.page.hopDepth).toBe(0);
+    expect(stopped.counts.exploredCount).toBe(1);
+  });
 });

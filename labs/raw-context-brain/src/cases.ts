@@ -19,6 +19,7 @@ export interface CaseNode {
   sequence: number;
   sourceType: string;
   text: string;
+  keyword: string;
   capturedAt: string;
   relativeTime: string;
   lineageId: string;
@@ -52,6 +53,7 @@ export function labFromCase(file: CaseFile): RawContextLab {
       capturedAt: node.capturedAt,
       sourceType: node.sourceType,
       text: node.text,
+      keyword: node.keyword,
       contentHash: sha256(node.text),
       lineageId: node.lineageId,
       independence: node.independence,

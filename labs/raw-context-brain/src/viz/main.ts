@@ -35,9 +35,9 @@ function required<T>(value: T | null): T {
 }
 
 const SPACE_SIZE = 4096;
-const CONNECTOR_LINK: [number, number, number, number] = [0.82, 0.86, 0.9, 0.78];
-const FAINT_LINK: [number, number, number, number] = [0.82, 0.86, 0.9, 0.22];
-const MAP_LINK: [number, number, number, number] = [0.82, 0.86, 0.9, 0.16];
+const CONNECTOR_LINK: [number, number, number, number] = [0.2, 0.25, 0.33, 0.72];
+const FAINT_LINK: [number, number, number, number] = [0.39, 0.45, 0.55, 0.38];
+const MAP_LINK: [number, number, number, number] = [0.39, 0.45, 0.55, 0.55];
 const KIND_RGB: Record<string, [number, number, number]> = {
   note: [0.93, 0.62, 0.22],
   lab_text: [0.33, 0.58, 0.9],
@@ -64,6 +64,7 @@ const lookPositions = new Map<string, Point>();
 /** Space scale from the first frame of this look. Later clicks reuse it. */
 let frozenScale: { x: (value: number) => number; y: (value: number) => number } | null = null;
 let fitToken = 0;
+let driftToken = 0;
 
 function layout(view: { nodes: Array<{ degree: number }>; links: Array<{ source: number; target: number }> }): Float32Array {
   const count = view.nodes.length;
@@ -94,7 +95,7 @@ const STAGE_BG: [number, number, number] = [20 / 255, 24 / 255, 31 / 255];
 // One link count is one size, on the full map and on every step of a path.
 // A count of 3 is a little larger than 2. The view does not restretch them.
 function circleSize(degree: number): number {
-  return 32 + degree * 4;
+  return 36 + degree * 8;
 }
 
 function circleSizes(degrees: ArrayLike<number>): Float32Array {
@@ -139,16 +140,16 @@ function spreadCircles(flat: Float32Array, sizes: Float32Array): void {
     }
     return Math.max(maxX - minX, maxY - minY, 1);
   };
+  const span = spanOf();
+  const radii = new Float32Array(count);
+  let maxRadius = 1;
+  for (let index = 0; index < count; index += 1) {
+    const drawn = Math.min((sizes[index] ?? 12) * zoom, 64);
+    const radius = (drawn / 2 + 4) * (span / content);
+    radii[index] = radius;
+    if (radius > maxRadius) maxRadius = radius;
+  }
   for (let pass = 0; pass < 40; pass += 1) {
-    const span = spanOf();
-    const radii = new Float32Array(count);
-    let maxRadius = 1;
-    for (let index = 0; index < count; index += 1) {
-      const drawn = Math.min((sizes[index] ?? 12) * zoom, 64);
-      const radius = (drawn / 2 + 4) * (span / content);
-      radii[index] = radius;
-      if (radius > maxRadius) maxRadius = radius;
-    }
     const cell = maxRadius * 2;
     const grid = new Map<string, number[]>();
     for (let index = 0; index < count; index += 1) {
@@ -361,37 +362,48 @@ async function mount(): Promise<void> {
   graph?.destroy();
   stage.innerHTML = "";
   const created = new Graph(stage, {
-    backgroundColor: "#14181f",
+    backgroundColor: "#ffffff",
     spaceSize: SPACE_SIZE,
     enableSimulation: false,
+    rescalePositions: true,
+    fitViewOnInit: false,
+    simulationGravity: 0,
+    simulationCenter: 0,
+    simulationCluster: 0,
+    simulationLinkSpring: 0,
+    simulationRepulsion: 0,
     pointDefaultSize: 14,
     linkDefaultWidth: 1.4,
     scalePointsOnZoom: true,
-    simulationLinkDistance: 40,
-    simulationRepulsion: 1.2,
     curvedLinks: true,
     curvedLinkWeight: 0.42,
     curvedLinkControlPointDistance: 0.07,
     linkDashLength: 11,
     linkDashGap: 8,
     renderHoveredPointRing: true,
-    hoveredPointRingColor: "#f4f0e6",
+    hoveredPointRingColor: "#334155",
     focusedPointRingColor: "#ffe08a",
-    hoveredPointCursor: "pointer",
+    hoveredPointCursor: "grab",
+    enableDrag: true,
+    onDrag: (event) => {
+      const source = event.sourceEvent;
+      if (source instanceof PointerEvent) placeFromPointer(source);
+    },
+    onDragEnd: () => finishDrag(),
     onZoom: () => placeDegreeLabels(),
     onZoomEnd: () => placeDegreeLabels(),
-    fitViewOnInit: true,
-    fitViewDelay: 300,
     onPointMouseOver: (index) => {
       const id = drawnIds[index];
       highlightOpened(id ?? null);
     },
     onPointMouseOut: () => highlightOpened(null),
     onPointClick: (index) => {
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
       const id = drawnIds[index];
-      const keepCamera = !showAll && lookPositions.size > 0;
-      if (!id || !openNote(id)) return;
-      paint(!keepCamera);
+      if (id) openCircle(id);
     },
   });
   graph = created;
@@ -399,11 +411,51 @@ async function mount(): Promise<void> {
   paint(true);
 }
 
-function noteTitle(id: string): string {
-  const text = lab.vault.get(id)?.text ?? "";
+function noteKeyword(event: { text: string; keyword?: string } | undefined): string {
+  const stored = event?.keyword?.trim();
+  if (stored) return stored;
+  return memoryKeyword(event?.text ?? "");
+}
+
+const ASIDE_TITLE_LIMIT = 48;
+
+/** Words a person can match against the keyword. Splits on punctuation, so HLA-B51 yields hla and b51. */
+function asideTokens(value: string): string[] {
+  return value.toLowerCase().split(/[^a-z0-9+]+/).filter((word) => word.length > 0);
+}
+
+/**
+ * A short line under the keyword, only when it says something the keyword does not.
+ * The note body already shows the full text, so a repeat of that first line stays out.
+ */
+function asideTitle(text: string, keyword: string): string {
   const line = text.split("\n")[0]?.trim() ?? "";
-  if (!line) return "Note";
-  return line.length > 72 ? `${line.slice(0, 69)}…` : line;
+  if (!line) return "";
+  const key = keyword.trim().toLowerCase();
+  const keywordIsAWord = key.length > 0 && asideTokens(line).includes(key);
+  const colon = line.indexOf(":");
+  let extra = "";
+  if (colon > 0 && colon <= 48) {
+    const label = line.slice(0, colon).trim();
+    const value = line.slice(colon + 1).trim();
+    const labelTokens = asideTokens(label);
+    const labelIsKeyword = key.length > 0 && labelTokens.length === 1 && labelTokens[0] === key;
+    if (labelIsKeyword) extra = value;
+    else if (!keywordIsAWord) extra = line;
+    else if (value && value.length <= ASIDE_TITLE_LIMIT) extra = value;
+  } else if (!keywordIsAWord) {
+    extra = line;
+  }
+  if (!extra || (key.length > 0 && extra.toLowerCase() === key)) return "";
+  return clipAside(extra);
+}
+
+function clipAside(value: string): string {
+  if (value.length <= ASIDE_TITLE_LIMIT) return value;
+  const room = value.slice(0, ASIDE_TITLE_LIMIT - 1);
+  const space = room.lastIndexOf(" ");
+  const trimmed = (space > 16 ? room.slice(0, space) : room).trimEnd();
+  return `${trimmed}…`;
 }
 
 function renderOpenedNotes(): void {
@@ -421,42 +473,58 @@ function renderOpenedNotes(): void {
     const event = lab.vault.get(id);
     const pointer = lab.pointer(id);
     const degree = lab.view(personId).nodes.find((node) => node.id === id)?.degree ?? 0;
-    const rows = [
+    const at = trail.indexOf(id);
+    const previous = trail[at - 1];
+    const step = previous ? lab.projection.edgeBetween(previous, id) : undefined;
+    const recordRows: Array<[string, string]> = [
       ["Kind", sourceName(event?.sourceType ?? "hub")],
       ["Date", event?.capturedAt.slice(0, 10) || "—"],
       ["Links", String(degree)],
       ["Came in", event ? arrivalName(event.sourceArrival) : "—"],
       ["Independence", event ? independenceName(event.independence) : "—"],
     ];
+    if (previous) recordRows.push(["Relation", step ? RELATION_LABEL[step.relation] : "—"]);
     const block = document.createElement("details");
     block.className = "opened-note";
     block.dataset.noteId = id;
     const summary = document.createElement("summary");
-    const word = document.createElement("span");
-    word.className = "keyword-tag";
-    word.textContent = memoryKeyword(event?.text ?? "");
+    const keyword = noteKeyword(event);
+    const headline = document.createElement("span");
+    headline.className = "headline";
+    if (keyword) {
+      const word = document.createElement("span");
+      word.className = "keyword-tag";
+      word.textContent = keyword;
+      headline.append(word);
+    }
     const tag = document.createElement("span");
     tag.className = "record-tag";
     tag.textContent = event?.id ?? id;
-    if (word.textContent) summary.append(word);
-    summary.append(tag, document.createTextNode(` ${noteTitle(id)}`));
-    block.append(summary);
-    for (const [label, value] of rows) {
-      const row = document.createElement("div");
-      row.className = "fact";
-      const term = document.createElement("dt");
-      const detail = document.createElement("dd");
-      term.textContent = label;
-      detail.textContent = value;
-      row.append(term, detail);
-      block.append(row);
+    headline.append(tag);
+    summary.append(headline);
+    const extra = asideTitle(event?.text ?? "", keyword);
+    if (extra) {
+      const title = document.createElement("span");
+      title.className = "note-title";
+      title.textContent = extra;
+      summary.append(title);
     }
+    block.append(summary);
     const body = document.createElement("p");
     body.className = "note-text";
     if (event) body.textContent = event.text;
     else if (pointer) body.textContent = `Record with ${pointer.memberEventIds.length} source notes.`;
     else body.textContent = "No text stored for this note.";
-    block.append(body);
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "copy-path";
+    copy.textContent = "Copy path";
+    copy.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      copyPath(id, copy);
+    });
+    block.append(body, copy, factFold("Record", recordRows), explorationFold(trail.slice(0, at + 1)));
     block.addEventListener("toggle", () => {
       if (block.open) openBlocks.add(id);
       else openBlocks.delete(id);
@@ -465,6 +533,54 @@ function renderOpenedNotes(): void {
     noteFacts.append(block);
   }
   paintOpenedHover();
+}
+
+function factFold(label: string, rows: Array<[string, string]>, routes: string[] = []): HTMLDetailsElement {
+  const fold = document.createElement("details");
+  fold.className = "note-fold";
+  const summary = document.createElement("summary");
+  summary.textContent = label;
+  fold.append(summary);
+  for (const [name, value] of rows) {
+    const row = document.createElement("div");
+    row.className = "fact";
+    const term = document.createElement("dt");
+    const detail = document.createElement("dd");
+    term.textContent = name;
+    detail.textContent = value;
+    row.append(term, detail);
+    fold.append(row);
+  }
+  if (routes.length > 0) {
+    const list = document.createElement("ul");
+    list.className = "routes";
+    for (const route of routes) {
+      const item = document.createElement("li");
+      item.textContent = route;
+      list.append(item);
+    }
+    fold.append(list);
+  }
+  return fold;
+}
+
+function explorationFold(path: string[]): HTMLDetailsElement {
+  const look = lab.describeTrail(personId, path);
+  const marked = (count: number) => `${count} · ${look.counts.countLabel}`;
+  return factFold(
+    "Exploration",
+    [
+      ["Hop depth", String(look.page.hopDepth)],
+      ["Breadcrumb", look.page.breadcrumb.join(" → ") || "—"],
+      ["Direct links", String(look.page.directLinkCount)],
+      ["Explored", marked(look.counts.exploredCount)],
+      ["Unexplored", marked(look.counts.unexploredCount)],
+      ["Reachable", marked(look.counts.reachableCount)],
+      ["Cycles", String(look.page.cycleCount)],
+      ["Status", look.page.detail],
+    ],
+    look.page.nextRoutes.map((route) => route.label),
+  );
 }
 
 function openNote(id: string): boolean {
@@ -562,7 +678,12 @@ function lookZoom(): number {
 }
 
 function paint(fit: boolean): void {
+  driftToken += 1;
   if (!graph) return;
+  if (dragHomesFullMap !== showAll) {
+    dragHomes.clear();
+    dragHomesFullMap = showAll;
+  }
   const view = lab.view(personId);
   if (positions.length / 2 !== view.nodes.length) positions = layout(view);
   const neighbors = neighborMap();
@@ -666,6 +787,14 @@ function paint(fit: boolean): void {
     lookPositions.clear();
     frozenScale = null;
   }
+  drawnIds.forEach((id, index) => {
+    const home = dragHomes.get(id);
+    if (!home) return;
+    pointPositions[index * 2] = home.x;
+    pointPositions[index * 2 + 1] = home.y;
+    if (showAll) mapPositions.set(id, home);
+    else lookPositions.set(id, home);
+  });
   labelState.forEach((item, index) => {
     item.x = pointPositions[index * 2] ?? item.x;
     item.y = pointPositions[index * 2 + 1] ?? item.y;
@@ -697,6 +826,7 @@ function paint(fit: boolean): void {
   else {
     fitToken += 1;
     placeDegreeLabels();
+    if (drawPositions.length > 0) driftAround(Array.from(drawPositions));
   }
 }
 
@@ -712,7 +842,6 @@ function fitPicture(pointPositions: Float32Array): void {
   const positions = Array.from(pointPositions);
   const apply = (): void => {
     if (!graph || token !== fitToken) return;
-    graph.pause();
     if (opened) graph.setZoomTransformByPointPositions(Float32Array.from(positions), 0, lookZoom(), 0.2, false);
     else graph.fitViewByPointPositions(positions, 0, 0.2, false);
   };
@@ -723,8 +852,107 @@ function fitPicture(pointPositions: Float32Array): void {
     requestAnimationFrame(() => {
       if (token !== fitToken) return;
       placeDegreeLabels();
+      driftAround(positions);
     });
   });
+}
+
+// Radius of the disc Cosmos actually draws, in the same units as the positions.
+function drawnRadii(): Float32Array {
+  const radii = new Float32Array(labelState.length);
+  if (!graph) return radii;
+  const [x0, y0] = graph.spaceToScreenPosition([0, 0]);
+  const [x1, y1] = graph.spaceToScreenPosition([100, 0]);
+  const pixelsPerUnit = Math.hypot(x1 - x0, y1 - y0) / 100;
+  const unit = pixelsPerUnit > 1e-4 ? 1 / pixelsPerUnit : 1;
+  for (let index = 0; index < labelState.length; index += 1) {
+    const size = labelState[index]?.size ?? circleSize(0);
+    radii[index] = (fillDiameter(size) / 2 + 3) * unit;
+  }
+  return radii;
+}
+
+// Push only pairs whose discs cover each other, until the edges clear.
+// A placed circle stays where it was put. The other circle takes the whole push.
+function separateOverlaps(flat: Float32Array, radii: Float32Array, pinned: ReadonlySet<number>): void {
+  const count = radii.length;
+  const pad = 6;
+  for (let pass = 0; pass < 32; pass += 1) {
+    let moved = false;
+    for (let left = 0; left < count; left += 1) {
+      for (let right = left + 1; right < count; right += 1) {
+        const leftPinned = pinned.has(left);
+        const rightPinned = pinned.has(right);
+        if (leftPinned && rightPinned) continue;
+        let dx = (flat[right * 2] ?? 0) - (flat[left * 2] ?? 0);
+        let dy = (flat[right * 2 + 1] ?? 0) - (flat[left * 2 + 1] ?? 0);
+        let dist = Math.hypot(dx, dy);
+        const min = (radii[left] ?? 0) + (radii[right] ?? 0) + pad;
+        if (dist >= min) continue;
+        if (dist < 1e-4) {
+          const angle = (left + 1) * 2.399963;
+          dx = Math.cos(angle);
+          dy = Math.sin(angle);
+          dist = 1;
+        }
+        const share = leftPinned || rightPinned ? 1 : 0.5;
+        const push = (min - dist) * share;
+        const ux = (dx / dist) * push;
+        const uy = (dy / dist) * push;
+        if (!leftPinned) {
+          flat[left * 2] = (flat[left * 2] ?? 0) - ux;
+          flat[left * 2 + 1] = (flat[left * 2 + 1] ?? 0) - uy;
+        }
+        if (!rightPinned) {
+          flat[right * 2] = (flat[right * 2] ?? 0) + ux;
+          flat[right * 2 + 1] = (flat[right * 2 + 1] ?? 0) + uy;
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
+// Float around the stored layout, then separate any discs that would cover.
+function driftAround(home: number[]): void {
+  const token = ++driftToken;
+  const anchor = Float32Array.from(home);
+  driftAnchor = anchor;
+  frozenScale = { x: (value) => value, y: (value) => value };
+  const started = performance.now();
+  const frame = (now: number): void => {
+    if (token !== driftToken || !graph) return;
+    const elapsed = (now - started) / 1000;
+    const pinned = new Set<number>();
+    if (draggingIndex !== null) pinned.add(draggingIndex);
+    drawnIds.forEach((id, index) => {
+      if (dragHomes.has(id)) pinned.add(index);
+    });
+    const drifted = new Float32Array(anchor.length);
+    for (let index = 0; index < labelState.length; index += 1) {
+      const phase = index * 2.399963;
+      const held = draggingIndex === index ? dragPoint : null;
+      drifted[index * 2] = held ? held.x : (anchor[index * 2] ?? 0) + Math.sin(elapsed * 0.55 + phase) * 9;
+      drifted[index * 2 + 1] = held ? held.y : (anchor[index * 2 + 1] ?? 0) + Math.cos(elapsed * 0.4 + phase) * 9;
+    }
+    separateOverlaps(drifted, drawnRadii(), pinned);
+    if (draggingIndex !== null && dragPoint) {
+      drifted[draggingIndex * 2] = dragPoint.x;
+      drifted[draggingIndex * 2 + 1] = dragPoint.y;
+    }
+    for (let index = 0; index < labelState.length; index += 1) {
+      const item = labelState[index];
+      if (!item) continue;
+      item.x = drifted[index * 2] ?? item.x;
+      item.y = drifted[index * 2 + 1] ?? item.y;
+    }
+    graph.setPointPositions(drifted, true);
+    graph.render(undefined, 0);
+    syncLabelMotion();
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
 }
 
 capture.addEventListener("submit", (event) => {
@@ -754,6 +982,7 @@ capture.addEventListener("submit", (event) => {
       showAll = false;
       mapPositions.clear();
       lookPositions.clear();
+      dragHomes.clear();
       frozenScale = null;
       renderOpenedNotes();
       suggestStatus.textContent = `Saved. ${counts.link} may relate, ${counts.no_link} do not appear related, ${counts.uncertain} not sure yet. A “does not appear related” stays in this list and does not erase a recorded link.`;
@@ -768,6 +997,7 @@ function clearChoice(): void {
   trail = [];
   openBlocks.clear();
   lookPositions.clear();
+  dragHomes.clear();
   selectedId = null;
   showAll = true;
   renderOpenedNotes();
@@ -802,6 +1032,136 @@ function highlightOpened(id: string | null): void {
   paintOpenedHover();
   paintHoverId();
 }
+
+let pointerOverMap: { x: number; y: number } | null = null;
+let driftAnchor: Float32Array | null = null;
+let draggingIndex: number | null = null;
+let dragPoint: { x: number; y: number } | null = null;
+let suppressClick = false;
+const dragHomes = new Map<string, Point>();
+let dragHomesFullMap = true;
+let grab: { pointerId: number; index: number; id: string; x: number; y: number } | null = null;
+let press: { id: string; dragged: boolean } | null = null;
+
+function circleUnder(x: number, y: number): { id: string; index: number } | null {
+  let next: string | null = null;
+  let closest = Infinity;
+  for (const [id, spot] of labelSpots) {
+    const distance = Math.hypot(spot.x - x, spot.y - y);
+    if (distance <= spot.radius + 3 && distance < closest) {
+      next = id;
+      closest = distance;
+    }
+  }
+  if (!next) return null;
+  const index = drawnIds.indexOf(next);
+  return index < 0 ? null : { id: next, index };
+}
+
+function pointerOnLayer(event: PointerEvent): { x: number; y: number } {
+  const layer = degreeLabels.getBoundingClientRect();
+  return { x: event.clientX - layer.left, y: event.clientY - layer.top };
+}
+
+function spaceFromPointer(event: PointerEvent): { x: number; y: number } | null {
+  if (!graph) return null;
+  const canvas = stage.querySelector("canvas");
+  if (!canvas) return null;
+  const box = canvas.getBoundingClientRect();
+  const [x, y] = graph.screenToSpacePosition([event.clientX - box.left, event.clientY - box.top]);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return { x, y };
+}
+
+function holdDrag(index: number, id: string, point: { x: number; y: number }): void {
+  draggingIndex = index;
+  dragPoint = point;
+  if (driftAnchor) {
+    driftAnchor[index * 2] = point.x;
+    driftAnchor[index * 2 + 1] = point.y;
+  }
+  const home = { x: point.x, y: point.y };
+  dragHomes.set(id, home);
+  if (showAll) mapPositions.set(id, home);
+  else lookPositions.set(id, home);
+}
+
+function finishDrag(): void {
+  draggingIndex = null;
+  dragPoint = null;
+  grab = null;
+  stage.style.cursor = "";
+}
+
+function openCircle(id: string): void {
+  const keepCamera = !showAll && lookPositions.size > 0;
+  if (!openNote(id)) return;
+  paint(!keepCamera);
+}
+
+function placeFromPointer(event: PointerEvent): void {
+  if (!grab || event.pointerId !== grab.pointerId) return;
+  if (Math.hypot(event.clientX - grab.x, event.clientY - grab.y) < 4) return;
+  suppressClick = true;
+  if (press) press.dragged = true;
+  const space = spaceFromPointer(event);
+  if (!space) return;
+  holdDrag(grab.index, grab.id, space);
+  stage.style.cursor = "grabbing";
+}
+
+function hoverFromPointer(): void {
+  if (!pointerOverMap || grab) return;
+  const hit = circleUnder(pointerOverMap.x, pointerOverMap.y);
+  const next = hit?.id ?? null;
+  if (next !== hoveredId) highlightOpened(next);
+  stage.style.cursor = next ? "grab" : "";
+}
+
+// The drift redraws the map every frame, which keeps Cosmos from settling its own hover.
+// Hit-testing the circles ourselves keeps the id, the ring, and the drag.
+stage.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
+  const layerPoint = pointerOnLayer(event);
+  const hit = circleUnder(layerPoint.x, layerPoint.y);
+  if (!hit) return;
+  grab = { pointerId: event.pointerId, index: hit.index, id: hit.id, x: event.clientX, y: event.clientY };
+  press = { id: hit.id, dragged: false };
+});
+stage.addEventListener("pointermove", (event) => {
+  pointerOverMap = pointerOnLayer(event);
+  if (grab && event.pointerId === grab.pointerId) placeFromPointer(event);
+  else hoverFromPointer();
+});
+stage.addEventListener("pointerup", (event) => {
+  if (grab && event.pointerId !== grab.pointerId) return;
+  const id = press?.id ?? grab?.id;
+  const dragged = suppressClick || press?.dragged === true;
+  finishDrag();
+  press = null;
+  if (!id || dragged) {
+    if (dragged) window.setTimeout(() => {
+      suppressClick = false;
+    }, 0);
+    return;
+  }
+  suppressClick = true;
+  openCircle(id);
+  window.setTimeout(() => {
+    suppressClick = false;
+  }, 0);
+});
+stage.addEventListener("pointercancel", (event) => {
+  if (!grab || event.pointerId !== grab.pointerId) return;
+  finishDrag();
+  press = null;
+});
+stage.addEventListener("pointerleave", () => {
+  if (grab) return;
+  pointerOverMap = null;
+  highlightOpened(null);
+  stage.style.cursor = "";
+});
 
 function fillDiameter(size: number): number {
   if (!graph) return size;
@@ -879,11 +1239,16 @@ function placeMovingPipes(
   if (svg.querySelector("path")) degreeLabels.append(svg);
 }
 
-function placeDegreeLabels(): void {
-  degreeLabels.replaceChildren();
-  if (!graph || labelState.length === 0) return;
+function labelScreens(): {
+  screen: Map<string, { x: number; y: number; radius: number }>;
+  space: Map<string, { x: number; y: number }>;
+  offsetX: number;
+  offsetY: number;
+  canvas: HTMLCanvasElement;
+} | null {
+  if (!graph || labelState.length === 0) return null;
   const canvas = stage.querySelector("canvas");
-  if (!canvas) return;
+  if (!canvas) return null;
   const canvasBox = canvas.getBoundingClientRect();
   const layerBox = degreeLabels.getBoundingClientRect();
   const offsetX = canvasBox.left - layerBox.left;
@@ -904,6 +1269,38 @@ function placeDegreeLabels(): void {
     screen.set(item.id, { x: offsetX + sx, y: offsetY + sy, radius: diameter / 2 });
     space.set(item.id, { x, y });
   }
+  return { screen, space, offsetX, offsetY, canvas };
+}
+
+// One size for every keyword: a 6-letter word still fits in the smallest circle.
+function sharedKeywordFont(screen: Map<string, { radius: number }>): number {
+  let smallest = Infinity;
+  for (const spot of screen.values()) {
+    const diameter = spot.radius * 2;
+    if (diameter >= 8 && diameter < smallest) smallest = diameter;
+  }
+  if (!Number.isFinite(smallest)) return 11;
+  return (smallest * 0.78) / (6 * 0.56);
+}
+
+function placeRing(id: string, spot: { x: number; y: number; radius: number }, origin: string | undefined): void {
+  const ring = document.createElement("i");
+  ring.className = id === origin ? "trail-ring is-start" : "trail-ring";
+  ring.dataset.noteId = id;
+  const box = spot.radius * 2 + Math.max(6, spot.radius * 0.08);
+  ring.style.left = `${spot.x}px`;
+  ring.style.top = `${spot.y}px`;
+  ring.style.width = `${box}px`;
+  ring.style.height = `${box}px`;
+  ring.style.borderWidth = `${Math.max(3, spot.radius * 0.06)}px`;
+  degreeLabels.appendChild(ring);
+}
+
+function placeDegreeLabels(): void {
+  degreeLabels.replaceChildren();
+  const placed = labelScreens();
+  if (!placed) return;
+  const { screen, space, offsetX, offsetY, canvas } = placed;
   placeMovingPipes(space, screen, offsetX, offsetY);
   const origin = trail[0];
   const earlier = new Set(trail.slice(0, -1));
@@ -913,48 +1310,89 @@ function placeDegreeLabels(): void {
     const spot = screen.get(item.id);
     if (!spot) continue;
     if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
-    const ring = document.createElement("i");
-    ring.className = isOrigin ? "trail-ring is-start" : "trail-ring";
+    placeRing(item.id, spot, origin);
+  }
+  labelSpots = screen;
+  const font = sharedKeywordFont(screen);
+  for (const item of labelState) {
+    const spot = screen.get(item.id);
+    if (!spot) continue;
+    const word = noteKeyword(lab.vault.get(item.id));
+    if (!word) continue;
+    if (spot.radius * 2 < 8) continue;
+    if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
+    const label = document.createElement("span");
+    label.className = "memory-word";
+    label.dataset.noteId = item.id;
+    label.textContent = word;
+    label.style.left = `${spot.x}px`;
+    label.style.top = `${spot.y}px`;
+    label.style.fontSize = `${font}px`;
+    label.style.fontWeight = "400";
+    degreeLabels.appendChild(label);
+  }
+  paintHoverId();
+}
+
+function syncLabelMotion(): void {
+  const placed = labelScreens();
+  if (!placed) return;
+  const { screen, space, offsetX, offsetY } = placed;
+  labelSpots = screen;
+  const words = degreeLabels.querySelectorAll<HTMLElement>(".memory-word");
+  if (words.length === 0) {
+    placeDegreeLabels();
+    return;
+  }
+  for (const word of words) {
+    const spot = word.dataset.noteId ? screen.get(word.dataset.noteId) : undefined;
+    if (!spot) continue;
+    word.style.left = `${spot.x}px`;
+    word.style.top = `${spot.y}px`;
+  }
+  for (const ring of degreeLabels.querySelectorAll<HTMLElement>(".trail-ring")) {
+    const spot = ring.dataset.noteId ? screen.get(ring.dataset.noteId) : undefined;
+    if (!spot) continue;
     const box = spot.radius * 2 + Math.max(6, spot.radius * 0.08);
     ring.style.left = `${spot.x}px`;
     ring.style.top = `${spot.y}px`;
     ring.style.width = `${box}px`;
     ring.style.height = `${box}px`;
     ring.style.borderWidth = `${Math.max(3, spot.radius * 0.06)}px`;
-    degreeLabels.appendChild(ring);
   }
-  labelSpots.clear();
-  for (const item of labelState) {
-    const spot = screen.get(item.id);
-    if (!spot) continue;
-    labelSpots.set(item.id, spot);
-    const word = memoryKeyword(lab.vault.get(item.id)?.text ?? "");
-    if (!word) continue;
-    const diameter = spot.radius * 2;
-    if (diameter < 22) continue;
-    if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
-    let font = Math.min(18, diameter * 0.28);
-    const fitted = (diameter * 0.78) / (word.length * 0.56);
-    if (fitted < font) font = fitted;
-    if (font < 8) continue;
-    const label = document.createElement("span");
-    label.className = "memory-word";
-    label.textContent = word;
-    label.style.left = `${spot.x}px`;
-    label.style.top = `${spot.y}px`;
-    label.style.fontSize = `${font}px`;
-    degreeLabels.appendChild(label);
+  degreeLabels.querySelector(".pipe-flow")?.remove();
+  placeMovingPipes(space, screen, offsetX, offsetY);
+  const spot = hoveredId ? screen.get(hoveredId) : undefined;
+  const ring = degreeLabels.querySelector<HTMLElement>(".hover-ring");
+  const mark = degreeLabels.querySelector<HTMLElement>(".hover-id");
+  if (spot && ring && mark) {
+    const box = spot.radius * 2 + 8;
+    ring.style.left = `${spot.x}px`;
+    ring.style.top = `${spot.y}px`;
+    ring.style.width = `${box}px`;
+    ring.style.height = `${box}px`;
+    mark.style.left = `${spot.x}px`;
+    mark.style.top = `${spot.y - spot.radius - 18}px`;
   }
-  paintHoverId();
+  hoverFromPointer();
 }
 
 let labelSpots = new Map<string, { x: number; y: number; radius: number }>();
 
 function paintHoverId(): void {
   degreeLabels.querySelector(".hover-id")?.remove();
+  degreeLabels.querySelector(".hover-ring")?.remove();
   if (!hoveredId) return;
   const spot = labelSpots.get(hoveredId);
   if (!spot) return;
+  const ring = document.createElement("i");
+  ring.className = "hover-ring";
+  const box = spot.radius * 2 + 8;
+  ring.style.left = `${spot.x}px`;
+  ring.style.top = `${spot.y}px`;
+  ring.style.width = `${box}px`;
+  ring.style.height = `${box}px`;
+  degreeLabels.append(ring);
   const mark = document.createElement("span");
   mark.className = "hover-id";
   mark.textContent = lab.vault.get(hoveredId)?.id ?? hoveredId;
@@ -1011,20 +1449,18 @@ function neighborMap(): Map<string, string[]> {
   return neighbors;
 }
 
-function copyPath(throughId: string): void {
+function copyPath(throughId: string, control?: HTMLButtonElement): void {
   const end = trail.indexOf(throughId);
   if (end < 0) return;
   const text = trail
     .slice(0, end + 1)
     .map((id) => lab.vault.get(id)?.id ?? id)
     .join(", ");
-  const hint = document.querySelector("aside .hint");
-  const previous = hint?.textContent ?? "";
   const confirm = (): void => {
-    if (!hint) return;
-    hint.textContent = "Path copied.";
+    if (!control) return;
+    control.textContent = "Copied";
     window.setTimeout(() => {
-      if (hint.textContent === "Path copied.") hint.textContent = previous;
+      if (control.textContent === "Copied") control.textContent = "Copy path";
     }, 1600);
   };
   const fallback = (): void => {
@@ -1045,22 +1481,6 @@ function copyPath(throughId: string): void {
 
 resetButton.addEventListener("click", () => clearChoice());
 
-noteFacts.addEventListener(
-  "click",
-  (event) => {
-    const block = event.target instanceof Element ? event.target.closest(".opened-note") : null;
-    const id = block instanceof HTMLElement ? block.dataset.noteId : undefined;
-    if (!block || !id) return;
-    const wasOpen = block instanceof HTMLDetailsElement ? block.open : false;
-    event.preventDefault();
-    window.setTimeout(() => {
-      if (block instanceof HTMLDetailsElement) block.open = wasOpen;
-    }, 0);
-    copyPath(id);
-  },
-  true,
-);
-
 function markPeople(): void {
   for (const button of peopleNav.querySelectorAll("button")) {
     button.classList.toggle("is-current", button.dataset.person === personId);
@@ -1073,6 +1493,7 @@ function useLab(next: RawContextLab, id: string): void {
   positions = layout(lab.view(personId));
   mapPositions.clear();
   lookPositions.clear();
+  dragHomes.clear();
   trail = [];
   openBlocks.clear();
   selectedId = null;

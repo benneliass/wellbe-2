@@ -97,6 +97,11 @@ export interface LocalAssessment {
   otherExcerpt: string;
 }
 
+export interface TrailLook {
+  page: SemanticData;
+  counts: LocalCount;
+}
+
 export interface LocalOverlay {
   visited: string[];
   frontier: string[];
@@ -155,6 +160,7 @@ export class RawContextLab {
   private readonly indexes = new Map<string, HnswIndex>();
   private readonly controls = new Map<string, Set<ControlTag>>();
   private readonly handles = new Map<string, HandleRecord>();
+  private lookToken: string | null = null;
   private readonly pages = new Map<string, SemanticData>();
   private readonly idempotency = new Map<string, IngestResult>();
   private readonly lastPrimary = new Map<string, string>();
@@ -578,6 +584,51 @@ export class RawContextLab {
       },
       nodes: ids.map((id) => this.localNode(id, record)),
     };
+  }
+
+  describeTrail(personId: string, trail: readonly string[]): TrailLook {
+    if (this.lookToken) {
+      this.handles.delete(this.lookToken);
+      this.lookToken = null;
+    }
+    const ids = trail.filter((id) => this.nodes.get(id)?.personId === personId);
+    if (ids.length === 0) {
+      const page = this.stopped("supported_leaf");
+      return {
+        page,
+        counts: { exploredCount: 0, unexploredCount: 0, reachableCount: 0, countLabel: "exact" },
+      };
+    }
+    const anchor = ids[0] ?? "";
+    const record = this.blankHandle({ personId, purpose: "look", anchorId: anchor });
+    this.lookToken = record.token;
+    record.anchorId = anchor;
+    record.visitedNodes.push(anchor);
+    record.breadcrumb.push(this.breadcrumbLabel(anchor));
+    this.expand(record, anchor);
+    for (const id of ids.slice(1)) {
+      const previous = record.visitedNodes[record.visitedNodes.length - 1];
+      if (!previous || !this.projection.neighbors(previous).includes(id)) break;
+      if (record.visitedNodes.includes(id)) {
+        record.cycleCount += 1;
+        continue;
+      }
+      const key = edgeKey(previous, id);
+      record.frontier = record.frontier.filter((item) => item.nodeId !== id);
+      record.visitedNodes.push(id);
+      record.visitedEdges.push(key);
+      record.hopDepth += 1;
+      record.breadcrumb.push(this.breadcrumbLabel(id));
+      this.expand(record, id);
+    }
+    const page = this.finish(record, [], [], null);
+    const counts = this.localOverlay(record.token)?.counts ?? {
+      exploredCount: record.visitedNodes.length,
+      unexploredCount: 0,
+      reachableCount: record.visitedNodes.length,
+      countLabel: "exact" as const,
+    };
+    return { page, counts };
   }
 
   localAssessments(personId: string): LocalAssessment[] {
