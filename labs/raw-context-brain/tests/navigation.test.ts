@@ -74,6 +74,25 @@ describe("bounded navigation", () => {
     expect(response.cycleCount).toBeGreaterThan(0);
   });
 
+  it("refuses a guessed continuation id", () => {
+    const lab = generateTopology({ count: 8, kind: "sparse", seed: 6, pageSize: 3, hopLimit: 20 });
+    const first = lab.explore({ personId: "synthetic-1", purpose: "nav", anchorId: "n0" });
+    const handle = first.routeHandle ?? "";
+    expect(handle).toMatch(/^rh_[0-9a-f]{32}$/);
+    const flipped = `${handle.slice(0, -1)}${handle.endsWith("a") ? "b" : "a"}`;
+    const guesses = ["rh_0", "rh_1", "rh_2", `rh_${"0".repeat(32)}`, flipped];
+    for (const guess of guesses) {
+      const denied = lab.explore({ personId: "synthetic-1", purpose: "nav", routeHandle: guess });
+      expect(denied.terminalReason).toBe("policy_blocked");
+      expect(denied.detail).toContain("not recognized");
+      expect(denied.items).toEqual([]);
+    }
+    const frontier = lab.localOverlay(handle)?.frontier;
+    const otherPerson = lab.explore({ personId: "someone-else", purpose: "nav", routeHandle: handle });
+    expect(otherPerson.terminalReason).toBe("policy_blocked");
+    expect(lab.localOverlay(handle)?.frontier).toEqual(frontier);
+  });
+
   it("invalidates a handle when the snapshot or authorization changes", () => {
     const lab = generateTopology({ count: 8, kind: "sparse", seed: 6, pageSize: 3, hopLimit: 20 });
     const first = lab.explore({ personId: "synthetic-1", purpose: "nav", anchorId: "n0" });
@@ -218,5 +237,151 @@ describe("bounded navigation", () => {
     const stopped = lab.describeTrail("p1", ["a", "c"]);
     expect(stopped.page.hopDepth).toBe(0);
     expect(stopped.counts.exploredCount).toBe(1);
+  });
+
+  it("steps only the advertised note named by a click", () => {
+    const lab = new RawContextLab({ pageSize: 5, hopLimit: 8 });
+    lab.addFixture(event("a", "alpha fever"));
+    lab.addFixture(event("b", "beta crp"));
+    lab.addFixture(event("c", "gamma esr"));
+    lab.linkStructural("a", "b");
+    lab.linkStructural("a", "c");
+    const opened = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      anchorId: "a",
+      holdAtAnchor: true,
+    });
+    const handle = opened.routeHandle ?? "";
+    const toBeta = lab.localRoutes(handle).find((route) => route.nodeIds.length === 1 && route.nodeIds[0] === "b");
+    expect(toBeta?.kind).toBe("neighbour");
+    const searches = lab.hnswSearchCount;
+    const stepped = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      routeHandle: handle,
+      routeId: toBeta?.routeId,
+      focusId: "b",
+    });
+    expect(lab.hnswSearchCount).toBe(searches);
+    expect(stepped.hopDepth).toBe(1);
+    expect(stepped.items).toHaveLength(1);
+    expect(stepped.items[0]?.excerpt).toContain("beta");
+    const overlay = lab.localOverlay(stepped.routeHandle ?? "");
+    expect(overlay?.visited).toEqual(["a", "b"]);
+    expect(overlay?.frontier).toContain("c");
+    expect(stepped.nextRoutes.every((route) => !("nodeIds" in route))).toBe(true);
+  });
+
+  it("refuses a note that is not on the advertised route and leaves the frontier", () => {
+    const lab = new RawContextLab({ pageSize: 1, hopLimit: 8 });
+    lab.addFixture(event("a", "alpha fever"));
+    lab.addFixture(event("b", "beta crp"));
+    lab.addFixture(event("c", "gamma esr"));
+    lab.linkStructural("a", "b");
+    lab.linkStructural("a", "c");
+    const opened = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      anchorId: "a",
+      holdAtAnchor: true,
+    });
+    const handle = opened.routeHandle ?? "";
+    const frontier = lab.localOverlay(handle)?.frontier ?? [];
+    const neighbour = lab.localRoutes(handle).find((route) => route.kind === "neighbour");
+    expect(neighbour).toBeTruthy();
+    const missing = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      routeHandle: handle,
+      routeId: neighbour?.routeId,
+      focusId: "not-on-the-route",
+    });
+    expect(missing.terminalReason).toBe("policy_blocked");
+    expect(lab.localOverlay(handle)?.frontier).toEqual(frontier);
+    const bare = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      routeHandle: handle,
+      focusId: "b",
+    });
+    expect(bare.terminalReason).toBe("policy_blocked");
+    expect(lab.localOverlay(handle)?.frontier).toEqual(frontier);
+  });
+
+  it("does not link a copied note until an advertisement says so", () => {
+    const lab = new RawContextLab();
+    lab.addFixture({ ...event("orig", "original letter"), lineageId: "letter" });
+    lab.addFixture({
+      ...event("copy", "copied letter"),
+      lineageId: "letter-copy",
+      copiedFromId: "orig",
+      sourceArrival: "copied",
+    });
+    expect(lab.projection.edgeBetween("copy", "orig")).toBeUndefined();
+  });
+
+  it("advertises the original record when that note is already on the frontier", () => {
+    const lab = new RawContextLab({ pageSize: 1, hopLimit: 8 });
+    lab.addFixture({ ...event("orig", "original letter"), lineageId: "letter" });
+    lab.addFixture({
+      ...event("copy", "copied letter"),
+      lineageId: "letter-copy",
+      copiedFromId: "orig",
+      sourceArrival: "copied",
+    });
+    lab.linkStructural("copy", "orig", "derived_or_copied");
+    const opened = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      anchorId: "copy",
+      holdAtAnchor: true,
+    });
+    const source = lab.localRoutes(opened.routeHandle ?? "").find((route) => route.kind === "source");
+    expect(source?.label).toBe("Original record");
+    expect(source?.nodeIds).toEqual(["orig"]);
+    expect(opened.nextRoutes.some((route) => route.kind === "source")).toBe(true);
+    expect(opened.nextRoutes.some((route) => route.kind === "fallback")).toBe(true);
+  });
+
+  it("advertises a document hub as the original record", async () => {
+    const lab = new RawContextLab({
+      pageSize: 1,
+      hopLimit: 8,
+      judge: { async judge() { return []; } },
+    });
+    const saved = await lab.ingest({
+      personId: "p1",
+      text: "page one of the letter",
+      sourceType: "pdf_extract",
+      capturedAt: "2024-03-01T00:00:00.000Z",
+      lineageId: "letter",
+      independence: "source_family",
+      sourceArrival: "imported",
+      idempotencyKey: "letter-1",
+      documentId: "letter",
+    });
+    const opened = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      anchorId: saved.eventId,
+      holdAtAnchor: true,
+    });
+    const source = lab.localRoutes(opened.routeHandle ?? "").find((route) => route.kind === "source");
+    expect(source?.nodeIds[0]).toMatch(/^hub_p1_letter$/);
+  });
+
+  it("stops when further neighbors would only repeat the same lineage", () => {
+    const lab = new RawContextLab({ pageSize: 5, hopLimit: 10 });
+    for (const id of ["a", "b", "c", "d"]) {
+      lab.addFixture({ ...event(id, `${id} note`), lineageId: "same-family" });
+    }
+    lab.linkStructural("a", "b");
+    lab.linkStructural("a", "c");
+    lab.linkStructural("a", "d");
+    const response = lab.explore({ personId: "p1", purpose: "nav", anchorId: "a" });
+    expect(response.terminalReason).toBe("insufficient_independent_evidence");
+    expect(response.detail.toLowerCase()).not.toContain("no relevant context");
+    expect(response.routeHandle).toBeNull();
   });
 });

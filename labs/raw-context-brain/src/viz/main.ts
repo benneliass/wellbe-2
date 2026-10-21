@@ -2,6 +2,7 @@ import { Graph } from "@cosmos.gl/graph";
 import { loadCasePeople, labFromCase } from "../cases.js";
 import { LEGEND_KINDS, RECORD_KINDS, RELATION_LABEL, arrivalName, independenceName, sourceName } from "../relation.js";
 import { RawContextLab } from "../router.js";
+import type { SemanticData } from "../types.js";
 import { memoryKeyword } from "./keyword.js";
 import { growLook, HOP_DIAMETERS, type Point } from "./look-layout.js";
 import { mapSettings } from "./settings.js";
@@ -63,13 +64,25 @@ const KIND_RGB: Record<string, readonly [number, number, number]> = Object.fromE
 );
 
 let personId = "";
-let lab = new RawContextLab({ seed: 7, pageSize: 1, hopLimit: 24, expansionBudget: 400 });
+let lab = new RawContextLab({
+  seed: 7,
+  pageSize: 1,
+  hopLimit: 24,
+  expansionBudget: 400,
+  maxHandleUses: 48,
+  handleTtlMs: 600_000,
+});
 let positions = layout(lab.view(personId));
 let graph: Graph | null = null;
 let selectedId: string | null = null;
 let showAll = true;
 /** Notes opened in this look, in click order. The last one is the note left open in the panel. */
 let trail: string[] = [];
+/** The saved exploration. Route buttons and advertised clicks continue this handle. */
+let activePage: SemanticData | null = null;
+/** A clicked neighbor that was not on an advertised route. The handle stays where it was. */
+let offRouteId: string | null = null;
+let requestSerial = 0;
 const openBlocks = new Set<string>();
 let drawnIds: string[] = [];
 let labelState: Array<{ id: string; x: number; y: number; degree: number; size: number }> = [];
@@ -522,7 +535,9 @@ function renderOpenedNotes(): void {
       event.stopPropagation();
       copyPath(id, copy);
     });
-    block.append(body, copy, factFold("Record", recordRows), explorationFold(trail.slice(0, at + 1)));
+    const folds = [factFold("Record", recordRows)];
+    if (id === trail[trail.length - 1]) folds.push(explorationFold());
+    block.append(body, copy, ...folds);
     block.addEventListener("toggle", () => {
       if (block.open) openBlocks.add(id);
       else openBlocks.delete(id);
@@ -562,23 +577,109 @@ function factFold(label: string, rows: Array<[string, string]>, routes: string[]
   return fold;
 }
 
-function explorationFold(path: string[]): HTMLDetailsElement {
-  const look = lab.describeTrail(personId, path);
-  const marked = (count: number) => `${count} · ${look.counts.countLabel}`;
-  return factFold(
-    "Exploration",
-    [
-      ["Hop depth", String(look.page.hopDepth)],
-      ["Breadcrumb", look.page.breadcrumb.join(" → ") || "—"],
-      ["Direct links", String(look.page.directLinkCount)],
-      ["Explored", marked(look.counts.exploredCount)],
-      ["Unexplored", marked(look.counts.unexploredCount)],
-      ["Reachable", marked(look.counts.reachableCount)],
-      ["Cycles", String(look.page.cycleCount)],
-      ["Status", look.page.detail],
-    ],
-    look.page.nextRoutes.map((route) => route.label),
-  );
+function nextRequestId(): string {
+  requestSerial += 1;
+  return `look-${personId}-${requestSerial}`;
+}
+
+function syncRouteToTrail(): void {
+  offRouteId = null;
+  if (trail.length === 0) {
+    activePage = null;
+    return;
+  }
+  const anchor = trail[0];
+  if (!anchor) return;
+  activePage = lab.explore({
+    personId,
+    purpose: "look",
+    anchorId: anchor,
+    holdAtAnchor: true,
+    requestId: nextRequestId(),
+  });
+  for (const id of trail.slice(1)) {
+    const handle = activePage.routeHandle;
+    if (!handle) {
+      offRouteId = id;
+      return;
+    }
+    const route = lab.localRoutes(handle).find((item) => item.kind !== "fallback" && item.nodeIds.includes(id));
+    if (!route) {
+      offRouteId = id;
+      return;
+    }
+    activePage = lab.explore({
+      personId,
+      purpose: "look",
+      routeHandle: handle,
+      routeId: route.routeId,
+      focusId: id,
+      requestId: nextRequestId(),
+    });
+  }
+}
+
+function followAdvertisedRoute(routeId: string): void {
+  const handle = activePage?.routeHandle;
+  if (!handle) return;
+  const page = lab.explore({
+    personId,
+    purpose: "look",
+    routeHandle: handle,
+    routeId,
+    requestId: nextRequestId(),
+  });
+  activePage = page;
+  offRouteId = null;
+  const overlay = page.routeHandle ? lab.localOverlay(page.routeHandle) : undefined;
+  if (overlay && overlay.visited.length > 0) {
+    trail = [...overlay.visited];
+    selectedId = trail[trail.length - 1] ?? null;
+    showAll = false;
+    if (selectedId) openBlocks.add(selectedId);
+  }
+  renderOpenedNotes();
+  paint(false);
+}
+
+function explorationFold(): HTMLDetailsElement {
+  const page = activePage;
+  const overlay = page?.routeHandle ? lab.localOverlay(page.routeHandle) : undefined;
+  const marked = (count: number) => (overlay ? `${count} · ${overlay.counts.countLabel}` : "—");
+  const status = page
+    ? offRouteId
+      ? `${page.detail} This note is outside the advertised routes.`
+      : page.detail
+    : "—";
+  const fold = factFold("Exploration", [
+    ["Hop depth", page ? String(page.hopDepth) : "—"],
+    ["Breadcrumb", page?.breadcrumb.join(" → ") || "—"],
+    ["Direct links", page ? String(page.directLinkCount) : "—"],
+    ["Explored", marked(overlay?.counts.exploredCount ?? 0)],
+    ["Unexplored", marked(overlay?.counts.unexploredCount ?? 0)],
+    ["Reachable", marked(overlay?.counts.reachableCount ?? 0)],
+    ["Cycles", page ? String(page.cycleCount) : "—"],
+    ["Status", status],
+  ]);
+  if (!page || page.nextRoutes.length === 0) return fold;
+  const list = document.createElement("ul");
+  list.className = "routes";
+  for (const route of page.nextRoutes) {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "route-choice";
+    button.textContent = route.label;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      followAdvertisedRoute(route.routeId);
+    });
+    item.append(button);
+    list.append(item);
+  }
+  fold.append(list);
+  return fold;
 }
 
 function openNote(id: string): boolean {
@@ -596,6 +697,7 @@ function openNote(id: string): boolean {
   showAll = false;
   selectedId = id;
   openBlocks.add(id);
+  syncRouteToTrail();
   renderOpenedNotes();
   return true;
 }
@@ -978,6 +1080,7 @@ capture.addEventListener("submit", (event) => {
       trail = [result.eventId];
       selectedId = result.eventId;
       showAll = false;
+      syncRouteToTrail();
       mapPositions.clear();
       lookPositions.clear();
       dragHomes.clear();
@@ -993,6 +1096,8 @@ capture.addEventListener("submit", (event) => {
 
 function clearChoice(): void {
   trail = [];
+  activePage = null;
+  offRouteId = null;
   openBlocks.clear();
   lookPositions.clear();
   dragHomes.clear();
@@ -1282,9 +1387,13 @@ function sharedKeywordFont(screen: Map<string, { radius: number }>): number {
   return (smallest * keyword.fillOfDiameter) / (keyword.fittedLetters * keyword.charWidthRatio);
 }
 
-function placeRing(id: string, spot: { x: number; y: number; radius: number }, origin: string | undefined): void {
+function placeRing(
+  id: string,
+  spot: { x: number; y: number; radius: number },
+  role: "start" | "trail" | "frontier",
+): void {
   const ring = document.createElement("i");
-  ring.className = id === origin ? "trail-ring is-start" : "trail-ring";
+  ring.className = role === "start" ? "trail-ring is-start" : role === "frontier" ? "trail-ring is-frontier" : "trail-ring";
   ring.dataset.noteId = id;
   const box = spot.radius * 2 + Math.max(6, spot.radius * 0.08);
   ring.style.left = `${spot.x}px`;
@@ -1303,13 +1412,18 @@ function placeDegreeLabels(): void {
   placeMovingPipes(space, screen, offsetX, offsetY);
   const origin = trail[0];
   const earlier = new Set(trail.slice(0, -1));
+  const frontier = new Set(
+    activePage?.routeHandle ? (lab.localOverlay(activePage.routeHandle)?.frontier ?? []) : [],
+  );
   for (const item of labelState) {
     const isOrigin = item.id === origin;
-    if (!isOrigin && !earlier.has(item.id)) continue;
+    const onTrail = isOrigin || earlier.has(item.id);
+    const onFrontier = frontier.has(item.id) && !onTrail;
+    if (!onTrail && !onFrontier) continue;
     const spot = screen.get(item.id);
     if (!spot) continue;
     if (spot.x < -20 || spot.y < -20 || spot.x > canvas.clientWidth + 20 || spot.y > canvas.clientHeight + 20) continue;
-    placeRing(item.id, spot, origin);
+    placeRing(item.id, spot, isOrigin ? "start" : onFrontier ? "frontier" : "trail");
   }
   labelSpots = screen;
   const font = sharedKeywordFont(screen);
@@ -1494,6 +1608,8 @@ function useLab(next: RawContextLab, id: string): void {
   lookPositions.clear();
   dragHomes.clear();
   trail = [];
+  activePage = null;
+  offRouteId = null;
   openBlocks.clear();
   selectedId = null;
   showAll = true;

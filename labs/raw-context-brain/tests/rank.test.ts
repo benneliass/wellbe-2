@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { applyHysteresis, compareRank, degreeNormalized } from "../src/rank.js";
+import { applyHysteresis, compareRank } from "../src/rank.js";
 import { sha256 } from "../src/text.js";
 import type { Rankable } from "../src/types.js";
 
@@ -27,10 +27,16 @@ describe("rank and digest", () => {
     expect(compareRank(allowed, blocked)).toBeLessThan(0);
   });
 
-  it("degree-normalizes so a similar hub loses to a specific note", () => {
-    const hub = degreeNormalized(0.9, 100);
-    const specific = degreeNormalized(0.8, 1);
-    expect(specific).toBeGreaterThan(hub);
+  it("lets a closer match beat a more specific note", () => {
+    const hub = rank({ id: "hub", relevance: 0.9, inverseDegree: 0.1 });
+    const specific = rank({ id: "leaf", relevance: 0.8, inverseDegree: 1 });
+    expect(compareRank(hub, specific)).toBeLessThan(0);
+  });
+
+  it("uses degree only when the match ties", () => {
+    const hub = rank({ id: "hub", relevance: 0.8, inverseDegree: 0.1 });
+    const specific = rank({ id: "leaf", relevance: 0.8, inverseDegree: 1 });
+    expect(compareRank(specific, hub)).toBeLessThan(0);
   });
 
   it("keeps a nearly equal previous route", () => {
@@ -38,6 +44,17 @@ describe("rank and digest", () => {
       { id: "new", relevance: 0.52 },
       { id: "old", relevance: 0.5 },
     ];
-    expect(applyHysteresis(ranked, "old").map((item) => item.id)).toEqual(["old", "new"]);
+    expect(applyHysteresis(ranked, "old").ranked.map((item) => item.id)).toEqual(["old", "new"]);
+    expect(applyHysteresis(ranked, "old").heldPrevious).toBe(true);
+  });
+
+  it("does not hold a previous note that loses on a higher key", () => {
+    const ranked = [
+      rank({ id: "new", provenance: 2, relevance: 0.52 }),
+      rank({ id: "old", provenance: 0, relevance: 0.5 }),
+    ];
+    const held = applyHysteresis(ranked, "old");
+    expect(held.ranked.map((item) => item.id)).toEqual(["new", "old"]);
+    expect(held.heldPrevious).toBe(false);
   });
 });

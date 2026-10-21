@@ -2,7 +2,7 @@
 
 Disposable lab for [WEL-87](https://belias.atlassian.net/browse/WEL-87). It is not wired into the WellBe app, API, database, or CI.
 
-The lab stores synthetic notes in an append-only vault, keeps a pointer graph, and asks a local judge for `link`, `no_link`, or `uncertain`. A model abstention stays in the log and does not delete an accepted edge. `@cosmos.gl/graph` draws the current route neighborhood. A control can reveal the larger map.
+The lab stores synthetic notes in an append-only vault, keeps a pointer graph, and asks a local judge for `link`, `no_link`, or `uncertain`. A model abstention stays in the log and does not delete an accepted edge. `@cosmos.gl/graph` draws one person's accepted links. The page opens on the full map. Choosing a note narrows to that note and its neighbors, and the opened notes stay in click order. A route button continues that saved exploration along a route the lab advertised. Clear choice returns to the full map.
 
 ## Run
 

@@ -23,10 +23,6 @@ export function degreeDivisor(degree: number): number {
   return Math.log2(2 + degree);
 }
 
-export function degreeNormalized(similarity: number, degree: number): number {
-  return similarity / degreeDivisor(degree);
-}
-
 export function inverseDegree(degree: number): number {
   return 1 / degreeDivisor(degree);
 }
@@ -37,18 +33,27 @@ export function provenanceRank(origin: "model" | "user_correction" | "policy"): 
   return 0;
 }
 
-export function applyHysteresis<T extends { id: string; relevance: number }>(
+type Holdable = { id: string; relevance: number; authorized?: number; provenance?: number };
+
+/** Holds the previous top note only when relevance is close and no higher key is worse. */
+export function applyHysteresis<T extends Holdable>(
   ranked: T[],
   previousId: string | undefined,
   epsilon = 0.05,
-): T[] {
-  if (!previousId || ranked.length < 2) return ranked;
-  const previous = ranked.find((item) => item.id === previousId);
-  if (!previous) return ranked;
+): { ranked: T[]; heldPrevious: boolean } {
+  if (!previousId || ranked.length < 2) return { ranked, heldPrevious: false };
+  const index = ranked.findIndex((item) => item.id === previousId);
+  if (index <= 0) return { ranked, heldPrevious: false };
+  const previous = ranked[index];
   const top = ranked[0];
-  if (!top || top.id === previous.id) return ranked;
+  if (!previous || !top) return { ranked, heldPrevious: false };
+  if ((previous.authorized ?? 0) < (top.authorized ?? 0)) return { ranked, heldPrevious: false };
+  if ((previous.provenance ?? 0) < (top.provenance ?? 0)) return { ranked, heldPrevious: false };
   if (Math.abs(top.relevance - previous.relevance) <= epsilon) {
-    return [previous, ...ranked.filter((item) => item.id !== previous.id)];
+    return {
+      ranked: [previous, ...ranked.filter((item) => item.id !== previous.id)],
+      heldPrevious: true,
+    };
   }
-  return ranked;
+  return { ranked, heldPrevious: false };
 }

@@ -360,8 +360,8 @@ describe("vault, policy, and link safety", () => {
   it("puts a low-degree note ahead of a high-degree hub with the same overlap", async () => {
     const recorder = recordingJudge(() => []);
     const lab = new RawContextLab({ judge: recorder.judge });
-    lab.addFixture(fixture({ id: "hub", personId: "p1", text: "quartz marker alpha" }));
-    lab.addFixture(fixture({ id: "leaf", personId: "p1", text: "quartz marker beta" }));
+    lab.addFixture(fixture({ id: "hub", personId: "p1", text: "quartz marker" }));
+    lab.addFixture(fixture({ id: "leaf", personId: "p1", text: "marker quartz" }));
     for (let index = 0; index < 12; index += 1) {
       const id = `filler-${index}`;
       lab.addFixture(fixture({ id, personId: "p1", text: `filler ${index}` }));
@@ -375,7 +375,28 @@ describe("vault, policy, and link safety", () => {
       lineageId: "query",
       idempotencyKey: "hub-rank",
     });
-    expect(recorder.requests[0]?.candidates[0]?.excerpt).toBe("quartz marker beta");
+    expect(recorder.requests[0]?.candidates[0]?.excerpt).toBe("marker quartz");
+  });
+
+  it("puts a closer hub ahead of a specific note with a weaker match", async () => {
+    const recorder = recordingJudge(() => []);
+    const lab = new RawContextLab({ judge: recorder.judge });
+    lab.addFixture(fixture({ id: "hub", personId: "p1", text: "quartz marker alpha beta gamma" }));
+    lab.addFixture(fixture({ id: "leaf", personId: "p1", text: "quartz" }));
+    for (let index = 0; index < 12; index += 1) {
+      const id = `pad-${index}`;
+      lab.addFixture(fixture({ id, personId: "p1", text: `pad ${index}` }));
+      lab.linkStructural("hub", id);
+    }
+    await lab.ingest({
+      personId: "p1",
+      text: "quartz marker alpha beta gamma",
+      sourceType: "note",
+      capturedAt: "2024-08-02",
+      lineageId: "query-closer",
+      idempotencyKey: "closer-hub",
+    });
+    expect(recorder.requests[0]?.candidates[0]?.excerpt).toBe("quartz marker alpha beta gamma");
   });
 
   it("measures the heuristic judge without treating injection as links", async () => {

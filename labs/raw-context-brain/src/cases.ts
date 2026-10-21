@@ -44,7 +44,14 @@ export async function loadCasePeople(): Promise<CaseFile[]> {
 }
 
 export function labFromCase(file: CaseFile): RawContextLab {
-  const lab = new RawContextLab({ seed: 7, pageSize: 1, hopLimit: 24, expansionBudget: 400 });
+  const lab = new RawContextLab({
+    seed: 7,
+    pageSize: 1,
+    hopLimit: 24,
+    expansionBudget: 400,
+    maxHandleUses: 48,
+    handleTtlMs: 600_000,
+  });
   const nodes = [...file.nodes].sort((left, right) => left.sequence - right.sequence);
   for (const node of nodes) {
     const event: VaultEvent = {

@@ -6,6 +6,7 @@ export function mapRelation(origin: Origin, reasonCode: string): Relation {
   if (reasonCode === "membership") return "same_record_group";
   if (reasonCode === "temporal_neighbour") return "near_in_time";
   if (reasonCode === "derived_or_copied") return "derived_or_copied";
+  if (reasonCode === "possible_conflict") return "possible_inconsistency";
   return "possible_semantic_association";
 }
 

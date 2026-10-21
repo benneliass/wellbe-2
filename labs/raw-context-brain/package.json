@@ -10,10 +10,12 @@
     "scorecard": "tsx src/scorecard.ts"
   },
   "dependencies": {
-    "@cosmos.gl/graph": "^3.5.1"
+    "@cosmos.gl/graph": "^3.5.1",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "@types/pg": "^8.23.1",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0",
     "vite": "^6.3.0",

@@ -77,7 +77,7 @@ const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 
 const report = `# WEL-87 Raw Context Brain lab report
 
-Date: 2026-10-11
+Date: 2026-10-21
 
 This is a disposable synthetic-data lab. It is not a production architecture decision.
 
@@ -97,7 +97,7 @@ Heuristic judge on the 12-note synthetic gold set (not founder-reviewed):
 |---|---|
 | True links among gold link pairs | ${gold.trueLinks} / ${gold.goldLinks} |
 | Candidate recall of gold links | ${percent(gold.candidateRecall)} |
-| Precision of predicted links | ${percent(gold.precision)} |
+| Precision of predicted links, heuristic column | ${percent(gold.precision)} |
 | False links on gold no-link pairs | ${gold.falseLinks} (${percent(gold.falseLinkRate)}) |
 | Abstention quality | ${percent(gold.abstentionQuality)} |
 | Injection notes accepted as links | ${gold.injectionAcceptedLinks} |
@@ -115,7 +115,7 @@ ${scales
 
 Cross-person candidates observed in these runs: 0.
 
-Live OpenAI was not called. No API key was read and no prompt was logged.
+Live model column: not run. No API key was read and no prompt was logged. The heuristic percentage stays in the heuristic column.
 
 ## Failure log
 
@@ -135,22 +135,25 @@ Automated tests provoke the cases below. See \`npm test\` for the latest pass/fa
 - Judge timeouts retry twice, then return \`dependency_unavailable\` with the vault event kept.
 - \`more\` continues the saved frontier and does not rerun candidate search.
 - Cycles stop. Stale snapshots, authorization changes, expiry, and use limits stop continuation.
+- A continuation can focus one advertised note. A note outside that route is refused and the frontier stays.
+- Same-lineage neighbors past the cap stop as insufficient independent evidence.
+- A copied note does not become a link by itself. When that original sits on the frontier, it is advertised as the original record. A document hub is advertised the same way.
 - An isolated node is an exact leaf. The detail text does not say that no related context exists.
-- Hub degree is normalized below a specific note with the same overlap.
+- Equal overlap puts a specific note ahead of a hub. A closer match stays ahead of a weaker specific note. Degree is that later tie-break.
 
 ## Research-gap matrix
 
 | Focus | Label | Lab note |
 |---|---|---|
-| Link semantics and confidence | still_open | The lab enforces a confidence cap and abstention. Permitted reason types are not settled. |
-| Candidate and route ranking | still_open | The lab uses one recorded lexicographic order with degree normalization. That order is not approved. |
+| Link semantics and confidence | still_open | The lab can say link, no link, or abstain. A later abstain or no link leaves a kept edge in place. Confidence does not rise from repeating the same evidence. Permitted reason types are not settled. |
+| Candidate and route ranking | still_open | Relevance is the raw match. Degree is a later tie-break. A previous note is held only when no higher key is worse. That order is not approved. |
 | Advertisement and snapshot contract | measured_in_lab | Sequence, digest, tombstone, and incremental-versus-full digest match on the synthetic log. |
-| Continuation capability security | still_open | Handles are opaque and server-side, with expiry, use limits, and snapshot and authorization invalidation. Signing and encryption were not chosen. |
-| Healthcare navigation taxonomy | still_open | Routes use source type and time only. |
-| OpenAI prompt and evaluation contract | still_open | No founder-reviewed gold set and no live model run. |
+| Continuation capability security | still_open | A route id is 128 random bits naming a server record. Expiry, use limits, and snapshot and authorization checks still stop continuation. Signing and encryption were not adopted. |
+| Healthcare navigation taxonomy | still_open | Routes name a neighbor, a source type, earlier or later context, the original record when it sits on the frontier, and stop. Diagnosis, cause, and severity are not facets. |
+| OpenAI prompt and evaluation contract | still_open | The 12-note score is the heuristic column. No founder-reviewed gold set and no live model column. |
 | Summary policy | not_needed_for_minimum_production_boundary | The lab keeps source membership and does not summarize as a default. |
 | Persistence choice | still_open | The lab is in memory. No second database was introduced. |
-| Visualization comprehension | still_open | The default drawing is the route neighborhood. The larger map is a separate control. No person has been asked whether the picture is understood. |
+| Visualization comprehension | still_open | Lines have no arrowheads. Color is record kind. Size is the number of links, and the legend says so. No comprehension study has been run. |
 | Provider and privacy readiness | still_open | Synthetic fixtures only. |
 
 ## Practical limits

@@ -1,5 +1,5 @@
 import { heuristicJudge, sanitizeDecision } from "./judge.js";
-import { applyHysteresis, compareRank, degreeNormalized, inverseDegree, provenanceRank } from "./rank.js";
+import { applyHysteresis, compareRank, inverseDegree, provenanceRank } from "./rank.js";
 import { mapRelation, sourceName } from "./relation.js";
 import { AdvertisementLog, Projection, Vault, emptyPointer, type AdvertisementDraft } from "./store.js";
 import { HnswIndex } from "./hnsw.js";
@@ -28,6 +28,15 @@ import {
 
 const LINEAGE_CAP = 2;
 
+/** 128 bits. The prefix is not entropy. The walk stays in the server record this id names. */
+function routeToken(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let hex = "";
+  for (const byte of bytes) hex += byte.toString(16).padStart(2, "0");
+  return `rh_${hex}`;
+}
+
 interface FrontierItem {
   nodeId: string;
   edgeKey: string;
@@ -55,6 +64,8 @@ interface HandleRecord {
   useCount: number;
   maxUses: number;
   routeBindings: Map<string, string[]>;
+  advertised: LocalRoute[];
+  lineagePruned: boolean;
   invalidated: boolean;
   invalidReason: TerminalReason | null;
 }
@@ -80,6 +91,8 @@ export interface ExploreInput {
   query?: string;
   routeHandle?: string;
   routeId?: string;
+  /** One advertised note on routeId. Any other id is refused. */
+  focusId?: string;
   /** Same id returns the saved page. A new id advances the frontier. */
   requestId?: string;
   /** Stay on the chosen note. The next request is what opens a related note. */
@@ -102,6 +115,13 @@ export interface LocalAssessment {
 export interface TrailLook {
   page: SemanticData;
   counts: LocalCount;
+}
+
+export interface LocalRoute {
+  routeId: string;
+  label: string;
+  kind: NextRoute["kind"];
+  nodeIds: string[];
 }
 
 export interface LocalOverlay {
@@ -167,7 +187,6 @@ export class RawContextLab {
   private readonly idempotency = new Map<string, IngestResult>();
   private readonly lastPrimary = new Map<string, string>();
   private readonly exportCache = new Map<string, string>();
-  private handleCounter = 0;
   private itemCounter = 0;
 
   constructor(options: LabOptions = {}) {
@@ -561,6 +580,12 @@ export class RawContextLab {
     return saved;
   }
 
+  localRoutes(routeHandle: string): LocalRoute[] {
+    const record = this.handles.get(routeHandle);
+    if (!record || record.invalidated) return [];
+    return record.advertised.map((route) => ({ ...route, nodeIds: [...route.nodeIds] }));
+  }
+
   localOverlay(routeHandle: string): LocalOverlay | undefined {
     const record = this.handles.get(routeHandle);
     if (!record) return undefined;
@@ -727,7 +752,7 @@ export class RawContextLab {
         id,
         authorized: 1,
         provenance: 1,
-        relevance: degreeNormalized(similarity, degree),
+        relevance: similarity,
         novelty: 1,
         inverseDegree: inverseDegree(degree),
         inverseHop: 1,
@@ -735,7 +760,9 @@ export class RawContextLab {
       });
     }
     ranked.sort(compareRank);
-    const ordered = applyHysteresis(ranked, this.lastPrimary.get(personId));
+    const held = applyHysteresis(ranked, this.lastPrimary.get(personId));
+    if (held.heldPrevious) this.metrics.pruned.push({ reason: "hysteresis_hold", count: 1 });
+    const ordered = held.ranked;
     const counts = new Map<string, number>();
     const kept: string[] = [];
     for (const item of ordered) {
@@ -838,28 +865,44 @@ export class RawContextLab {
     ) {
       return this.stopped("stale_snapshot");
     }
+    if (input.focusId && !input.routeId) return this.stopped("policy_blocked");
+    if (input.routeId && input.focusId) {
+      const bound = record.routeBindings.get(input.routeId) ?? [];
+      if (!bound.includes(input.focusId)) return this.stopped("policy_blocked");
+    }
     if (this.now() > record.expiresAt) return this.stopped("policy_blocked", DETAILS.handle_expired);
     if (record.useCount >= record.maxUses) return this.stopped("policy_blocked", DETAILS.handle_use_limit);
     const searches = this.hnswSearchCount;
     record.useCount += 1;
+    let aside: FrontierItem[] = [];
     if (input.routeId) {
       const bound = record.routeBindings.get(input.routeId) ?? [];
       if (bound.length === 0) return this.stopped("supported_leaf");
-      record.frontier = record.frontier.filter((item) => bound.includes(item.nodeId));
+      if (input.focusId) {
+        aside = record.frontier.filter((item) => item.nodeId !== input.focusId);
+        record.frontier = record.frontier.filter((item) => item.nodeId === input.focusId);
+      } else {
+        record.frontier = record.frontier.filter((item) => bound.includes(item.nodeId));
+      }
     }
-    const data = this.step(record);
+    const data = this.step(record, aside, Boolean(input.focusId));
     if (this.hnswSearchCount !== searches) {
       throw new Error("continuation must not rerun candidate search");
     }
     return data;
   }
 
-  private step(record: HandleRecord): SemanticData {
+  private step(record: HandleRecord, aside: FrontierItem[] = [], one = false): SemanticData {
+    const limit = one ? 1 : this.pageSize;
     const items: ExportItem[] = [];
     const already: string[] = [];
-    while (items.length < this.pageSize && record.frontier.length > 0) {
+    const done = (terminal: TerminalReason | null): SemanticData => {
+      this.restoreFrontier(record, aside);
+      return this.finish(record, items, already, terminal);
+    };
+    while (items.length < limit && record.frontier.length > 0) {
       if (record.expansions >= this.expansionBudget || record.hopDepth >= this.hopLimit) {
-        return this.finish(record, items, already, "budget_exhausted");
+        return done("budget_exhausted");
       }
       record.frontier.sort((a, b) => compareRank(a.rank, b.rank));
       const next = record.frontier.shift();
@@ -877,7 +920,15 @@ export class RawContextLab {
       if (exported) items.push(exported);
       this.expand(record, next.nodeId);
     }
-    return this.finish(record, items, already, null);
+    return done(null);
+  }
+
+  private restoreFrontier(record: HandleRecord, aside: FrontierItem[]): void {
+    for (const item of aside) {
+      if (record.visitedNodes.includes(item.nodeId)) continue;
+      if (record.frontier.some((saved) => saved.nodeId === item.nodeId)) continue;
+      record.frontier.push(item);
+    }
   }
 
   private finish(
@@ -889,7 +940,10 @@ export class RawContextLab {
     let terminalReason = terminal;
     let exhaustion: Exhaustion = "not_yet_exhausted";
     if (!terminalReason && record.frontier.length === 0) {
-      if (this.componentCovered(record)) {
+      if (record.lineagePruned && !this.componentCovered(record)) {
+        terminalReason = "insufficient_independent_evidence";
+        exhaustion = "exact";
+      } else if (this.componentCovered(record)) {
         terminalReason = "supported_leaf";
         exhaustion = "exact";
       } else {
@@ -910,8 +964,9 @@ export class RawContextLab {
     let nextRoutes: NextRoute[] = [];
     if (!terminalReason) {
       const advertised = this.advertise(record);
-      nextRoutes = advertised.routes;
-      record.routeBindings = advertised.bindings;
+      record.advertised = advertised;
+      record.routeBindings = new Map(advertised.map((route) => [route.routeId, route.nodeIds]));
+      nextRoutes = advertised.map(({ routeId, label, kind }) => ({ routeId, label, kind }));
     } else {
       record.invalidated = true;
       record.invalidReason = terminalReason;
@@ -958,6 +1013,7 @@ export class RawContextLab {
       const lineage = this.vault.get(other)?.lineageId ?? other;
       const seen = lineageCounts.get(lineage) ?? 0;
       if (seen >= LINEAGE_CAP) {
+        record.lineagePruned = true;
         this.metrics.pruned.push({ reason: "lineage_cap", count: 1 });
         continue;
       }
@@ -997,27 +1053,28 @@ export class RawContextLab {
         id: nodeId,
         authorized: 1,
         provenance: provenanceRank("policy"),
-        relevance: degreeNormalized(confidence, degree),
-        novelty: degree === 0 ? 1 : 0.5,
+        relevance: confidence,
+        novelty: 1,
         inverseDegree: inverseDegree(degree),
         inverseHop: 1 / (1 + hop),
       },
     };
   }
 
-  private advertise(record: HandleRecord): { routes: NextRoute[]; bindings: Map<string, string[]> } {
-    const routes: NextRoute[] = [];
-    const bindings = new Map<string, string[]>();
+  private advertise(record: HandleRecord): LocalRoute[] {
+    const routes: LocalRoute[] = [];
     const anchor = this.vault.get(record.anchorId);
+    const currentId = record.visitedNodes[record.visitedNodes.length - 1] ?? record.anchorId;
+    const current = this.vault.get(currentId);
     const frontierIds = record.frontier.map((item) => item.nodeId);
     let serial = 0;
     const push = (kind: NextRoute["kind"], label: string, nodeIds: string[]) => {
-      if (routes.length >= 7) return;
+      const limit = kind === "fallback" ? 7 : 6;
+      if (routes.length >= limit) return;
       if (kind !== "fallback" && nodeIds.length === 0) return;
       serial += 1;
       const routeId = `nr_${serial}`;
-      routes.push({ routeId, label, kind });
-      bindings.set(routeId, nodeIds);
+      routes.push({ routeId, label, kind, nodeIds: [...nodeIds] });
     };
     for (const id of frontierIds.slice(0, 3)) {
       const name = this.vault.get(id)?.text.slice(0, 42) ?? id;
@@ -1039,8 +1096,14 @@ export class RawContextLab {
     if (firstType) push("facet", `Only ${sourceName(firstType[0]).toLowerCase()}s`, firstType[1]);
     if (earlier.length > 0) push("temporal", "Earlier context", earlier);
     if (later.length > 0) push("temporal", "Later context", later);
+    const sourceIds = frontierIds.filter((id) => {
+      if (current?.copiedFromId === id) return true;
+      const node = this.nodes.get(id);
+      return node?.kind === "pseudonode" && node.memberEventIds.includes(currentId);
+    });
+    if (sourceIds.length > 0) push("source", "Original record", sourceIds);
     push("fallback", "Stop here", []);
-    return { routes, bindings };
+    return routes;
   }
 
   private componentCovered(record: HandleRecord): boolean {
@@ -1075,8 +1138,7 @@ export class RawContextLab {
   }
 
   private blankHandle(input: ExploreInput): HandleRecord {
-    this.handleCounter += 1;
-    const token = `rh_${this.handleCounter.toString(36)}`;
+    const token = routeToken();
     const record: HandleRecord = {
       token,
       personId: input.personId,
@@ -1097,6 +1159,8 @@ export class RawContextLab {
       useCount: 0,
       maxUses: this.maxHandleUses,
       routeBindings: new Map(),
+      advertised: [],
+      lineagePruned: false,
       invalidated: false,
       invalidReason: null,
     };

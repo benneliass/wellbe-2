@@ -365,6 +365,27 @@ main {
   box-shadow: 0 0 0 3px rgb(91 143 212 / 28%);
 }
 
+.degree-labels .trail-ring.is-frontier {
+  border-color: #7d8cff;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.opened-note .route-choice {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  color: var(--fg1);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  box-shadow: none;
+}
+
 .degree-labels .hover-ring {
   box-sizing: border-box;
   border: 3px solid #334155;
