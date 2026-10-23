@@ -14,6 +14,7 @@ dependencies = [
     "wellbe-events",
     "wellbe-db",
     "wellbe-c2-vault",
+    "wellbe-raw-context-brain",
     "fastapi>=0.115",
     "uvicorn>=0.34",
     "dramatiq[redis]>=1.17",
@@ -35,3 +36,4 @@ wellbe-c9-continuity = { workspace = true }
 wellbe-events = { workspace = true }
 wellbe-db = { workspace = true }
 wellbe-c2-vault = { workspace = true }
+wellbe-raw-context-brain = { workspace = true }

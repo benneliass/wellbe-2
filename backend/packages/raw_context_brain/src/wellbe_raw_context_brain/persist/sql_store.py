@@ -6,6 +6,7 @@ excerpts read from the vault for that request.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import replace
 
 from sqlalchemy import text
@@ -139,3 +140,48 @@ def walk(
     )
     lab.bind_vault_events(events)
     return lab.explore(explore_input)
+
+
+def place_captured(
+    session: Session,
+    person_id: str,
+    events: list[VaultEvent],
+    event_id: str,
+    *,
+    table_prefix: str = "context_brain.",
+) -> None:
+    """Place one stored vault record and judge its links. A repeat does not add more."""
+    lab = RawContextLab(
+        LabOptions(
+            graph_store=SqlGraphStore(session, person_id, table_prefix=table_prefix),
+            session_store=SqlSessionStore(session, person_id, table_prefix=table_prefix),
+            pointer_only=True,
+        )
+    )
+    if lab.was_placed(event_id):
+        return
+    lab.bind_vault_events(events)
+    target = lab.vault.get(event_id)
+    if target is None:
+        raise ValueError("unknown event")
+    result = asyncio.run(lab.place_bound_event(target))
+    if result.terminal_reason == "dependency_unavailable":
+        raise RuntimeError(result.detail or "context brain judge unavailable")
+
+
+def bounded_neighbours(
+    session: Session,
+    person_id: str,
+    event_id: str,
+    *,
+    table_prefix: str = "context_brain.",
+) -> list[str]:
+    """Accepted neighbours of one stored record. Empty when nothing has been placed."""
+    lab = RawContextLab(
+        LabOptions(
+            graph_store=SqlGraphStore(session, person_id, table_prefix=table_prefix),
+            session_store=SqlSessionStore(session, person_id, table_prefix=table_prefix),
+            pointer_only=True,
+        )
+    )
+    return lab.accepted_neighbour_ids(event_id)

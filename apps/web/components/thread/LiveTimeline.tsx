@@ -3,8 +3,9 @@
 import { Chip, Icon, ReviewMarkerList, SourceMarker, type EvidenceSource } from "@wellbe/ui";
 import { formatShortDate } from "@/lib/adapters";
 import { describePendingItem } from "@/lib/pending";
-import type { TimelineEventV2 } from "@/lib/thread-hooks";
-import { eventTitle, resolveSources, type SourceIndex } from "./thread-view";
+import type { TimelineEventV2, TimelineSourceV2 } from "@/lib/thread-hooks";
+import { ContextWalk } from "./ContextWalk";
+import { captureIdForEvent, eventTitle, resolveSources, type SourceIndex } from "./thread-view";
 import styles from "./ThreadDetailLive.module.css";
 
 const KIND_ICON: Record<TimelineEventV2["kind"], string> = {
@@ -22,10 +23,12 @@ export function timelineAnchor(eventId: string): string {
 export function LiveTimeline({
   events,
   index,
+  sources = [],
   onOpenEvidence,
 }: {
   events: readonly TimelineEventV2[];
   index: SourceIndex;
+  sources?: readonly TimelineSourceV2[];
   onOpenEvidence: (title: string, claim: string, sources: EvidenceSource[]) => void;
 }) {
   if (events.length === 0) {
@@ -36,8 +39,9 @@ export function LiveTimeline({
       {events.map((ev) => {
         const title = eventTitle(ev);
         const when = formatShortDate(ev.occurred_at);
-        const sources = resolveSources(ev.source_ref_ids ?? [], index);
-        const lead = sources[0];
+        const evidence = resolveSources(ev.source_ref_ids ?? [], index);
+        const lead = evidence[0];
+        const captureId = captureIdForEvent(ev.source_ref_ids, sources);
         const loop =
           ev.kind === "open_loop" && ev.item_status
             ? describePendingItem({ status: ev.item_status, due_at: ev.due_at ?? null })
@@ -74,12 +78,13 @@ export function LiveTimeline({
                       component={lead.component}
                       kind={lead.kind}
                       date={lead.date}
-                      count={sources.length}
-                      onOpen={() => onOpenEvidence("Sources", title, sources)}
+                      count={evidence.length}
+                      onOpen={() => onOpenEvidence("Sources", title, evidence)}
                     />
                   )}
                 </div>
               )}
+              {captureId ? <ContextWalk captureId={captureId} /> : null}
             </div>
           </li>
         );

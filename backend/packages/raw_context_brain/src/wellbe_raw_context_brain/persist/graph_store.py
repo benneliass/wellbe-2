@@ -55,6 +55,7 @@ class DurableSnapshot:
     acknowledgements: tuple[LinkAcknowledgement, ...]
     projection_revision: int | None = None
     projection_digest: str | None = None
+    placed_event_ids: tuple[str, ...] = ()
 
 
 class GraphStore(Protocol):
@@ -239,6 +240,8 @@ def _snapshot_payload(snapshot: DurableSnapshot) -> dict[str, object]:
         payload["projection_revision"] = snapshot.projection_revision
     if snapshot.projection_digest is not None:
         payload["projection_digest"] = snapshot.projection_digest
+    if snapshot.placed_event_ids:
+        payload["placed_event_ids"] = list(snapshot.placed_event_ids)
     return payload
 
 
@@ -350,6 +353,9 @@ def _snapshot_from_mapping(parsed: dict[str, object]) -> DurableSnapshot:
         acknowledgements=acknowledgements,
         projection_revision=revision,
         projection_digest=digest,
+        placed_event_ids=_strings(parsed["placed_event_ids"])
+        if "placed_event_ids" in parsed
+        else (),
     )
 
 

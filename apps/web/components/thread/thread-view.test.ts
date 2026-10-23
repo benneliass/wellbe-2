@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { components } from "@wellbe/api-client";
 import {
+  captureIdForEvent,
   clarifyQuestion,
   eventStage,
   latestChange,
@@ -102,6 +103,29 @@ describe("timeline helpers", () => {
     expect(waitingOn([])).toBeUndefined();
     expect(waitingOn([{ item_type: "result_pending", title: "x" } as never], "waiting_for_result")).toBeUndefined();
     expect(waitingOn([{ item_type: "referral_pending", title: "x" } as never], "watchful_waiting")).toBe("a referral");
+  });
+
+  it("uses the stored capture as the walk anchor", () => {
+    const sources = [
+      {
+        source_ref_id: "fact-1",
+        source_ref_type: "c4_extracted_fact",
+        component: "c5" as const,
+        kind: "extracted_fact",
+        display_label: "Cough",
+        capture_id: "vault-1",
+      },
+      {
+        source_ref_id: "cap-1",
+        source_ref_type: "c2_capture",
+        component: "c2" as const,
+        kind: "entered_by_you",
+        display_label: "Entered by you",
+      },
+    ];
+    expect(captureIdForEvent(["fact-1"], sources)).toBe("vault-1");
+    expect(captureIdForEvent(["cap-1"], sources)).toBe("cap-1");
+    expect(captureIdForEvent(["missing"], sources)).toBeNull();
   });
 
   it("collects theory evidence ids from for/against and the user's citations", () => {
