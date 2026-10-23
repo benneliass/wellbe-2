@@ -7,7 +7,13 @@ import json
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
-from wellbe_raw_context_brain.persist.sql_store import SqlGraphStore, SqlSessionStore, walk
+from wellbe_raw_context_brain.persist.sql_store import (
+    SqlGraphStore,
+    SqlSessionStore,
+    bounded_neighbours,
+    place_captured,
+    walk,
+)
 from wellbe_raw_context_brain.router import LabOptions, RawContextLab
 from wellbe_raw_context_brain.types import ExploreInput, VaultEvent
 
@@ -61,6 +67,41 @@ def _lab(session: Session) -> RawContextLab:
             pointer_only=True,
         )
     )
+
+
+def test_a_stored_record_is_placed_once_and_the_note_stays_out() -> None:
+    factory = _engine()
+    note = "morning fever and chills"
+    events = [
+        VaultEvent(
+            id=event_id,
+            person_id=_PERSON,
+            captured_at="2024-02-01T00:00:00.000Z",
+            source_type="note",
+            text=note,
+            content_hash=event_id,
+            lineage_id=event_id,
+            document_id=None,
+        )
+        for event_id in ("a", "b")
+    ]
+    with factory() as session:
+        place_captured(session, _PERSON, events, "b", table_prefix="")
+        session.commit()
+        stored = session.execute(
+            text("SELECT snapshot FROM graph_snapshot WHERE person_id = :person_id"),
+            {"person_id": _PERSON},
+        ).scalar_one()
+        assert note not in stored
+        assert stored.count('"judgment":"link"') == 1
+        assert bounded_neighbours(session, _PERSON, "b", table_prefix="") == ["a"]
+        place_captured(session, _PERSON, events, "b", table_prefix="")
+        session.commit()
+        again = session.execute(
+            text("SELECT snapshot FROM graph_snapshot WHERE person_id = :person_id"),
+            {"person_id": _PERSON},
+        ).scalar_one()
+    assert again.count('"judgment":"link"') == 1
 
 
 def test_restart_keeps_the_walk_and_drops_the_note_text() -> None:

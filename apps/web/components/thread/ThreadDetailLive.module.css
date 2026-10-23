@@ -218,6 +218,20 @@
   color: var(--fg3);
   font-variant-numeric: tabular-nums;
 }
+.walk {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--wb-space-2);
+  margin-top: var(--wb-space-2);
+}
+
+.walkRoutes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wb-space-2);
+}
+
 .tlDetail {
   margin: 0;
   font-size: var(--text-sm);

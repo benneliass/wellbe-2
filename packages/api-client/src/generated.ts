@@ -284,6 +284,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/context/explore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Explore Context */
+        post: operations["explore_context_v2_context_explore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/corrections": {
         parameters: {
             query?: never;
@@ -1249,6 +1266,72 @@ export interface components {
             purpose: string;
             /** Resource Type */
             resource_type: string;
+        };
+        /** ContextExploreRequest */
+        ContextExploreRequest: {
+            /** Anchor Id */
+            anchor_id?: string | null;
+            /** Focus Id */
+            focus_id?: string | null;
+            /**
+             * Hold At Anchor
+             * @default false
+             */
+            hold_at_anchor: boolean;
+            /**
+             * Operation
+             * @default open
+             * @enum {string}
+             */
+            operation: "open" | "continue" | "rewind";
+            /** Purpose */
+            purpose: string;
+            /** Request Id */
+            request_id: string;
+            /** Rewind To Id */
+            rewind_to_id?: string | null;
+            /** Route Handle */
+            route_handle?: string | null;
+            /** Route Id */
+            route_id?: string | null;
+        };
+        /** ContextExploreResponse */
+        ContextExploreResponse: {
+            /** Breadcrumb */
+            breadcrumb: string[];
+            /** Cycle Count */
+            cycle_count: number;
+            /** Detail */
+            detail: string;
+            /** Direct Link Count */
+            direct_link_count: number;
+            /** Exhaustion */
+            exhaustion: string;
+            /** Hop Depth */
+            hop_depth: number;
+            /** Next Routes */
+            next_routes: components["schemas"]["ContextRouteResponse"][];
+            /** Opened */
+            opened: string[];
+            /** Route */
+            route: string;
+            /** Route Handle */
+            route_handle: string | null;
+            /** Snapshot Digest */
+            snapshot_digest: string;
+            /** Snapshot Revision */
+            snapshot_revision: number;
+            /** Terminal Reason */
+            terminal_reason: string | null;
+        };
+        /** ContextRouteResponse */
+        ContextRouteResponse: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Route Id */
+            route_id: string;
         };
         /**
          * CorrectionTargetKind
@@ -3870,6 +3953,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditRefV2"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explore_context_v2_context_explore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContextExploreRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextExploreResponse"];
                 };
             };
             /** @description Validation Error */

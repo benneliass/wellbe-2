@@ -409,6 +409,7 @@ class RawContextLab:
         self._route_log: RouteSetLog = create_route_sets()
         self._acknowledgements: list[LinkAcknowledgement] = []
         self._hydrating = False
+        self._placed: set[str] = set()
         self._idempotency: dict[str, IngestResult] = {}
         self._last_primary: dict[str, str] = {}
         self._export_cache: dict[str, str] = {}
@@ -470,6 +471,13 @@ class RawContextLab:
         assert_structural_ledger(self.log.ads, list(self._nodes.values()))
         self.projection.rebuild(self.log.ads)
         self._save_durable()
+
+    def was_placed(self, event_id: str) -> bool:
+        return event_id in self._placed
+
+    def accepted_neighbour_ids(self, event_id: str) -> list[str]:
+        """Accepted one-hop neighbours. This is the bounded set, not the vault."""
+        return self.projection.neighbors(event_id)
 
     def bind_vault_events(self, events: Sequence[VaultEvent]) -> None:
         """Attach vault excerpts for this request. Does not store the text."""
@@ -681,11 +689,30 @@ class RawContextLab:
                 ),
             )
 
+        bound = self.vault.get(event_id)
+        if bound is None:
+            raise ValueError("unknown event")
+        return self._remember(ingest_input, await self.place_bound_event(bound))
+
+    async def place_bound_event(self, event: VaultEvent) -> IngestResult:
+        """Judge one vault record that is already bound. A repeat does not add links."""
+        if event.id in self._placed:
+            return IngestResult(
+                event_id=event.id,
+                candidate_count=0,
+                export_bytes=0,
+                judgments=(),
+                terminal_reason=None,
+                detail="",
+                route_revision=None,
+                pruned=(),
+            )
+        event_id = event.id
         candidate_ids = self._select_candidates(
-            ingest_input.person_id,
-            ingest_input.text,
+            event.person_id,
+            event.text,
             event_id,
-            ingest_input.captured_at,
+            event.captured_at,
         )
         issued: dict[str, str] = {}
         judge_candidates: list[JudgeCandidate] = []
@@ -695,30 +722,27 @@ class RawContextLab:
                 continue
             issued[exported.handle] = node_id
             judge_candidates.append(_judge_candidate(exported))
-        published = self._publish_selection(ingest_input.person_id, issued)
+        published = self._publish_selection(event.person_id, issued)
         request = JudgeRequest(
             new_handle="ch_new",
-            excerpt=ingest_input.text[:180],
-            source_type=ingest_input.source_type,
-            captured_at=ingest_input.captured_at,
+            excerpt=event.text[:180],
+            source_type=event.source_type,
+            captured_at=event.captured_at,
             candidates=tuple(judge_candidates),
         )
         export_bytes = _request_bytes(request)
         try:
             decisions = await self._judge_with_retry(request)
         except Exception:
-            return self._remember(
-                ingest_input,
-                IngestResult(
-                    event_id=event_id,
-                    candidate_count=len(judge_candidates),
-                    export_bytes=export_bytes,
-                    judgments=(),
-                    terminal_reason="dependency_unavailable",
-                    detail=DETAILS["dependency_unavailable"],
-                    route_revision=published[0],
-                    pruned=tuple(published[1]),
-                ),
+            return IngestResult(
+                event_id=event_id,
+                candidate_count=len(judge_candidates),
+                export_bytes=export_bytes,
+                judgments=(),
+                terminal_reason="dependency_unavailable",
+                detail=DETAILS["dependency_unavailable"],
+                route_revision=published[0],
+                pruned=tuple(published[1]),
             )
 
         judgments: list[JudgmentRecord] = []
@@ -737,7 +761,7 @@ class RawContextLab:
                 )
                 continue
             other = self._nodes.get(other_id)
-            if other is None or other.person_id != ingest_input.person_id:
+            if other is None or other.person_id != event.person_id:
                 self.metrics.cross_person_candidates += 1
                 judgments.append(
                     JudgmentRecord(
@@ -759,7 +783,7 @@ class RawContextLab:
             existing = self.projection.edge_between(event_id, other_id)
             ad = self._append_ad(
                 AdvertisementDraft(
-                    person_id=ingest_input.person_id,
+                    person_id=event.person_id,
                     origin="model",
                     model_version=_MODEL_VERSION,
                     prompt_version=_PROMPT_VERSION,
@@ -772,7 +796,7 @@ class RawContextLab:
                     relation=map_relation("model", decision.reason_code),
                     proposed_confidence=_clamp(decision.confidence),
                     confidence=confidence,
-                    created_at=ingest_input.captured_at,
+                    created_at=event.captured_at,
                     supersedes_id=None if existing is None else existing.ad_id,
                     withdrawn=False,
                 )
@@ -787,19 +811,34 @@ class RawContextLab:
                 )
             )
 
-        await self._judge_referral_round(ingest_input, event_id, issued, judgments)
-        return self._remember(
-            ingest_input,
-            IngestResult(
-                event_id=event_id,
-                candidate_count=len(judge_candidates),
-                export_bytes=export_bytes,
-                judgments=tuple(judgments),
-                terminal_reason=None,
-                detail="",
-                route_revision=published[0],
-                pruned=tuple(published[1]),
+        await self._judge_referral_round(
+            IngestInput(
+                person_id=event.person_id,
+                text=event.text,
+                source_type=event.source_type,
+                captured_at=event.captured_at,
+                lineage_id=event.lineage_id,
+                idempotency_key=event.id,
+                independence=event.independence,
+                source_arrival=event.source_arrival,
+                copied_from_id=event.copied_from_id,
+                document_id=event.document_id,
             ),
+            event_id,
+            issued,
+            judgments,
+        )
+        self._placed.add(event.id)
+        self._save_durable()
+        return IngestResult(
+            event_id=event_id,
+            candidate_count=len(judge_candidates),
+            export_bytes=export_bytes,
+            judgments=tuple(judgments),
+            terminal_reason=None,
+            detail="",
+            route_revision=published[0],
+            pruned=tuple(published[1]),
         )
 
     def explore(self, explore_input: ExploreInput) -> SemanticData:
@@ -2003,6 +2042,7 @@ class RawContextLab:
         if self._graph_store is None:
             return
         snapshot = self._graph_store.load()
+        self._placed = set(snapshot.placed_event_ids)
         if not snapshot.events and not snapshot.advertisements and not snapshot.nodes:
             return
         self._hydrating = True
@@ -2041,6 +2081,7 @@ class RawContextLab:
                 acknowledgements=tuple(self._acknowledgements),
                 projection_revision=self.projection.revision,
                 projection_digest=self.projection.digest,
+                placed_event_ids=tuple(sorted(self._placed)),
             )
         )
 

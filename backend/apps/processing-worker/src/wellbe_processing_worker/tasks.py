@@ -267,6 +267,14 @@ _CO_OCCURRENCE_SQL = text(
 )
 
 
+def _rows_in_brain_view(
+    rows: list[Any], raw_event_id: uuid.UUID, neighbour_ids: list[str]
+) -> list[Any]:
+    """Keep this capture and the captures the brain accepted as neighbours."""
+    allowed = {str(raw_event_id), *neighbour_ids}
+    return [row for row in rows if str(row["raw_context_event_id"]) in allowed]
+
+
 async def _link_co_occurrence(
     *, raw_event_id: uuid.UUID, patient_id: uuid.UUID, captured_at: datetime
 ) -> int:
@@ -278,6 +286,7 @@ async def _link_co_occurrence(
     """
     from wellbe_c6_graph import GraphRepository
     from wellbe_db import create_engine, create_session_factory
+    from wellbe_raw_context_brain.persist.sql_store import bounded_neighbours
 
     from wellbe_processing_worker.config import ProcessingWorkerSettings
 
@@ -302,6 +311,12 @@ async def _link_co_occurrence(
             .mappings()
             .all()
         )
+        neighbour_ids = await session.run_sync(
+            lambda sync_session: bounded_neighbours(
+                sync_session, str(patient_id), str(raw_event_id)
+            )
+        )
+        rows = _rows_in_brain_view(list(rows), raw_event_id, neighbour_ids)
 
         nodes: dict[str, Any] = {}
         for r in rows:

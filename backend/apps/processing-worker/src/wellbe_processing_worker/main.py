@@ -53,6 +53,64 @@ class VaultFetchError(RuntimeError):
 OutboxHandler = Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]]
 
 
+async def _place_context(
+    session: AsyncSession | None,
+    vault_client: httpx.AsyncClient,
+    vault_event: dict[str, Any],
+    text_content: str,
+) -> None:
+    """Turn a stored vault record into a context pointer and its links.
+
+    The outbox retry calls this again. Placement records the event id, so the
+    second call does not add another link. Note text is not written.
+    """
+    if session is None:
+        return
+    from wellbe_c2_vault.repository import VaultRepository
+    from wellbe_raw_context_brain.persist.sql_store import place_captured
+    from wellbe_raw_context_brain.types import VaultEvent
+
+    person_id = str(vault_event["patient_id"])
+    event_id = str(vault_event["id"])
+    rows = await VaultRepository(session).list_events(uuid.UUID(person_id))
+    events: list[VaultEvent] = []
+    for row in rows:
+        note = text_content if str(row.id) == event_id else ""
+        if str(row.id) != event_id and row.source_type == "manual_text":
+            response = await vault_client.get(f"/vault/events/{row.id}/content")
+            note = response.text if response.status_code == 200 else ""
+        captured = row.captured_at
+        events.append(
+            VaultEvent(
+                id=str(row.id),
+                person_id=str(row.patient_id),
+                captured_at=captured.isoformat(),
+                source_type=row.source_type,
+                text=note,
+                content_hash=row.content_hash,
+                lineage_id=str(row.id),
+                document_id=None,
+            )
+        )
+    if not any(item.id == event_id for item in events):
+        captured_at = str(vault_event.get("captured_at") or "")
+        events.append(
+            VaultEvent(
+                id=event_id,
+                person_id=person_id,
+                captured_at=captured_at,
+                source_type=str(vault_event.get("source_type") or "note"),
+                text=text_content,
+                content_hash=str(vault_event.get("content_hash") or event_id),
+                lineage_id=event_id,
+                document_id=None,
+            )
+        )
+    await session.run_sync(
+        lambda sync_session: place_captured(sync_session, person_id, events, event_id)
+    )
+
+
 def _make_raw_context_handler(
     vault_client: httpx.AsyncClient,
     status_tracker: DocumentStatusTracker | None = None,
@@ -96,7 +154,7 @@ def _make_raw_context_handler(
 
         vault_event = vault_resp.json()
         if not is_document(vault_event):
-            await _run(vault_event, event_id)
+            await _run(session, vault_event, event_id)
             return "dispatched"
 
         nonlocal tracker
@@ -108,7 +166,7 @@ def _make_raw_context_handler(
             doc_id, patient_id, DocumentProcessingStatus.PROCESSING, new_attempt=True
         )
         try:
-            has_text = await _run(vault_event, event_id)
+            has_text = await _run(session, vault_event, event_id)
         except Exception as exc:
             await tracker.mark(
                 doc_id, patient_id, DocumentProcessingStatus.FAILED, detail=type(exc).__name__
@@ -123,8 +181,8 @@ def _make_raw_context_handler(
         await tracker.finish(doc_id, patient_id, detail_if_empty="no_facts_found")
         return "dispatched"
 
-    async def _run(vault_event: dict[str, Any], event_id: object) -> bool:
-        """Resolve text and extract facts. Returns whether any text was found."""
+    async def _run(session: AsyncSession, vault_event: dict[str, Any], event_id: object) -> bool:
+        """Resolve text, place the context pointer, then extract facts."""
         source_metadata = vault_event.get("source_metadata") or {}
         text_content = source_metadata.get("text", "")
         # The captured text lives in the raw blob, not in source_metadata (raw
@@ -141,6 +199,7 @@ def _make_raw_context_handler(
             if document.ocr is not None:
                 vault_event["_ocr"] = document.ocr.provenance()
         vault_event["_raw_text"] = text_content
+        await _place_context(session, vault_client, vault_event, text_content)
 
         await _extract_facts(json.dumps(vault_event))
         return bool(text_content)

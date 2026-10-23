@@ -282,7 +282,12 @@ export function ThreadDetailLive({ id }: { id: string }) {
               }
             >
               {timeline.data && (
-                <LiveTimeline events={events} index={index} onOpenEvidence={openEvidence} />
+                <LiveTimeline
+                  events={events}
+                  index={index}
+                  sources={timeline.data.sources}
+                  onOpenEvidence={openEvidence}
+                />
               )}
             </DisclosureRegion>
 

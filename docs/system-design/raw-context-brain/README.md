@@ -50,7 +50,7 @@ Jira RSS export generated Thu Oct 22 16:45:08 UTC 2026: status In Progress, reso
 
 **Authority:** Current Raw Context Brain design specification.
 
-**Production status:** The engine lives in `backend/packages/raw_context_brain` and the signed-in person reaches it at `/v2/context`. Open parameters in the decision record are still open. WEL-58 stays blocked. The lab page remains the picture until a workspace screen replaces it.
+**Production status:** The engine lives in `backend/packages/raw_context_brain` and the signed-in person reaches it at `/v2/context`. On a thread, they can start that walk from a record they already opened. Open parameters in the decision record are still open. WEL-58 stays blocked. The lab page remains the picture until a workspace screen replaces it.
 
 **Decision gate:** [Proposed decision record](../../decisions/raw-context-brain-theory-lab.md).
 
@@ -1054,7 +1054,7 @@ Clearing removes only the session and view layout. Persistent Content, Nodes, le
 
 **Open parameters:** Category values, X, Y, and the lowest keyword bar.
 
-**Production status:** The engine is in the product package and served to the signed-in person. It reads vault records by pointer and keeps the exploration session on the server. Note text stays in the vault. The decision record's open parameters remain open. WEL-58 stays blocked. The lab page is still the picture.
+**Production status:** The engine is in the product package and served to the signed-in person. A stored vault record is placed, with its links, when that record is processed. Explore reads vault records by pointer and keeps the session on the server. On a thread, the person starts that walk from a record they already opened. Note text stays in the vault. The decision record's open parameters remain open. WEL-58 stays blocked. The lab page is still the picture.
 
 ---
 

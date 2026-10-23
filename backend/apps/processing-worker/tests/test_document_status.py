@@ -134,6 +134,27 @@ async def test_failure_marks_failed_and_reraises_for_retry(
     assert tracker.calls == [(S.PROCESSING, None, True), (S.FAILED, "RuntimeError", False)]
 
 
+async def test_a_stored_note_is_placed_before_extraction(
+    monkeypatch: pytest.MonkeyPatch, extracted: list[str]
+) -> None:
+    seen: list[str] = []
+
+    async def _placed(
+        session: object, _client: object, event: dict[str, Any], text: str
+    ) -> None:
+        assert session == "db"
+        seen.append(text)
+        assert event["id"] == str(_EVENT)
+
+    monkeypatch.setattr(main, "_place_context", _placed)
+    event = _doc_event(source_type="manual_text", mime_type="text/plain", source_metadata={})
+    event["source_metadata"] = {"text": "tired today"}
+    handler = main._make_raw_context_handler(_vault(event), _Tracker())
+    assert await handler("db", {"event_id": event["id"]}, uuid.uuid4()) == "dispatched"  # type: ignore[arg-type]
+    assert seen == ["tired today"]
+    assert len(extracted) == 1
+
+
 async def test_non_documents_are_untracked(extracted: list[str]) -> None:
     tracker = _Tracker()
     event = _doc_event(source_type="manual_text", mime_type="text/plain", source_metadata={})
