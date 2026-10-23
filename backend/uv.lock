@@ -2218,6 +2218,7 @@ dependencies = [
     { name = "wellbe-db" },
     { name = "wellbe-events" },
     { name = "wellbe-platform" },
+    { name = "wellbe-raw-context-brain" },
 ]
 
 [package.metadata]
@@ -2240,6 +2241,7 @@ requires-dist = [
     { name = "wellbe-db", editable = "packages/db" },
     { name = "wellbe-events", editable = "packages/events" },
     { name = "wellbe-platform", editable = "packages/platform" },
+    { name = "wellbe-raw-context-brain", editable = "packages/raw_context_brain" },
 ]
 
 [[package]]

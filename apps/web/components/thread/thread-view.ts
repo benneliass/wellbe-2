@@ -87,6 +87,20 @@ export function buildSourceIndex(timeline: ThreadTimelineV2 | undefined): Source
  * Resolve ids to evidence sources. Ids the index doesn't know still count as a
  * source; the primitives swap the blank label for "From your data", never the id.
  */
+/** Vault id for a timeline event, when one of its sources is a stored capture. */
+export function captureIdForEvent(
+  sourceRefIds: readonly string[] | null | undefined,
+  sources: readonly TimelineSourceV2[],
+): string | null {
+  const ids = new Set(sourceRefIds ?? []);
+  for (const source of sources) {
+    if (!ids.has(source.source_ref_id)) continue;
+    if (source.capture_id) return source.capture_id;
+    if (source.source_ref_type === "c2_capture") return source.source_ref_id;
+  }
+  return null;
+}
+
 export function resolveSources(ids: readonly string[], index: SourceIndex): EvidenceSource[] {
   const seen = new Set<string>();
   const out: EvidenceSource[] = [];
