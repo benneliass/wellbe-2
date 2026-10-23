@@ -30,7 +30,7 @@ describe("scale and approximate recall", () => {
         purpose: "nav",
         anchorId: kind === "hub" ? "n1" : "n0",
       });
-      for (let step = 0; step < 20 && response.routeHandle; step += 1) {
+      for (let step = 0; step < 20 && response.routeHandle && !response.terminalReason; step += 1) {
         response = lab.explore({
           personId: "synthetic-1",
           purpose: "nav",

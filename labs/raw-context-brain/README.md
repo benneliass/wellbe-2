@@ -4,6 +4,34 @@ Disposable lab for [WEL-87](https://belias.atlassian.net/browse/WEL-87). It is n
 
 The lab stores synthetic notes in an append-only vault, keeps a pointer graph, and asks a local judge for `link`, `no_link`, or `uncertain`. A model abstention stays in the log and does not delete an accepted edge. `@cosmos.gl/graph` draws one person's accepted links. The page opens on the full map. Choosing a note narrows to that note and its neighbors, and the opened notes stay in click order. A route button continues that saved exploration along a route the lab advertised. Clear choice returns to the full map.
 
+**Current design:** [`docs/system-design/raw-context-brain/README.md`](../../docs/system-design/raw-context-brain/README.md).
+
+**Network-concept gaps:** [`docs/system-design/raw-context-brain/lab-implementation-gaps.md`](../../docs/system-design/raw-context-brain/lab-implementation-gaps.md).
+
+**Decision status:** [`docs/decisions/raw-context-brain-theory-lab.md`](../../docs/decisions/raw-context-brain-theory-lab.md) remains Proposed.
+
+## Implementation map
+
+**Controller and routing:** `src/router.ts`
+
+**Lab contracts:** `src/types.ts`
+
+**Advertisement log and accepted projection:** `src/store.ts`
+
+**Assessment models:** `src/judge.ts`
+
+**Ranking and approximate discovery:** `src/rank.ts`, `src/hnsw.ts`
+
+**Navigation facets and labels:** `src/facets.ts`
+
+**Persistence experiment:** `src/persist/`
+
+**Graph interface:** `src/viz/`
+
+**Generated scorecard:** `src/scorecard.ts` → `REPORT.md`
+
+**Behavioral evidence:** `tests/`
+
 ## Run
 
 ```bash

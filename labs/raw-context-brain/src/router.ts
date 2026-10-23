@@ -1,6 +1,14 @@
+import { assertStructuralLedger } from "./integrity/structural.js";
 import { heuristicJudge, sanitizeDecision } from "./judge.js";
+import { MemorySessionStore, type SessionJson, type SessionStore } from "./persist/session-store.js";
+import type { DurableSnapshot, GraphStore, LinkAcknowledgement } from "./persist/graph-store.js";
 import { applyHysteresis, compareRank, inverseDegree, provenanceRank } from "./rank.js";
 import { mapRelation, sourceName } from "./relation.js";
+import { createPendingInterestTable, type PendingInterestTable, type SemanticInterest } from "./routing/interest.js";
+import { createRouteSets, type DiscoverySource, type RouteProvenance, type RouteSetLog } from "./routing/route-sets.js";
+import { scheduleAttempt } from "./routing/retry.js";
+import { applyReferralRound, applySelection, LAB_CAP, type RankedCandidate } from "./routing/selection.js";
+import { forwardItems as forwardFromTip, retainsSession, selectIssuedActions, truncatePath } from "./routing/session-policy.js";
 import { AdvertisementLog, Projection, Vault, emptyPointer, type AdvertisementDraft } from "./store.js";
 import { HnswIndex } from "./hnsw.js";
 import { edgeKey, jaccard, sha256, tokenVector, tokenize } from "./text.js";
@@ -26,8 +34,6 @@ import {
   type VaultEvent,
 } from "./types.js";
 
-const LINEAGE_CAP = 2;
-
 /** 128 bits. The prefix is not entropy. The walk stays in the server record this id names. */
 function routeToken(): string {
   const bytes = new Uint8Array(16);
@@ -39,6 +45,7 @@ function routeToken(): string {
 
 interface FrontierItem {
   nodeId: string;
+  fromId: string;
   edgeKey: string;
   reason: string;
   rank: Rankable;
@@ -47,6 +54,7 @@ interface FrontierItem {
 interface HandleRecord {
   token: string;
   personId: string;
+  session: "exploration";
   purpose: string;
   authorizationEpoch: number;
   snapshotRevision: number;
@@ -82,6 +90,21 @@ export interface LabOptions {
   maxHandleUses?: number;
   now?: () => number;
   policyVersion?: string;
+  retryBaseMs?: number;
+  judgeDeadlineMs?: number;
+  maxInFlight?: number;
+  sleep?: (ms: number) => Promise<void>;
+  /** Durable notes, ledger, nodes, and acknowledgements. Sessions stay in sessionStore. */
+  graphStore?: GraphStore;
+  /** Opaque handle records. clear() is how a reload expires a walk. */
+  sessionStore?: SessionStore;
+}
+
+export interface RouteSets {
+  candidateIds: string[];
+  selectedIds: string[];
+  exportedHandles: string[];
+  pruned: Array<{ id: string; reason: string }>;
 }
 
 export interface ExploreInput {
@@ -91,6 +114,8 @@ export interface ExploreInput {
   query?: string;
   routeHandle?: string;
   routeId?: string;
+  operation?: "continue" | "rewind" | "assess_link";
+  rewindToId?: string;
   /** One advertised note on routeId. Any other id is refused. */
   focusId?: string;
   /** Same id returns the saved page. A new id advances the frontier. */
@@ -164,6 +189,7 @@ export class RawContextLab {
     judgeAttempts: 0,
     cacheClears: 0,
     pruned: [] as Array<{ reason: string; count: number }>,
+    pruneRecords: [] as Array<{ id: string; reason: string }>,
   };
 
   authorizationEpoch = 1;
@@ -176,6 +202,11 @@ export class RawContextLab {
   private readonly handleTtlMs: number;
   private readonly maxHandleUses: number;
   private readonly now: () => number;
+  private readonly retryBaseMs: number;
+  private readonly judgeDeadlineMs: number;
+  private readonly maxInFlight: number;
+  private readonly sleep: (ms: number) => Promise<void>;
+  private inFlight = 0;
   private readonly policyVersion: string;
   private readonly seed: number;
   private readonly nodes = new Map<string, PointerNode>();
@@ -183,11 +214,25 @@ export class RawContextLab {
   private readonly controls = new Map<string, Set<ControlTag>>();
   private readonly handles = new Map<string, HandleRecord>();
   private lookToken: string | null = null;
-  private readonly pages = new Map<string, SemanticData>();
+  private readonly pit: PendingInterestTable = createPendingInterestTable();
+  private readonly interestLog = new Map<string, { nonce: string; purpose: string; operation: string; state: "satisfied" }>();
+  private readonly routeLog: RouteSetLog = createRouteSets();
+  private readonly graphStore: GraphStore | undefined;
+  private readonly sessionStore: SessionStore;
+  private readonly acknowledgements: LinkAcknowledgement[] = [];
+  private hydrating = false;
   private readonly idempotency = new Map<string, IngestResult>();
   private readonly lastPrimary = new Map<string, string>();
   private readonly exportCache = new Map<string, string>();
   private itemCounter = 0;
+  private selectionDraft: {
+    personId: string;
+    candidateIds: string[];
+    selectedIds: string[];
+    provenance: Record<string, RouteProvenance>;
+    pruned: Array<{ id: string; reason: string }>;
+    candidates: RankedCandidate[];
+  } | null = null;
 
   constructor(options: LabOptions = {}) {
     this.judge = options.judge ?? heuristicJudge();
@@ -200,7 +245,33 @@ export class RawContextLab {
     this.handleTtlMs = options.handleTtlMs ?? 60_000;
     this.maxHandleUses = options.maxHandleUses ?? 8;
     this.now = options.now ?? Date.now;
+    this.retryBaseMs = options.retryBaseMs ?? 0;
+    this.judgeDeadlineMs = options.judgeDeadlineMs ?? Number.POSITIVE_INFINITY;
+    this.maxInFlight = options.maxInFlight ?? Number.POSITIVE_INFINITY;
+    this.sleep = options.sleep ?? (async () => {});
     this.policyVersion = options.policyVersion ?? POLICY_VERSION;
+    this.graphStore = options.graphStore;
+    this.sessionStore = options.sessionStore ?? new MemorySessionStore();
+    this.hydrate();
+  }
+
+  routeSets(personId: string): RouteSets | undefined {
+    const latest = this.routeLog.latest(personId);
+    if (!latest) return undefined;
+    return {
+      candidateIds: [...latest.sets.candidate],
+      selectedIds: [...latest.sets.selected],
+      exportedHandles: [...latest.sets.export],
+      pruned: this.routeLog.pruneAudit(latest.revision),
+    };
+  }
+
+  routeHistory(personId: string): number[] {
+    return this.routeLog.history(personId).map((revision) => revision.revision);
+  }
+
+  interest(personId: string, requestId: string): { nonce: string; purpose: string; operation: string; state: "satisfied" } | undefined {
+    return this.interestLog.get(this.pageKey(personId, requestId));
   }
 
   get hnswSearchCount(): number {
@@ -244,17 +315,22 @@ export class RawContextLab {
   }
 
   finishRebuild(): void {
+    this.log.verifyDigests();
+    assertStructuralLedger(this.log.ads, [...this.nodes.values()]);
     this.projection.rebuild(this.log.ads);
+    this.saveDurable();
   }
 
   addFixture(event: VaultEvent): void {
     this.vault.append(event);
     this.nodes.set(event.id, emptyPointer(event));
     this.indexFor(event.personId).add(event.id, tokenVector(event.text));
+    this.saveDurable();
   }
 
-  linkStructural(fromId: string, toId: string, reasonCode = "membership"): LinkAdvertisement {
+  linkStructural(fromId: string, toId: string, reasonCode = "recorded_association"): LinkAdvertisement {
     const ad = this.appendAd({
+      personId: this.personFor(fromId, toId),
       origin: "policy",
       modelVersion: null,
       promptVersion: null,
@@ -272,6 +348,7 @@ export class RawContextLab {
       withdrawn: false,
     });
     this.projection.apply(ad);
+    this.saveDurable();
     return ad;
   }
 
@@ -297,6 +374,7 @@ export class RawContextLab {
       "model",
     );
     const ad = this.appendAd({
+      personId: this.personFor(input.fromId, input.toId),
       origin: "model",
       modelVersion: MODEL_VERSION,
       promptVersion: "lab-prompt-1",
@@ -314,6 +392,7 @@ export class RawContextLab {
       withdrawn: false,
     });
     if (this.projection.apply(ad)) this.invalidateForSnapshot();
+    this.saveDurable();
     return ad;
   }
 
@@ -325,6 +404,7 @@ export class RawContextLab {
     evidenceIds: string[];
   }): LinkAdvertisement {
     const ad = this.appendAd({
+      personId: this.personFor(input.fromId, input.toId),
       origin: "user_correction",
       modelVersion: null,
       promptVersion: null,
@@ -343,6 +423,7 @@ export class RawContextLab {
     });
     this.projection.apply(ad);
     this.invalidateForSnapshot();
+    this.saveDurable();
     return ad;
   }
 
@@ -350,6 +431,7 @@ export class RawContextLab {
     const previous = this.log.get(adId);
     if (!previous) throw new Error("unknown advertisement");
     const ad = this.appendAd({
+      personId: previous.personId,
       origin: "user_correction",
       modelVersion: null,
       promptVersion: null,
@@ -367,8 +449,10 @@ export class RawContextLab {
       withdrawn: true,
     });
     this.projection.apply(ad);
+    this.dropAcknowledgement(previous.personId, previous.fromId, previous.toId);
     this.invalidateForSnapshot();
     this.clearExportCache();
+    this.saveDurable();
     return ad;
   }
 
@@ -405,10 +489,12 @@ export class RawContextLab {
         judgments: [],
         terminalReason: "dependency_unavailable",
         detail: DETAILS.dependency_unavailable,
+        routeRevision: null,
+        pruned: [],
       });
     }
 
-    const candidateIds = this.selectCandidates(input.personId, input.text, eventId);
+    const candidateIds = this.selectCandidates(input.personId, input.text, eventId, input.capturedAt);
     const issued = new Map<string, string>();
     const candidates: JudgeRequest["candidates"] = [];
     for (const id of candidateIds) {
@@ -422,6 +508,7 @@ export class RawContextLab {
         capturedAt: exported.capturedAt,
       });
     }
+    const published = this.publishSelection(input.personId, issued);
     const request: JudgeRequest = {
       newHandle: "ch_new",
       excerpt: input.text.slice(0, 180),
@@ -441,6 +528,8 @@ export class RawContextLab {
         judgments: [],
         terminalReason: "dependency_unavailable",
         detail: DETAILS.dependency_unavailable,
+        routeRevision: published.revision,
+        pruned: published.pruned,
       });
     }
 
@@ -478,6 +567,7 @@ export class RawContextLab {
         "model",
       );
       const ad = this.appendAd({
+        personId: input.personId,
         origin: "model",
         modelVersion: MODEL_VERSION,
         promptVersion: "lab-prompt-1",
@@ -503,6 +593,8 @@ export class RawContextLab {
       });
     }
 
+    await this.judgeReferralRound(input, eventId, issued, judgments);
+
     return this.remember(input, {
       eventId,
       candidateCount: candidates.length,
@@ -510,16 +602,31 @@ export class RawContextLab {
       judgments,
       terminalReason: null,
       detail: "",
+      routeRevision: published.revision,
+      pruned: published.pruned,
     });
   }
 
   explore(input: ExploreInput): SemanticData {
+    const operation = input.routeHandle ? input.operation ?? "continue" : "open";
+    let nonce: string | undefined;
     if (input.requestId) {
-      const saved = this.pages.get(this.pageKey(input.personId, input.requestId));
-      if (saved) return this.replay(saved);
+      const began = this.pit.begin(this.semanticInterest(input, operation), input.routeHandle ?? input.anchorId ?? input.query ?? "open");
+      if (began.state === "rejected") return this.stopped("policy_blocked", DETAILS.wrong_purpose);
+      if (began.state === "satisfied") return this.replay(began.result as SemanticData);
+      if (began.joined) return this.stopped("dependency_unavailable");
+      nonce = began.nonce;
     }
     const data = input.routeHandle ? this.continueHandle(input) : this.openRoute(input);
-    if (input.requestId) this.pages.set(this.pageKey(input.personId, input.requestId), data);
+    if (nonce) {
+      this.pit.satisfy(nonce, data);
+      this.interestLog.set(this.pageKey(input.personId, nonce), {
+        nonce,
+        purpose: input.purpose,
+        operation,
+        state: "satisfied",
+      });
+    }
     return data;
   }
 
@@ -548,7 +655,7 @@ export class RawContextLab {
       if (input.holdAtAnchor) return this.finish(record, [], [], null);
     } else if (input.query) {
       record.approximateSeed = true;
-      const seeds = this.selectCandidates(input.personId, input.query, "");
+      const seeds = this.selectCandidates(input.personId, input.query, "", "");
       for (const id of seeds) record.frontier.push(this.frontierFrom(id, "semantic_candidate"));
       if (seeds.length === 0) {
         const reason: TerminalReason =
@@ -567,7 +674,7 @@ export class RawContextLab {
   }
 
   private replay(saved: SemanticData): SemanticData {
-    const record = this.handles.get(saved.route);
+    const record = this.loadHandle(saved.route);
     if (record && record.authorizationEpoch !== this.authorizationEpoch) {
       return this.stopped("authorization_changed");
     }
@@ -711,29 +818,46 @@ export class RawContextLab {
   private remember(input: IngestInput, result: IngestResult): IngestResult {
     assertSafeDetail(result.detail);
     this.idempotency.set(`${input.personId}|${input.idempotencyKey}`, result);
+    this.saveDurable();
     return result;
   }
 
   private async judgeWithRetry(request: JudgeRequest): Promise<JudgeDecision[]> {
-    let lastError: unknown;
+    const startedAt = this.now();
+    let lastError: unknown = new Error("dependency_unavailable");
     for (let attempt = 0; attempt < 3; attempt += 1) {
+      const decision = scheduleAttempt({
+        attempt,
+        now: this.now(),
+        startedAt,
+        deadlineMs: this.judgeDeadlineMs,
+        baseMs: this.retryBaseMs,
+        inFlight: this.inFlight,
+        maxInFlight: this.maxInFlight,
+        seed: this.seed,
+      });
+      if (decision.action === "stop") throw new Error(decision.reason);
+      if (attempt > 0 && decision.delayMs > 0) await this.sleep(decision.delayMs);
       this.metrics.judgeAttempts += 1;
+      this.inFlight += 1;
       try {
         return await this.judge.judge(request);
       } catch (error) {
         lastError = error;
+      } finally {
+        this.inFlight -= 1;
       }
     }
     throw lastError;
   }
 
-  private selectCandidates(personId: string, text: string, selfId: string): string[] {
+  private selectCandidates(personId: string, text: string, selfId: string, capturedAt: string): string[] {
     const exact = this.exactCandidates(personId, text, selfId);
     const index = this.indexes.get(personId);
     const hits = index ? index.search(tokenVector(text), 16) : [];
     const distances = new Map(hits.map((hit) => [hit.id, hit.distance]));
     const union = new Set<string>([...exact, ...hits.map((hit) => hit.id)]);
-    const ranked: Array<Rankable & { lineage: string }> = [];
+    const ranked: Array<Rankable & { lineage: string; sourceType: string; capturedAt: string }> = [];
     for (const id of union) {
       if (id === selfId) continue;
       const node = this.nodes.get(id);
@@ -757,24 +881,52 @@ export class RawContextLab {
         inverseDegree: inverseDegree(degree),
         inverseHop: 1,
         lineage: event?.lineageId ?? id,
+        sourceType: event?.sourceType ?? "hub",
+        capturedAt: event?.capturedAt ?? "",
       });
     }
     ranked.sort(compareRank);
     const held = applyHysteresis(ranked, this.lastPrimary.get(personId));
-    if (held.heldPrevious) this.metrics.pruned.push({ reason: "hysteresis_hold", count: 1 });
-    const ordered = held.ranked;
-    const counts = new Map<string, number>();
-    const kept: string[] = [];
-    for (const item of ordered) {
-      const seen = counts.get(item.lineage) ?? 0;
-      if (seen >= LINEAGE_CAP) {
-        this.metrics.pruned.push({ reason: "lineage_cap", count: 1 });
-        continue;
-      }
-      counts.set(item.lineage, seen + 1);
-      kept.push(item.id);
-      if (kept.length >= this.maxCandidates) break;
+    if (held.heldPrevious) {
+      this.metrics.pruned.push({ reason: "hysteresis_hold", count: 1 });
+      const heldId = held.ranked[0]?.id;
+      if (heldId) this.metrics.pruneRecords.push({ id: heldId, reason: "hysteresis_hold" });
     }
+    const ordered = held.ranked;
+    const tokenIds = this.tokenMatches(personId, text, selfId);
+    const hnswIds = new Set(hits.map((hit) => hit.id));
+    const neighborIds = new Set(exact.filter((id) => !tokenIds.has(id)));
+    const candidates: RankedCandidate[] = ordered.map((item) => ({
+      id: item.id,
+      lineage: item.lineage,
+      sourceType: item.sourceType,
+      facet: item.sourceType,
+      reason: this.discoveryOf(item.id, tokenIds, neighborIds, hnswIds),
+      capturedAt: item.capturedAt,
+      relevance: item.relevance,
+      neighbors: this.candidateNeighbors(personId, text, item.id, selfId),
+    }));
+    const selection = applySelection({ capturedAt: capturedAt || undefined, candidates });
+    const kept = selection.kept.slice(0, this.maxCandidates);
+    const pruned = [
+      ...selection.pruned,
+      ...selection.kept.slice(this.maxCandidates).map((id) => ({ id, reason: "candidate_cap" })),
+    ];
+    for (const row of pruned) {
+      this.metrics.pruned.push({ reason: row.reason, count: 1 });
+      this.metrics.pruneRecords.push(row);
+    }
+    const provenance: Record<string, RouteProvenance> = {};
+    ordered.forEach((item, rank) => {
+      const prune = pruned.find((row) => row.id === item.id);
+      provenance[item.id] = {
+        discovery: this.discoveryOf(item.id, tokenIds, neighborIds, hnswIds),
+        rank,
+        pruneReason: prune?.reason ?? (kept.includes(item.id) ? null : "candidate_cap"),
+        exportHandle: null,
+      };
+    });
+    this.selectionDraft = { personId, candidateIds: ordered.map((item) => item.id), selectedIds: kept, provenance, pruned, candidates };
     if (kept[0]) this.lastPrimary.set(personId, kept[0]);
     return kept;
   }
@@ -851,9 +1003,11 @@ export class RawContextLab {
   }
 
   private continueHandle(input: ExploreInput): SemanticData {
-    const record = input.routeHandle ? this.handles.get(input.routeHandle) : undefined;
+    const record = input.routeHandle ? this.loadHandle(input.routeHandle) : undefined;
     if (!record) return this.stopped("policy_blocked", DETAILS.unknown_handle);
     if (record.personId !== input.personId) return this.stopped("policy_blocked");
+    if (record.purpose !== input.purpose) return this.stopped("policy_blocked", DETAILS.wrong_purpose);
+    if (input.operation === "assess_link") return this.stopped("policy_blocked", DETAILS.wrong_operation);
     if (record.authorizationEpoch !== this.authorizationEpoch || record.invalidReason === "authorization_changed") {
       return this.stopped("authorization_changed");
     }
@@ -872,12 +1026,23 @@ export class RawContextLab {
     }
     if (this.now() > record.expiresAt) return this.stopped("policy_blocked", DETAILS.handle_expired);
     if (record.useCount >= record.maxUses) return this.stopped("policy_blocked", DETAILS.handle_use_limit);
+    if (input.operation === "rewind") {
+      if (!input.rewindToId) return this.stopped("policy_blocked", DETAILS.rewind_target);
+      record.useCount += 1;
+      return this.rewind(record, input.rewindToId);
+    }
     const searches = this.hnswSearchCount;
     record.useCount += 1;
     let aside: FrontierItem[] = [];
     if (input.routeId) {
       const bound = record.routeBindings.get(input.routeId) ?? [];
       if (bound.length === 0) return this.stopped("supported_leaf");
+      const chosen = record.advertised.find((route) => route.routeId === input.routeId);
+      const retrieves = chosen?.kind === "facet" || chosen?.kind === "temporal" || chosen?.kind === "source";
+      if (retrieves) {
+        record.frontier = record.frontier.filter((item) => bound.includes(item.nodeId));
+        return this.finish(record, [], [], null);
+      }
       if (input.focusId) {
         aside = record.frontier.filter((item) => item.nodeId !== input.focusId);
         record.frontier = record.frontier.filter((item) => item.nodeId === input.focusId);
@@ -892,6 +1057,33 @@ export class RawContextLab {
     return data;
   }
 
+  private tip(record: HandleRecord): string {
+    return record.visitedNodes[record.visitedNodes.length - 1] ?? "";
+  }
+
+  private forwardItems(record: HandleRecord): FrontierItem[] {
+    return forwardFromTip(record.frontier, this.tip(record));
+  }
+
+  private rewind(record: HandleRecord, targetId: string): SemanticData {
+    const cut = truncatePath(record.visitedNodes, targetId);
+    if ("error" in cut) return this.stopped("policy_blocked", DETAILS.rewind_target);
+    const index = cut.visited.length - 1;
+    record.visitedNodes = cut.visited;
+    record.breadcrumb = record.breadcrumb.slice(0, cut.visited.length);
+    record.hopDepth = Math.max(0, index);
+    const edges: string[] = [];
+    for (let position = 1; position < record.visitedNodes.length; position += 1) {
+      edges.push(edgeKey(record.visitedNodes[position - 1] ?? "", record.visitedNodes[position] ?? ""));
+    }
+    record.visitedEdges = edges;
+    record.frontier = record.frontier.filter(
+      (item) => record.visitedNodes.includes(item.fromId) && !record.visitedNodes.includes(item.nodeId),
+    );
+    this.expand(record, targetId);
+    return this.finish(record, [], [], null);
+  }
+
   private step(record: HandleRecord, aside: FrontierItem[] = [], one = false): SemanticData {
     const limit = one ? 1 : this.pageSize;
     const items: ExportItem[] = [];
@@ -900,13 +1092,14 @@ export class RawContextLab {
       this.restoreFrontier(record, aside);
       return this.finish(record, items, already, terminal);
     };
-    while (items.length < limit && record.frontier.length > 0) {
+    while (items.length < limit) {
       if (record.expansions >= this.expansionBudget || record.hopDepth >= this.hopLimit) {
         return done("budget_exhausted");
       }
-      record.frontier.sort((a, b) => compareRank(a.rank, b.rank));
-      const next = record.frontier.shift();
+      const forward = this.forwardItems(record).sort((a, b) => compareRank(a.rank, b.rank));
+      const next = forward[0];
       if (!next) break;
+      record.frontier = record.frontier.filter((item) => item !== next);
       if (record.visitedNodes.includes(next.nodeId) || record.visitedEdges.includes(next.edgeKey)) {
         record.cycleCount += 1;
         already.push("already_explored");
@@ -939,16 +1132,15 @@ export class RawContextLab {
   ): SemanticData {
     let terminalReason = terminal;
     let exhaustion: Exhaustion = "not_yet_exhausted";
-    if (!terminalReason && record.frontier.length === 0) {
+    if (!terminalReason && this.forwardItems(record).length === 0) {
       if (record.lineagePruned && !this.componentCovered(record)) {
         terminalReason = "insufficient_independent_evidence";
         exhaustion = "exact";
-      } else if (this.componentCovered(record)) {
-        terminalReason = "supported_leaf";
-        exhaustion = "exact";
-      } else {
-        terminalReason = "approximate_frontier_exhausted";
-        exhaustion = "approximate";
+      } else if (items.length === 0 && already.length === 0) {
+        terminalReason = record.approximateSeed && !this.componentCovered(record)
+          ? "approximate_frontier_exhausted"
+          : "supported_leaf";
+        exhaustion = terminalReason === "approximate_frontier_exhausted" ? "approximate" : "exact";
       }
     } else if (terminalReason === "budget_exhausted") {
       exhaustion = "not_yet_exhausted";
@@ -967,10 +1159,11 @@ export class RawContextLab {
       record.advertised = advertised;
       record.routeBindings = new Map(advertised.map((route) => [route.routeId, route.nodeIds]));
       nextRoutes = advertised.map(({ routeId, label, kind }) => ({ routeId, label, kind }));
-    } else {
+    } else if (!retainsSession(terminalReason)) {
       record.invalidated = true;
       record.invalidReason = terminalReason;
     }
+    this.persistSession(record);
 
     const current = record.visitedNodes[record.visitedNodes.length - 1] ?? record.anchorId;
     return {
@@ -985,7 +1178,7 @@ export class RawContextLab {
       nextRoutes,
       terminalReason,
       detail,
-      routeHandle: terminalReason ? null : record.token,
+      routeHandle: retainsSession(terminalReason) ? record.token : null,
       snapshotRevision: this.projection.revision,
       snapshotDigest: this.projection.digest,
     };
@@ -1009,10 +1202,10 @@ export class RawContextLab {
         record.cycleCount += 1;
         continue;
       }
-      if (record.frontier.some((item) => item.nodeId === other)) continue;
+      if (record.frontier.some((item) => item.nodeId === other && item.fromId === nodeId)) continue;
       const lineage = this.vault.get(other)?.lineageId ?? other;
       const seen = lineageCounts.get(lineage) ?? 0;
-      if (seen >= LINEAGE_CAP) {
+      if (seen >= LAB_CAP) {
         record.lineagePruned = true;
         this.metrics.pruned.push({ reason: "lineage_cap", count: 1 });
         continue;
@@ -1026,13 +1219,16 @@ export class RawContextLab {
           key,
           record.hopDepth,
           edge?.confidence ?? 0.4,
+          nodeId,
         ),
       );
     }
     ranked.sort((a, b) => compareRank(a.rank, b.rank));
     const room = this.frontierCap - record.frontier.length;
     if (ranked.length > Math.max(0, room)) {
-      this.metrics.pruned.push({ reason: "frontier_cap", count: ranked.length - Math.max(0, room) });
+      const overflow = ranked.slice(Math.max(0, room));
+      this.metrics.pruned.push({ reason: "frontier_cap", count: overflow.length });
+      for (const item of overflow) this.metrics.pruneRecords.push({ id: item.nodeId, reason: "frontier_cap" });
     }
     if (room > 0) record.frontier.push(...ranked.slice(0, room));
   }
@@ -1043,10 +1239,12 @@ export class RawContextLab {
     key = `seed|${nodeId}`,
     hop = 0,
     confidence = 0.4,
+    fromId = "",
   ): FrontierItem {
     const degree = this.projection.degree(nodeId);
     return {
       nodeId,
+      fromId,
       edgeKey: key,
       reason,
       rank: {
@@ -1066,7 +1264,7 @@ export class RawContextLab {
     const anchor = this.vault.get(record.anchorId);
     const currentId = record.visitedNodes[record.visitedNodes.length - 1] ?? record.anchorId;
     const current = this.vault.get(currentId);
-    const frontierIds = record.frontier.map((item) => item.nodeId);
+    const frontierIds = this.forwardItems(record).map((item) => item.nodeId);
     let serial = 0;
     const push = (kind: NextRoute["kind"], label: string, nodeIds: string[]) => {
       const limit = kind === "fallback" ? 7 : 6;
@@ -1077,8 +1275,7 @@ export class RawContextLab {
       routes.push({ routeId, label, kind, nodeIds: [...nodeIds] });
     };
     for (const id of frontierIds.slice(0, 3)) {
-      const name = this.vault.get(id)?.text.slice(0, 42) ?? id;
-      push("neighbour", `Open ${name}`, [id]);
+      push("neighbour", `Open ${id}`, [id]);
     }
     const byType = new Map<string, string[]>();
     const earlier: string[] = [];
@@ -1103,7 +1300,7 @@ export class RawContextLab {
     });
     if (sourceIds.length > 0) push("source", "Original record", sourceIds);
     push("fallback", "Stop here", []);
-    return routes;
+    return selectIssuedActions(routes);
   }
 
   private componentCovered(record: HandleRecord): boolean {
@@ -1142,6 +1339,7 @@ export class RawContextLab {
     const record: HandleRecord = {
       token,
       personId: input.personId,
+      session: "exploration",
       purpose: input.purpose,
       authorizationEpoch: this.authorizationEpoch,
       snapshotRevision: this.projection.revision,
@@ -1165,6 +1363,7 @@ export class RawContextLab {
       invalidReason: null,
     };
     this.handles.set(token, record);
+    this.persistSession(record);
     return record;
   }
 
@@ -1256,6 +1455,244 @@ export class RawContextLab {
     }
     hub.memberEventIds.push(event.id);
     this.linkStructural(event.id, hubId, "membership");
+  }
+
+  expireExploration(): void {
+    this.handles.clear();
+    this.sessionStore.clear();
+    this.pit.clear();
+    this.interestLog.clear();
+  }
+
+  acknowledge(personId: string, fromId: string, toId: string): void {
+    const endpointIds: [string, string] = fromId <= toId ? [fromId, toId] : [toId, fromId];
+    const next = { personId, endpointIds, acknowledged: true, updatedAt: new Date(this.now()).toISOString() };
+    const index = this.acknowledgements.findIndex(
+      (row) => row.personId === personId && row.endpointIds[0] === endpointIds[0] && row.endpointIds[1] === endpointIds[1],
+    );
+    if (index >= 0) this.acknowledgements[index] = next;
+    else this.acknowledgements.push(next);
+    this.saveDurable();
+  }
+
+  private dropAcknowledgement(personId: string, fromId: string, toId: string): void {
+    const endpointIds: [string, string] = fromId <= toId ? [fromId, toId] : [toId, fromId];
+    const index = this.acknowledgements.findIndex(
+      (row) => row.personId === personId && row.endpointIds[0] === endpointIds[0] && row.endpointIds[1] === endpointIds[1],
+    );
+    if (index >= 0) this.acknowledgements.splice(index, 1);
+  }
+
+  private semanticInterest(input: ExploreInput, operation: string): SemanticInterest {
+    return {
+      personId: input.personId,
+      purpose: input.purpose,
+      authorizationEpoch: this.authorizationEpoch,
+      snapshotRevision: this.projection.revision,
+      snapshotDigest: this.projection.digest,
+      budgets: { deadlineMs: this.judgeDeadlineMs, maxInFlight: this.maxInFlight },
+      operation,
+      nonce: input.requestId ?? "",
+    };
+  }
+
+  private publishSelection(personId: string, issued: ReadonlyMap<string, string>): { revision: number; pruned: Array<{ id: string; reason: string }> } {
+    const draft = this.selectionDraft;
+    if (!draft || draft.personId !== personId) return { revision: 0, pruned: [] };
+    const provenance = { ...draft.provenance };
+    const exportHandles: string[] = [];
+    for (const [handle, id] of issued) {
+      exportHandles.push(handle);
+      const row = provenance[id];
+      if (row) provenance[id] = { ...row, exportHandle: handle };
+    }
+    const published = this.routeLog.publish({
+      personId,
+      sets: { candidate: draft.candidateIds, selected: draft.selectedIds, export: exportHandles },
+      provenance,
+    });
+    return { revision: published.revision, pruned: draft.pruned };
+  }
+
+  private async judgeReferralRound(
+    input: IngestInput,
+    eventId: string,
+    issued: Map<string, string>,
+    judgments: IngestResult["judgments"],
+  ): Promise<void> {
+    const draft = this.selectionDraft;
+    if (!draft) return;
+    const judged = [];
+    for (const [handle, id] of issued) {
+      const row = judgments.find((item) => item.handle === handle);
+      const candidate = draft.candidates.find((item) => item.id === id);
+      if (!row || !candidate) continue;
+      if (row.judgment !== "link" && row.judgment !== "no_link" && row.judgment !== "uncertain") continue;
+      judged.push({ id, judgment: row.judgment, relevance: candidate.relevance, neighbors: candidate.neighbors });
+    }
+    const round = applyReferralRound({ judged, tried: [...issued.values()] });
+    if (round.referrals.length === 0) return;
+    const extra: JudgeRequest["candidates"] = [];
+    const extraIssued = new Map<string, string>();
+    for (const id of round.referrals) {
+      const exported = this.exportNode(id, "referral");
+      if (!exported) continue;
+      extraIssued.set(exported.handle, id);
+      extra.push({
+        handle: exported.handle,
+        excerpt: exported.excerpt,
+        sourceType: exported.sourceType,
+        capturedAt: exported.capturedAt,
+      });
+    }
+    if (extra.length === 0) return;
+    let decisions: JudgeDecision[];
+    try {
+      decisions = await this.judgeWithRetry({
+        newHandle: "ch_new",
+        excerpt: input.text.slice(0, 180),
+        sourceType: input.sourceType,
+        capturedAt: input.capturedAt,
+        candidates: extra,
+      });
+    } catch {
+      return;
+    }
+    for (const raw of decisions) {
+      const decision = sanitizeDecision(raw);
+      const otherId = extraIssued.get(decision.handle);
+      if (!otherId) continue;
+      const evidenceIds = [eventId, otherId];
+      const confidence = this.capConfidence(eventId, otherId, clamp(decision.confidence), evidenceIds, "model");
+      const ad = this.appendAd({
+        personId: input.personId,
+        origin: "model",
+        modelVersion: MODEL_VERSION,
+        promptVersion: "lab-prompt-1",
+        policyVersion: this.policyVersion,
+        evidenceIds,
+        fromId: eventId,
+        toId: otherId,
+        judgment: decision.judgment,
+        reasonCode: decision.reasonCode,
+        relation: mapRelation("model", decision.reasonCode),
+        proposedConfidence: clamp(decision.confidence),
+        confidence,
+        createdAt: input.capturedAt,
+        supersedesId: this.projection.edgeBetween(eventId, otherId)?.adId ?? null,
+        withdrawn: false,
+      });
+      this.projection.apply(ad);
+      issued.set(decision.handle, otherId);
+      judgments.push({ handle: decision.handle, judgment: decision.judgment, reasonCode: decision.reasonCode, accepted: true });
+    }
+  }
+
+  private tokenMatches(personId: string, text: string, selfId: string): Set<string> {
+    const tokens = new Set(tokenize(text));
+    const matched = new Set<string>();
+    for (const event of this.vault.list()) {
+      if (event.personId !== personId || event.id === selfId) continue;
+      if (tokenize(event.text).some((word) => tokens.has(word))) matched.add(event.id);
+    }
+    return matched;
+  }
+
+  private candidateNeighbors(personId: string, text: string, id: string, selfId: string): RankedCandidate["neighbors"] {
+    const neighbors: Array<{ id: string; relevance: number }> = [];
+    for (const neighbor of this.projection.neighbors(id)) {
+      if (neighbor === selfId) continue;
+      const node = this.nodes.get(neighbor);
+      if (!node || node.personId !== personId) continue;
+      const tags = this.controls.get(neighbor);
+      if (tags?.has("no-model") || tags?.has("no-forward")) continue;
+      neighbors.push({ id: neighbor, relevance: jaccard(text, this.vault.get(neighbor)?.text ?? "") });
+    }
+    return neighbors;
+  }
+
+  private discoveryOf(
+    id: string,
+    tokenIds: ReadonlySet<string>,
+    neighborIds: ReadonlySet<string>,
+    hnswIds: ReadonlySet<string>,
+  ): DiscoverySource {
+    if (tokenIds.has(id)) return "exact";
+    if (hnswIds.has(id)) return "hnsw";
+    if (neighborIds.has(id)) return "neighbor";
+    return "exact";
+  }
+
+  private hydrate(): void {
+    if (!this.graphStore) return;
+    const snapshot = this.graphStore.load();
+    if (snapshot.events.length === 0 && snapshot.advertisements.length === 0 && snapshot.nodes.length === 0) return;
+    this.hydrating = true;
+    try {
+      for (const event of snapshot.events) {
+        this.vault.append(event);
+        this.indexFor(event.personId).add(event.id, tokenVector(event.text));
+      }
+      for (const node of snapshot.nodes) {
+        this.nodes.set(node.id, { ...node, memberEventIds: [...node.memberEventIds] });
+      }
+      for (const event of snapshot.events) {
+        if (!this.nodes.has(event.id)) this.nodes.set(event.id, emptyPointer(event));
+      }
+      this.log.restore(snapshot.advertisements);
+      assertStructuralLedger(this.log.ads, [...this.nodes.values()]);
+      this.projection.rebuild(this.log.ads);
+      if (snapshot.projectionDigest && snapshot.projectionDigest !== this.projection.digest) {
+        throw new Error("graph store snapshot is unreadable");
+      }
+      if (snapshot.projectionRevision !== undefined) this.projection.revision = snapshot.projectionRevision;
+      this.acknowledgements.push(...snapshot.acknowledgements.map((row) => ({ ...row, endpointIds: [row.endpointIds[0], row.endpointIds[1]] as [string, string] })));
+    } finally {
+      this.hydrating = false;
+    }
+  }
+
+  private saveDurable(): void {
+    if (!this.graphStore || this.hydrating) return;
+    const snapshot: DurableSnapshot = {
+      events: this.vault.list(),
+      advertisements: this.log.ads.map((ad) => ({ ...ad, evidenceIds: [...ad.evidenceIds] })),
+      nodes: [...this.nodes.values()].map((node) => ({ ...node, memberEventIds: [...node.memberEventIds] })),
+      acknowledgements: this.acknowledgements.map((row) => ({ ...row, endpointIds: [...row.endpointIds] })),
+      projectionRevision: this.projection.revision,
+      projectionDigest: this.projection.digest,
+    };
+    this.graphStore.save(snapshot);
+  }
+
+  private persistSession(record: HandleRecord): void {
+    const body = { ...record, routeBindings: [...record.routeBindings.entries()] };
+    this.sessionStore.put(record.token, JSON.parse(JSON.stringify(body)) as SessionJson);
+  }
+
+  private loadHandle(token: string): HandleRecord | undefined {
+    const live = this.handles.get(token);
+    if (live) return live;
+    const stored = this.sessionStore.get(token);
+    if (!stored) return undefined;
+    const raw = stored as unknown as HandleRecord & { routeBindings?: [string, string[]][] };
+    const record: HandleRecord = {
+      ...raw,
+      routeBindings: new Map(raw.routeBindings ?? []),
+      frontier: raw.frontier ?? [],
+      advertised: raw.advertised ?? [],
+      visitedNodes: raw.visitedNodes ?? [],
+      visitedEdges: raw.visitedEdges ?? [],
+      breadcrumb: raw.breadcrumb ?? [],
+    };
+    this.handles.set(token, record);
+    return record;
+  }
+
+  private personFor(fromId: string, toId: string): string {
+    const personId = this.nodes.get(fromId)?.personId ?? this.nodes.get(toId)?.personId;
+    if (!personId) throw new Error("advertisement endpoints have no person");
+    return personId;
   }
 
   private appendAd(draft: AdvertisementDraft): LinkAdvertisement {

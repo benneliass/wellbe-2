@@ -1,7 +1,8 @@
 import { Graph } from "@cosmos.gl/graph";
 import { loadCasePeople, labFromCase } from "../cases.js";
+import { BrowserGraphStore } from "../persist/graph-store.js";
 import { LEGEND_KINDS, RECORD_KINDS, RELATION_LABEL, arrivalName, independenceName, sourceName } from "../relation.js";
-import { RawContextLab } from "../router.js";
+import { RawContextLab, type ExploreInput, type LocalRoute } from "../router.js";
 import type { SemanticData } from "../types.js";
 import { memoryKeyword } from "./keyword.js";
 import { growLook, HOP_DIAMETERS, type Point } from "./look-layout.js";
@@ -9,6 +10,7 @@ import { mapSettings } from "./settings.js";
 const stage = required(document.querySelector<HTMLDivElement>("#stage"));
 const degreeLabels = required(document.querySelector<HTMLElement>("#degree-labels"));
 const noteFacts = required(document.querySelector<HTMLElement>("#note-facts"));
+const inspect = required(document.querySelector<HTMLElement>("#inspect"));
 const assessments = required(document.querySelector<HTMLElement>("#assessments"));
 const storeButton = required(document.querySelector<HTMLButtonElement>("#store"));
 const peopleNav = required(document.querySelector<HTMLElement>("#people"));
@@ -64,14 +66,17 @@ const KIND_RGB: Record<string, readonly [number, number, number]> = Object.fromE
 );
 
 let personId = "";
-let lab = new RawContextLab({
+const graphStore = new BrowserGraphStore(localStorage);
+const labOptions = {
   seed: 7,
   pageSize: 1,
   hopLimit: 24,
   expansionBudget: 400,
   maxHandleUses: 48,
   handleTtlMs: 600_000,
-});
+  graphStore,
+};
+let lab = new RawContextLab(labOptions);
 let positions = layout(lab.view(personId));
 let graph: Graph | null = null;
 let selectedId: string | null = null;
@@ -582,6 +587,53 @@ function nextRequestId(): string {
   return `look-${personId}-${requestSerial}`;
 }
 
+function look(input: ExploreInput): SemanticData {
+  const clicked = input.routeHandle && input.routeId
+    ? lab.localRoutes(input.routeHandle).find((route) => route.routeId === input.routeId)
+    : undefined;
+  const page = lab.explore(input);
+  writeInspect(input, clicked, page);
+  return page;
+}
+
+function writeInspect(input: ExploreInput, clicked: LocalRoute | undefined, page: SemanticData): void {
+  const tip = page.routeHandle ? lab.localOverlay(page.routeHandle)?.visited.at(-1) : undefined;
+  inspect.textContent = yaml({
+    request: {
+      operation: input.operation ?? (input.routeHandle ? "continue" : "open"),
+      anchor: input.anchorId ?? null,
+      rewindTo: input.rewindToId ?? null,
+      clicked: clicked ? { label: clicked.label, kind: clicked.kind, nodeIds: clicked.nodeIds } : null,
+    },
+    response: {
+      stayedOn: tip ?? null,
+      terminal: page.terminalReason,
+      detail: page.detail,
+      opened: page.items.map((item) => item.excerpt),
+      next: page.nextRoutes.map((route) => route.label),
+    },
+  }).replace(/^\n/, "");
+}
+
+function yaml(value: unknown, indent = 0): string {
+  const pad = "  ".repeat(indent);
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return value === "" ? '""' : value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "[]";
+    return value.map((item) => `\n${pad}- ${yaml(item, indent + 1).replace(/^\n/, "")}`).join("");
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return "{}";
+  return entries
+    .map(([key, item]) => {
+      const rendered = yaml(item, indent + 1);
+      return rendered.startsWith("\n") ? `\n${pad}${key}:${rendered}` : `\n${pad}${key}: ${rendered}`;
+    })
+    .join("");
+}
+
 function syncRouteToTrail(): void {
   offRouteId = null;
   if (trail.length === 0) {
@@ -590,7 +642,7 @@ function syncRouteToTrail(): void {
   }
   const anchor = trail[0];
   if (!anchor) return;
-  activePage = lab.explore({
+  activePage = look({
     personId,
     purpose: "look",
     anchorId: anchor,
@@ -608,7 +660,7 @@ function syncRouteToTrail(): void {
       offRouteId = id;
       return;
     }
-    activePage = lab.explore({
+    activePage = look({
       personId,
       purpose: "look",
       routeHandle: handle,
@@ -622,11 +674,12 @@ function syncRouteToTrail(): void {
 function followAdvertisedRoute(routeId: string): void {
   const handle = activePage?.routeHandle;
   if (!handle) return;
-  const page = lab.explore({
+  const page = look({
     personId,
     purpose: "look",
     routeHandle: handle,
     routeId,
+    operation: "continue",
     requestId: nextRequestId(),
   });
   activePage = page;
@@ -679,6 +732,7 @@ function explorationFold(): HTMLDetailsElement {
     list.append(item);
   }
   fold.append(list);
+  fold.open = true;
   return fold;
 }
 
@@ -686,6 +740,27 @@ function openNote(id: string): boolean {
   if (showAll) trail = [id];
   else {
     const at = trail.indexOf(id);
+    if (at >= 0 && activePage?.routeHandle) {
+      const page = look({
+        personId,
+        purpose: "look",
+        routeHandle: activePage.routeHandle,
+        operation: "rewind",
+        rewindToId: id,
+        requestId: nextRequestId(),
+      });
+      if (!page.terminalReason && page.routeHandle) {
+        activePage = page;
+        trail = trail.slice(0, at + 1);
+        selectedId = id;
+        showAll = false;
+        openBlocks.add(id);
+        offRouteId = null;
+        renderOpenedNotes();
+        paint(false);
+        return true;
+      }
+    }
     if (at >= 0) trail = trail.slice(0, at + 1);
     else {
       const latest = trail[trail.length - 1];
@@ -1095,6 +1170,7 @@ capture.addEventListener("submit", (event) => {
 });
 
 function clearChoice(): void {
+  lab.expireExploration();
   trail = [];
   activePage = null;
   offRouteId = null;
@@ -1634,11 +1710,17 @@ void loadCasePeople()
       button.type = "button";
       button.textContent = file.label;
       button.dataset.person = file.personId;
-      button.addEventListener("click", () => useLab(labFromCase(file), file.personId));
+      button.addEventListener("click", () => useLab(labFromCase(file, graphStore), file.personId));
       peopleNav.append(button);
     }
+    const stored = graphStore.load();
+    const storedPerson = stored.events[0]?.personId;
+    if (storedPerson) {
+      useLab(lab, storedPerson);
+      return;
+    }
     const first = people[0];
-    if (first) useLab(labFromCase(first), first.personId);
+    if (first) useLab(labFromCase(first, graphStore), first.personId);
     else {
       noteAdd.hidden = true;
       source.textContent = "No person is loaded.";

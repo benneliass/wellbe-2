@@ -67,6 +67,7 @@ export interface PointerNode {
 
 export interface LinkAdvertisement {
   id: string;
+  personId: string;
   sequence: number;
   origin: Origin;
   digest: string;
@@ -188,6 +189,9 @@ export interface IngestResult {
   }>;
   terminalReason: TerminalReason | null;
   detail: string;
+  /** Latest policy route-set revision for this save. Null when selection did not run. */
+  routeRevision: number | null;
+  pruned: Array<{ id: string; reason: string }>;
 }
 
 export interface Rankable {
@@ -216,6 +220,9 @@ export const DETAILS = {
   handle_use_limit: "continuation handle use limit reached",
   unknown_handle: "continuation handle is not recognized",
   unknown_anchor: "anchor is not in this person's map",
+  wrong_purpose: "this handle is bound to a different purpose",
+  wrong_operation: "this handle cannot perform that operation",
+  rewind_target: "rewind target is not on this exploration path",
 } as const;
 
 export function assertSafeDetail(detail: string): void {

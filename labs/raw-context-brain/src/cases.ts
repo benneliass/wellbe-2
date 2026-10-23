@@ -1,3 +1,4 @@
+import type { GraphStore } from "./persist/graph-store.js";
 import { RawContextLab } from "./router.js";
 import { sha256 } from "./text.js";
 import type { Independence, Relation, SourceArrival, VaultEvent } from "./types.js";
@@ -43,7 +44,7 @@ export async function loadCasePeople(): Promise<CaseFile[]> {
   return people.sort((left, right) => left.caseId.localeCompare(right.caseId));
 }
 
-export function labFromCase(file: CaseFile): RawContextLab {
+export function labFromCase(file: CaseFile, graphStore?: GraphStore): RawContextLab {
   const lab = new RawContextLab({
     seed: 7,
     pageSize: 1,
@@ -51,6 +52,7 @@ export function labFromCase(file: CaseFile): RawContextLab {
     expansionBudget: 400,
     maxHandleUses: 48,
     handleTtlMs: 600_000,
+    graphStore,
   });
   const nodes = [...file.nodes].sort((left, right) => left.sequence - right.sequence);
   for (const node of nodes) {
@@ -77,7 +79,8 @@ export function labFromCase(file: CaseFile): RawContextLab {
 }
 
 function reasonCode(relation: Relation): string {
-  if (relation === "same_record_group") return "membership";
+  // Dossier links are note-to-note. same_record_group is only a hub membership.
+  if (relation === "same_record_group") return "recorded_association";
   if (relation === "near_in_time") return "temporal_neighbour";
   if (relation === "derived_or_copied") return "derived_or_copied";
   return "recorded_association";

@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { rowHash } from "../integrity/row-hash.js";
 import { Projection, type AdvertisementDraft } from "../store.js";
-import { sha256 } from "../text.js";
 import type { LinkAdvertisement, VaultEvent } from "../types.js";
 
 export const SCHEMA_SQL = readFileSync(
@@ -77,24 +77,6 @@ function dropsAcceptedEdge(ad: Pick<LinkAdvertisement, "withdrawn" | "origin" | 
   return ad.withdrawn || (ad.origin === "user_correction" && ad.judgment !== "link");
 }
 
-function advertisementDigest(draft: AdvertisementDraft, sequence: number): string {
-  return sha256(
-    JSON.stringify({
-      origin: draft.origin,
-      evidenceIds: [...draft.evidenceIds].sort(),
-      fromId: draft.fromId,
-      toId: draft.toId,
-      judgment: draft.judgment,
-      reasonCode: draft.reasonCode,
-      relation: draft.relation,
-      confidence: draft.confidence,
-      withdrawn: draft.withdrawn,
-      supersedesId: draft.supersedesId,
-      sequence,
-    }),
-  );
-}
-
 export class PostgresPointerStore {
   constructor(private readonly db: Queryable) {}
 
@@ -116,17 +98,21 @@ export class PostgresPointerStore {
   async appendAdvertisement(personId: string, draft: AdvertisementDraft): Promise<LinkAdvertisement> {
     const seqRows = await this.db.query<{ max_sequence: number }>(NEXT_SEQUENCE, [personId]);
     const sequence = Number(seqRows.rows[0]?.max_sequence ?? 0) + 1;
-    const ad: LinkAdvertisement = {
+    const row = {
       ...draft,
+      personId,
       evidenceIds: [...draft.evidenceIds],
-      id: `ad-${personId}-${sequence}`,
       sequence,
-      digest: advertisementDigest(draft, sequence),
+    };
+    const ad: LinkAdvertisement = {
+      ...row,
+      id: `ad-${personId}-${sequence}`,
+      digest: rowHash(row),
     };
     await this.db.query(INSERT_AD, [
       ad.id,
       ad.sequence,
-      personId,
+      ad.personId,
       ad.origin,
       ad.digest,
       ad.modelVersion,

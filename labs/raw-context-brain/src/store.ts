@@ -1,3 +1,4 @@
+import { assertAdvertisementDigests, rowHash } from "./integrity/row-hash.js";
 import { edgeKey, sha256 } from "./text.js";
 import type {
   AcceptedEdge,
@@ -36,6 +37,7 @@ export class Vault {
 }
 
 export interface AdvertisementDraft {
+  personId: string;
   origin: Origin;
   modelVersion: string | null;
   promptVersion: string | null;
@@ -60,21 +62,7 @@ export class AdvertisementLog {
 
   append(draft: AdvertisementDraft): LinkAdvertisement {
     this.sequence += 1;
-    const digest = sha256(
-      JSON.stringify({
-        origin: draft.origin,
-        evidenceIds: [...draft.evidenceIds].sort(),
-        fromId: draft.fromId,
-        toId: draft.toId,
-        judgment: draft.judgment,
-        reasonCode: draft.reasonCode,
-        relation: draft.relation,
-        confidence: draft.confidence,
-        withdrawn: draft.withdrawn,
-        supersedesId: draft.supersedesId,
-        sequence: this.sequence,
-      }),
-    );
+    const digest = rowHash({ ...draft, sequence: this.sequence });
     const ad: LinkAdvertisement = Object.freeze({
       ...draft,
       evidenceIds: [...draft.evidenceIds],
@@ -89,6 +77,24 @@ export class AdvertisementLog {
 
   get(id: string): LinkAdvertisement | undefined {
     return this.byId.get(id);
+  }
+
+  verifyDigests(): void {
+    assertAdvertisementDigests(this.ads);
+  }
+
+  /** Replace the ledger with rows whose digests already match. Sequence continues after the last row. */
+  restore(ads: readonly LinkAdvertisement[]): void {
+    assertAdvertisementDigests(ads);
+    this.ads.length = 0;
+    this.byId.clear();
+    this.sequence = 0;
+    for (const ad of ads) {
+      const row = Object.freeze({ ...ad, evidenceIds: [...ad.evidenceIds] });
+      this.ads.push(row);
+      this.byId.set(row.id, row);
+      if (row.sequence > this.sequence) this.sequence = row.sequence;
+    }
   }
 }
 
@@ -173,6 +179,7 @@ export class Projection {
   }
 
   rebuild(ads: readonly LinkAdvertisement[]): void {
+    assertAdvertisementDigests(ads);
     this.status = "rebuilding";
     this.edges.clear();
     this.adjacency.clear();

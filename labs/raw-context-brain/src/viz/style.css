@@ -510,7 +510,22 @@ aside {
 
 form, section { margin-bottom: 20px; }
 
-aside section { margin-bottom: 0; }
+aside section { margin-bottom: 18px; }
+
+.inspect pre {
+  max-height: 280px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-inset);
+  color: var(--fg1);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
 
 .hint {
   margin: 0 0 12px;

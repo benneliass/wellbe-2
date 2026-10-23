@@ -62,7 +62,7 @@ describe("bounded navigation", () => {
       purpose: "nav",
       anchorId: "n0",
     });
-    for (let step = 0; step < 12 && response.routeHandle; step += 1) {
+    for (let step = 0; step < 12 && response.routeHandle && !response.terminalReason; step += 1) {
       response = lab.explore({
         personId: "synthetic-1",
         purpose: "nav",
@@ -383,5 +383,32 @@ describe("bounded navigation", () => {
     expect(response.terminalReason).toBe("insufficient_independent_evidence");
     expect(response.detail.toLowerCase()).not.toContain("no relevant context");
     expect(response.routeHandle).toBeNull();
+  });
+
+  it("keeps a record-kind filter on the current note", () => {
+    const lab = new RawContextLab({ pageSize: 5, hopLimit: 8 });
+    lab.addFixture(event("a", "alpha"));
+    lab.addFixture(event("b", "beta"));
+    lab.addFixture(event("c", "gamma"));
+    lab.addFixture(event("d", "delta"));
+    lab.linkStructural("a", "b");
+    lab.linkStructural("a", "c");
+    lab.linkStructural("a", "d");
+    const opened = lab.explore({ personId: "p1", purpose: "look", anchorId: "a", holdAtAnchor: true });
+    const onlyNotes = lab.localRoutes(opened.routeHandle ?? "").find((route) => route.kind === "facet");
+    expect(onlyNotes?.label).toBe("Only notes");
+    expect(onlyNotes?.nodeIds).toEqual(["b", "c", "d"]);
+    const filtered = lab.explore({
+      personId: "p1",
+      purpose: "look",
+      routeHandle: opened.routeHandle ?? "",
+      routeId: onlyNotes?.routeId,
+      operation: "continue",
+    });
+    expect(filtered.routeHandle).toBe(opened.routeHandle);
+    expect(filtered.items).toEqual([]);
+    expect(lab.localOverlay(filtered.routeHandle ?? "")?.visited).toEqual(["a"]);
+    const opens = filtered.nextRoutes.filter((route) => route.kind === "neighbour").map((route) => route.label);
+    expect(opens).toEqual(["Open b", "Open c", "Open d"]);
   });
 });

@@ -65,6 +65,12 @@ The lab does not become a shippable auto-linker. Link quality of a hosted model 
 
 The lab lives at `labs/raw-context-brain/` and is outside the production npm workspaces. `REPORT.md` in that directory holds the scorecard. A passing lab run does not change `docs/current/capability-index.md`.
 
+**Current design:** [`docs/system-design/raw-context-brain/README.md`](../system-design/raw-context-brain/README.md)
+
+**WEL-87 history:** [`docs/system-design/raw-context-brain/wel-87-history.md`](../system-design/raw-context-brain/wel-87-history.md)
+
+**Lab implementation gaps:** [`docs/system-design/raw-context-brain/lab-implementation-gaps.md`](../system-design/raw-context-brain/lab-implementation-gaps.md)
+
 ---
 
 _This record is append-only once approved. To supersede: create a new record at docs/decisions/<new-slug>.md and add a link here: "Superseded by: [docs/decisions/<new-slug>.md]"_

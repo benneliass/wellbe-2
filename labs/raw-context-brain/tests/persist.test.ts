@@ -6,7 +6,7 @@ import {
   replay,
   type Queryable,
 } from "../src/persist/postgres-store.js";
-import { Projection, type AdvertisementDraft } from "../src/store.js";
+import { AdvertisementLog, Projection, type AdvertisementDraft } from "../src/store.js";
 import type { LinkAdvertisement, VaultEvent } from "../src/types.js";
 
 class FakeDb implements Queryable {
@@ -77,6 +77,7 @@ function event(): VaultEvent {
 
 function draft(partial: Partial<AdvertisementDraft>): AdvertisementDraft {
   return {
+    personId: "p1",
     origin: "model",
     modelVersion: "lab",
     promptVersion: null,
@@ -123,19 +124,10 @@ describe("postgres pointer store", () => {
   });
 
   it("replays advertisements to the same digest as the in-memory projection", () => {
+    const log = new AdvertisementLog();
     const ads: LinkAdvertisement[] = [
-      {
-        ...draft({}),
-        id: "ad-1",
-        sequence: 1,
-        digest: "d1",
-      },
-      {
-        ...draft({ judgment: "no_link", confidence: 0.1 }),
-        id: "ad-2",
-        sequence: 2,
-        digest: "d2",
-      },
+      log.append(draft({})),
+      log.append(draft({ judgment: "no_link", confidence: 0.1 })),
     ];
     const live = new Projection();
     for (const ad of ads) live.apply(ad);
