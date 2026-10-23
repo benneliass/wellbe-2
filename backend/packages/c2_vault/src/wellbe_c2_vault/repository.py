@@ -55,6 +55,12 @@ class VaultRepository:
     async def get_event(self, event_id: UUID) -> RawContextEventRow | None:
         return await self._session.get(RawContextEventRow, event_id)
 
+    async def list_events(self, patient_id: UUID) -> list[RawContextEventRow]:
+        """Rows for one person. The caller reads bytes from the vault separately."""
+        stmt = select(RawContextEventRow).where(RawContextEventRow.patient_id == patient_id)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def find_duplicate(
         self, patient_id: UUID, content_hash: str
     ) -> UUID | None:

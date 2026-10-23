@@ -29,6 +29,7 @@ dependencies = [
     "wellbe-c9-continuity",
     "wellbe-c11-correction",
     "wellbe-c12-audit",
+    "wellbe-raw-context-brain",
 ]
 
 [tool.uv.sources]
@@ -49,3 +50,4 @@ wellbe-c8-memories = { workspace = true }
 wellbe-c9-continuity = { workspace = true }
 wellbe-c11-correction = { workspace = true }
 wellbe-c12-audit = { workspace = true }
+wellbe-raw-context-brain = { workspace = true }

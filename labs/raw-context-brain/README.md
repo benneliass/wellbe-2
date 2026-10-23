@@ -1,6 +1,6 @@
 # Raw Context Brain theory lab
 
-Disposable lab for [WEL-87](https://belias.atlassian.net/browse/WEL-87). It is not wired into the WellBe app, API, database, or CI.
+Picture lab for [WEL-87](https://belias.atlassian.net/browse/WEL-87). The engine now lives in `backend/packages/raw_context_brain` and the signed-in person calls it at `/v2/context`. This page remains the map. It is not the workspace screen.
 
 The lab stores synthetic notes in an append-only vault, keeps a pointer graph, and asks a local judge for `link`, `no_link`, or `uncertain`. A model abstention stays in the log and does not delete an accepted edge. `@cosmos.gl/graph` draws one person's accepted links. The page opens on the full map. Choosing a note narrows to that note and its neighbors, and the opened notes stay in click order. A route button continues that saved exploration along a route the lab advertised. Clear choice returns to the full map.
 

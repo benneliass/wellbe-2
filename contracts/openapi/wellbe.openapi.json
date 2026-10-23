@@ -693,6 +693,215 @@
         "title": "ConsentPurposeV1",
         "type": "object"
       },
+      "ContextExploreRequest": {
+        "properties": {
+          "anchor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Id"
+          },
+          "focus_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus Id"
+          },
+          "hold_at_anchor": {
+            "default": false,
+            "title": "Hold At Anchor",
+            "type": "boolean"
+          },
+          "operation": {
+            "default": "open",
+            "enum": [
+              "open",
+              "continue",
+              "rewind"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "purpose": {
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_id": {
+            "minLength": 1,
+            "title": "Request Id",
+            "type": "string"
+          },
+          "rewind_to_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rewind To Id"
+          },
+          "route_handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Handle"
+          },
+          "route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Id"
+          }
+        },
+        "required": [
+          "purpose",
+          "request_id"
+        ],
+        "title": "ContextExploreRequest",
+        "type": "object"
+      },
+      "ContextExploreResponse": {
+        "properties": {
+          "breadcrumb": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Breadcrumb",
+            "type": "array"
+          },
+          "cycle_count": {
+            "title": "Cycle Count",
+            "type": "integer"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "direct_link_count": {
+            "title": "Direct Link Count",
+            "type": "integer"
+          },
+          "exhaustion": {
+            "title": "Exhaustion",
+            "type": "string"
+          },
+          "hop_depth": {
+            "title": "Hop Depth",
+            "type": "integer"
+          },
+          "next_routes": {
+            "items": {
+              "$ref": "#/components/schemas/ContextRouteResponse"
+            },
+            "title": "Next Routes",
+            "type": "array"
+          },
+          "opened": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Opened",
+            "type": "array"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          },
+          "route_handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Handle"
+          },
+          "snapshot_digest": {
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_revision": {
+            "title": "Snapshot Revision",
+            "type": "integer"
+          },
+          "terminal_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terminal Reason"
+          }
+        },
+        "required": [
+          "route",
+          "breadcrumb",
+          "hop_depth",
+          "direct_link_count",
+          "cycle_count",
+          "exhaustion",
+          "terminal_reason",
+          "detail",
+          "route_handle",
+          "snapshot_revision",
+          "snapshot_digest",
+          "next_routes",
+          "opened"
+        ],
+        "title": "ContextExploreResponse",
+        "type": "object"
+      },
+      "ContextRouteResponse": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "route_id": {
+            "title": "Route Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route_id",
+          "label",
+          "kind"
+        ],
+        "title": "ContextRouteResponse",
+        "type": "object"
+      },
       "CorrectionTargetKind": {
         "enum": [
           "c2_raw_event",
@@ -7169,6 +7378,123 @@
         "summary": "My Audit Events",
         "tags": [
           "v2-access"
+        ]
+      }
+    },
+    "/v2/context/explore": {
+      "post": {
+        "operationId": "explore_context_v2_context_explore_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Actor-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-patient-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Wellbe-Patient-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-wellbe-actor-type",
+            "required": false,
+            "schema": {
+              "default": "controller",
+              "title": "X-Wellbe-Actor-Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-correlation-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Correlation-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-trace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Trace-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextExploreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextExploreResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Explore Context",
+        "tags": [
+          "v2-context"
         ]
       }
     },

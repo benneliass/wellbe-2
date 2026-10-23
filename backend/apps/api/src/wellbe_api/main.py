@@ -24,6 +24,7 @@ from wellbe_api.routers import (
     access,
     ask_v2,
     capture_v1,
+    context_v2,
     delta_v2,
     graph_v2,
     investigations,
@@ -100,3 +101,4 @@ app.include_router(notifications_v2.router)
 app.include_router(records_v2.router)
 app.include_router(thread_timeline_v2.router)
 app.include_router(triage_v2.router)
+app.include_router(context_v2.router)

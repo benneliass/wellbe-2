@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -33,6 +33,7 @@ members = [
     "wellbe-notification-worker",
     "wellbe-platform",
     "wellbe-processing-worker",
+    "wellbe-raw-context-brain",
     "wellbe-safety-gate",
     "wellbe-temporal-worker",
     "wellbe-testkit",
@@ -1680,6 +1681,7 @@ dependencies = [
     { name = "wellbe-db" },
     { name = "wellbe-events" },
     { name = "wellbe-platform" },
+    { name = "wellbe-raw-context-brain" },
 ]
 
 [package.metadata]
@@ -1709,6 +1711,7 @@ requires-dist = [
     { name = "wellbe-db", editable = "packages/db" },
     { name = "wellbe-events", editable = "packages/events" },
     { name = "wellbe-platform", editable = "packages/platform" },
+    { name = "wellbe-raw-context-brain", editable = "packages/raw_context_brain" },
 ]
 
 [[package]]
@@ -2236,6 +2239,23 @@ requires-dist = [
     { name = "wellbe-contracts", editable = "packages/contracts" },
     { name = "wellbe-db", editable = "packages/db" },
     { name = "wellbe-events", editable = "packages/events" },
+    { name = "wellbe-platform", editable = "packages/platform" },
+]
+
+[[package]]
+name = "wellbe-raw-context-brain"
+version = "0.1.0"
+source = { editable = "packages/raw_context_brain" }
+dependencies = [
+    { name = "wellbe-contracts" },
+    { name = "wellbe-db" },
+    { name = "wellbe-platform" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "wellbe-contracts", editable = "packages/contracts" },
+    { name = "wellbe-db", editable = "packages/db" },
     { name = "wellbe-platform", editable = "packages/platform" },
 ]
 
