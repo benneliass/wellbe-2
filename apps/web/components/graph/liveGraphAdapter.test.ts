@@ -72,7 +72,7 @@ describe("buildLiveGraph on the real demo payloads", () => {
     expect(cough.evidence).toHaveLength(2);
     expect(cough.evidence!.every((s) => s.displayLabel === "Fact from what you added" && s.component === "c5")).toBe(true);
     expect(cough.ev).toBe(2);
-    expect(cough.captures).toHaveLength(2);
+    expect(cough.evidence).toHaveLength(2);
 
     const a1c = byLabel("Hemoglobin A1c");
     expect(a1c.evidence).toHaveLength(1);

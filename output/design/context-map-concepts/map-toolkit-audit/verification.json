@@ -1,0 +1,43 @@
+{
+  "reviewed": "2026-10-28",
+  "web_unit_tests": {
+    "files": 62,
+    "passed": 426,
+    "failed": 0,
+    "timezone": "UTC"
+  },
+  "map_browser_tests": {
+    "passed": 50,
+    "failed": 0,
+    "browser": "Chrome",
+    "widths": [
+      1774,
+      690,
+      390
+    ]
+  },
+  "workspace_typechecks": [
+    "mobile",
+    "web",
+    "api-client",
+    "ui"
+  ],
+  "capability_index": {
+    "passed": true,
+    "capabilities": 35
+  },
+  "diff_whitespace_check": "passed",
+  "visual_captures": {
+    "before": 6,
+    "after": 6,
+    "page_errors": []
+  },
+  "fixed_during_review": [
+    "stationary phone link coordinates during responsive layout",
+    "cross-runtime bridge geometry serialization",
+    "tooltip response to object movement",
+    "secondary label clearance",
+    "keyboard zoom ownership across multiple maps"
+  ],
+  "scope": "Reusable rendering, motion, geometry and interaction toolkit; WellBe domain behavior remains in adapters; context-brain lab not ported."
+}

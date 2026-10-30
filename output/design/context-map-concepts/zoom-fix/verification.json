@@ -1,0 +1,20 @@
+{
+  "root_cause": "Queued pan state updater read drag.current after gesture cleanup had set it to null.",
+  "fix": "Capture immutable pan coordinates before enqueueing the camera update; clear pan on pointer cancellation.",
+  "regressions": [
+    "release",
+    "pointer leave",
+    "pointer cancel",
+    "pan to pinch",
+    "batched pan and wheel zoom"
+  ],
+  "additional_fix": "Use the same 16px top inset for neighbour placement and family reveal to avoid unnecessary lateral drag jumps.",
+  "unit_tests_passed": 433,
+  "browser_tests_passed": 52,
+  "typechecks_passed": [
+    "web",
+    "ui"
+  ],
+  "live_tab_zoom_in_and_out": "verified",
+  "screenshot": "recovered-map.png"
+}

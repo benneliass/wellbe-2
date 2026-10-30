@@ -29,6 +29,7 @@ describe("NavRail", () => {
       "href",
       "/appointments",
     );
+    expect(within(more).queryByRole("link", { name: "Context map" })).not.toBeInTheDocument();
   });
 
   it("marks the current destination and opens capture from the rail", () => {

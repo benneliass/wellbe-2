@@ -1,0 +1,26 @@
+{
+  "hover_scale": 1.12,
+  "selected_scale": 1.26,
+  "orbit_policy": "Added body radius increases orbit radius; miniature sizes remain constant.",
+  "unit_tests_passed": 428,
+  "typechecks_passed": [
+    "web",
+    "ui"
+  ],
+  "browser_regression": {
+    "initial_run": {
+      "passed": 53,
+      "failed": 1
+    },
+    "resolution": "Phone test measured its pointer target before the responsive SVG had painted; added the existing two-frame painted-geometry wait.",
+    "new_interaction_cases_repeated": 3,
+    "repeat_run_passed": 12,
+    "repeat_run_failed": 0
+  },
+  "capability_index": "passed",
+  "visual_states": [
+    "rest.png",
+    "hover.png",
+    "selected.png"
+  ]
+}

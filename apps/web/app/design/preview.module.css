@@ -1,0 +1,9 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  min-width: 0;
+  background: #fcfdff;
+}
+
+.graphHeader { padding-bottom: 24px; }

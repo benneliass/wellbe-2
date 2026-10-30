@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Chip, ConfidenceDots, EvidenceDrawer, type EvidenceSource, Icon, SourceMarker, Tabs } from "@wellbe/ui";
+import { EvidenceDrawer, type EvidenceSource, Icon, Tabs } from "@wellbe/ui";
 import styles from "./GraphLive.module.css";
 import {
   type Cluster,
   type ClusterId,
-  FAMILY,
   FLOOR_LABEL,
   type GraphEdge,
   type GraphModel,
@@ -16,19 +14,28 @@ import {
   LAYERS,
   type LayerId,
   NEUTRAL_HUE,
-  type NodeAction,
-  THEORY_HUE,
-  TYPE_ICON,
-  TYPE_LABEL,
 } from "./graphData";
 import { layersWithData } from "./liveGraphAdapter";
 import { arrowDelta, clientToSvg, dragTo, loadPositions, passedThreshold, type Positions, savePositions, svgToGraph } from "./graphDrag";
-import { canvasLabel, clusterHalo, clusterLabelBox, defaultBend, edgePathD, layoutGraph, nodeBox, nodeRadius, COMPACT_VIEW, type Pt, type ViewBox, WIDE_VIEW } from "./liveGraphLayout";
+import { canvasLabel, clusterHalo, clusterLabelBox, layoutGraph, nodeBox, nodeRadius, nodeLabelOffset, withSatelliteCounts, COMPACT_VIEW, type Pt, type ViewBox, WIDE_VIEW } from "./liveGraphLayout";
+import { RecordCircle } from "./marks";
+import { useMapEffects, MapConnection as SilkConnection, MapHoverTooltip as GraphHoverTooltip, useReducedMotion, useElementWidth, useTransientFlag, MapObjectFrame, MapFocusRing, MapAccents, MapGroupLight, useMapZoomBoundary, useMapRoutes, useMapPan } from "@wellbe/ui/map";
+import { MAP_INTERACTION, MAP_MOTION, type MapCamera as Zoom } from "@wellbe/ui/map/core";
+import { indexGraphSatellites, visibleGraphSatellites } from "./graphSatellites";
+import { layoutExpandedGraph, revealMapFamily } from "./expandedGraphLayout";
+import { graphColorConcerns, graphObjectColor } from "./graphAppearance";
+import { RadialMenu, Banner, ConsentBanner, OverviewPanel, ExplainPanel, NodePanel, EdgePanel, ListView, Legend } from "./GraphPanels";
+import { typeLabelOf, plural } from "./graphPresentation";
+import { GraphObject } from "./GraphObject";
+import { graphGroupLight } from './graphGroupLights';
+import { graphGroupLabels } from './graphGroupLabels';
+import { useGraphPins } from './useGraphPins';
 
-type Mode = "overview" | "detail" | "explore";
+export type GraphMode = "overview" | "detail" | "explore";
+type Mode = GraphMode;
+export type GraphNavigationProps = { viewMode?: GraphMode; onViewModeChange?: (mode: GraphMode) => void; modeNavigation?: ReactNode };
 type ViewKind = "graph" | "list";
 type Selection = { kind: "node"; id: string } | { kind: "edge"; edge: GraphEdge } | { kind: "none" };
-type Zoom = { k: number; tx: number; ty: number };
 type DrawerState = { title: string; claim: ReactNode; sources: EvidenceSource[] } | null;
 
 const COMPACT_BELOW = 640;
@@ -41,64 +48,16 @@ const EMPTY_LAYER_NOTE: Partial<Record<LayerId, string>> = {
   observation: "No source observations are attached yet.",
 };
 
-function typeLabelOf(n: GraphNode): string {
-  return n.typeLabel ?? TYPE_LABEL[n.type];
-}
-
-function plural(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
-}
-
-/** Captures from the design fixtures, shown through the same evidence primitives. */
-function evidenceOf(n: GraphNode): EvidenceSource[] {
-  if (n.evidence) return n.evidence;
-  return (n.captures ?? []).map((c, i) => ({
-    id: `${n.id}-cap-${i}`,
-    displayLabel: c.source === "reported" ? "Your note" : c.source === "note" ? "Clinical note" : c.source === "doc" ? "Document" : c.source === "wearable" ? "Wearable" : c.source === "lab" ? "Lab result" : "Reference",
-    component: c.source === "research" ? "c16" : "c2",
-    kind: c.source,
-    excerpt: c.text,
-  }));
-}
-
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const on = () => setReduced(mq.matches);
-    mq.addEventListener?.("change", on);
-    return () => mq.removeEventListener?.("change", on);
-  }, []);
-  return reduced;
-}
-
-function useElementWidth<T extends HTMLElement>(): [React.RefObject<T | null>, number | null] {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState<number | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    setWidth(el.getBoundingClientRect().width || null);
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver((entries) => setWidth(entries[0]?.contentRect.width ?? null));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, width];
-}
-
-export function GraphLive({ model: input, notice, patientId }: { model: GraphModel; notice?: string; patientId?: string | null }) {
+export function GraphLive({ model: input, notice, patientId, viewMode, onViewModeChange, modeNavigation }: { model: GraphModel; notice?: string; patientId?: string | null } & GraphNavigationProps) {
   const router = useRouter();
-  const reducedMotion = usePrefersReducedMotion();
+  const reducedMotion = useReducedMotion();
   const [colRef, colWidth] = useElementWidth<HTMLDivElement>();
   const view: ViewBox = input.autoLayout && colWidth !== null && colWidth < COMPACT_BELOW ? COMPACT_VIEW : WIDE_VIEW;
   const VIEW_W = view.width;
   const VIEW_H = view.height;
 
   const laid = useMemo(
-    () => (input.autoLayout ? layoutGraph(input, view) : { model: input, extent: { width: view.width, height: view.height - view.gutter } }),
+    () => (input.autoLayout ? layoutGraph(input, view) : { model: withSatelliteCounts(input), extent: { width: view.width, height: view.height - view.gutter } }),
     [input, view],
   );
   const model = laid.model;
@@ -124,8 +83,8 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [zoom, setZoom] = useState<Zoom>(fit);
   const [home, setHome] = useState<Zoom>(fit);
-  const [recentering, setRecentering] = useState(false);
-  const [homeSaved, setHomeSaved] = useState(false);
+  const [recentering, setRecentering] = useTransientFlag(360);
+  const [homeSaved, setHomeSaved] = useTransientFlag(1400);
   const [radial, setRadial] = useState<{ id: string; xPct: number; yPct: number } | null>(null);
   const [showWeak, setShowWeak] = useState(false);
   const [evidenceAll, setEvidenceAll] = useState(false);
@@ -138,7 +97,6 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   const [userEdges, setUserEdges] = useState<GraphEdge[]>([]);
   const [disputed, setDisputed] = useState<Set<string>>(new Set());
   const [drawer, setDrawer] = useState<DrawerState>(null);
-  const drag = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(null);
   const holdTimer = useRef<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [moved, setMoved] = useState<Positions>({});
@@ -147,16 +105,27 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   const nodeDrag = useRef<{ pointerId: number; client: Pt; origin: Pt; start: Positions; active: boolean } | null>(null);
   const suppressClick = useRef(false);
   const viewKey = `${VIEW_W}x${VIEW_H}`;
+  const pan = useMapPan({ camera: zoom, viewport: { width: VIEW_W, height: VIEW_H }, onChange: setZoom, onBackgroundClick: () => { if (!linkFrom && !shareMode) setSelection({ kind: 'none' }); } });
+  useMapEffects(svgRef, reducedMotion, viewKey);
+  useEffect(() => { if (viewMode && viewMode !== mode) onModeChange(viewMode); }, [viewMode]);
+  useMapZoomBoundary(svgRef, zoomAt, () => setZoom(sceneFit), () => {
+    pan.cancel();
+    nodeDrag.current = null;
+    clearHold();
+    setDragging(false);
+    suppressClick.current = true;
+  });
   const storeFor = patientId ? `${patientId}|${viewKey}` : null;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setZoom(fit);
     setHome(fit);
     setRadial(null);
   }, [fit]);
   useEffect(() => setScrub(lastStep), [lastStep]);
 
-  const baseNodes = model.nodes;
+  const { pins, toggle: togglePin } = useGraphPins(patientId ?? (model.kind === "preview" ? "design-preview" : null));
+  const baseNodes = useMemo(() => model.nodes.map((node) => Object.hasOwn(pins, node.id) ? { ...node, pinned: pins[node.id] } : node), [model.nodes, pins]);
   const baseEdges = model.edges;
   const baseClusters = model.clusters;
 
@@ -177,12 +146,11 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   const hasData = useMemo(() => layersWithData(model), [model]);
 
   const clusterById = useMemo(() => {
-    const m: Record<ClusterId, Cluster & { grad: string }> = {};
-    baseClusters.forEach((c, i) => (m[c.id] = { ...c, grad: `sphere-c${i}` }));
+    const m: Record<ClusterId, Cluster> = {};
+    baseClusters.forEach((c) => (m[c.id] = c));
     return m;
   }, [baseClusters]);
   const hueOf = useCallback((id: ClusterId | undefined) => (id && clusterById[id]?.hue) || NEUTRAL_HUE.hue, [clusterById]);
-  const gradOf = useCallback((id: ClusterId | undefined) => `url(#${(id && clusterById[id]?.grad) || "sphere-neutral"})`, [clusterById]);
   const clusterLabel = useCallback((id: ClusterId) => clusterById[id]?.label ?? "Concern", [clusterById]);
   const hrefOf = useCallback(
     (n: GraphNode) => {
@@ -203,43 +171,17 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     return m;
   }, [baseNodes]);
 
-  // dock deferred child concepts radially around their anchor (III.5 on-canvas expansion)
-  const positioned = useMemo(() => {
-    const m: Record<string, { x: number; y: number }> = {};
-    baseNodes.forEach((n) => { if (!n.deferred) m[n.id] = moved[n.id] ?? { x: n.x, y: n.y }; });
-    const kids: Record<string, GraphNode[]> = {};
-    baseNodes.forEach((n) => { if (n.deferred && n.anchor) (kids[n.anchor] ??= []).push(n); });
-    Object.entries(kids).forEach(([aid, list]) => {
-      const a = m[aid] ?? { x: VIEW_W / 2, y: VIEW_H / 2 };
-      list.forEach((k, i) => {
-        const ang = -Math.PI / 2 + ((i + 0.5) / list.length) * Math.PI * 2;
-        m[k.id] = moved[k.id] ?? { x: a.x + Math.cos(ang) * 94, y: a.y + Math.sin(ang) * 94 };
-      });
-    });
-    return m;
-  }, [baseNodes, VIEW_W, VIEW_H, moved]);
-  const np = useCallback((id: string) => positioned[id] ?? { x: nodeById[id]?.x ?? 0, y: nodeById[id]?.y ?? 0 }, [positioned, nodeById]);
+  const colorOfNode = useCallback((node: GraphNode) => graphObjectColor(node, nodeById, hueOf), [nodeById, hueOf]);
+
   const labelPos = useCallback(
     (c: Cluster): Pt => moved[`cluster:${c.id}`] ?? { x: c.labelX ?? c.cx, y: c.labelY ?? c.cy - c.ry + 24 },
     [moved],
   );
-  // Halos re-wrap a concern whose title or own concepts were moved.
-  const clusters = useMemo(
-    () =>
-      baseClusters.map((c) => {
-        const members = baseNodes.filter((n) => n.cluster === c.id && !n.bridge && !n.deferred);
-        if (!moved[`cluster:${c.id}`] && !members.some((n) => moved[n.id])) return c;
-        const lp = labelPos(c);
-        const boxes = members.map((n) => nodeBox({ ...n, ...(positioned[n.id] ?? n) }));
-        return { ...c, ...clusterHalo(clusterLabelBox(c, lp.x, lp.y), boxes), labelX: lp.x, labelY: lp.y };
-      }),
-    [baseClusters, baseNodes, moved, positioned, labelPos],
-  );
-  const deferredByAnchor = useMemo(() => {
-    const m: Record<string, number> = {};
-    baseNodes.forEach((n) => { if (n.deferred && n.anchor) m[n.anchor] = (m[n.anchor] ?? 0) + 1; });
-    return m;
-  }, [baseNodes]);
+  const satellites = useMemo(() => indexGraphSatellites(baseNodes, colorOfNode), [baseNodes, colorOfNode]);
+  const toggleRelated = useCallback((id: string) => {
+    if (!satellites[id]?.related.length) return;
+    setExpanded((previous) => { const next = new Set(previous); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  }, [satellites]);
 
   const effLayers = useMemo(() => ({ ...layers, investigation: layers.investigation || lens }), [layers, lens]);
 
@@ -270,7 +212,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   );
 
   // Tab order walks concern by concern, top to bottom.
-  const clusterOrder = useMemo(() => new Map(clusters.map((c, i) => [c.id, i])), [clusters]);
+  const clusterOrder = useMemo(() => new Map(baseClusters.map((c, i) => [c.id, i])), [baseClusters]);
   const visibleNodes = useMemo(
     () =>
       baseNodes
@@ -279,12 +221,64 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     [baseNodes, nodeVisible, clusterOrder],
   );
   const visibleEdges = allEdges.filter(edgeVisible);
+  const layoutRevision = useMemo(() => JSON.stringify([viewKey, visibleNodes.map((node) => node.id), baseNodes.map((node) => [node.id, node.x, node.y, node.satelliteCount])]), [viewKey, visibleNodes, baseNodes]);
+  const previousScene = useRef<{ revision: string; positions: Positions } | null>(null);
+  const dynamicScene = useMemo(() => {
+    const scene = layoutExpandedGraph({
+      nodes: visibleNodes, moved,
+      // Headings yield to members after object placement.
+      titles: [],
+      extent: laid.extent,
+      previous: previousScene.current?.revision === layoutRevision ? previousScene.current.positions : undefined,
+      grabbed: dragging ? Object.keys(nodeDrag.current?.start ?? {}).filter((id) => !id.startsWith("cluster:")) : [],
+      emphasis: Object.fromEntries(visibleNodes.map((node) => [node.id, selection.kind === 'node' && selection.id === node.id ? MAP_MOTION.selectedScale : hovered === node.id ? MAP_MOTION.hoverScale : 1])),
+    });
+    previousScene.current = { revision: layoutRevision, positions: scene.positions };
+    return scene;
+  }, [visibleNodes, moved, baseClusters, labelPos, laid.extent, dragging, layoutRevision, selection, hovered]);
+  const positioned = dynamicScene.positions;
+  const sceneFit = useMemo<Zoom>(() => {
+    const k = Math.min(1, VIEW_W / dynamicScene.extent.width, (VIEW_H - view.gutter) / dynamicScene.extent.height);
+    return { k, tx: (VIEW_W - dynamicScene.extent.width * k) / 2, ty: 0 };
+  }, [VIEW_W, VIEW_H, view.gutter, dynamicScene.extent.width, dynamicScene.extent.height]);
+  const np = useCallback((id: string) => positioned[id] ?? { x: nodeById[id]?.x ?? 0, y: nodeById[id]?.y ?? 0 }, [positioned, nodeById]);
+  const groupLabels = useMemo(() => graphGroupLabels(baseClusters, visibleNodes, nodeById, np, labelPos, dynamicScene.extent, moved), [baseClusters, visibleNodes, nodeById, np, labelPos, dynamicScene.extent, moved]);
+  const groupLabelPos = (cluster: Cluster) => groupLabels[`cluster:${cluster.id}`] ?? labelPos(cluster);
+  const clusters = useMemo(() => baseClusters.map((cluster) => {
+    const members = visibleNodes.filter((node) => !node.bridge && graphColorConcerns(node, nodeById).includes(cluster.id));
+    if (!expanded.size && !Object.keys(moved).length) return cluster;
+    const label = labelPos(cluster);
+    const boxes = members.map((node) => nodeBox({ ...node, ...np(node.id) }));
+    return { ...cluster, ...clusterHalo(clusterLabelBox(cluster, label.x, label.y), boxes), labelX: label.x, labelY: label.y };
+  }), [baseClusters, visibleNodes, nodeById, moved, expanded.size, labelPos, np]);
+
+  const previousExpanded = useRef<ReadonlySet<string>>(new Set());
+  useLayoutEffect(() => {
+    const opened = [...expanded].filter((id) => !previousExpanded.current.has(id));
+    previousExpanded.current = expanded;
+    if (!opened.length) return;
+    const family = visibleNodes.filter((node) => opened.includes(node.id) || node.anchor && opened.includes(node.anchor));
+    const boxes = family.map((node) => nodeBox({ ...node, ...np(node.id) }));
+    setZoom((current) => revealMapFamily(boxes, current, { width: VIEW_W, height: VIEW_H - view.gutter }));
+  }, [expanded, visibleNodes, np, VIEW_W, VIEW_H, view.gutter]);
   const openLoopCount = baseNodes.filter((n) => n.ghost && !hidden.has(n.id)).length;
   const conceptCount = baseNodes.filter((n) => n.layer === "concept" && !n.aggregate && !hidden.has(n.id)).length;
   // A canvas grown for a dense graph still opens on its concepts.
   const clusterBelow = Math.min(0.62, Math.max(0.45, fit.k * 0.9));
   const lod: "cluster" | "concept" | "detail" = zoom.k < clusterBelow ? "cluster" : zoom.k > 1.55 ? "detail" : "concept";
   const hoverNode = hovered ? nodeById[hovered] ?? null : null;
+
+  const routingPoint = (id: string) => {
+    const node = nodeById[id]!;
+    return { ...np(id), r: nodeRadius(node), labelWidth: nodeBox(node).hw * 2, labelTop: nodeRadius(node) + nodeLabelOffset(node) - 15, labelBottom: nodeBox(node).down, allowUnderLabel: true };
+  };
+  const routingObstacles = (source: string, target: string) => [
+    ...visibleNodes.filter((node) => node.id !== source && node.id !== target).map((node) => routingPoint(node.id)),
+  ];
+  const routedScene = useMapRoutes(visibleEdges.map((edge, index) => ({
+    id: String(index), a: routingPoint(edge.a), b: routingPoint(edge.b),
+    obstacles: routingObstacles(edge.a, edge.b),
+  })), dynamicScene.extent, dragging);
 
   const selectedNodeId = selection.kind === "node" ? selection.id : null;
   const neighbourIds = useMemo(() => {
@@ -296,23 +290,6 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     });
     return set;
   }, [selectedNodeId, allEdges]);
-
-  // capture children for on-canvas expansion (III.5 + observation layer XV.8)
-  const captureChildren = useMemo(() => {
-    if (!effLayers.observation) return [] as Array<{ id: string; px: number; py: number; x: number; y: number; source: string; parent: string }>;
-    const out: Array<{ id: string; px: number; py: number; x: number; y: number; source: string; parent: string }> = [];
-    expanded.forEach((pid) => {
-      const p = nodeById[pid];
-      if (!p || !p.captures || !nodeVisible(p)) return;
-      const at = np(pid);
-      const caps = p.captures.slice(0, 6);
-      caps.forEach((c, i) => {
-        const ang = -Math.PI / 2 + (i / Math.max(caps.length, 1)) * Math.PI * 2;
-        out.push({ id: `cap-${pid}-${i}`, px: at.x, py: at.y, x: at.x + Math.cos(ang) * 64, y: at.y + Math.sin(ang) * 64, source: c.source, parent: pid });
-      });
-    });
-    return out;
-  }, [expanded, effLayers.observation, nodeById, nodeVisible, np]);
 
   function onNodeActivate(id: string) {
     if (suppressClick.current) {
@@ -336,10 +313,11 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     setShowWeak(false);
     setEvidenceAll(false);
     setRadial(null);
-    setExpanded((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; }); // tap-again expands/collapses
+    toggleRelated(id);
   }
   function onModeChange(next: Mode) {
     setMode(next);
+    onViewModeChange?.(next);
     setFloor(next === "overview" ? 5 : next === "explore" ? 1 : 3);
     setSelection({ kind: "none" });
     setRadial(null);
@@ -349,18 +327,16 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     const k = Math.max(fit.k, 1.15);
     setRecentering(!reducedMotion);
     setZoom({ k, tx: VIEW_W / 2 - c.cx * k, ty: (VIEW_H - view.gutter) / 2 - c.cy * k });
-    window.setTimeout(() => setRecentering(false), 360);
   }
   function recenter() {
     setRecentering(!reducedMotion);
-    setZoom(home);
+    const grown = dynamicScene.extent.width > laid.extent.width || dynamicScene.extent.height > laid.extent.height;
+    setZoom(grown ? sceneFit : home);
     setRadial(null);
-    window.setTimeout(() => setRecentering(false), 360);
   }
   function saveHome() {
     setHome(zoom);
     setHomeSaved(true);
-    window.setTimeout(() => setHomeSaved(false), 1400);
   }
   function runAction(action: string, id: string) {
     const node = nodeById[id];
@@ -395,16 +371,14 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
       if (!best || score < best.score) best = { id: n.id, score };
     }
     if (!best) return;
-    const el = document.querySelector<SVGGElement>(`[data-node-id="${CSS.escape(best.id)}"]`);
+    const el = svgRef.current?.querySelector<SVGGElement>(`[data-node-id="${CSS.escape(best.id)}"]`);
     el?.focus();
   }
-  function onWheel(ev: React.WheelEvent) {
-    ev.preventDefault();
-    const factor = ev.deltaY < 0 ? 1.12 : 0.89;
-    const rect = ev.currentTarget.getBoundingClientRect();
-    const cx = ev.clientX, cy = ev.clientY;
+  function zoomAt(factor: number, cx: number, cy: number) {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect || !Number.isFinite(factor) || factor <= 0) return;
     setZoom((z) => {
-      const k = Math.min(2.6, Math.max(0.3, z.k * factor));
+      const k = Math.min(MAP_INTERACTION.maxZoom, Math.max(MAP_INTERACTION.minZoom, z.k * factor));
       const r = k / z.k;
       const mx = ((cx - rect.left) / rect.width) * VIEW_W;
       const my = ((cy - rect.top) / rect.height) * VIEW_H;
@@ -461,7 +435,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     startDrag(ev, { [id]: np(id) });
   }
   function startClusterDrag(ev: React.PointerEvent, c: Cluster) {
-    const start: Positions = { [`cluster:${c.id}`]: labelPos(c) };
+    const start: Positions = { [`cluster:${c.id}`]: groupLabelPos(c) };
     baseNodes.forEach((n) => { if (n.cluster === c.id && !n.bridge) start[n.id] = np(n.id); });
     startDrag(ev, start);
   }
@@ -474,24 +448,8 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
   function resetLayout() {
     setMoved({});
   }
-  function onPointerDown(ev: React.PointerEvent) {
-    if ((ev.target as Element).closest("[data-node], [data-drag]")) return;
-    drag.current = { x: ev.clientX, y: ev.clientY, tx: zoom.tx, ty: zoom.ty, moved: false };
-  }
-  function onPointerMove(ev: React.PointerEvent) {
-    if (!drag.current) return;
-    const rect = ev.currentTarget.getBoundingClientRect();
-    const dx = ((ev.clientX - drag.current.x) / rect.width) * VIEW_W;
-    const dy = ((ev.clientY - drag.current.y) / rect.height) * VIEW_H;
-    if (Math.abs(dx) + Math.abs(dy) > 2) drag.current.moved = true;
-    setZoom((z) => ({ ...z, tx: drag.current!.tx + dx, ty: drag.current!.ty + dy }));
-  }
-  function onPointerUp() {
-    const moved = drag.current?.moved;
-    drag.current = null;
-    if (!moved && !linkFrom && !shareMode) setSelection({ kind: "none" });
-  }
-  function startHold(id: string) { holdTimer.current = window.setTimeout(() => openRadial(id), 480); }
+  useEffect(() => () => { if (holdTimer.current !== null) window.clearTimeout(holdTimer.current); }, []);
+  function startHold(id: string) { clearHold(); holdTimer.current = window.setTimeout(() => openRadial(id), 480); }
   function clearHold() { if (holdTimer.current) window.clearTimeout(holdTimer.current); holdTimer.current = null; }
   const narration = useMemo(() => buildNarration(clusters, visibleNodes), [clusters, visibleNodes]);
   const emptyLayers = LAYERS.filter((l) => effLayers[l.id] && !hasData[l.id] && !l.defaultOn && EMPTY_LAYER_NOTE[l.id]);
@@ -504,7 +462,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
     <div className={styles.wrap}>
       {/* toolbar */}
       <div className={styles.toolbar}>
-        <Tabs
+        {modeNavigation ?? <Tabs
           items={[
             { id: "overview", label: "Overview" },
             { id: "detail", label: "Cluster detail" },
@@ -512,7 +470,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
           ]}
           value={mode}
           onChange={(id) => onModeChange(id as Mode)}
-        />
+        />}
         <div className={styles.toolbarRight}>
           {hidden.size > 0 && <button type="button" className={styles.hiddenChip} onClick={() => setHidden(new Set())}><Icon name="eye" size={14} /> {hidden.size} hidden · restore</button>}
           <button type="button" className={styles.toolBtn} data-active={lens || undefined} aria-pressed={lens} title="Lens" onClick={() => { setLens((v) => !v); }}><Icon name="flask-conical" size={15} /> <span className={styles.toolLabel}>Lens</span></button>
@@ -558,7 +516,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
           {view2 === "graph" && mode === "overview" && (
             <div className={styles.clusterCards}>
               {clusters.map((c) => {
-                const count = visibleNodes.filter((n) => n.cluster === c.id || n.bridge?.includes(c.id)).length;
+                const count = visibleNodes.filter((n) => graphColorConcerns(n, nodeById).includes(c.id)).length;
                 const loops = visibleNodes.filter((n) => n.ghost && (n.cluster === c.id || n.bridge?.includes(c.id))).length;
                 return (
                   <button key={c.id} type="button" className={styles.clusterCard} onClick={() => focusCluster(c)}>
@@ -597,77 +555,51 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
                 role="group"
                 aria-label="Map of your concerns and what they connect to"
                 aria-describedby="wb-graph-narration"
-                style={{ cursor: drag.current || dragging ? "grabbing" : shareMode ? "copy" : linkFrom ? "crosshair" : "grab" }}
-                onWheel={onWheel}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerLeave={() => (drag.current = null)}
+                style={{ cursor: pan.gesture.current || dragging ? "grabbing" : shareMode ? "copy" : linkFrom ? "crosshair" : "grab" }}
+                onPointerDown={pan.onPointerDown}
+                onPointerMove={pan.onPointerMove}
+                onPointerUp={pan.onPointerUp}
+                onPointerLeave={pan.onPointerLeave}
+                onPointerCancel={pan.onPointerCancel}
                 onKeyDown={(e) => { if (e.key === "Escape") { setRadial(null); setSelection({ kind: "none" }); } }}
               >
-                <defs>
-                  <radialGradient id="wb-glow" cx="36%" cy="30%" r="92%">
-                    <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.30" />
-                    <stop offset="55%" stopColor="var(--accent-soft)" stopOpacity="0.16" />
-                    <stop offset="100%" stopColor="var(--bg-surface)" stopOpacity="0" />
-                  </radialGradient>
-                  <pattern id="wb-dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="var(--fg1)" opacity="0.05" /></pattern>
-                  {[...clusters.map((c, i) => ({ id: `sphere-c${i}`, hue: c.hue, dark: c.dark })), { id: "sphere-neutral", ...NEUTRAL_HUE }, { id: "sphere-theory", ...THEORY_HUE }].map((g) => (
-                    <radialGradient key={g.id} id={g.id} cx="34%" cy="28%" r="78%">
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
-                      <stop offset="34%" stopColor={g.hue} stopOpacity="0.96" />
-                      <stop offset="100%" stopColor={g.dark} stopOpacity="1" />
-                    </radialGradient>
-                  ))}
-                  <filter id="wb-soft" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#0f172a" floodOpacity="0.18" /></filter>
-                  <filter id="wb-halo" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14" /></filter>
-                </defs>
+                <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill="#fcfdff" />
 
-                <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill="url(#wb-glow)" />
-                <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill="url(#wb-dots)" />
-
-                <g transform={`translate(${zoom.tx},${zoom.ty}) scale(${zoom.k})`} style={{ transition: recentering ? "transform 340ms var(--wb-ease)" : "none" }}>
+                <g data-graph-camera="" data-map-camera="" transform={`translate(${zoom.tx},${zoom.ty}) scale(${zoom.k})`} style={{ transition: recentering ? "transform 340ms var(--wb-ease)" : "none" }}>
                   {/* concern halos (thread layer) */}
-                  {effLayers.thread && clusters.map((c) => {
-                    const count = visibleNodes.filter((n) => n.cluster === c.id || n.bridge?.includes(c.id)).length;
-                    const { x: lx, y: ly } = labelPos(c);
+                  {effLayers.thread && <g data-map-group-layer="" style={{ isolation: 'isolate' }} pointerEvents="none">
+                    {clusters.map((c) => <MapGroupLight key={c.id} id={c.id} {...graphGroupLight(c, visibleNodes, nodeById, np, groupLabelPos(c), lod === 'cluster')} color={c.hue} opacity={c.status === 'resolved' ? 0.5 : 1} />)}
+                  </g>}
+                  {effLayers.thread && lod !== 'cluster' && clusters.map((c) => {
+                    const count = visibleNodes.filter((n) => graphColorConcerns(n, nodeById).includes(c.id)).length;
+                    const { x: lx, y: ly } = groupLabelPos(c);
                     return (
                       <g key={c.id} opacity={c.status === "resolved" ? 0.5 : 1} aria-hidden="true">
-                        <ellipse cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill={c.hue} opacity={0.1} filter="url(#wb-halo)" />
-                        <ellipse cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill="none" stroke={c.hue} strokeWidth={1} strokeDasharray="2 7" opacity={0.4} />
-                        {lod !== "cluster" && (
-                          <g data-drag data-cluster-drag={c.id} className={styles.dragHandle} onPointerDown={(ev) => startClusterDrag(ev, c)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
+                          <g data-group-heading={c.id} data-drag data-cluster-drag={c.id} className={styles.dragHandle} onPointerDown={(ev) => startClusterDrag(ev, c)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
                             <text x={lx} y={ly} textAnchor="middle" className={styles.clusterLabel} fill={c.dark}>{canvasLabel(c.label, 28)}</text>
                             <text x={lx} y={ly + 17} textAnchor="middle" className={styles.clusterCount} fill={c.dark}>{count} shown</text>
                           </g>
-                        )}
                       </g>
                     );
                   })}
 
                   {lod === "cluster" ? (
                     clusters.map((c) => {
-                      const count = visibleNodes.filter((n) => n.cluster === c.id || n.bridge?.includes(c.id)).length;
+                      const count = visibleNodes.filter((n) => graphColorConcerns(n, nodeById).includes(c.id)).length;
                       return (
-                        <g key={c.id} data-node className={styles.node} role="button" tabIndex={0} aria-label={`${c.label}, concern, ${plural(count, "item")}. Open cluster detail`} onClick={() => focusCluster(c)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); focusCluster(c); } }}>
-                          <circle className={styles.focusRing} cx={c.cx} cy={c.cy} r={54} />
-                          <circle cx={c.cx} cy={c.cy} r={46} fill={gradOf(c.id)} filter="url(#wb-soft)" />
+                        <MapObjectFrame key={c.id} data-node objectId={`concern:${c.id}`} position={{ x: c.cx, y: c.cy }} radius={46} state={{ hot: hovered === `concern:${c.id}` }} accessibleLabel={`${c.label}, concern, ${plural(count, "item")}. Open cluster detail`} onMouseEnter={() => setHovered(`concern:${c.id}`)} onMouseLeave={() => setHovered(null)} onFocus={() => setHovered(`concern:${c.id}`)} onBlur={() => setHovered(null)} onClick={() => focusCluster(c)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); focusCluster(c); } }}>
+                          <g data-pebble-object="">
+                            <MapFocusRing position={{ x: c.cx, y: c.cy }} radius={54} />
+                            <RecordCircle x={c.cx} y={c.cy} r={46} color={c.hue} />
+                            <MapAccents x={c.cx} y={c.cy} radius={46} color={c.hue} profile={{ name: "concern", kind: "none", period: 216000, dash: "20 80" }} />
                           <text x={c.cx} y={c.cy - 2} textAnchor="middle" className={styles.blobLabel}>{canvasLabel(c.label, 12)}</text>
                           <text x={c.cx} y={c.cy + 15} textAnchor="middle" className={styles.blobCount}>{count}</text>
-                        </g>
+                          </g>
+                        </MapObjectFrame>
                       );
                     })
                   ) : (
                     <>
-                      {/* capture children (observation expansion, III.5) */}
-                      {captureChildren.map((c) => (
-                        <g key={c.id} style={{ pointerEvents: "none" }} aria-hidden="true">
-                          <line x1={c.px} y1={c.py} x2={c.x} y2={c.y} stroke="#90A4AE" strokeWidth={1} strokeOpacity={0.45} strokeDasharray="2 3" />
-                          <circle cx={c.x} cy={c.y} r={8} fill="var(--bg-surface)" stroke="#90A4AE" strokeWidth={1.2} />
-                          <g transform={`translate(${c.x - 5}, ${c.y - 5})`}><foreignObject width="10" height="10"><span className={styles.glyph} style={{ color: "var(--fg2)" }}><Icon name="file-text" size={9} /></span></foreignObject></g>
-                        </g>
-                      ))}
-
                       {/* edges */}
                       {visibleEdges.map((e, i) => {
                         const strong = e.s >= 5;
@@ -675,41 +607,65 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
                         const faded = (selectedNodeId && e.a !== selectedNodeId && e.b !== selectedNodeId) || (lens && e.layer !== "investigation" && !theoryEnd);
                         const isDisp = disputed.has(`${e.a}|${e.b}`);
                         const dash = e.f === "user" ? "1 7" : e.f === "conflict" || isDisp ? "8 6" : e.f === "hypothesis" ? "4 5" : e.f === "relevance" ? "2 6" : e.f === "cand" || e.s <= 3 ? "6 6" : undefined;
-                        const stroke = e.lens === "against" ? "#94a3b8" : e.lens === "for" ? "#0ea5a4" : e.f === "user" ? "#8b5cf6" : e.f === "conflict" ? "#f59e0b" : e.f === "hypothesis" ? "#8b5cf6" : "#90A4AE";
-                        const pa = np(e.a), pb = np(e.b);
-                        const d = edgePathD(pa, pb, e.bend ?? defaultBend(pa, pb));
-                        const active = !faded && (strong || hovered === e.a || hovered === e.b || e.lens === "for");
+                        const members = (id: string) => nodeById[id] ? graphColorConcerns(nodeById[id], nodeById) : [];
+                        const sourceCases = members(e.a), targetCases = members(e.b);
+                        const sharedCase = sourceCases.find((id) => targetCases.includes(id));
+                        // Relationship-specific colors retain their existing meaning; ordinary
+                        // connections carry their concern's color and blend across concerns.
+                        const semanticStroke = e.lens === "against" ? "#94a3b8" : e.lens === "for" ? "#0ea5a4" : e.f === "user" ? "#8b5cf6" : e.f === "conflict" ? "#f59e0b" : e.f === "hypothesis" ? "#8b5cf6" : undefined;
+                        const stroke = semanticStroke ?? hueOf(sharedCase ?? sourceCases[0]);
+                        const endStroke = semanticStroke ?? hueOf(sharedCase ?? targetCases[0]);
                         const touch = (id: string | null) => id && (e.a === id || e.b === id);
-                        const flow = !faded && !reducedMotion && (touch(hovered) || touch(selectedNodeId));
+                        const selectedEdge = selection.kind === "edge" && selection.edge === e;
+                        const active = !faded && Boolean(touch(hovered) || touch(selectedNodeId) || selectedEdge);
+                        const flow = active && !reducedMotion;
                         return (
-                          <g key={`${e.id ?? `${e.a}|${e.b}`}|${i}`} opacity={faded ? 0.16 : 1}>
-                            {active && <path d={d} fill="none" stroke={stroke} strokeWidth={strong ? 8 : 5} strokeOpacity={0.12} strokeLinecap="round" />}
-                            <path className={styles.edge} d={d} fill="none" stroke={stroke} strokeWidth={strong ? 2.8 : e.s >= 4 ? 1.9 : 1.2} strokeOpacity={isDisp ? 0.3 : strong ? 0.72 : 0.5} strokeDasharray={dash} strokeLinecap="round" onClick={(ev) => { ev.stopPropagation(); setSelection({ kind: "edge", edge: e }); setExplain(false); }} />
-                            <path d={d} fill="none" stroke="transparent" strokeWidth={12} style={{ cursor: "pointer" }} onClick={(ev) => { ev.stopPropagation(); setSelection({ kind: "edge", edge: e }); setExplain(false); }} />
-                            {flow && <path className={styles.flow} d={d} fill="none" stroke={stroke} strokeLinecap="round" />}
-                          </g>
+                          <SilkConnection
+                            key={`${e.id ?? `${e.a}|${e.b}`}|${i}|balanced-routing-v3`}
+                            id={`${e.a}|${e.b}`} source={e.a} target={e.b}
+                            sourceSegment={sharedCase ?? sourceCases[0]} targetSegment={sharedCase ?? targetCases[0]} relationship={e.f}
+                            preferredRoute={routedScene[i]?.route ? { d: routedScene[i]!.route!.d, a: routedScene[i]!.a, b: routedScene[i]!.b } : undefined}
+                            peerRoutes={routedScene.flatMap((entry, index) => index !== i && entry.route ? [entry.route.points] : [])}
+                            a={routingPoint(e.a)} b={routingPoint(e.b)}
+                            obstacles={routingObstacles(e.a, e.b)}
+                            viewport={dynamicScene.extent}
+                            revision={`${VIEW_W}x${VIEW_H}|${visibleNodes.map((node) => node.id).join(",")}`}
+                            calm={reducedMotion} interacting={dragging} hot={Boolean(touch(hovered))}
+                            stroke={stroke} endStroke={endStroke} width={strong ? 1.7 : e.s >= 4 ? 1.35 : 1.1}
+                            opacity={isDisp ? 0.3 : strong ? 0.72 : 0.5}
+                            faded={Boolean(faded)} dash={dash} active={active} flow={Boolean(flow)}
+                            onSelect={() => { setSelection({ kind: "edge", edge: e }); setExplain(false); }}
+                          />
                         );
                       })}
 
                       {/* nodes */}
                       {visibleNodes.map((n) => {
-                        const cid = (n.bridge && n.bridge[0]) || n.cluster;
                         const theory = n.lensRole === "theory";
-                        const hue = theory ? THEORY_HUE.hue : n.type === "external" ? NEUTRAL_HUE.hue : hueOf(cid);
+                        const hue = colorOfNode(n);
                         return (
-                          <NodeGlyph
+                          <GraphObject
                             key={n.id}
                             n={{ ...n, ...np(n.id) }}
                             hue={hue}
-                            fill={theory ? "url(#sphere-theory)" : gradOf(cid)}
-                            wedgeFill={gradOf}
-                            childCount={deferredByAnchor[n.id] ?? 0}
-                            lod={lod}
+                            bridgeColors={n.bridge?.map(hueOf)}
+                            bridgeBearings={n.bridge?.map((id, index) => {
+                              const concern = clusters.find((cluster) => cluster.id === id);
+                              const position = np(n.id);
+                              return { index, angle: Math.atan2((concern?.cy ?? position.y) - position.y, (concern?.cx ?? position.x) - position.x) };
+                            })}
+                            orbitItems={visibleGraphSatellites(satellites[n.id], {
+                              expanded: expanded.has(n.id), showSources: effLayers.observation,
+                              conceptVisible: (id) => { const child = nodeById[id]; return Boolean(child && !hidden.has(id) && effLayers[child.layer] && child.week <= scrub); },
+                            })}
+                            childCount={satellites[n.id]?.related.length ?? 0}
                             dim={selectedNodeId && selectedNodeId !== n.id && !neighbourIds.has(n.id) ? 0.3 : lens && n.layer !== "investigation" && !neighbourIds.has(n.id) && !theory ? 0.55 : 1}
                             hot={hovered === n.id || selectedNodeId === n.id}
+                            grabbed={Boolean(dragging && nodeDrag.current?.start[n.id])}
                             selected={selectedNodeId === n.id}
                             selectedForShare={shareSel.has(n.id)}
                             expandedNode={expanded.has(n.id)}
+                            onTogglePin={() => togglePin(n.id, Boolean(n.pinned))}
                             onSelect={() => onNodeActivate(n.id)}
                             onContext={() => openRadial(n.id)}
                             onHoverIn={() => setHovered(n.id)}
@@ -731,22 +687,22 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
 
               {radial && nodeById[radial.id] && <RadialMenu radial={radial} actions={actionsFor(nodeById[radial.id]!)} onAction={runAction} onClose={() => setRadial(null)} />}
 
-              {hoverNode && !radial && !drag.current && !dragging && lod !== "cluster" && (
-                <div className={styles.tooltip} style={{ left: `${((np(hoverNode.id).x * zoom.k + zoom.tx) / VIEW_W) * 100}%`, top: `${((np(hoverNode.id).y * zoom.k + zoom.ty) / VIEW_H) * 100}%` }} role="presentation">
+              {hoverNode && !radial && !pan.gesture.current && !dragging && lod !== "cluster" && (
+                <GraphHoverTooltip svg={svgRef} objectId={hoverNode.id} revision={`${zoom.k}|${zoom.tx}|${zoom.ty}|${visibleNodes.map((node) => node.id).join(',')}`}>
                   <span className={styles.ttTitle}>{hoverNode.label}</span>
                   <span className={styles.ttSub}>{typeLabelOf(hoverNode)}{hoverNode.ghost ? ` · ${hoverNode.statusNote ?? "awaiting result"}` : ` · ${plural(hoverNode.ev, "source")} · ${hoverNode.last}`}</span>
-                </div>
+                </GraphHoverTooltip>
               )}
 
-              <div className={styles.zoomControls}>
-                <button type="button" className={styles.zoomBtn} aria-label="Zoom in" title="Zoom in" onClick={() => setZoom((z) => ({ ...z, k: Math.min(2.6, z.k * 1.2) }))}><Icon name="plus" size={15} /></button>
-                <button type="button" className={styles.zoomBtn} aria-label="Zoom out" title="Zoom out" onClick={() => setZoom((z) => ({ ...z, k: Math.max(0.3, z.k * 0.83) }))}><Icon name="chevron-down" size={15} /></button>
+              <div className={styles.zoomControls} data-map-chrome="">
+                <button type="button" className={styles.zoomBtn} aria-label="Zoom in" title="Zoom in" onClick={() => setZoom((z) => ({ ...z, k: Math.min(MAP_INTERACTION.maxZoom, z.k * 1.2) }))}><Icon name="plus" size={15} /></button>
+                <button type="button" className={styles.zoomBtn} aria-label="Zoom out" title="Zoom out" onClick={() => setZoom((z) => ({ ...z, k: Math.max(MAP_INTERACTION.minZoom, z.k * 0.83) }))}><Icon name="chevron-down" size={15} /></button>
                 <button type="button" className={styles.zoomBtn} aria-label="Recenter map" title="Recenter to default view" onClick={recenter}><Icon name="home" size={15} /></button>
                 <button type="button" className={styles.zoomBtn} data-saved={homeSaved || undefined} aria-label="Set current view as default" title="Set current view as default" onClick={saveHome}><Icon name={homeSaved ? "check" : "star"} size={15} /></button>
                 {Object.keys(moved).length > 0 && <button type="button" className={styles.zoomBtn} aria-label="Reset layout" title="Reset layout — put moved items back" onClick={resetLayout}><Icon name="rotate-ccw" size={15} /></button>}
               </div>
               <div className={styles.lodHint}>{lod === "cluster" ? "Concern overview" : lod === "detail" ? "Detail — evidence" : "Concepts"}{lens ? " · investigation lens" : ""}</div>
-              <div className={styles.scrubDock}>
+              <div className={styles.scrubDock} data-map-chrome="">
                 <Icon name="clock" size={13} />
                 {timelineSteps.length <= 1 ? (
                   <span className={styles.scrubSingle}>Replay · {model.timeline.valueTexts[0] ?? "Everything so far"}</span>
@@ -787,9 +743,10 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
               showWeak={showWeak}
               evidenceAll={evidenceAll}
               expandedNode={expanded.has(selection.id)}
-              expandable={Boolean(nodeById[selection.id]?.captures?.length) || (deferredByAnchor[selection.id] ?? 0) > 0}
+              expandable={Boolean(satellites[selection.id]?.related.length)}
               actions={actionsFor(nodeById[selection.id]!)}
               hueOf={hueOf}
+              onTogglePin={() => togglePin(selection.id, Boolean(nodeById[selection.id]?.pinned))}
               clusterLabel={clusterLabel}
               concernHref={hrefOf(nodeById[selection.id]!)}
               onAction={runAction}
@@ -797,7 +754,7 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
               onSelectEdge={(edge) => setSelection({ kind: "edge", edge })}
               onShowWeak={() => { setShowWeak(true); setFloor(1); }}
               onToggleEvidence={() => setEvidenceAll((v) => !v)}
-              onToggleExpand={() => setExpanded((prev) => { const n = new Set(prev); if (n.has(selection.id)) n.delete(selection.id); else n.add(selection.id); return n; })}
+              onToggleExpand={() => toggleRelated(selection.id)}
               onOpenEvidence={openEvidence}
             />
           ) : selection.kind === "edge" ? (
@@ -809,376 +766,6 @@ export function GraphLive({ model: input, notice, patientId }: { model: GraphMod
       </div>
 
       <EvidenceDrawer open={drawer !== null} onClose={() => setDrawer(null)} title={drawer?.title} claim={drawer?.claim} sources={drawer?.sources ?? []} />
-    </div>
-  );
-}
-
-/* ---------- SVG node ---------- */
-function NodeGlyph({ n, hue, fill, wedgeFill, lod, dim, hot, selected, selectedForShare, expandedNode, childCount, onSelect, onContext, onHoverIn, onHoverOut, onHoldStart, onHoldEnd, onArrow, onNudge, onDragStart, onDragMove, onDragEnd }: {
-  n: GraphNode; hue: string; fill: string; wedgeFill: (id: ClusterId) => string; lod: "cluster" | "concept" | "detail"; dim: number; hot: boolean; selected: boolean; selectedForShare: boolean; expandedNode: boolean; childCount: number;
-  onSelect: () => void; onContext: () => void; onHoverIn: () => void; onHoverOut: () => void; onHoldStart: () => void; onHoldEnd: () => void; onArrow: (key: string) => void;
-  onNudge: (key: string, big: boolean) => void; onDragStart: (ev: React.PointerEvent) => void; onDragMove: (ev: React.PointerEvent) => void; onDragEnd: (ev: React.PointerEvent) => void;
-}) {
-  const theory = n.lensRole === "theory";
-  const r = nodeRadius(n);
-  const expandable = childCount > 0 && !expandedNode;
-  const type = n.typeLabel ?? TYPE_LABEL[n.type];
-  const label = n.ghost
-    ? `${n.label}, open loop${n.statusNote ? `, ${n.statusNote}` : ""}`
-    : `${n.label}, ${type}, ${plural(n.ev, "source")}, first noted ${n.first}${n.bridge && !theory ? `, shared by ${n.bridge.length} concerns` : ""}${expandable ? `, expandable — ${childCount} related items hidden` : ""}`;
-  return (
-    <g
-      data-node
-      data-node-id={n.id}
-      tabIndex={0}
-      role="button"
-      aria-label={label}
-      aria-pressed={selected}
-      className={styles.node}
-      opacity={dim}
-      onClick={(e) => { e.stopPropagation(); onSelect(); }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); }
-        else if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) { e.preventDefault(); onContext(); }
-        else if (e.key.startsWith("Arrow")) { e.preventDefault(); if (e.altKey) onArrow(e.key); else onNudge(e.key, e.shiftKey); }
-      }}
-      onContextMenu={(e) => { e.preventDefault(); onContext(); }}
-      onMouseEnter={onHoverIn}
-      onMouseLeave={onHoverOut}
-      onFocus={onHoverIn}
-      onBlur={onHoverOut}
-      onPointerDown={(e) => { onHoldStart(); onDragStart(e); }}
-      onPointerMove={onDragMove}
-      onPointerUp={(e) => { onHoldEnd(); onDragEnd(e); }}
-      onPointerCancel={(e) => { onHoldEnd(); onDragEnd(e); }}
-      onPointerLeave={onHoldEnd}
-    >
-      <circle className={styles.focusRing} cx={n.x} cy={n.y} r={r + 15} />
-      <circle cx={n.x} cy={n.y} r={r + 6} fill="none" stroke={hue} strokeOpacity={0.22} strokeWidth={Math.max(1.2, n.ev / 3.5)} />
-      {(hot || selectedForShare) && <circle cx={n.x} cy={n.y} r={r + 12} fill="none" stroke={selectedForShare ? "#0ea5a4" : hue} strokeWidth={selectedForShare ? 2.4 : 1.4} opacity={0.6} strokeDasharray={selectedForShare ? "4 3" : undefined} />}
-      {expandedNode && <circle cx={n.x} cy={n.y} r={r + 3} fill="none" stroke={hue} strokeWidth={1} opacity={0.4} />}
-      {selected && <circle key="ripple" className={styles.ripple} cx={n.x} cy={n.y} r={r} fill="none" stroke={hue} strokeWidth={2} />}
-
-      {n.aggregate ? (
-        <circle cx={n.x} cy={n.y} r={r} fill="var(--bg-subtle)" stroke="#94a3b8" strokeWidth={1.6} strokeDasharray="2 3" opacity={0.85} />
-      ) : n.ghost ? (
-        <circle cx={n.x} cy={n.y} r={r} fill="var(--bg-surface)" stroke={hue} strokeWidth={1.8} strokeDasharray="3 3" filter="url(#wb-soft)" />
-      ) : theory ? (
-        <rect x={n.x - r} y={n.y - r} width={r * 2} height={r * 2} rx={6} transform={`rotate(45 ${n.x} ${n.y})`} fill={fill} filter="url(#wb-soft)" opacity={0.9} />
-      ) : n.bridge && n.bridge.length >= 2 ? (
-        // bridge node: one pie wedge per concern, so it belongs to ALL of them
-        <g filter="url(#wb-soft)" opacity={0.45 + n.act * 0.55}>
-          {n.bridge.length === 2 ? (
-            <>
-              <circle cx={n.x} cy={n.y} r={r} fill={wedgeFill(n.bridge[0]!)} />
-              <path d={`M${n.x},${n.y - r} A${r},${r} 0 0 1 ${n.x},${n.y + r} Z`} fill={wedgeFill(n.bridge[1]!)} />
-            </>
-          ) : (
-            n.bridge.map((cl, i) => (
-              <path key={cl} d={wedgePath(n.x, n.y, r, i, n.bridge!.length)} fill={wedgeFill(cl)} stroke="var(--bg-surface)" strokeWidth={1.4} />
-            ))
-          )}
-          {n.bridge.length === 2 && <line x1={n.x} y1={n.y - r} x2={n.x} y2={n.y + r} stroke="var(--bg-surface)" strokeWidth={1.5} opacity={0.85} />}
-        </g>
-      ) : (
-        <circle cx={n.x} cy={n.y} r={r} fill={fill} filter="url(#wb-soft)" opacity={0.45 + n.act * 0.55} />
-      )}
-      {!n.ghost && !n.aggregate && <ellipse cx={n.x - r * 0.32} cy={n.y - r * 0.4} rx={r * 0.42} ry={r * 0.28} fill="#fff" opacity={0.32} />}
-
-      <g transform={`translate(${n.x - 7}, ${n.y - 7})`} style={{ pointerEvents: "none" }}>
-        <foreignObject width="14" height="14"><span className={styles.glyph} style={{ color: n.ghost || n.aggregate ? hue : "#fff" }}><Icon name={TYPE_ICON[n.type]} size={13} /></span></foreignObject>
-      </g>
-
-      {n.pinned && <g transform={`translate(${n.x + r - 3}, ${n.y - r - 1})`} style={{ pointerEvents: "none" }}><circle r="7.5" fill="var(--bg-surface)" stroke={hue} strokeWidth="1" /><foreignObject x="-6" y="-6" width="12" height="12"><span className={styles.glyph} style={{ color: hue }}><Icon name="star" size={10} /></span></foreignObject></g>}
-      {n.ghost && <g transform={`translate(${n.x - r - 1}, ${n.y - r - 1})`} style={{ pointerEvents: "none" }}><circle r="7.5" fill="var(--warning-soft)" stroke={hue} strokeWidth="1" /><foreignObject x="-6" y="-6" width="12" height="12"><span className={styles.glyph} style={{ color: "#b45309" }}><Icon name="clock" size={10} /></span></foreignObject></g>}
-      {expandable && (
-        <g className={styles.orbit} style={{ pointerEvents: "none" }}>
-          <circle cx={n.x} cy={n.y} r={r + 9} fill="none" stroke={hue} strokeWidth="1" strokeDasharray="1.5 5" opacity="0.45" />
-          {Array.from({ length: Math.min(childCount, 6) }).map((_, i) => {
-            const total = Math.min(childCount, 6);
-            const a = -Math.PI / 2 + (i / total) * Math.PI * 2;
-            const rr = r + 9;
-            return <circle key={i} cx={n.x + Math.cos(a) * rr} cy={n.y + Math.sin(a) * rr} r="2.6" fill={hue} opacity="0.7" />;
-          })}
-        </g>
-      )}
-
-      <text className={styles.nodeLabel} x={n.x} y={n.y + r + 16} textAnchor="middle">{canvasLabel(n.label)}</text>
-      {n.ghost && <text className={styles.ghostLabel} x={n.x} y={n.y + r + 30} textAnchor="middle" fill={hue}>open loop</text>}
-      {n.aggregate && <text className={styles.ghostLabel} x={n.x} y={n.y + r + 30} textAnchor="middle" fill="#64748b">others also track</text>}
-      {lod === "detail" && !n.ghost && !n.aggregate && <text className={styles.nodeMeta} x={n.x} y={n.y + r + 30} textAnchor="middle">{plural(n.ev, "source")} · {n.last}</text>}
-    </g>
-  );
-}
-
-function wedgePath(cx: number, cy: number, r: number, i: number, total: number) {
-  const a0 = -Math.PI / 2 + (i / total) * Math.PI * 2;
-  const a1 = -Math.PI / 2 + ((i + 1) / total) * Math.PI * 2;
-  const p0x = cx + r * Math.cos(a0), p0y = cy + r * Math.sin(a0);
-  const p1x = cx + r * Math.cos(a1), p1y = cy + r * Math.sin(a1);
-  const large = a1 - a0 > Math.PI ? 1 : 0;
-  return `M${cx},${cy} L${p0x.toFixed(1)},${p0y.toFixed(1)} A${r},${r} 0 ${large} 1 ${p1x.toFixed(1)},${p1y.toFixed(1)} Z`;
-}
-
-/* ---------- radial menu ---------- */
-function RadialMenu({ radial, actions, onAction, onClose }: { radial: { id: string; xPct: number; yPct: number }; actions: NodeAction[]; onAction: (a: string, id: string) => void; onClose: () => void }) {
-  const radius = 82;
-  const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => first.current?.focus(), []);
-  return (
-    <div className={styles.radialWrap} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } }}>
-      <div className={styles.radial} role="menu" aria-label="Quick actions" style={{ left: `${radial.xPct}%`, top: `${radial.yPct}%` }}>
-        <span className={styles.radialCenter}><Icon name="git-fork" size={15} /></span>
-        {actions.map((a, idx) => {
-          const ang = -Math.PI / 2 + (idx / actions.length) * Math.PI * 2;
-          return (
-            <button key={a.id} ref={idx === 0 ? first : undefined} type="button" role="menuitem" className={styles.radialBtn} style={{ transform: `translate(${Math.cos(ang) * radius}px, ${Math.sin(ang) * radius}px)` }} title={a.label} aria-label={a.label} onClick={(e) => { e.stopPropagation(); onAction(a.id, radial.id); }}>
-              <Icon name={a.icon} size={16} />
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- banners ---------- */
-function Banner({ icon, tone, text, actionLabel, onAction, onCancel }: { icon: string; tone: "violet" | "teal"; text: string; actionLabel?: string; onAction?: () => void; onCancel?: () => void }) {
-  return (
-    <div className={styles.banner} data-tone={tone}>
-      <Icon name={icon} size={15} />
-      <span className={styles.bannerText}>{text}</span>
-      {actionLabel && <Button variant="primary" size="sm" onClick={onAction}>{actionLabel}</Button>}
-      {onCancel && <button type="button" className={styles.bannerCancel} onClick={onCancel} aria-label="Dismiss"><Icon name="x" size={15} /></button>}
-    </div>
-  );
-}
-function ConsentBanner({ onAccept, onCancel }: { onAccept: () => void; onCancel: () => void }) {
-  return (
-    <div className={styles.banner} data-tone="violet">
-      <Icon name="shield-check" size={15} />
-      <span className={styles.bannerText}>Comparison is <strong>opt-in and aggregate-only</strong> — “people with a similar pattern often also tracked…”. Never identifies anyone, never shared with your clinic or employer.</span>
-      <Button variant="primary" size="sm" onClick={onAccept}>Turn on</Button>
-      <button type="button" className={styles.bannerCancel} onClick={onCancel} aria-label="Cancel"><Icon name="x" size={15} /></button>
-    </div>
-  );
-}
-
-/* ---------- inspector panels ---------- */
-function OverviewPanel({ conceptCount, openLoopCount, clusterCount, bridge, bridgeConcerns, bridgeCount }: { conceptCount: number; openLoopCount: number; clusterCount: number; bridge?: GraphNode; bridgeConcerns: string[]; bridgeCount: number }) {
-  return (
-    <>
-      <div className={styles.inspHead}><span className={styles.inspBadge}><Icon name="git-fork" size={16} /></span><div><p className={styles.inspTitleSerif}>Your whole-person map</p><p className={styles.inspSub}>Scoped to you · traceable to its sources</p></div></div>
-      <div className={styles.statRow}>
-        <div className={styles.stat}><span className={styles.statValue}>{clusterCount}</span><span className={styles.statLabel}>{clusterCount === 1 ? "concern" : "concerns"}</span></div>
-        <div className={styles.stat}><span className={styles.statValue}>{conceptCount}</span><span className={styles.statLabel}>{conceptCount === 1 ? "concept" : "concepts"}</span></div>
-        <div className={styles.stat}><span className={styles.statValue}>{openLoopCount}</span><span className={styles.statLabel}>{openLoopCount === 1 ? "open loop" : "open loops"}</span></div>
-      </div>
-      <p className={styles.inspBody}>
-        Tap a <strong>node</strong> to expand its sources and act on it. Tap a <strong>line</strong> for why two items connect. Right-click or long-press for quick actions.
-        {bridge && bridgeConcerns.length >= 2 && <> <span className={styles.bridgeName}>{bridge.label}</span> bridges {bridgeConcerns.join(" and ")}{bridgeCount > 1 ? `, one of ${bridgeCount} shared items` : ""}.</>}
-      </p>
-      <p className={styles.tipLine}><Icon name="search" size={13} /> Scroll to zoom · drag the background to pan · drag a node or concern title to move it (arrow keys nudge a focused node) · Tab or Alt+arrow keys move between nodes · use Layers, Lens and Replay to explore.</p>
-      <div className={styles.safety}><Icon name="shield-check" size={14} /><span>This map shows how items appear in your records — not medical severity. Links are not causes, and never a diagnosis.</span></div>
-    </>
-  );
-}
-
-function ExplainPanel({ narration, onClose }: { narration: string; onClose: () => void }) {
-  return (
-    <>
-      <div className={styles.inspHead}><span className={styles.inspBadge}><Icon name="sparkles" size={16} /></span><div><p className={styles.inspTitle}>Explain my graph</p><p className={styles.inspSub}>Plain-language, from your records</p></div></div>
-      <p className={styles.inspBody}>{narration}</p>
-      <div className={styles.safety}><Icon name="info" size={14} /><span>This narration describes what&apos;s in your records in plain language. It doesn&apos;t diagnose or claim cause.</span></div>
-      <Button variant="ghost" icon="x" onClick={onClose}>Close narration</Button>
-    </>
-  );
-}
-
-function SourceList({ sources, limit, onOpen }: { sources: EvidenceSource[]; limit?: number; onOpen: () => void }) {
-  const shown = limit ? sources.slice(0, limit) : sources;
-  return (
-    <ul className={styles.capList}>
-      {shown.map((s) => (
-        <li key={s.id} className={styles.capRow}>
-          <SourceMarker displayLabel={s.displayLabel} component={s.component} kind={s.kind} date={s.date} onOpen={onOpen} />
-          {s.excerpt && <span className={styles.capText}>{s.excerpt}</span>}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function NodePanel({ node, edges, nodeById, floor, showWeak, evidenceAll, expandedNode, expandable, actions, hueOf, clusterLabel, concernHref, onAction, onSelectNeighbour, onSelectEdge, onShowWeak, onToggleEvidence, onToggleExpand, onOpenEvidence }: {
-  node: GraphNode; edges: GraphEdge[]; nodeById: Record<string, GraphNode>; floor: number; showWeak: boolean; evidenceAll: boolean; expandedNode: boolean; expandable: boolean; actions: NodeAction[];
-  hueOf: (id: ClusterId | undefined) => string; clusterLabel: (id: ClusterId) => string; concernHref?: string;
-  onAction: (a: string, id: string) => void; onSelectNeighbour: (id: string) => void; onSelectEdge: (e: GraphEdge) => void; onShowWeak: () => void; onToggleEvidence: () => void; onToggleExpand: () => void;
-  onOpenEvidence: (title: string, claim: ReactNode, sources: EvidenceSource[]) => void;
-}) {
-  const theory = node.lensRole === "theory";
-  const hue = theory ? THEORY_HUE.hue : node.type === "external" ? NEUTRAL_HUE.hue : hueOf((node.bridge && node.bridge[0]) || node.cluster);
-  const membership = node.bridge ? node.bridge.map(clusterLabel) : node.cluster ? [clusterLabel(node.cluster)] : ["Also in your records"];
-  const related = edges
-    .map((e) => (e.a === node.id ? { id: e.b, e } : e.b === node.id ? { id: e.a, e } : null))
-    .filter((x): x is { id: string; e: GraphEdge } => x !== null && Boolean(nodeById[x.id]))
-    .sort((p, q) => q.e.s - p.e.s);
-  const shown = related.filter((r) => r.e.s >= floor || r.e.f === "user" || r.e.f === "hypothesis" || r.e.f === "relevance").slice(0, 12);
-  const hiddenCount = Math.max(Math.max(node.relatedTotal, related.length) - shown.length, 0);
-  const evidence = evidenceOf(node);
-  const openAll = () => onOpenEvidence(`Sources for ${node.label}`, `Where “${node.label}” appears in your records.`, evidence);
-
-  return (
-    <>
-      <div className={styles.inspHead}><span className={styles.inspBadge} style={{ background: `${hue}1f`, color: hue }}><Icon name={TYPE_ICON[node.type]} size={16} /></span><div><p className={styles.inspTitle}>{node.label}</p><p className={styles.inspSub}>{typeLabelOf(node)}</p></div></div>
-      <div className={styles.chipRow}>
-        {membership.map((m) => <Chip key={m} tone="neutral" size="sm" dot>{m}</Chip>)}
-        {node.bridge && !theory && <Chip tone="violet" size="sm" icon="git-fork">Bridge</Chip>}
-        {node.pinned && <Chip tone="amber" size="sm" icon="star">Pinned</Chip>}
-        {node.aggregate && <Chip tone="neutral" size="sm" icon="users">Aggregate</Chip>}
-      </div>
-
-      {node.aggregate ? (
-        <div className={styles.conflictNote}><Icon name="users" size={14} /><span>An opt-in, aggregate pattern from people with similar records — not from your data, and not a recommendation.</span></div>
-      ) : node.ghost ? (
-        <div className={styles.openLoopNote}><Icon name="clock" size={14} /><span>{node.statusNote ? `${node.statusNote} — ` : "Awaiting result — "}worth a follow-up. Not an alarm.</span></div>
-      ) : (
-        <>
-          {theory && <div className={styles.openLoopNote}><Icon name="flask-conical" size={14} /><span>A working idea inside an investigation — never a conclusion or a diagnosis.</span></div>}
-          <div className={styles.section}>
-            <div className={styles.sectionHead}><span>Related</span><span className={styles.sectionCount}>Showing {shown.length} of {Math.max(node.relatedTotal, related.length)}</span></div>
-            {shown.length === 0 && <p className={styles.inspBody}>No links above the current strength setting.</p>}
-            <ul className={styles.neighList}>
-              {shown.map((r) => { const nb = nodeById[r.id]!; const fam = FAMILY[r.e.f]; return (
-                <li key={`${r.id}-${r.e.id ?? r.e.f}`} className={styles.neighItem}>
-                  <button type="button" className={styles.neighRow} onClick={() => onSelectNeighbour(r.id)}><span className={styles.neighDot} style={{ background: nb.lensRole === "theory" ? THEORY_HUE.hue : nb.type === "external" ? NEUTRAL_HUE.hue : hueOf((nb.bridge && nb.bridge[0]) || nb.cluster) }} /><span className={styles.neighName}>{nb.label}</span><span className={styles.neighFam} data-fam={r.e.f}>{fam.label}</span></button>
-                  <button type="button" className={styles.neighWhy} onClick={() => onSelectEdge(r.e)} aria-label={`Why is ${node.label} connected to ${nb.label}?`}>Why?</button>
-                </li>
-              ); })}
-            </ul>
-            {hiddenCount > 0 && !showWeak && <Button variant="tertiary" size="sm" icon="plus" onClick={onShowWeak}>Show {hiddenCount} weaker link{hiddenCount > 1 ? "s" : ""}</Button>}
-          </div>
-
-          <div className={styles.section}>
-            <div className={styles.sectionHead}><span>Evidence</span><ConfidenceDots level={node.conf} label={plural(evidence.length, "source")} /></div>
-            {evidence.length ? (
-              <SourceList sources={evidence} limit={evidenceAll ? undefined : 3} onOpen={openAll} />
-            ) : (
-              <p className={styles.inspBody}>No sources are attached to this yet{node.relatedTotal ? " — it's mapped from how it links to your other records" : ""}.</p>
-            )}
-            <div className={styles.evRow}>
-              {evidence.length > 0 && <Button variant="tertiary" size="sm" icon="file-search" onClick={openAll}>View sources</Button>}
-              {evidence.length > 3 && <Button variant="tertiary" size="sm" icon={evidenceAll ? "chevron-down" : "file-text"} onClick={onToggleEvidence}>{evidenceAll ? "Show fewer" : `Complete evidence mode (${evidence.length})`}</Button>}
-              {expandable && <Button variant="tertiary" size="sm" icon="git-fork" onClick={onToggleExpand}>{expandedNode ? "Collapse on map" : "Expand on map"}</Button>}
-            </div>
-          </div>
-        </>
-      )}
-
-      <div className={styles.metaBlock}>
-        <div className={styles.metaRow}><span className={styles.metaKey}>First noted</span><span className={styles.metaVal}>{node.first}</span></div>
-        <div className={styles.metaRow}><span className={styles.metaKey}>{node.ghost ? "Status" : "Last activity"}</span><span className={styles.metaVal}>{node.last}</span></div>
-        {concernHref && <div className={styles.metaRow}><span className={styles.metaKey}>Concern</span><Link className={styles.metaLink} href={concernHref}>Open {membership[0]}</Link></div>}
-      </div>
-
-      <div className={styles.actionList}>{actions.map((a) => <button key={a.id} type="button" className={styles.action} data-danger={a.id === "hide" || undefined} onClick={() => onAction(a.id, node.id)}><Icon name={a.icon} size={15} /> {a.label}</button>)}</div>
-      <p className={styles.caveatLine}><Icon name="lock" size={12} /> Links are not causes, and never a diagnosis.</p>
-    </>
-  );
-}
-
-function EdgePanel({ edge, nodeById, canDispute, disputed, onDispute, onOpenEvidence, onSelectNode }: {
-  edge: GraphEdge; nodeById: Record<string, GraphNode>; canDispute: boolean; disputed: boolean; onDispute: () => void;
-  onOpenEvidence: (title: string, claim: ReactNode, sources: EvidenceSource[]) => void; onSelectNode: (id: string) => void;
-}) {
-  const a = nodeById[edge.a];
-  const b = nodeById[edge.b];
-  const fam = FAMILY[edge.f];
-  const strengthLabel = edge.s >= 5 ? "Well-supported in your records" : edge.s >= 4 ? "Some support in your records" : "Candidate — weak or system-inferred";
-  const dots = Math.max(1, Math.round((edge.s / 7) * 5));
-  const sources = edge.evidence ?? [...(a ? evidenceOf(a) : []), ...(b ? evidenceOf(b) : [])];
-  const claim = a && b ? `${a.label} ${edge.phrase ?? "is linked with"} ${b.label} in your records.` : "How these items are linked in your records.";
-  const openAll = () => onOpenEvidence("Why connected?", claim, sources);
-  return (
-    <>
-      <div className={styles.inspHead}><span className={styles.inspBadge}><Icon name="share" size={16} /></span><div><p className={styles.inspTitle}>Why connected?</p><p className={styles.inspSub}>{a?.label} · {b?.label}</p></div></div>
-      <div className={styles.chipRow}><Chip tone={fam.tone} size="sm">{fam.label}</Chip>{edge.lens && <Chip tone={edge.lens === "for" ? "tealmid" : "neutral"} size="sm">Evidence {edge.lens}</Chip>}{disputed && <Chip tone="amber" size="sm" icon="alert-triangle">Disputed</Chip>}</div>
-      {a && b && edge.phrase && (
-        <p className={styles.inspBody}>
-          <button type="button" className={styles.inlineNode} onClick={() => onSelectNode(a.id)}>{a.label}</button> {edge.phrase}{" "}
-          <button type="button" className={styles.inlineNode} onClick={() => onSelectNode(b.id)}>{b.label}</button>.
-        </p>
-      )}
-      <p className={styles.inspBody}>{fam.note}</p>
-      {edge.f === "conflict" && <div className={styles.conflictNote}><Icon name="alert-triangle" size={14} /><span>Both sources are kept. WellBe shows the disagreement rather than resolving it for you.</span></div>}
-      {edge.confounder && <p className={styles.inspBody}>{edge.confounder}</p>}
-      {edge.alternatives && (
-        <div className={styles.section}>
-          <div className={styles.sectionHead}><span>Other explanations</span></div>
-          <ul className={styles.altList}>{edge.alternatives.map((t) => <li key={t}>{t}</li>)}</ul>
-        </div>
-      )}
-      <div className={styles.metaBlock}>
-        <div className={styles.metaRow}><span className={styles.metaKey}>Evidence strength</span><ConfidenceDots level={dots} label={strengthLabel} /></div>
-        {sources.length ? <SourceList sources={sources} limit={3} onOpen={openAll} /> : <p className={styles.inspBody}>No sources are attached to this link yet.</p>}
-        {sources.length > 0 && <Button variant="tertiary" size="sm" icon="file-search" onClick={openAll}>{sources.length > 3 ? `View all ${sources.length} sources` : "View sources"}</Button>}
-      </div>
-      <div className={styles.safety}><Icon name="info" size={14} /><span>{edge.note ?? "This means these items were related in your records in the way shown above. It does not prove that one caused the other."} Links are not causes, and never a diagnosis.</span></div>
-      {canDispute && !disputed && edge.f !== "user" && <Button variant="ghost" full icon="x-circle" onClick={onDispute}>Dispute this connection</Button>}
-    </>
-  );
-}
-
-/* ---------- list / timeline equivalent ---------- */
-function ListView({ clusters, visibleNodes, onSelect, selectedId }: { clusters: Cluster[]; visibleNodes: GraphNode[]; onSelect: (id: string) => void; selectedId: string | null }) {
-  const unassigned = visibleNodes.filter((n) => !n.cluster && !n.bridge);
-  const groups: Array<{ id: string; label: string; hue: string; href?: string; nodes: GraphNode[] }> = [
-    ...clusters.map((c) => ({ id: c.id, label: c.label, hue: c.hue, href: c.href, nodes: visibleNodes.filter((n) => n.cluster === c.id || n.bridge?.includes(c.id)) })),
-    { id: "unassigned", label: "Also in your records", hue: NEUTRAL_HUE.hue, nodes: unassigned },
-  ];
-  return (
-    <div className={styles.listView}>
-      {groups.map((g) => {
-        if (!g.nodes.length) return null;
-        return (
-          <section key={g.id} className={styles.listSection} aria-label={g.label}>
-            <header className={styles.listSectionHead}>
-              <span className={styles.clusterDot} style={{ background: g.hue }} />
-              <h3 className={styles.listSectionName}>{g.href ? <Link href={g.href}>{g.label}</Link> : g.label}</h3>
-              <span className={styles.listSectionMeta}>{plural(g.nodes.length, "item")}</span>
-            </header>
-            <ul className={styles.listRows}>
-              {g.nodes.map((n) => (
-                <li key={n.id}><button type="button" className={styles.listRow} data-active={selectedId === n.id || undefined} aria-pressed={selectedId === n.id} onClick={() => onSelect(n.id)}>
-                  <span className={styles.listIcon} style={{ color: g.hue }}><Icon name={TYPE_ICON[n.type]} size={15} /></span>
-                  <span className={styles.listRowMain}><span className={styles.listRowName}>{n.label}{n.bridge && n.lensRole !== "theory" && <span className={styles.bridgeTag}>bridge</span>}</span><span className={styles.listRowSub}>{typeLabelOf(n)} · {n.ghost ? n.statusNote ?? "open" : `first noted ${n.first}`}</span></span>
-                  {n.ghost ? <span className={styles.loopTag}><Icon name="clock" size={12} /> open loop</span> : <ConfidenceDots level={n.conf} label={plural(n.ev, "source")} />}
-                </button></li>
-              ))}
-            </ul>
-          </section>
-        );
-      })}
-      {!visibleNodes.length && <p className={styles.inspBody}>Nothing matches the current filters.</p>}
-    </div>
-  );
-}
-
-function Legend({ lens }: { lens: boolean }) {
-  return (
-    <div className={styles.legend}>
-      <span className={styles.legendGroup}>
-        <span className={styles.legendItem}><span className={styles.lShape} data-shape="circle" /> Concept</span>
-        <span className={styles.legendItem}><span className={styles.lShape} data-shape="diamond" /> Theory / investigation</span>
-        <span className={styles.legendItem}><span className={styles.lShape} data-shape="bridge" /> Bridges concerns</span>
-        <span className={styles.legendItem}><span className={styles.lShape} data-shape="ghost" /> Open loop</span>
-      </span>
-      <span className={styles.legendGroup}>
-        <span className={styles.legendItem}><span className={styles.lLine} data-kind="strong" /> Strong</span>
-        <span className={styles.legendItem}><span className={styles.lLine} data-kind="dashed" /> Candidate</span>
-        <span className={styles.legendItem}><span className={styles.lLine} data-kind="user" /> You linked</span>
-        <span className={styles.legendItem}><span className={styles.lLine} data-kind="conflict" /> Conflicting</span>
-        {lens && <span className={styles.legendItem}><span className={styles.lLine} data-kind="for" /> Evidence for / against</span>}
-      </span>
     </div>
   );
 }

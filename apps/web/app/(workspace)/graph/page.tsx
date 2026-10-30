@@ -1,17 +1,16 @@
 import { PageBody } from "@/components/shell/AppShell";
 import { TopBar } from "@/components/shell/TopBar";
-import { GraphLive } from "@/components/graph/GraphLive";
-import { LiveGraph } from "@/components/graph/LiveGraph";
+import { GraphWorkspace } from "@/components/graph/GraphWorkspace";
 import { DESIGN_PREVIEW_MODEL } from "@/components/graph/graphData";
 
 export default async function GraphPage({
   searchParams,
 }: {
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ preview?: string; view?: string }>;
 }) {
   // The sample-fixture cockpit is only reachable as an explicitly labelled design
   // preview — never as the person's graph.
-  const { preview } = await searchParams;
+  const { preview, view } = await searchParams;
   const designPreview = preview === "design";
 
   return (
@@ -26,7 +25,7 @@ export default async function GraphPage({
         breadcrumb="Deep Dive"
         backHref="/"
       />
-      <PageBody>{designPreview ? <GraphLive model={DESIGN_PREVIEW_MODEL} /> : <LiveGraph />}</PageBody>
+      <PageBody>{designPreview ? <GraphWorkspace preview initialContext={view === "context"} model={{ ...DESIGN_PREVIEW_MODEL, autoLayout: true }} /> : <GraphWorkspace initialContext={view === "context"} />}</PageBody>
     </>
   );
 }

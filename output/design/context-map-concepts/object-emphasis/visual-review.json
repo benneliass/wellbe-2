@@ -1,0 +1,20 @@
+{
+  "states": [
+    {
+      "state": "rest",
+      "scale": "1.0000",
+      "orbitRadius": "28.4704"
+    },
+    {
+      "state": "hover",
+      "scale": "1.1200",
+      "orbitRadius": "30.856"
+    },
+    {
+      "state": "selected",
+      "scale": "1.2600",
+      "orbitRadius": "33.6392"
+    }
+  ],
+  "errors": []
+}
