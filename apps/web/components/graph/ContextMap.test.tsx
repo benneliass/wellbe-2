@@ -1,6 +1,18 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextMap } from "./ContextMap";
+import type { CosmosNode } from "./CosmosField";
+
+// Exercise API/walk policy through the map interface. Real SVG geometry,
+// animation, pointer handling and visual effects run in the browser suite;
+// continuous SVG mutation is not an input to these controller assertions.
+vi.mock("./CosmosField", () => ({
+  CosmosField: ({ nodes, onSelect }: { nodes: CosmosNode[]; onSelect: (id: string) => void }) => <div>
+    {nodes.map((node) => <div key={node.id} data-dim={node.dim}>
+      <button type="button" aria-pressed={node.pressed} onClick={() => onSelect(node.id)} onKeyDown={(event) => { if (event.key === 'Enter') onSelect(node.id); }}>{node.label}</button>
+    </div>)}
+  </div>,
+}));
 
 const get = vi.fn();
 const post = vi.fn();
