@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { afterMapPaint } from './_mapGeometry';
 
-for (const width of [1774, 390]) test(`headings yield to moved objects and pins are actionable at ${width}px`, async ({ page }) => {
+for (const width of [1774, 390]) test(`headings yield to moved objects and pins are actionable at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 1050 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/design/graph');
@@ -41,7 +41,7 @@ for (const width of [1774, 390]) test(`headings yield to moved objects and pins 
     });
   });
   expect(overlap).toBe(false);
-  if (width === 1774) await page.screenshot({ path: "/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/group-light-coverage/following-heading.png" });
+  if (width === 1774) await page.screenshot({ path: testInfo.outputPath("group-light-coverage/following-heading.png") });
   const after = (await title.boundingBox())!;
   expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(2);
 });

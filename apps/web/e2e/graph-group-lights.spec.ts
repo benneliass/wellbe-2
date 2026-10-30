@@ -36,7 +36,7 @@ function groupCoverage() {
 }
 
 for (const width of [1774, 690, 390]) {
-  test(`group lights cover all members and follow dragging at ${width}px`, async ({ page }) => {
+  test(`group lights cover all members and follow dragging at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1050 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/design/graph');
@@ -69,7 +69,7 @@ for (const width of [1774, 690, 390]) {
     const moved = await page.evaluate(groupCoverage);
     expect(moved.outside).toEqual([]);
     expect(Math.hypot(moved.lights.head!.cx - selected.cx, moved.lights.head!.cy - selected.cy)).toBeGreaterThan(10);
-    if (width === 1774) await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/group-light-coverage/dragged.png' });
+    if (width === 1774) await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath('group-light-coverage/dragged.png') });
     await page.getByRole('button', { name: 'Reset layout', exact: true }).click();
     await page.evaluate(afterMapPaint);
     const reset = await page.evaluate(groupCoverage);

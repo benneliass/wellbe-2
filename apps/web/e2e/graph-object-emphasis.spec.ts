@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { afterMapPaint, inspectMapGeometry } from './_mapGeometry';
 
-test('selection sends a quiet glint along the actual silhouette and respects drag and reduced motion', async ({ page }) => {
+test('selection sends a quiet glint along the actual silhouette and respects drag and reduced motion', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/design/graph');
   const node = page.locator('[data-node-id="headache"]');
@@ -31,11 +31,11 @@ test('selection sends a quiet glint along the actual silhouette and respects dra
   await page.evaluate(afterMapPaint);
   expect(await offset()).toBe(still);
   await expect(edge).toHaveCSS('opacity', '1');
-  await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/object-emphasis/edge-flow-selected.png' });
+  await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath('object-emphasis/edge-flow-selected.png') });
 });
 
 for (const width of [1774, 390]) for (const reducedMotion of ['reduce', 'no-preference'] as const) {
-  test(`hover and selection emphasize the object volume without extra circles at ${width}px (${reducedMotion})`, async ({ page }) => {
+  test(`hover and selection emphasize the object volume without extra circles at ${width}px (${reducedMotion})`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1050 });
     await page.emulateMedia({ reducedMotion });
     await page.goto('/design/graph');
@@ -95,7 +95,7 @@ for (const width of [1774, 390]) for (const reducedMotion of ['reduce', 'no-pref
     if (width === 1774 && reducedMotion === 'reduce') {
       await node.press('Enter');
       await expect(object).toHaveAttribute('data-pebble-scale', '1.3500');
-      await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/object-emphasis/selected.png' });
+      await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath('object-emphasis/selected.png') });
     }
   });
 }

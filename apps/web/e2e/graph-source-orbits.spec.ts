@@ -3,7 +3,7 @@ import { injectSession } from './_session';
 import { inspectMapGeometry } from './_mapGeometry';
 
 for (const route of ['/design/graph', '/graph?preview=design']) {
-  test(`source records remain orbiting when Headache is selected on ${route}`, async ({ page }) => {
+  test(`source records remain orbiting when Headache is selected on ${route}`, async ({ page }, testInfo) => {
     if (route.startsWith('/graph')) await injectSession(page);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(route);
@@ -34,6 +34,6 @@ for (const route of ['/design/graph', '/graph?preview=design']) {
     await expect(page.locator('[data-node-id="diet"] [data-orbit-kind="concept"]')).toHaveCount(3);
     await page.getByRole('button', { name: 'Observations', exact: true }).click();
     await expect(sources).toHaveCount(5);
-    if (route === '/design/graph') await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/source-orbits/headache-selected.png' });
+    if (route === '/design/graph') await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath('source-orbits/headache-selected.png') });
   });
 }

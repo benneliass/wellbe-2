@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { afterMapPaint, inspectMapGeometry } from './_mapGeometry';
 
 for (const width of [1774, 690, 390]) {
-  test(`dragging Light sensitivity into Headache stays local and keeps names attached at ${width}px`, async ({ page }) => {
+  test(`dragging Light sensitivity into Headache stays local and keeps names attached at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1050 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/design/graph');
@@ -41,12 +41,12 @@ for (const width of [1774, 690, 390]) {
     }
     await expect(light).toHaveAttribute('aria-pressed', 'false');
     await expect(light.locator('[data-pebble-object] [data-map-label]')).toHaveCount(1);
-    if (width === 1774) await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/attached-labels/light-into-headache.png' });
+    if (width === 1774) await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath('attached-labels/light-into-headache.png') });
   });
 }
 
 for (const width of [1774, 690, 390]) {
-  test(`the map makes room for Diet change and repeated expansions at ${width}px`, async ({ page }) => {
+  test(`the map makes room for Diet change and repeated expansions at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1050 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/design/graph');
@@ -86,7 +86,7 @@ for (const width of [1774, 690, 390]) {
         return hits;
       });
       expect(sourceCollisions).toEqual([]);
-      if (id === 'diet') await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: `/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/dynamic-expansion/diet-expanded-${width}.png` });
+      if (id === 'diet') await page.locator('svg[aria-label^="Map of your concerns"]').screenshot({ path: testInfo.outputPath(`dynamic-expansion/diet-expanded-${width}.png`) });
     }
     await page.locator('[data-node-id="diet"]').focus();
     await page.keyboard.press('Enter');
