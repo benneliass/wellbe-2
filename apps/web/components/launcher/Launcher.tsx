@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@wellbe/ui";
+import { Icon, Wordmark } from "@wellbe/ui";
 import { CaptureModal } from "@/components/capture/CaptureModal";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
@@ -43,9 +43,7 @@ export function Launcher() {
 
       <header className={styles.top}>
         <button type="button" className={styles.brand} onClick={goFullView} aria-label="WellBe">
-          <span className={styles.wordmark}>
-            Well<b>Be</b>
-          </span>
+          <Wordmark size={28} />
         </button>
         <button type="button" className={styles.full} onClick={goFullView}>
           Full View <Icon name="arrow-right" size={16} />

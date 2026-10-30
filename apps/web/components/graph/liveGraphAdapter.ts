@@ -1,3 +1,4 @@
+import { graphEvidence, uniqueGraphEvidence as dedupeSources } from "./graphMiniatures";
 /*
  * Maps the person's real records onto the cockpit's GraphModel.
  *
@@ -19,7 +20,6 @@ import { describePendingItem, openPendingItems } from "@/lib/pending";
 import type { ThreadSummary } from "@/lib/types";
 import {
   CLUSTER_PALETTE,
-  type Capture,
   type Cluster,
   type Family,
   type GraphEdge,
@@ -174,11 +174,6 @@ const REVIEW_VALUES = new Set<ReviewMarkerValue>([
   "ready-for-visit",
 ]);
 
-function toCapture(s: EvidenceSource): Capture {
-  const d = s.date ? formatShortDate(String(s.date)) : "";
-  return { source: (s.kind ?? "reported") as SourceType, text: s.excerpt ?? s.displayLabel, date: d };
-}
-
 /**
  * Replay buckets over the real first-noted dates. One bucket when everything was
  * first noted the same day (the slider then collapses to a calm single-date note).
@@ -221,11 +216,6 @@ export function buildTimeline(dates: string[]): GraphTimeline & { bucketOf: (d: 
       return Math.min(n - 1, Math.max(0, Math.floor(((t - min) / span) * n)));
     },
   };
-}
-
-function dedupeSources(list: EvidenceSource[]): EvidenceSource[] {
-  const seen = new Set<string>();
-  return list.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)));
 }
 
 export function buildLiveGraph(input: LiveGraphInput): GraphModel {
@@ -344,7 +334,6 @@ export function buildLiveGraph(input: LiveGraphInput): GraphModel {
       relatedTotal: 0,
       sources: Array.from(new Set(evidence.map((s) => (s.kind ?? "reported") as SourceType))),
       evidence,
-      captures: evidence.length ? evidence.map(toCapture) : undefined,
       cluster: members[0],
       bridge: members.length >= 2 ? members : undefined,
       lensRole: investigative ? "theory" : undefined,
@@ -466,7 +455,7 @@ export function buildLiveGraph(input: LiveGraphInput): GraphModel {
 export function layersWithData(model: GraphModel): Record<LayerId, boolean> {
   const has = (l: LayerId) => model.nodes.some((n) => n.layer === l) || model.edges.some((e) => e.layer === l);
   return {
-    observation: model.nodes.some((n) => (n.captures?.length ?? 0) > 0) || has("observation"),
+    observation: model.nodes.some((n) => graphEvidence(n).length > 0) || has("observation"),
     concept: has("concept"),
     thread: model.clusters.length > 0,
     continuity: has("continuity"),

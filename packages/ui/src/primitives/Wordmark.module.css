@@ -1,9 +1,12 @@
 .word {
-  font-family: var(--font-sans);
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-weight: 650;
   line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--fg1);
+  letter-spacing: -0.035em;
+  color: #059895;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
@@ -13,9 +16,12 @@
 }
 
 .accent {
-  color: var(--accent);
+  color: inherit;
 }
 
 .accent[data-italic="true"] {
   font-style: italic;
 }
+
+.outline { display: block; width: 3.25em; height: 1em; flex: none; overflow: visible; }
+.accessible { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

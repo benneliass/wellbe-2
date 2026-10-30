@@ -1,0 +1,200 @@
+
+.orbit {
+  pointer-events: none;
+}
+.accentTrace {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.9;
+  stroke-opacity: 0.16;
+  stroke-linecap: round;
+  transition: stroke-opacity 260ms var(--wb-ease, ease), filter 260ms var(--wb-ease, ease);
+}
+.orbitDot {
+  opacity: 0.84;
+  transition: opacity 260ms var(--wb-ease, ease), filter 260ms var(--wb-ease, ease);
+}
+.badgeGlint { filter: blur(1.3px); }
+.metadataBadge { transition: filter 260ms var(--wb-ease, ease); }
+[data-pebble-hot="true"] .accentTrace {
+  stroke-opacity: 0.52;
+  filter: drop-shadow(0 0 1.4px currentColor);
+}
+[data-pebble-hot="true"] .orbitDot {
+  opacity: 1;
+  filter: drop-shadow(0 0 1px currentColor);
+}
+[data-pebble-hot="true"] .metadataBadge { filter: drop-shadow(0 0 1.4px currentColor); }
+.edge {
+  cursor: pointer;
+  transition: stroke-opacity var(--wb-motion-fast, 160ms) var(--wb-ease, ease);
+}
+.linkGlow {
+  filter: blur(var(--map-link-glow-blur, 2.8px));
+  animation: wb-link-glow var(--map-link-glow-duration, 5.5s) ease-in-out infinite alternate;
+  transition: stroke-opacity 240ms var(--wb-ease, ease), stroke-width 240ms var(--wb-ease, ease);
+}
+@keyframes wb-link-glow {
+  from { opacity: 0.62; }
+  to { opacity: 1; }
+}
+.node {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity var(--wb-motion-base, 240ms) var(--wb-ease, ease);
+}
+.porcelainObject {
+  /* The shared material clock owns drift, lift and pose in SVG coordinates. */
+}
+.objectVolume {
+  filter: drop-shadow(0 0 0 transparent);
+  transition: filter 240ms var(--wb-ease, ease);
+}
+.edgeFlow {
+  opacity: 0;
+  color: inherit;
+  transition: opacity 280ms var(--wb-ease, ease);
+}
+.edgeFlowTrace {
+  animation: wb-object-edge-flow var(--map-edge-flow-duration, 12s) linear infinite;
+  animation-play-state: paused;
+}
+.edgeFlowGlow {
+  stroke: color-mix(in srgb, currentColor 40%, white);
+  stroke-width: 2.8px;
+  opacity: 0.28;
+  filter: blur(1.1px);
+}
+.edgeFlowCore {
+  stroke: #f5ffff;
+  stroke-width: 0.85px;
+  opacity: 0.64;
+}
+.node[data-map-selected="true"] .edgeFlow { opacity: 1; }
+.node[data-map-selected="true"] .edgeFlowTrace { animation-play-state: running; }
+.node[data-pebble-grabbed="true"] .edgeFlowTrace { animation-play-state: paused; }
+@keyframes wb-object-edge-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -100; }
+}
+.node[data-pebble-hot="true"] .objectVolume {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, currentColor 26%, transparent));
+}
+.node[data-map-selected="true"] .objectVolume,
+.node:focus-visible .objectVolume {
+  filter: drop-shadow(0 0 4.5px color-mix(in srgb, currentColor 34%, transparent));
+}
+.pebbleGlyph svg {
+  filter: drop-shadow(0.65px 0.9px 0.25px #ffffffd9) drop-shadow(-0.2px -0.3px 0.3px #29445536);
+}
+.node {
+  touch-action: none;
+}
+.node:focus,
+.node:focus-visible {
+  outline: none;
+}
+.flow {
+  stroke-width: 1.1;
+  stroke-opacity: 0.45;
+  stroke-dasharray: 8 92;
+  pointer-events: none;
+  animation: wb-flow 6s ease-in-out infinite alternate;
+}
+@keyframes wb-flow {
+  from { stroke-dashoffset: -8; }
+  to { stroke-dashoffset: -84; }
+}
+.tooltip {
+  position: absolute;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  background: var(--fg1, #17213b);
+  color: var(--white, #fff);
+  border-radius: var(--r-md, 10px);
+  padding: 7px 11px;
+  box-shadow: var(--shadow-md, 0 6px 24px #17213b14);
+  pointer-events: none;
+  z-index: 4;
+  white-space: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .node, .porcelainObject {
+    animation: none;
+    transition: none;
+  }
+  .accentTrace, .orbitDot, .metadataBadge, .objectVolume { transition: none; }
+  .edgeFlow { transition: none; }
+  .nodeLabel { transition: none; }
+  .edgeFlowTrace { animation: none; }
+  .node:hover .porcelainObject, .node:focus-visible .porcelainObject { transform: none; }
+  .flow {
+    animation: none;
+    display: none;
+  }
+}
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.nodeLabel {
+  paint-order: stroke fill;
+  stroke: #fcfdff;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  font-size: 12.5px;
+  font-family: var(--font-heading, ui-sans-serif, sans-serif);
+  font-weight: 450;
+  fill: #17213b;
+  pointer-events: none;
+  transition: font-weight 160ms var(--wb-ease, ease);
+}
+.node[data-pebble-hot="true"] .nodeLabel { font-weight: 500; }
+.node[data-map-selected="true"] .nodeLabel { font-weight: 550; }
+.ghostLabel {
+  paint-order: stroke fill;
+  stroke: #fcfdff;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  font-size: 10.5px;
+  font-weight: 600;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .node:hover {
+    transform: none;
+  }
+}
+.focusRing {
+  fill: none;
+  stroke: var(--accent, #0ea5a4);
+  stroke-width: 2.5;
+  opacity: 0;
+  pointer-events: none;
+}
+.node:focus-visible .focusRing {
+  opacity: 1;
+}
+.node[data-map-body-focus]:focus-visible .focusRing {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .edge,
+  .linkGlow {
+    transition: none;
+  }
+  .linkGlow,
+  .flow {
+    animation: none;
+  }
+}
+
+.metadataBadge[role="button"] { cursor: pointer; }
+.metadataBadge[role="button"]:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }

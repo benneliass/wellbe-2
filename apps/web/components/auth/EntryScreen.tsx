@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@wellbe/ui";
+import { Icon, Wordmark } from "@wellbe/ui";
 import { demoSignInAvailable, isOidcMode, oidcConfigured } from "@/lib/auth-config";
 import { beginSignIn } from "@/lib/oidc";
 import {
@@ -55,11 +55,7 @@ function OidcEntryScreen() {
 
       <div className={styles.card}>
         <div className={styles.brandRow}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-mark.png" alt="" className={styles.mark} />
-          <span className={styles.word}>
-            Well<b>Be</b>
-          </span>
+          <Wordmark size={28} />
         </div>
 
         <h1 className={styles.title}>Your private health workspace</h1>
@@ -151,11 +147,7 @@ function DevEntryScreen() {
 
       <div className={styles.card}>
         <div className={styles.brandRow}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-mark.png" alt="" className={styles.mark} />
-          <span className={styles.word}>
-            Well<b>Be</b>
-          </span>
+          <Wordmark size={28} />
         </div>
 
         <h1 className={styles.title}>Your private health workspace</h1>

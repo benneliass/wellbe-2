@@ -1,0 +1,186 @@
+{
+  "390": {
+    "edges": 14,
+    "totalLength": 2338,
+    "maxDetour": 1.037,
+    "crossings": [
+      "headache/dizzy × light/screen",
+      "headache/sleep × light/screen"
+    ],
+    "overlaps": [],
+    "obstructions": [],
+    "underLabels": [
+      "headache/dizzy beneath headache",
+      "headache/mri beneath mri",
+      "headache/sleep beneath headache",
+      "dizzy/sleep beneath dizzy",
+      "dizzy/nausea beneath dizzy",
+      "sleep/fatigue beneath fatigue",
+      "caffeine/fatigue beneath fatigue",
+      "nausea/bloods beneath bloods"
+    ],
+    "lengths": [
+      {
+        "id": "headache/light",
+        "length": 145,
+        "detour": 1
+      },
+      {
+        "id": "headache/neck",
+        "length": 143.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/screen",
+        "length": 163.9,
+        "detour": 1
+      },
+      {
+        "id": "headache/dizzy",
+        "length": 126.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/mri",
+        "length": 57.9,
+        "detour": 1
+      },
+      {
+        "id": "headache/sleep",
+        "length": 435.1,
+        "detour": 1.037
+      },
+      {
+        "id": "light/screen",
+        "length": 337,
+        "detour": 1
+      },
+      {
+        "id": "dizzy/sleep",
+        "length": 256.8,
+        "detour": 1
+      },
+      {
+        "id": "dizzy/nausea",
+        "length": 349.8,
+        "detour": 1
+      },
+      {
+        "id": "sleep/caffeine",
+        "length": 54.9,
+        "detour": 1
+      },
+      {
+        "id": "sleep/fatigue",
+        "length": 80.6,
+        "detour": 1
+      },
+      {
+        "id": "sleep/sleepstudy",
+        "length": 78.5,
+        "detour": 1
+      },
+      {
+        "id": "caffeine/fatigue",
+        "length": 56.6,
+        "detour": 1
+      },
+      {
+        "id": "nausea/bloods",
+        "length": 51.7,
+        "detour": 1
+      }
+    ]
+  },
+  "1774": {
+    "edges": 14,
+    "totalLength": 2292,
+    "maxDetour": 1.006,
+    "crossings": [
+      "headache/dizzy × light/screen",
+      "headache/sleep × light/screen"
+    ],
+    "overlaps": [],
+    "obstructions": [],
+    "underLabels": [
+      "headache/neck beneath neck",
+      "headache/dizzy beneath headache",
+      "headache/mri beneath mri",
+      "light/screen beneath headache",
+      "sleep/sleepstudy beneath sleepstudy",
+      "nausea/bloods beneath bloods"
+    ],
+    "lengths": [
+      {
+        "id": "headache/light",
+        "length": 177,
+        "detour": 1
+      },
+      {
+        "id": "headache/neck",
+        "length": 92.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/screen",
+        "length": 89.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/dizzy",
+        "length": 205.4,
+        "detour": 1
+      },
+      {
+        "id": "headache/mri",
+        "length": 77.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/sleep",
+        "length": 339.2,
+        "detour": 1
+      },
+      {
+        "id": "light/screen",
+        "length": 308,
+        "detour": 1.006
+      },
+      {
+        "id": "dizzy/sleep",
+        "length": 218.2,
+        "detour": 1
+      },
+      {
+        "id": "dizzy/nausea",
+        "length": 252.6,
+        "detour": 1
+      },
+      {
+        "id": "sleep/caffeine",
+        "length": 87,
+        "detour": 1
+      },
+      {
+        "id": "sleep/fatigue",
+        "length": 199.6,
+        "detour": 1
+      },
+      {
+        "id": "sleep/sleepstudy",
+        "length": 53.9,
+        "detour": 1
+      },
+      {
+        "id": "caffeine/fatigue",
+        "length": 88.7,
+        "detour": 1
+      },
+      {
+        "id": "nausea/bloods",
+        "length": 102,
+        "detour": 1
+      }
+    ]
+  }
+}

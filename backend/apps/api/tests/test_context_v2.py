@@ -10,7 +10,12 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from wellbe_api.main import app
-from wellbe_raw_context_brain.persist.sql_store import SqlGraphStore, SqlSessionStore, walk
+from wellbe_raw_context_brain.persist.sql_store import (
+    SqlGraphStore,
+    SqlSessionStore,
+    person_map,
+    walk,
+)
 from wellbe_raw_context_brain.router import LabOptions, RawContextLab
 from wellbe_raw_context_brain.types import ExploreInput, VaultEvent
 
@@ -66,6 +71,10 @@ def _install(monkeypatch: pytest.MonkeyPatch, factory: sessionmaker[Session]) ->
     async def _load(_session: object, person_id: str) -> list[VaultEvent]:
         return [event for event in _events() if event.person_id == person_id]
 
+    async def _map(_session: object, person_id: str, bound: list[VaultEvent]) -> object:
+        with factory() as session:
+            return person_map(session, person_id, bound, table_prefix="")
+
     async def _walk(
         _session: object,
         person_id: str,
@@ -78,6 +87,7 @@ def _install(monkeypatch: pytest.MonkeyPatch, factory: sessionmaker[Session]) ->
             return page
 
     monkeypatch.setattr("wellbe_api.routers.context_v2.load_person_events", _load)
+    monkeypatch.setattr("wellbe_api.routers.context_v2.run_map", _map)
     monkeypatch.setattr("wellbe_api.routers.context_v2.run_walk", _walk)
 
 
@@ -94,6 +104,39 @@ def test_a_grant_cannot_start_the_walk() -> None:
         "/v2/context/explore",
         headers={"X-Wellbe-Actor-Id": _OTHER, "X-Wellbe-Patient-Id": _PERSON},
         json={"purpose": "look", "request_id": "r1", "anchor_id": "a"},
+    )
+    assert response.status_code == 403
+    assert response.json()["code"] == "grant_required"
+
+
+def test_the_map_names_circles_without_returning_the_note(monkeypatch: pytest.MonkeyPatch) -> None:
+    factory = _factory()
+    events = _events()
+    with factory() as session:
+        lab = RawContextLab(
+            LabOptions(
+                graph_store=SqlGraphStore(session, _PERSON, table_prefix=""),
+                session_store=SqlSessionStore(session, _PERSON, table_prefix=""),
+                pointer_only=True,
+            )
+        )
+        lab.bind_vault_events(events)
+        lab.link_structural("a", "b")
+        session.commit()
+    _install(monkeypatch, factory)
+    response = _client().get("/v2/context/map", headers=_AUTH)
+    assert response.status_code == 200
+    body = response.json()
+    labels = {node["id"]: node["label"] for node in body["nodes"]}
+    assert labels["a"] == "Alpha"
+    assert "alpha" not in response.text
+    assert body["links"] == [{"source": "a", "target": "b", "reason": "may relate"}]
+
+
+def test_a_grant_cannot_open_the_map() -> None:
+    response = _client().get(
+        "/v2/context/map",
+        headers={"X-Wellbe-Actor-Id": _OTHER, "X-Wellbe-Patient-Id": _PERSON},
     )
     assert response.status_code == 403
     assert response.json()["code"] == "grant_required"

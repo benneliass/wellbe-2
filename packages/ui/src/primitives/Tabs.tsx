@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import styles from "./Tabs.module.css";
 
 export interface TabItem {
@@ -5,6 +6,9 @@ export interface TabItem {
   label: string;
   /** Optional count shown beside the label. */
   count?: number;
+  icon?: ReactNode;
+  /** A related view with a distinct purpose, inside the same segmented control. */
+  variant?: "distinct";
 }
 
 export interface TabsProps {
@@ -26,8 +30,10 @@ export function Tabs({ items, value, onChange }: TabsProps) {
           aria-selected={item.id === value}
           className={styles.tab}
           data-active={item.id === value || undefined}
+          data-variant={item.variant}
           onClick={() => onChange(item.id)}
         >
+          {item.icon}
           {item.label}
           {item.count != null && <span className={styles.count}>{item.count}</span>}
         </button>

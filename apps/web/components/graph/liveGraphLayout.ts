@@ -1,3 +1,5 @@
+import { mapBadgeOffset } from '@wellbe/ui/map/core';
+import { MAP_SIZE, MAP_MOTION, mapObjectRadius, graphOrbitCount, graphOrbitExtent, graphOrbitLabelOffset, segmentCrossing, boxesOverlap } from "@wellbe/ui/map/core";
 /*
  * Deterministic layout for the live cockpit. Concerns sit on an ellipse; their
  * concepts gather around them, bridges between the concerns they share, and
@@ -8,7 +10,9 @@
  * collisions the virtual canvas grows (the view then starts zoomed out).
  */
 
-import { type Cluster, type GraphEdge, type GraphModel, type GraphNode, LAYERS } from "./graphData";
+import { sourceMiniatures } from "./graphMiniatures";
+import { graphTextWidth } from "./graphTextMetrics";
+import { type Cluster, type GraphEdge, type GraphModel, type GraphNode, LAYERS, TYPE_ICON } from "./graphData";
 
 export interface ViewBox {
   width: number;
@@ -29,7 +33,18 @@ const CONTROLS_W = 58;
 const MAX_GROW_ATTEMPTS = 6;
 
 export function nodeRadius(n: Pick<GraphNode, "ev" | "lensRole">): number {
-  return (n.lensRole === "theory" ? 17 : 14) + Math.min(n.ev, 14) * 0.42;
+  return mapObjectRadius(n.ev, n.lensRole === "theory" ? MAP_SIZE.alternativeRadius : MAP_SIZE.baseRadius);
+}
+
+export function nodeLabelOffset(n: GraphNode): number {
+  const count = n.satelliteCount ?? sourceMiniatures(n).length, radius = nodeRadius(n);
+  return Math.max(graphOrbitLabelOffset(count), count ? graphOrbitExtent(radius, count) + radius * (MAP_MOTION.selectedScale - 1) - radius + 12 : 16);
+}
+
+export function withSatelliteCounts(model: GraphModel): GraphModel {
+  const counts = new Map<string, number>();
+  for (const node of model.nodes) if (node.deferred && node.anchor) counts.set(node.anchor, (counts.get(node.anchor) ?? 0) + 1);
+  return { ...model, nodes: model.nodes.map((node) => ({ ...node, satelliteCount: graphOrbitCount((counts.get(node.id) ?? 0) + sourceMiniatures(node).length) })) };
 }
 
 /** The label drawn on the canvas; the full label lives in the tooltip and inspector. */
@@ -37,73 +52,37 @@ export function canvasLabel(label: string, max = LABEL_MAX): string {
   return label.length > max ? `${label.slice(0, max - 1).trimEnd()}…` : label;
 }
 
-type Measure = (text: string, px: number, weight: number) => number;
-let measurer: Measure | null | undefined;
-
-/** Canvas 2D text metrics in a real browser; null under SSR and jsdom. */
-function browserMeasure(): Measure | null {
-  if (measurer !== undefined) return measurer;
-  measurer = null;
-  if (typeof document === "undefined" || typeof navigator === "undefined" || /jsdom/i.test(navigator.userAgent)) return null;
-  let ctx: CanvasRenderingContext2D | null = null;
-  try {
-    ctx = document.createElement("canvas").getContext("2d");
-  } catch {
-    ctx = null;
-  }
-  if (!ctx) return null;
-  const c = ctx;
-  const cache = new Map<string, number>();
-  measurer = (text, px, weight) => {
-    const family = getComputedStyle(document.body).fontFamily || "sans-serif";
-    const key = `${weight}|${px}|${family}|${text}`;
-    const hit = cache.get(key);
-    if (hit !== undefined) return hit;
-    c.font = `${weight} ${px}px ${family}`;
-    const w = c.measureText(text).width;
-    if (!document.fonts || document.fonts.status === "loaded") cache.set(key, w);
-    return w;
-  };
-  return measurer;
-}
-
-/** Label width: measured in the browser, a conservative estimate in tests and SSR. */
+/** Font advances are measured from the bundled face, shared by SSR and hydration.
+ * Reading canvas metrics during render gives those two layouts different inputs. */
 export function textWidth(text: string, px: number, weight = 600): number {
-  const m = browserMeasure();
-  return m ? m(text, px, weight) + 6 : text.length * px * 0.58 + 4;
+  return graphTextWidth(text, px, weight);
 }
 
-export interface Box {
-  id: string;
-  x: number;
-  y: number;
-  hw: number;
-  up: number;
-  down: number;
-}
+export type { MapBounds as Box } from "@wellbe/ui/map/core";
+import type { MapBounds as Box } from "@wellbe/ui/map/core";
+export { boxesOverlap } from "@wellbe/ui/map/core";
 
 /** Screen-space box a node occupies including its label line(s). */
 export function nodeBox(n: GraphNode): Box {
   const r = nodeRadius(n);
   const extraLine = n.ghost || n.aggregate;
+  // Keep settled homes/corridors stable; interaction grows the material and
+  // orbit locally. Labels reserve the selected envelope separately above.
+  const count = n.satelliteCount ?? sourceMiniatures(n).length;
+  const orbitExtent = graphOrbitExtent(r, count);
+  const badge = n.pinned || (n.ghost && TYPE_ICON[n.type] !== "clock") ? Math.abs(mapBadgeOffset(r, count).x) + 5.7 : 0;
   return {
     id: n.id,
     x: n.x,
     y: n.y,
-    hw: Math.max(r + 8, textWidth(canvasLabel(n.label), NODE_LABEL_PX) / 2),
-    up: r + 8,
-    down: r + (extraLine ? 36 : 22),
+    hw: Math.max(badge, orbitExtent, textWidth(canvasLabel(n.label), NODE_LABEL_PX) / 2),
+    up: Math.max(badge, orbitExtent),
+    down: r + nodeLabelOffset(n) + (extraLine ? 20 : 6),
   };
 }
 
 export function clusterLabelBox(c: Pick<Cluster, "id" | "label">, x: number, y: number): Box {
   return { id: `cluster:${c.id}`, x, y, hw: textWidth(canvasLabel(c.label, 28), CLUSTER_LABEL_PX, 700) / 2 + 4, up: 16, down: 24 };
-}
-
-export function boxesOverlap(a: Box, b: Box, margin = 0): boolean {
-  const ox = a.hw + b.hw + margin - Math.abs(a.x - b.x);
-  const oy = Math.min(a.y + a.down, b.y + b.down) - Math.max(a.y - a.up, b.y - b.up) + margin;
-  return ox > 0 && oy > 0;
 }
 
 /* ---------- edge geometry ---------- */
@@ -161,7 +140,7 @@ export interface Obstacle {
 export function nodeObstacle(n: GraphNode, x = n.x, y = n.y): Obstacle {
   const r = nodeRadius(n);
   const hw = textWidth(canvasLabel(n.label), NODE_LABEL_PX) / 2;
-  return { id: n.id, circle: { x, y, r }, rect: { x0: x - hw, x1: x + hw, y0: y + r + 4, y1: y + r + (n.ghost || n.aggregate ? 34 : 20) } };
+  return { id: n.id, circle: { x, y, r }, rect: { x0: x - hw, x1: x + hw, y0: y + r + nodeLabelOffset(n) - 12, y1: y + r + nodeLabelOffset(n) + (n.ghost || n.aggregate ? 18 : 4) } };
 }
 
 export function clusterTitleObstacle(c: Pick<Cluster, "id" | "label">, x: number, y: number): Obstacle {
@@ -336,6 +315,7 @@ export function clusterHalo(label: Box, members: Box[]): Pick<Cluster, "cx" | "c
 }
 
 export function layoutGraph(model: GraphModel, view: ViewBox): LaidOutGraph {
+  model = withSatelliteCounts(model);
   const boxArea = model.nodes.reduce((s, n) => {
     const b = nodeBox(n);
     return s + b.hw * 2 * (b.up + b.down);
@@ -345,7 +325,7 @@ export function layoutGraph(model: GraphModel, view: ViewBox): LaidOutGraph {
   const big = model.nodes.length + model.clusters.length > 120;
 
   let best: { out: LaidOutGraph; bad: number } | null = null;
-  for (let attempt = 0; attempt < (big ? 1 : MAX_GROW_ATTEMPTS); attempt++) {
+  for (let attempt = 0; attempt < (big ? 2 : MAX_GROW_ATTEMPTS); attempt++) {
     // A near miss first tries the concerns rotated half a step before growing the canvas.
     for (const turn of [0, 0.5]) {
       const { bad, ...out } = layoutAt(model, view, scale, turn);
@@ -617,13 +597,13 @@ function layoutAt(model: GraphModel, view: ViewBox, scale: number, turn: number)
 
   // Polish: resolve what's left locally, keeping the best state seen.
   let best = { total: Infinity, bad: Infinity, pos: [] as number[], bends: [] as number[] };
-  const rounds = edgeForces ? 40 : 1;
+  const rounds = edgeForces ? 40 : 12;
   for (let round = 0; round < rounds; round++) {
     if (edgeForces) chooseBends();
     const s = score();
     if (s.total < best.total) best = { ...s, pos: all.flatMap((b) => [b.x, b.y]), bends: links.map((l) => l.bend) };
     if (s.total === 0) break;
-    edgePass(1, EDGE_MARGIN + 2);
+    if (edgeForces) edgePass(1, EDGE_MARGIN + 2);
     for (let r = 0; r < 4; r++) {
       boxPass();
       for (const b of all) clamp(b);
@@ -634,6 +614,86 @@ function layoutAt(model: GraphModel, view: ViewBox, scale: number, turn: number)
     b.y = best.pos[i * 2 + 1]!;
   });
   links.forEach((l, i) => (l.bend = best.bends[i]!));
+
+  // The material router prefers direct corridors. Give peripheral triangle
+  // members room outside the face instead of forcing several edges to bow.
+  // This is geometry-driven; record names and ids do not influence placement.
+  if (edgeForces && nodes.length <= 80) {
+    const visibleLinks = links.filter((link) => link.visible);
+    const neighbours = bodies.map((_, i) => new Set(visibleLinks.flatMap((link) => link.i === i ? [link.j] : link.j === i ? [link.i] : [])));
+    const visibleBodies = bodies.filter((body) => body.visible);
+    const centre = { x: visibleBodies.reduce((sum, body) => sum + body.x, 0) / Math.max(1, visibleBodies.length), y: visibleBodies.reduce((sum, body) => sum + body.y, 0) / Math.max(1, visibleBodies.length) };
+    const originals = bodies.map((body) => ({ x: body.x, y: body.y }));
+    const separation = (point: Pt, a: Pt, b: Pt) => {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+      return { x: a.x + t * dx, y: a.y + t * dy, distance: Math.hypot(point.x - a.x - t * dx, point.y - a.y - t * dy) };
+    };
+    const need = (i: number) => nodeRadius(nodes[i]!) * 1.08 + 10;
+    const blocksCorridor = (i: number) => visibleLinks.some((link) => link.i !== i && link.j !== i && separation(bodies[i]!, bodies[link.i]!, bodies[link.j]!).distance < need(i));
+    const crossesCorridor = (i: number) => visibleLinks.some((link) => (link.i === i || link.j === i) && visibleLinks.some((other) => other.i !== link.i && other.i !== link.j && other.j !== link.i && other.j !== link.j && segmentCrossing(bodies[link.i]!, bodies[link.j]!, bodies[other.i]!, bodies[other.j]!)));
+    const geometryCost = () => {
+      let cost = 0;
+      for (const link of visibleLinks) {
+        const a = bodies[link.i]!, b = bodies[link.j]!;
+        cost += Math.hypot(b.x - a.x, b.y - a.y) * 0.15;
+        bodies.forEach((body, i) => { if (body.visible && i !== link.i && i !== link.j) cost += Math.max(0, need(i) - separation(body, a, b).distance) ** 2 * 12; });
+      }
+      for (let p = 0; p < visibleLinks.length; p++) for (let q = p + 1; q < visibleLinks.length; q++) {
+        const a = visibleLinks[p]!, b = visibleLinks[q]!;
+        if (a.i !== b.i && a.i !== b.j && a.j !== b.i && a.j !== b.j && segmentCrossing(bodies[a.i]!, bodies[a.j]!, bodies[b.i]!, bodies[b.j]!)) cost += 160;
+      }
+      bodies.forEach((body, i) => {
+        cost += ((body.x - originals[i]!.x) ** 2 + (body.y - originals[i]!.y) ** 2) * 0.035;
+        const adjacent = [...neighbours[i]!];
+        for (let p = 0; p < adjacent.length; p++) for (let q = p + 1; q < adjacent.length; q++) {
+          const a = bodies[adjacent[p]!]!, b = bodies[adjacent[q]!]!;
+          const angle = Math.abs(Math.atan2(Math.sin(Math.atan2(a.y - body.y, a.x - body.x) - Math.atan2(b.y - body.y, b.x - body.x)), Math.cos(Math.atan2(a.y - body.y, a.x - body.x) - Math.atan2(b.y - body.y, b.x - body.x))));
+          cost += Math.max(0, 0.6 - angle) ** 2 * 180;
+        }
+      });
+      return cost;
+    };
+    for (let i = 0; i < bodies.length; i++) {
+      const node = nodes[i]!, body = bodies[i]!, adjacent = [...neighbours[i]!];
+      if (!body.visible || node.pinned || node.ghost || node.bridge || adjacent.length !== 2 || (!blocksCorridor(i) && !crossesCorridor(i))) continue;
+      const a = bodies[adjacent[0]!]!, b = bodies[adjacent[1]!]!;
+      if (!neighbours[adjacent[0]!]!.has(adjacent[1]!)) continue;
+      const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const middle = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      let nx = -(b.y - a.y) / length, ny = (b.x - a.x) / length;
+      if ((centre.x - middle.x) * nx + (centre.y - middle.y) * ny > 0) { nx = -nx; ny = -ny; }
+      const faceCost = () => Math.max(0, need(i) + 8 - ((body.x - middle.x) * nx + (body.y - middle.y) * ny)) ** 2 * 0.08;
+      let bestCost = geometryCost() + faceCost(), chosen = { x: body.x, y: body.y };
+      const originalBends = links.map((link) => link.bend);
+      let chosenBends = originalBends;
+      const candidates: Pt[] = [];
+      for (const offset of [need(i) + 8, 50, 70, 90]) for (const along of [-0.18, 0, 0.18]) candidates.push({ x: middle.x + nx * offset + (b.x - a.x) * along, y: middle.y + ny * offset + (b.y - a.y) * along });
+      for (const position of candidates) {
+        body.x = position.x; body.y = position.y;
+        if (Math.hypot(body.x - originals[i]!.x, body.y - originals[i]!.y) > 190 || body.x - body.hw < CONTROLS_W || body.x + body.hw > W - MARGIN || body.y - body.up < 36 || body.y + body.down > H - 4) continue;
+        if (all.some((other, index) => index !== i && other.solid && boxesOverlap(body, other, 4))) continue;
+        // Preserve clearance of the layout's legacy inspector/edge geometry too.
+        const hasConflicts = () => links.some((link) => {
+          const points = edgePolyline(all[link.i]!, all[link.j]!, link.bend, 12);
+          if (link.i !== i && link.j !== i) return Boolean(hit(points, body.shape(body.x, body.y), 1));
+          return all.some((other, index) => index !== link.i && index !== link.j && other.solid && hit(points, other.shape(other.x, other.y), 1));
+        });
+        if (hasConflicts()) {
+          const obstacles = all.map((other) => other.solid ? other.shape(other.x, other.y) : null);
+          for (const link of links) if (crossingsOf(link, 0, obstacles, false) === 0) link.bend = 0;
+          chooseBends();
+        }
+        if (!hasConflicts()) {
+          const cost = geometryCost() + faceCost();
+          if (cost < bestCost - 0.1) { bestCost = cost; chosen = { ...position }; chosenBends = links.map((link) => link.bend); }
+        }
+        links.forEach((link, index) => { link.bend = originalBends[index]!; });
+      }
+      body.x = chosen.x; body.y = chosen.y;
+      links.forEach((link, index) => { link.bend = chosenBends[index]!; });
+    }
+  }
 
   bodies.forEach((b, i) => {
     nodes[i]!.x = Math.round(b.x * 10) / 10;

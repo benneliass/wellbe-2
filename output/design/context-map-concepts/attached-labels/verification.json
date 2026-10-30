@@ -1,0 +1,33 @@
+{
+  "issues": [
+    "Caption rendered outside the translated object group.",
+    "Greedy free-slot search moved Headache about 120 world units in a single drag update."
+  ],
+  "changes": [
+    "Captions share object translation and lift, stay upright, and use a smaller emphasis factor.",
+    "Warm-started local contact projection replaces distant free-slot search during dragging.",
+    "Dragged objects retain their emphasis and touching neighbours share small separations.",
+    "Growing world bounds no longer reset held connection corridors."
+  ],
+  "exact_drag": "Light sensitivity to the original Headache center, with Headache selected at 35% enlargement",
+  "browser_viewports": [
+    1774,
+    690,
+    390
+  ],
+  "unit_tests_passed": 435,
+  "browser_tests_passed": 59,
+  "browser_batches": [
+    35,
+    24
+  ],
+  "typechecks_passed": [
+    "web",
+    "ui"
+  ],
+  "live_tab_drag": "verified",
+  "screenshots": [
+    "light-into-headache.png",
+    "live-drag-fixed.png"
+  ]
+}

@@ -14,29 +14,6 @@
   gap: 9px;
   padding: 4px 6px;
 }
-.mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex: none;
-}
-/* Brand wordmark — matches the Home page treatment (Launcher .wordmark):
-   brand font (heading face), Regular weight, teal-accented "Be". */
-.word {
-  font-family: var(--font-serif-brand);
-  font-size: 22px;
-  font-weight: 400;
-  letter-spacing: -0.005em;
-  line-height: 1;
-  color: #1f3536;
-  white-space: nowrap;
-}
-.word b {
-  font-weight: 400;
-  color: var(--teal-500);
-}
-
 .moreBtn {
   display: none;
 }
@@ -159,10 +136,6 @@
 
   .brand {
     flex: 1;
-  }
-
-  .word {
-    font-size: 20px;
   }
 
   .moreBtn {

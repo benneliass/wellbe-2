@@ -19,7 +19,9 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from wellbe_c2_vault.repository import VaultRepository
 from wellbe_contracts.c13_api import ProblemCode
-from wellbe_raw_context_brain.persist.sql_store import walk
+from wellbe_raw_context_brain.persist.sql_store import person_map, walk
+from wellbe_raw_context_brain.relation import source_name
+from wellbe_raw_context_brain.router import ViewModel
 from wellbe_raw_context_brain.types import ExploreInput, SemanticData, VaultEvent
 
 from wellbe_api.config import ApiSettings
@@ -47,6 +49,25 @@ class ContextRouteResponse(BaseModel):
     route_id: str
     label: str
     kind: str
+
+
+class ContextMapNodeResponse(BaseModel):
+    id: str
+    kind: Literal["event", "pseudonode"]
+    source_type: str
+    degree: int
+    label: str
+
+
+class ContextMapLinkResponse(BaseModel):
+    source: str
+    target: str
+    reason: str
+
+
+class ContextMapResponse(BaseModel):
+    nodes: list[ContextMapNodeResponse]
+    links: list[ContextMapLinkResponse]
 
 
 class ContextExploreResponse(BaseModel):
@@ -160,6 +181,103 @@ async def run_walk(
     )
     await session.commit()
     return page
+
+
+_SKIP = {
+    "a", "an", "the", "and", "or", "of", "with", "to", "for", "in", "on", "at", "from", "by", "as",
+    "into", "over", "after", "before", "despite", "than", "more", "most", "many", "very", "began",
+    "begin", "beginning", "showed", "shown", "described", "present", "since", "during", "without",
+    "within", "not", "no", "its", "their", "this", "that", "were", "was", "are", "is", "been",
+    "had", "have", "has",
+}
+_WEAK = {
+    "loose", "recurrent", "marked", "additional", "longstanding", "high", "multiple", "negative",
+    "elevated", "repeated", "persistent", "persisted", "unintentional", "exact", "value",
+    "associated",
+}
+_PLAIN_REASON = {
+    "explicitly_linked": "you linked these",
+    "same_record_group": "same record",
+    "derived_or_copied": "copied from another record",
+    "near_in_time": "close in time",
+    "possible_semantic_association": "may relate",
+    "possible_inconsistency": "may not match",
+    "recorded_association": "may relate",
+}
+
+
+def _present(word: str) -> str:
+    if not word:
+        return ""
+    if len(word) <= 6 and word == word.upper():
+        return word
+    if any(char.isupper() for char in word[1:]):
+        return word
+    return word[0].upper() + word[1:].lower()
+
+
+def circle_label(text: str, source_type: str, captured_at: str) -> str:
+    """One word from the note for the circle. A date stands in when the note is empty."""
+    line = text.split("\n", 1)[0].strip()
+    colon = line.find(":")
+    head = line[:colon].strip() if 0 < colon <= 28 else line
+    cleaned = head.replace(";", " ").replace(",", " ").replace(".", " ").replace("/", " ")
+    words = [word for word in cleaned.split() if len(word) > 1]
+    specific = [
+        word
+        for word in words
+        if word.lower() not in _SKIP and word.lower() not in _WEAK and len(word) <= 14
+    ]
+    pick = specific[0] if specific else next((word for word in words if len(word) <= 14), "")
+    shown = _present(pick)
+    if shown:
+        return shown
+    day = captured_at[:10]
+    name = source_name(source_type)
+    return f"{name} {day}" if day else name
+
+
+def _map_response(model: ViewModel, events: list[VaultEvent]) -> ContextMapResponse:
+    by_id = {event.id: event for event in events}
+    nodes = [
+        ContextMapNodeResponse(
+            id=node.id,
+            kind=node.kind,
+            source_type=node.source_type,
+            degree=node.degree,
+            label="Record" if node.kind == "pseudonode" else circle_label(
+                "" if (event := by_id.get(node.id)) is None else event.text,
+                node.source_type,
+                "" if event is None else event.captured_at,
+            ),
+        )
+        for node in model.nodes
+    ]
+    ids = [node.id for node in model.nodes]
+    links = [
+        ContextMapLinkResponse(
+            source=ids[link.source],
+            target=ids[link.target],
+            reason=_PLAIN_REASON.get(link.reason, "may relate"),
+        )
+        for link in model.links
+        if 0 <= link.source < len(ids) and 0 <= link.target < len(ids)
+    ]
+    return ContextMapResponse(nodes=nodes, links=links)
+
+
+async def run_map(session: SessionDep, person_id: str, events: list[VaultEvent]) -> ViewModel:
+    return await session.run_sync(
+        lambda sync_session: person_map(sync_session, person_id, events)
+    )
+
+
+@router.get("/context/map", response_model=ContextMapResponse)
+async def context_map(principal: PrincipalDep, session: SessionDep) -> ContextMapResponse:
+    person_id = _controller_only(principal)
+    events = await load_person_events(session, person_id)
+    model = await run_map(session, person_id, events)
+    return _map_response(model, events)
 
 
 @router.post("/context/explore", response_model=ContextExploreResponse)

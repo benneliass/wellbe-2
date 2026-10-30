@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toThreadSummary } from "@/lib/adapters";
@@ -7,6 +7,24 @@ import { positionsKey } from "./graphDrag";
 import { DESIGN_PREVIEW_MODEL } from "./graphData";
 import { buildLiveGraph } from "./liveGraphAdapter";
 import fixture from "./liveGraph.fixture.json";
+
+// These multi-action controller integration checks render complete scenes;
+// retain headroom on shared CI runners without changing any assertions.
+vi.setConfig({ testTimeout: 15_000 });
+
+// Controller tests exercise the real objects, labels, links, gestures and panels.
+// The expensive decorative shader is covered by the browser material/visual
+// specs; rendering its lighting filters and 65-stop gradients in jsdom only
+// consumes the controller test's interaction budget on slower CI runners.
+vi.mock("../../../../packages/ui/src/map/LivingPebbleSurface", () => ({
+  LivingPebbleSurface: ({ radius, color }: { radius: number; color: string }) => (
+    <g data-porcelain-surface="" data-pebble-material="living-pebble">
+      <g data-pebble-body="" opacity={0.9}>
+        <circle data-pebble-bounds="" r={radius} fill={color} />
+      </g>
+    </g>
+  ),
+}));
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -140,6 +158,29 @@ function saved() {
 describe("GraphLive dragging", () => {
   beforeEach(() => window.localStorage.clear());
 
+  it.each(['release', 'leave', 'cancel', 'pinch'] as const)('keeps queued pan updates safe when the gesture ends by %s', (ending) => {
+    render(<GraphLive model={model} />);
+    const svg = map();
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, right: 860, bottom: 686, width: 860, height: 686, toJSON: () => ({}) });
+    const camera = svg.querySelector('[data-map-camera]')!;
+    const before = camera.getAttribute('transform')!.match(/-?[\d.]+/g)!.map(Number);
+    act(() => {
+      fireEvent.pointerDown(svg, { clientX: 100, clientY: 100 });
+      fireEvent.pointerMove(svg, { clientX: 120, clientY: 110 });
+      fireEvent.pointerMove(svg, { clientX: 140, clientY: 130 });
+      if (ending === 'pinch') fireEvent.touchStart(svg, { touches: [{ clientX: 100, clientY: 100 }, { clientX: 160, clientY: 100 }] });
+      else if (ending === 'release') fireEvent.pointerUp(svg);
+      else if (ending === 'cancel') fireEvent.pointerCancel(svg);
+      else fireEvent.pointerLeave(svg);
+    });
+    const after = camera.getAttribute('transform')!.match(/-?[\d.]+/g)!.map(Number);
+    expect(after[0]).toBeCloseTo(before[0]! + 40);
+    expect(after[1]).toBeCloseTo(before[1]! + 30);
+    expect(after[2]).toBe(before[2]);
+    fireEvent.pointerMove(svg, { clientX: 300, clientY: 300 });
+    expect(camera.getAttribute('transform')!.match(/-?[\d.]+/g)!.map(Number)).toEqual(after);
+  });
+
   it("drags a node, its links follow, and the drag doesn't open the inspector", () => {
     render(<GraphLive model={model} patientId={PATIENT} />);
     const cough = nodeEl(COUGH);
@@ -149,7 +190,13 @@ describe("GraphLive dragging", () => {
     expect(centre(nodeEl(COUGH))).toEqual({ x: before.x + 60, y: before.y + 30 });
     const edgesAfter = Array.from(map().querySelectorAll("path")).map((p) => p.getAttribute("d"));
     expect(edgesAfter).not.toEqual(edgesBefore);
-    expect(edgesAfter.some((d) => d?.startsWith(`M${before.x + 60},${before.y + 30}`) || d?.endsWith(`${before.x + 60},${before.y + 30}`))).toBe(true);
+    // Links now meet the porcelain rim, rather than running through the center.
+    const movedCenter = centre(nodeEl(COUGH));
+    const rimEndpoints = edgesAfter.flatMap((d) => {
+      const numbers = d?.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      return numbers.length >= 4 ? [{ x: numbers[0]!, y: numbers[1]! }, { x: numbers.at(-2)!, y: numbers.at(-1)! }] : [];
+    });
+    expect(rimEndpoints.some((point) => Math.hypot(point.x - movedCenter.x, point.y - movedCenter.y) < 30)).toBe(true);
     expect(within(screen.getByRole("complementary", { name: "Details" })).queryByText("Cough", { selector: "p" })).not.toBeInTheDocument();
   });
 
@@ -181,7 +228,9 @@ describe("GraphLive dragging", () => {
     const sharedBefore = centre(shared);
     drag(title, { x: 100, y: 100 }, { x: 60, y: 140 });
     expect(Number(map().querySelector(`[data-cluster-drag="${cough.id}"] text`)!.getAttribute("x"))).toBe(tx - 40);
-    expect(centre(nodeEl(COUGH))).toEqual({ x: nodeBefore.x - 40, y: nodeBefore.y + 40 });
+    const moved = centre(nodeEl(COUGH));
+    expect(moved.x).toBeCloseTo(nodeBefore.x - 40, 8);
+    expect(moved.y).toBeCloseTo(nodeBefore.y + 40, 8);
     expect(centre(nodeEl(/^Hemoglobin A1c, Lab result/))).toEqual(sharedBefore);
   });
 
@@ -235,5 +284,73 @@ describe("GraphLive design preview", () => {
     render(<GraphLive model={DESIGN_PREVIEW_MODEL} />);
     expect(screen.getByText("Design preview with sample data — not your records.")).toBeInTheDocument();
     expect(screen.getAllByText("Headaches").length).toBeGreaterThan(0);
+  });
+
+  it('preserves quick actions, hiding, restore, manual linking and dispute', async () => {
+    render(<GraphLive model={DESIGN_PREVIEW_MODEL} />);
+    const headache = () => within(map()).getByRole('button', { name: /^Headache, Symptom/ });
+    fireEvent.contextMenu(headache());
+    const menu = screen.getByRole('menu', { name: 'Quick actions' });
+    const hide = within(menu).getByRole('menuitem', { name: /Hide/ });
+    await userEvent.click(hide);
+    expect(within(map()).queryByRole('button', { name: /^Headache, Symptom/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /1 hidden · restore/ }));
+    await userEvent.click(headache());
+    await userEvent.click(screen.getByRole('button', { name: 'Link to…' }));
+    await userEvent.click(within(map()).getByRole('button', { name: /^Diet change, Personal context/ }));
+    expect(map().querySelector('[data-connection][data-source="headache"][data-target="diet"]')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Your links' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(headache());
+    await userEvent.click(screen.getByRole('button', { name: 'Why is Headache connected to Poor sleep?' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Dispute this connection' }));
+    expect(screen.queryByRole('button', { name: 'Dispute this connection' })).toBeNull();
+  });
+
+  it('preserves narration, lens, comparison consent, replay and sharing selection', async () => {
+    render(<GraphLive model={DESIGN_PREVIEW_MODEL} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Explain' }));
+    expect(screen.getByText('Explain my graph')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Close narration' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Lens' }));
+    expect(within(map()).getByRole('button', { name: /^Tension-pattern theory/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Lens' }));
+    expect(within(map()).queryByRole('button', { name: /^Hydration,/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Compare' }));
+    expect(within(map()).queryByRole('button', { name: /^Hydration,/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Turn on' }));
+    expect(within(map()).getByRole('button', { name: /^Hydration,/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Compare' }));
+    const replay = screen.getByRole('slider', { name: 'Replay timeline' });
+    fireEvent.change(replay, { target: { value: '0' } });
+    expect(within(map()).queryByRole('button', { name: /^Diet change,/ })).toBeNull();
+    fireEvent.change(replay, { target: { value: String(DESIGN_PREVIEW_MODEL.timeline.labels.length - 1) } });
+    expect(within(map()).getByRole('button', { name: /^Diet change,/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Share' }));
+    await userEvent.click(within(map()).getByRole('button', { name: /^Headache, Symptom/ }));
+    expect(screen.getByText('Select concepts to share — 1 selected.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Export 1 to visit packet' }));
+    expect(push).toHaveBeenCalledWith('/prepare');
+  });
+});
+
+describe("GraphLive source orbits and related concepts", () => {
+  it("keeps sources orbiting while related concepts expand and collapse through one control", async () => {
+    const evidence = DESIGN_PREVIEW_MODEL.nodes.find((node) => node.id === 'headache')!.evidence;
+    const mixed = { ...DESIGN_PREVIEW_MODEL, nodes: DESIGN_PREVIEW_MODEL.nodes.map((node) => node.id === 'diet' ? { ...node, evidence } : node) };
+    render(<GraphLive model={mixed} />);
+    const parent = within(map()).getByRole('button', { name: /^Diet change, Personal context/ });
+    const sourceIds = () => [...parent.querySelectorAll('[data-orbit-kind="source"]')].map((item) => item.getAttribute('data-orbit-item'));
+    const sources = sourceIds();
+    expect(sources).toHaveLength(5);
+    expect(parent.querySelectorAll('[data-orbit-kind="concept"]')).toHaveLength(3);
+    await userEvent.click(parent);
+    expect(sourceIds()).toEqual(sources);
+    expect(parent.querySelectorAll('[data-orbit-kind="concept"]')).toHaveLength(0);
+    expect(within(map()).getByRole('button', { name: /^Weight log, Personal context/ })).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: /^Collapse on map$/ }));
+    expect(sourceIds()).toEqual(sources);
+    expect(parent.querySelectorAll('[data-orbit-kind="concept"]')).toHaveLength(3);
+    expect(within(map()).queryByRole('button', { name: /^Weight log, Personal context/ })).toBeNull();
+    expect(map().querySelector('[data-source-marker]')).toBeNull();
   });
 });

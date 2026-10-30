@@ -1,0 +1,188 @@
+{
+  "390": {
+    "edges": 14,
+    "totalLength": 3300,
+    "maxDetour": 2.657,
+    "crossings": [
+      "headache/dizzy × light/screen",
+      "headache/sleep × light/screen",
+      "headache/sleep × sleep/caffeine",
+      "headache/sleep × sleep/sleepstudy",
+      "dizzy/sleep × dizzy/nausea",
+      "dizzy/sleep × sleep/fatigue",
+      "dizzy/nausea × sleep/fatigue",
+      "dizzy/nausea × nausea/bloods"
+    ],
+    "overlaps": [
+      "headache/dizzy / headache/sleep: 39px",
+      "headache/sleep / sleep/sleepstudy: 42px",
+      "dizzy/sleep / sleep/fatigue: 63px",
+      "dizzy/nausea / nausea/bloods: 30px"
+    ],
+    "obstructions": [
+      "headache/sleep through sleepstudy",
+      "sleep/caffeine through sleepstudy"
+    ],
+    "lengths": [
+      {
+        "id": "headache/light",
+        "length": 147.2,
+        "detour": 1.015
+      },
+      {
+        "id": "headache/neck",
+        "length": 143.9,
+        "detour": 1.001
+      },
+      {
+        "id": "headache/screen",
+        "length": 164.7,
+        "detour": 1.005
+      },
+      {
+        "id": "headache/dizzy",
+        "length": 202.5,
+        "detour": 1.371
+      },
+      {
+        "id": "headache/mri",
+        "length": 94.7,
+        "detour": 1.627
+      },
+      {
+        "id": "headache/sleep",
+        "length": 546.3,
+        "detour": 1.248
+      },
+      {
+        "id": "light/screen",
+        "length": 337.1,
+        "detour": 1.001
+      },
+      {
+        "id": "dizzy/sleep",
+        "length": 498.1,
+        "detour": 1.801
+      },
+      {
+        "id": "dizzy/nausea",
+        "length": 391,
+        "detour": 1.104
+      },
+      {
+        "id": "sleep/caffeine",
+        "length": 198.4,
+        "detour": 1.774
+      },
+      {
+        "id": "sleep/fatigue",
+        "length": 275.4,
+        "detour": 2.657
+      },
+      {
+        "id": "sleep/sleepstudy",
+        "length": 79.8,
+        "detour": 1.017
+      },
+      {
+        "id": "caffeine/fatigue",
+        "length": 78.6,
+        "detour": 1.002
+      },
+      {
+        "id": "nausea/bloods",
+        "length": 141.9,
+        "detour": 2.012
+      }
+    ]
+  },
+  "1774": {
+    "edges": 14,
+    "totalLength": 3027,
+    "maxDetour": 2.008,
+    "crossings": [
+      "headache/light × headache/sleep",
+      "headache/neck × light/screen",
+      "headache/dizzy × headache/sleep",
+      "headache/sleep × sleep/fatigue",
+      "dizzy/sleep × sleep/fatigue",
+      "dizzy/sleep × caffeine/fatigue",
+      "sleep/caffeine × sleep/fatigue",
+      "sleep/fatigue × caffeine/fatigue"
+    ],
+    "overlaps": [],
+    "obstructions": [],
+    "lengths": [
+      {
+        "id": "headache/light",
+        "length": 179.1,
+        "detour": 1.011
+      },
+      {
+        "id": "headache/neck",
+        "length": 105.1,
+        "detour": 1.062
+      },
+      {
+        "id": "headache/screen",
+        "length": 89.8,
+        "detour": 1
+      },
+      {
+        "id": "headache/dizzy",
+        "length": 262.6,
+        "detour": 1.179
+      },
+      {
+        "id": "headache/mri",
+        "length": 97.2,
+        "detour": 1.098
+      },
+      {
+        "id": "headache/sleep",
+        "length": 488,
+        "detour": 1.294
+      },
+      {
+        "id": "light/screen",
+        "length": 478.5,
+        "detour": 1.469
+      },
+      {
+        "id": "dizzy/sleep",
+        "length": 230.7,
+        "detour": 1.057
+      },
+      {
+        "id": "dizzy/nausea",
+        "length": 255.1,
+        "detour": 1.01
+      },
+      {
+        "id": "sleep/caffeine",
+        "length": 84.9,
+        "detour": 1.002
+      },
+      {
+        "id": "sleep/fatigue",
+        "length": 314,
+        "detour": 1.573
+      },
+      {
+        "id": "sleep/sleepstudy",
+        "length": 144,
+        "detour": 2.008
+      },
+      {
+        "id": "caffeine/fatigue",
+        "length": 118.7,
+        "detour": 1.059
+      },
+      {
+        "id": "nausea/bloods",
+        "length": 179.7,
+        "detour": 1.476
+      }
+    ]
+  }
+}

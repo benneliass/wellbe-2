@@ -8,7 +8,7 @@
  * Encodes every UI-surfaceable detail in the doc: 7 layers (XV.8), the full
  * relationship vocabulary (XV.3), investigation/theory + external context
  * (Part V.3/VIII), a Replay timeline (V.1), comparison suggestions (V.4), and
- * capture children for on-canvas expansion (III.5).
+ * related-concept expansion and persistent source-record orbits (III.5).
  */
 
 import type { EvidenceSource } from "@wellbe/ui";
@@ -62,13 +62,7 @@ export type NodeType =
   | "external";
 // XV.8 layered model
 export type LayerId = "observation" | "concept" | "thread" | "continuity" | "correction" | "investigation" | "external";
-export type SourceType = "lab" | "note" | "doc" | "wearable" | "reported" | "research";
-
-export interface Capture {
-  source: SourceType;
-  text: string;
-  date: string;
-}
+export type SourceType = NonNullable<EvidenceSource["kind"]>;
 
 export interface GraphNode {
   id: string;
@@ -89,7 +83,6 @@ export interface GraphNode {
   relatedTotal: number;
   pinned?: boolean;
   sources: SourceType[];
-  captures?: Capture[];
   /** Backing sources shown as SourceMarkers and in the EvidenceDrawer. */
   evidence?: EvidenceSource[];
   cluster?: ClusterId;
@@ -101,6 +94,8 @@ export interface GraphNode {
   lensRole?: "theory"; // investigation/theory node (V.3)
   anchor?: string; // deferred child: revealed only when its anchor is expanded (III.5)
   deferred?: boolean;
+  /** Derived view metadata; not a clinical fact or a stored-record count. */
+  satelliteCount?: number;
 }
 
 // XV.3 relationship vocabulary — raw C6 edge types are never shown.
@@ -229,10 +224,6 @@ export const LIVE_NODE_ACTIONS: NodeAction[] = [
   { id: "hide", icon: "eye", label: "Hide from map" },
 ];
 
-export function sourceLabel(s: SourceType): string {
-  return ({ lab: "lab result", note: "clinical note", doc: "document", wearable: "wearable reading", reported: "self-report", research: "reference" } as Record<SourceType, string>)[s];
-}
-
 /* ------------------------------------------------------------------------- */
 /* Design-preview fixtures — sample data, never the person's records.          */
 /* ------------------------------------------------------------------------- */
@@ -247,22 +238,22 @@ export const SEED_CLUSTERS: Cluster[] = [
 ];
 
 export const SEED_NODES: GraphNode[] = [
-  { id: "headache", label: "Headache", cluster: "head", x: 232, y: 244, ev: 14, conf: 5, act: 1, primary: true, pinned: true, type: "symptom", layer: "concept", first: "Feb 2026", last: "5 days ago", week: 1, relatedTotal: 31, sources: ["reported", "note", "doc"], captures: [
-    { source: "reported", text: "“Throbbing headache again this afternoon, behind the eyes.”", date: "Jun 14" },
-    { source: "note", text: "GP note: recurrent cephalalgia, review in 6 weeks.", date: "May 30" },
-    { source: "doc", text: "Neurology triage form — headache diary attached.", date: "May 12" },
-    { source: "reported", text: "“Headache worse on screen-heavy days.”", date: "Apr 28" },
-    { source: "wearable", text: "Elevated heart-rate logged during reported headache.", date: "Apr 20" },
+  { id: "headache", label: "Headache", cluster: "head", x: 232, y: 244, ev: 14, conf: 5, act: 1, primary: true, pinned: true, type: "symptom", layer: "concept", first: "Feb 2026", last: "5 days ago", week: 1, relatedTotal: 31, sources: ["reported", "note", "doc"], evidence: [
+    { id: "headache-cap-0", date: "2026-06-14", displayLabel: "Your note", component: "c2", kind: "reported", excerpt: "“Throbbing headache again this afternoon, behind the eyes.”" },
+    { id: "headache-cap-1", date: "2026-05-30", displayLabel: "Clinical note", component: "c2", kind: "note", excerpt: "GP note: recurrent cephalalgia, review in 6 weeks." },
+    { id: "headache-cap-2", date: "2026-05-12", displayLabel: "Document", component: "c2", kind: "doc", excerpt: "Neurology triage form — headache diary attached." },
+    { id: "headache-cap-3", date: "2026-04-28", displayLabel: "Your note", component: "c2", kind: "reported", excerpt: "“Headache worse on screen-heavy days.”" },
+    { id: "headache-cap-4", date: "2026-04-20", displayLabel: "Wearable", component: "c2", kind: "wearable", excerpt: "Elevated heart-rate logged during reported headache." },
   ] },
   { id: "light", label: "Light sensitivity", cluster: "head", x: 80, y: 172, ev: 6, conf: 4, act: 0.8, primary: false, type: "symptom", layer: "concept", first: "Mar 2026", last: "3 wks ago", week: 2, relatedTotal: 9, sources: ["reported", "note"] },
   { id: "screen", label: "Screen time", cluster: "head", x: 96, y: 356, ev: 5, conf: 3, act: 0.7, primary: false, type: "context", layer: "concept", first: "Mar 2026", last: "2 wks ago", week: 2, relatedTotal: 7, sources: ["wearable", "reported"] },
   { id: "neck", label: "Neck tension", cluster: "head", x: 300, y: 120, ev: 4, conf: 3, act: 0.6, primary: false, type: "symptom", layer: "concept", first: "Apr 2026", last: "4 wks ago", week: 3, relatedTotal: 5, sources: ["reported"] },
   { id: "mri", label: "MRI referral", cluster: "head", x: 206, y: 402, ev: 1, conf: 2, act: 0.9, primary: true, ghost: true, type: "pending", layer: "continuity", first: "May 2026", last: "awaiting result", week: 4, relatedTotal: 2, sources: ["note"] },
   { id: "dizzy", label: "Dizziness", bridge: ["head", "sleep"], x: 452, y: 232, ev: 8, conf: 4, act: 0.95, primary: true, type: "symptom", layer: "concept", first: "Feb 2026", last: "1 wk ago", week: 1, relatedTotal: 18, sources: ["reported", "note"] },
-  { id: "sleep", label: "Poor sleep", cluster: "sleep", x: 612, y: 160, ev: 11, conf: 5, act: 1, primary: true, type: "symptom", layer: "concept", first: "Jan 2026", last: "4 days ago", week: 0, relatedTotal: 24, sources: ["wearable", "reported", "note"], captures: [
-    { source: "wearable", text: "Sleep tracker: 5h12m, 3 awakenings.", date: "Jun 15" },
-    { source: "reported", text: "“Couldn't fall asleep again, mind racing.”", date: "Jun 10" },
-    { source: "note", text: "GP note: sleep hygiene discussed.", date: "May 2" },
+  { id: "sleep", label: "Poor sleep", cluster: "sleep", x: 612, y: 160, ev: 11, conf: 5, act: 1, primary: true, type: "symptom", layer: "concept", first: "Jan 2026", last: "4 days ago", week: 0, relatedTotal: 24, sources: ["wearable", "reported", "note"], evidence: [
+    { id: "sleep-cap-0", date: "2026-06-15", displayLabel: "Wearable", component: "c2", kind: "wearable", excerpt: "Sleep tracker: 5h12m, 3 awakenings." },
+    { id: "sleep-cap-1", date: "2026-06-10", displayLabel: "Your note", component: "c2", kind: "reported", excerpt: "“Couldn't fall asleep again, mind racing.”" },
+    { id: "sleep-cap-2", date: "2026-05-02", displayLabel: "Clinical note", component: "c2", kind: "note", excerpt: "GP note: sleep hygiene discussed." },
   ] },
   { id: "caffeine", label: "Late caffeine", cluster: "sleep", x: 728, y: 96, ev: 5, conf: 3, act: 0.6, primary: false, type: "context", layer: "concept", first: "Feb 2026", last: "3 wks ago", week: 1, relatedTotal: 6, sources: ["reported"] },
   { id: "fatigue", label: "Morning fatigue", cluster: "sleep", x: 692, y: 268, ev: 7, conf: 4, act: 0.85, primary: false, type: "symptom", layer: "concept", first: "Jan 2026", last: "6 days ago", week: 0, relatedTotal: 12, sources: ["wearable", "reported"] },
