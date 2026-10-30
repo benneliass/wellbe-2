@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { afterMapPaint } from './_mapGeometry';
 
-for (const width of [1774, 390]) test(`both maps share object, label and interaction styling at ${width}px`, async ({ page }) => {
+for (const width of [1774, 390]) test(`both maps share object, label and interaction styling at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 1050 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const styleOf = () => {
@@ -28,5 +28,5 @@ for (const width of [1774, 390]) test(`both maps share object, label and interac
   await expect(page.getByRole('button', { name: 'Open r02', exact: true })).toBeVisible();
   await expect(page.locator('[data-silk-link]')).toHaveCount(9);
   await expect(page.locator('[data-node-orbit], [data-map-group-light]')).toHaveCount(0);
-  if (width === 1774) await page.screenshot({ path: '/Users/benelias/repos/wellbe-2/output/design/context-map-concepts/shared-context-map.png', fullPage: true });
+  if (width === 1774) await page.screenshot({ path: testInfo.outputPath('shared-context-map.png'), fullPage: true });
 });

@@ -80,6 +80,7 @@ test('hidden special cases have distinct effects and reduced motion freezes ever
 });
 
 test('dragging pauses satellite motion without interrupting the drag or selecting the object', async ({ page }) => {
+  await page.setViewportSize({ width: 1774, height: 1050 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/design/graph');
   const node = page.locator('[data-node-id="diet"]');

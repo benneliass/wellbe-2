@@ -9,6 +9,9 @@ for (const width of [1774, 690, 390]) test(`context is a distinct in-page map vi
   await expect(graph).toBeVisible();
   await expect(graph.locator('[data-pebble-object]').first()).toHaveAttribute('data-pebble-pose', 'still');
   await page.evaluate(afterMapPaint);
+  // The responsive graph switches its viewBox after ResizeObserver runs.
+  const columnWidth = await graph.evaluate((svg) => svg.getBoundingClientRect().width);
+  await expect(graph).toHaveAttribute('viewBox', columnWidth < 640 ? '0 0 480 760' : '0 0 860 686');
   const beforeGraph = await graph.boundingBox();
   const url = page.url();
   const contextButton = page.getByRole('tab', { name: 'Context map', exact: true });
@@ -20,8 +23,11 @@ for (const width of [1774, 690, 390]) test(`context is a distinct in-page map vi
   await expect(context).toBeVisible(); await page.evaluate(afterMapPaint);
   await expect(graph).not.toBeVisible();
   await expect(contextButton).toHaveAttribute('aria-selected', 'true');
+  await expect.poll(async () => {
+    const box = (await context.boundingBox())!;
+    return Math.abs(box.width / box.height - beforeGraph!.width / beforeGraph!.height);
+  }).toBeLessThan(0.02);
   const bounds = (await context.boundingBox())!;
-  expect(Math.abs(bounds.width / bounds.height - beforeGraph!.width / beforeGraph!.height)).toBeLessThan(0.02);
   const record = context.getByRole('button', { name: 'Monday note', exact: true });
   await record.press('Enter');
   await expect(record).toHaveAttribute('aria-pressed', 'true');
