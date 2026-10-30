@@ -19,7 +19,7 @@ from wellbe_raw_context_brain.persist.graph_store import (
     snapshot_to_json,
 )
 from wellbe_raw_context_brain.persist.session_store import SessionJson
-from wellbe_raw_context_brain.router import LabOptions, RawContextLab
+from wellbe_raw_context_brain.router import LabOptions, RawContextLab, ViewModel
 from wellbe_raw_context_brain.types import ExploreInput, SemanticData, VaultEvent
 
 
@@ -167,6 +167,25 @@ def place_captured(
     result = asyncio.run(lab.place_bound_event(target))
     if result.terminal_reason == "dependency_unavailable":
         raise RuntimeError(result.detail or "context brain judge unavailable")
+
+
+def person_map(
+    session: Session,
+    person_id: str,
+    events: list[VaultEvent],
+    *,
+    table_prefix: str = "context_brain.",
+) -> ViewModel:
+    """This person's nodes and accepted links. Note text stays out of the snapshot."""
+    lab = RawContextLab(
+        LabOptions(
+            graph_store=SqlGraphStore(session, person_id, table_prefix=table_prefix),
+            session_store=SqlSessionStore(session, person_id, table_prefix=table_prefix),
+            pointer_only=True,
+        )
+    )
+    lab.bind_vault_events(events)
+    return lab.view(person_id)
 
 
 def bounded_neighbours(

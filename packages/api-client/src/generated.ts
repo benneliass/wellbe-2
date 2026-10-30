@@ -301,6 +301,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/context/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Context Map */
+        get: operations["context_map_v2_context_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/corrections": {
         parameters: {
             query?: never;
@@ -1323,6 +1340,38 @@ export interface components {
             snapshot_revision: number;
             /** Terminal Reason */
             terminal_reason: string | null;
+        };
+        /** ContextMapLinkResponse */
+        ContextMapLinkResponse: {
+            /** Reason */
+            reason: string;
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+        };
+        /** ContextMapNodeResponse */
+        ContextMapNodeResponse: {
+            /** Degree */
+            degree: number;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "event" | "pseudonode";
+            /** Label */
+            label: string;
+            /** Source Type */
+            source_type: string;
+        };
+        /** ContextMapResponse */
+        ContextMapResponse: {
+            /** Links */
+            links: components["schemas"]["ContextMapLinkResponse"][];
+            /** Nodes */
+            nodes: components["schemas"]["ContextMapNodeResponse"][];
         };
         /** ContextRouteResponse */
         ContextRouteResponse: {
@@ -3992,6 +4041,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContextExploreResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    context_map_v2_context_map_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-wellbe-actor-id"?: string | null;
+                "x-wellbe-patient-id"?: string | null;
+                "x-wellbe-actor-type"?: string;
+                "x-correlation-id"?: string | null;
+                "x-trace-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextMapResponse"];
                 };
             };
             /** @description Validation Error */
