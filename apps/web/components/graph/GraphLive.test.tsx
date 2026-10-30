@@ -8,6 +8,24 @@ import { DESIGN_PREVIEW_MODEL } from "./graphData";
 import { buildLiveGraph } from "./liveGraphAdapter";
 import fixture from "./liveGraph.fixture.json";
 
+// These multi-action controller integration checks render complete scenes;
+// retain headroom on shared CI runners without changing any assertions.
+vi.setConfig({ testTimeout: 15_000 });
+
+// Controller tests exercise the real objects, labels, links, gestures and panels.
+// The expensive decorative shader is covered by the browser material/visual
+// specs; rendering its lighting filters and 65-stop gradients in jsdom only
+// consumes the controller test's interaction budget on slower CI runners.
+vi.mock("../../../../packages/ui/src/map/LivingPebbleSurface", () => ({
+  LivingPebbleSurface: ({ radius, color }: { radius: number; color: string }) => (
+    <g data-porcelain-surface="" data-pebble-material="living-pebble">
+      <g data-pebble-body="" opacity={0.9}>
+        <circle data-pebble-bounds="" r={radius} fill={color} />
+      </g>
+    </g>
+  ),
+}));
+
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, back: vi.fn() }),
