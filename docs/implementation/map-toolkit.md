@@ -131,3 +131,7 @@ python3 scripts/check-capability-index.py
 ```
 
 Use the project's map Playwright suites against a running local app for browser verification. The existing date-format assertions require UTC for the web unit run. No backend domain behavior is changed by this toolkit extraction.
+
+## Mode changes and connection identity
+
+Cluster detail initially includes strength-three-and-above links; Explore all lowers the floor to one. Both modes can keep identical object positions while their visible edge sets differ. Complete-scene route planning can then choose different curves to reduce crossings or shared tracks. This is a routing-input change, not a different physical line renderer. `graphConnectionId` supplies the same relationship identity to React, scene planning and route lookup; filtering must not remount existing connections or associate a cached route with a different visible-array index. Controller policy tests isolate the physical SVG scene; browser tests retain coverage of real geometry, animation and input.

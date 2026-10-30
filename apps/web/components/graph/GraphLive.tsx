@@ -25,7 +25,7 @@ import { indexGraphSatellites, visibleGraphSatellites } from "./graphSatellites"
 import { layoutExpandedGraph, revealMapFamily } from "./expandedGraphLayout";
 import { graphColorConcerns, graphObjectColor } from "./graphAppearance";
 import { RadialMenu, Banner, ConsentBanner, OverviewPanel, ExplainPanel, NodePanel, EdgePanel, ListView, Legend } from "./GraphPanels";
-import { typeLabelOf, plural } from "./graphPresentation";
+import { typeLabelOf, plural, graphConnectionId } from "./graphPresentation";
 import { GraphObject } from "./GraphObject";
 import { graphGroupLight } from './graphGroupLights';
 import { graphGroupLabels } from './graphGroupLabels';
@@ -275,10 +275,12 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
   const routingObstacles = (source: string, target: string) => [
     ...visibleNodes.filter((node) => node.id !== source && node.id !== target).map((node) => routingPoint(node.id)),
   ];
-  const routedScene = useMapRoutes(visibleEdges.map((edge, index) => ({
-    id: String(index), a: routingPoint(edge.a), b: routingPoint(edge.b),
+  const routedScene = useMapRoutes(visibleEdges.map((edge) => ({
+    id: graphConnectionId(edge), a: routingPoint(edge.a), b: routingPoint(edge.b),
     obstacles: routingObstacles(edge.a, edge.b),
   })), dynamicScene.extent, dragging);
+
+  const routesById = useMemo(() => new Map(routedScene.map((entry) => [entry.id, entry])), [routedScene]);
 
   const selectedNodeId = selection.kind === "node" ? selection.id : null;
   const neighbourIds = useMemo(() => {
@@ -302,7 +304,7 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
     }
     if (linkFrom) {
       if (linkFrom !== id) {
-        setUserEdges((prev) => [...prev, { a: linkFrom, b: id, s: 4, f: "user", layer: "correction", week: scrub }]);
+        setUserEdges((prev) => [...prev, { id: `local:${crypto.randomUUID()}`, a: linkFrom, b: id, s: 4, f: "user", layer: "correction", week: scrub }]);
         setLayers((p) => ({ ...p, correction: true }));
       }
       setLinkFrom(null);
@@ -601,7 +603,9 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
                   ) : (
                     <>
                       {/* edges */}
-                      {visibleEdges.map((e, i) => {
+                      {visibleEdges.map((e) => {
+                        const connectionId = graphConnectionId(e);
+                        const planned = routesById.get(connectionId);
                         const strong = e.s >= 5;
                         const theoryEnd = nodeById[e.a]?.lensRole === "theory" || nodeById[e.b]?.lensRole === "theory";
                         const faded = (selectedNodeId && e.a !== selectedNodeId && e.b !== selectedNodeId) || (lens && e.layer !== "investigation" && !theoryEnd);
@@ -621,11 +625,11 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
                         const flow = active && !reducedMotion;
                         return (
                           <SilkConnection
-                            key={`${e.id ?? `${e.a}|${e.b}`}|${i}|balanced-routing-v3`}
-                            id={`${e.a}|${e.b}`} source={e.a} target={e.b}
+                            key={connectionId}
+                            id={connectionId} source={e.a} target={e.b}
                             sourceSegment={sharedCase ?? sourceCases[0]} targetSegment={sharedCase ?? targetCases[0]} relationship={e.f}
-                            preferredRoute={routedScene[i]?.route ? { d: routedScene[i]!.route!.d, a: routedScene[i]!.a, b: routedScene[i]!.b } : undefined}
-                            peerRoutes={routedScene.flatMap((entry, index) => index !== i && entry.route ? [entry.route.points] : [])}
+                            preferredRoute={planned?.route ? { d: planned.route.d, a: planned.a, b: planned.b } : undefined}
+                            peerRoutes={routedScene.flatMap((entry) => entry.id !== connectionId && entry.route ? [entry.route.points] : [])}
                             a={routingPoint(e.a)} b={routingPoint(e.b)}
                             obstacles={routingObstacles(e.a, e.b)}
                             viewport={dynamicScene.extent}
