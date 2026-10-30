@@ -87,21 +87,6 @@
   border: none;
   padding: 0;
 }
-/* Serif teal-accent wordmark (design-system "wordmark-serif" Regular treatment).
-   The center orb carries the logo image, so the top-left brand is the wordmark. */
-.wordmark {
-  font-family: var(--font-serif-brand);
-  font-weight: 400;
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: -0.005em;
-  color: #1f3536;
-  white-space: nowrap;
-}
-.wordmark b {
-  font-weight: 400;
-  color: var(--teal-500);
-}
 .full {
   grid-area: full;
   justify-self: end;

@@ -1,4 +1,5 @@
 import styles from "./Wordmark.module.css";
+import { WELLBE_WORDMARK_PATH } from "./wellbeWordmarkPaths";
 
 export interface WordmarkProps {
   /**
@@ -14,7 +15,7 @@ export interface WordmarkProps {
   className?: string;
 }
 
-/** The WellBe wordmark: "Well" in text color, "Be" in brand teal. A reusable brand lockup. */
+/** The reference letterforms are outlined so spacing and weight do not depend on fonts. */
 export function Wordmark({ serif = false, accentItalic = false, size = 32, className }: WordmarkProps) {
   return (
     <span
@@ -22,10 +23,12 @@ export function Wordmark({ serif = false, accentItalic = false, size = 32, class
       data-serif={serif || undefined}
       style={{ fontSize: size }}
     >
-      Well
-      <span className={styles.accent} data-italic={accentItalic || undefined}>
-        Be
-      </span>
+      {serif || accentItalic ? <>Well<span className={styles.accent} data-italic={accentItalic || undefined}>Be</span></> : <>
+        <svg className={styles.outline} viewBox="0 0 78 24" aria-hidden="true" focusable="false">
+          <path d={WELLBE_WORDMARK_PATH} fill="currentColor" fillRule="evenodd" />
+        </svg>
+        <span className={styles.accessible}>WellBe</span>
+      </>}
     </span>
   );
 }

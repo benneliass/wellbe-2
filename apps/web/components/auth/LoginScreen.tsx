@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Icon } from "@wellbe/ui";
+import { Icon, Wordmark } from "@wellbe/ui";
 import { beginSignIn, takeDemoSignInIntent } from "@/lib/oidc";
 import type { PasswordRules, SignInResult } from "@/lib/server/zitadel-login";
 import styles from "./EntryScreen.module.css";
@@ -143,11 +143,7 @@ export function LoginScreen({ authRequestId }: { authRequestId: string | null })
 
       <div className={styles.card}>
         <div className={styles.brandRow}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wellbe-mark.png" alt="" className={styles.mark} />
-          <span className={styles.word}>
-            Well<b>Be</b>
-          </span>
+          <Wordmark size={28} />
         </div>
 
         {step === "credentials" && (

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Icon } from "@wellbe/ui";
+import { Icon, Wordmark } from "@wellbe/ui";
 import { ProfileModal } from "@/components/account/ProfileModal";
 import { SettingsModal } from "@/components/account/SettingsModal";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -81,11 +81,7 @@ export function NavRail({ onCapture }: { onCapture: () => void }) {
   return (
     <aside className={styles.rail} data-more-open={moreOpen || undefined}>
       <div className={styles.brand}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={styles.mark} src="/wellbe-mark.png" alt="WellBe" />
-        <span className={styles.word}>
-          Well<b>Be</b>
-        </span>
+        <Wordmark size={24} />
         <button
           type="button"
           className={styles.moreBtn}
