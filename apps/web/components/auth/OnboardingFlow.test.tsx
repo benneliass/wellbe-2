@@ -29,6 +29,7 @@ describe("OnboardingFlow", () => {
   });
 
   it("leaves the wizard and does not start onboarding when the guided experience is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "off");
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
     render(<OnboardingFlow />);
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));

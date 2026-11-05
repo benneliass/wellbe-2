@@ -37,12 +37,11 @@ test("sample previews open without a session and never request personal records"
   expect(personalRequests).toEqual([]);
 });
 
-test("personal map routes open in the dev workspace while the guided experience is off", async ({ page }) => {
-  for (const route of ["/context", "/graph"]) {
+test("personal map routes remain guarded even with a preview query", async ({ page }) => {
+  for (const route of ["/context", "/graph", "/context?preview=design"]) {
     await page.goto(route);
-    await expect(page.getByRole("heading", { name: "Open the graph" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Dev workspace/ })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
   }
-  await page.goto("/graph?preview=design");
-  await expect(page.getByText("Design preview with sample data — not your records.").first()).toBeVisible();
 });

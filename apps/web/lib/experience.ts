@@ -4,15 +4,15 @@ import { devWorkspaceAvailable, signInDev, type Session } from "./session";
 /**
  * Guided first-run: the front door and the onboarding wizard.
  *
- * Off unless NEXT_PUBLIC_WELLBE_EXPERIENCE is "on", "1", or "true".
- * Off in the dev workspace opens the seeded identity directly so technical
- * work is not gated on the welcome, consent, and baseline steps.
+ * On unless NEXT_PUBLIC_WELLBE_EXPERIENCE is "off", "0", or "false".
+ * On, the front door stays up so a person can choose New to WellBe, the
+ * seeded Dev workspace, or Try the demo. Off, the dev workspace opens directly.
  * OIDC sign-in is never skipped. A new OIDC identity still finishes onboarding,
  * because the API refuses a workspace until that account is finalized.
  */
 export function guidedExperienceEnabled(): boolean {
   const raw = process.env.NEXT_PUBLIC_WELLBE_EXPERIENCE?.trim().toLowerCase();
-  return raw === "on" || raw === "1" || raw === "true";
+  return raw !== "off" && raw !== "0" && raw !== "false";
 }
 
 /** Dev workspace, guided flow off, and a seeded patient id to enter. */

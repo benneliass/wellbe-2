@@ -29,6 +29,7 @@ describe("RootGate", () => {
   });
 
   it("opens the seeded workspace when the guided experience is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "off");
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
     render(<RootGate />);
     expect(await screen.findByRole("heading", { name: /What do you need/ })).toBeInTheDocument();
@@ -42,6 +43,21 @@ describe("RootGate", () => {
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
     render(<RootGate />);
     expect(screen.getByText("New to WellBe")).toBeInTheDocument();
+    expect(screen.getByText("Dev workspace")).toBeInTheDocument();
+    expect(getSession()).toBeNull();
+  });
+
+  it("offers Try the demo on the front door and does not auto-enter", () => {
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
+    window.__WELLBE_AUTH_CONFIG__ = {
+      mode: "oidc",
+      issuer: "https://auth.example",
+      clientId: "web",
+      demo: true,
+    };
+    render(<RootGate />);
+    expect(screen.getByText("Sign in")).toBeInTheDocument();
+    expect(screen.getByText("Try the demo")).toBeInTheDocument();
     expect(getSession()).toBeNull();
   });
 

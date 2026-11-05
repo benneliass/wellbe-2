@@ -36,8 +36,8 @@ ARG NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=""
 ARG NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=""
 ARG NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE=""
 ARG NEXT_PUBLIC_WELLBE_API_URL=""
-# Guided first-run. Leave unset to skip the front door and onboarding wizard
-# in the dev workspace. "on", "1", or "true" restores them. OIDC sign-in is separate.
+# Guided first-run. Leave unset to show the front door and onboarding wizard.
+# "off", "0", or "false" skips them in the dev workspace. OIDC sign-in is separate.
 ARG NEXT_PUBLIC_WELLBE_EXPERIENCE=""
 ENV NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID=$NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID
 ENV NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID=$NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID
