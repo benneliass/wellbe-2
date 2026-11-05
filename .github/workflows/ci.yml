@@ -1,134 +1,177 @@
 name: CI
 
+# Three layers, one gate.
+#
+# Verify  — path-scoped jobs on every pull request and on main. A docs-only
+#           change runs the module tests and the capability check only when
+#           docs changed. The image-updater write-back does not start this
+#           workflow.
+# Package — Build images, a separate workflow. It publishes changed images.
+# Integrate — the kind smoke below, on main only, and only after verify
+#           succeeded or was skipped for a deploy-relevant change. It runs
+#           the smoke specs, not the full browser suite.
+#
+# The repo token is read-only by default, which can restore an Actions cache
+# but cannot save one. actions: write is requested here so the npm, uv, and
+# Playwright caches persist. It does not grant write access to the repository.
+
 on:
   pull_request:
   push:
     branches: [main]
+    paths-ignore:
+      - "infra/helm/wellbe-local/.argocd-source-wellbe.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # A newer pull-request commit replaces the run it supersedes. On main, queue
+  # instead: a docs commit must not cancel a cluster smoke that is already up.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  backend:
-    name: Backend — lint, type-check, test
+  changes:
+    name: Classify changes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      python: ${{ steps.flags.outputs.python }}
+      node: ${{ steps.flags.outputs.node }}
+      browser: ${{ steps.flags.outputs.browser }}
+      labs: ${{ steps.flags.outputs.labs }}
+      migrations: ${{ steps.flags.outputs.migrations }}
+      safety: ${{ steps.flags.outputs.safety }}
+      capability: ${{ steps.flags.outputs.capability }}
+      deploy: ${{ steps.flags.outputs.deploy }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install tesseract (OCR tests)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
         with:
-          version: "latest"
+          fetch-depth: 0
 
-      - name: Install Python 3.13
-        run: uv python install 3.13
-
-      - name: Lockfile up to date
-        working-directory: backend
-        run: uv lock --check
-
-      - name: Install dependencies
-        working-directory: backend
-        run: uv sync --all-packages --locked
-
-      - name: Lint (ruff)
-        working-directory: backend
-        run: uv run ruff check .
-
-      - name: Image dependency closure
-        run: uv run --no-project python scripts/qa/check_workspace_deps.py
-
-      - name: Type-check (mypy)
-        working-directory: backend
-        run: uv run mypy packages/ apps/
-
-      - name: Test
-        working-directory: backend
-        run: uv run pytest --tb=short
+      - id: flags
         env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          bash scripts/ci/collect_changed_paths.sh > /tmp/changed.txt
+          python3 scripts/ci/classify_changes.py /tmp/changed.txt > /tmp/flags.txt
+          cat /tmp/flags.txt >> "$GITHUB_OUTPUT"
+          echo "Changed paths:"
+          cat /tmp/changed.txt
+          echo "Modules:"
+          cat /tmp/flags.txt
+          {
+            echo "### CI modules"
+            echo '```'
+            cat /tmp/flags.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  classifier:
+    name: CI module tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest discover -s scripts/ci -v
+
+  backend:
+    name: Backend — lint, type-check, test
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.python == 'true' }}
+    uses: ./.github/workflows/verify-backend.yml
+    secrets: inherit
+    timeout-minutes: 20
 
   frontend:
     name: Frontend — lint, type-check, build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test
-      - run: npm run build
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.node == 'true' }}
+    uses: ./.github/workflows/verify-frontend.yml
+    timeout-minutes: 20
 
-  cluster-e2e:
-    name: Cluster e2e — kind deploy + Playwright smoke
-    # Merge-to-main gate only: PRs stay fast (lint/typecheck/unit/build), the full
-    # cluster e2e runs on push to main. See docs/implementation/home-buildout-plan.md.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [frontend]
+  browser:
+    name: Browser — Playwright
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.browser == 'true' }}
+    uses: ./.github/workflows/verify-browser.yml
+    timeout-minutes: 30
+
+  labs:
+    name: Labs — raw context brain
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.labs == 'true' }}
+    uses: ./.github/workflows/verify-labs.yml
+    timeout-minutes: 15
+
+  migrations:
+    name: Validate Alembic migrations
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.migrations == 'true' }}
+    uses: ./.github/workflows/verify-migrations.yml
+    timeout-minutes: 30
+
+  safety:
+    name: Safety evaluation
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.safety == 'true' }}
+    uses: ./.github/workflows/verify-safety.yml
+    timeout-minutes: 20
+
+  capability:
+    name: Capability index
+    needs: [changes, classifier]
+    if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.capability == 'true' }}
+    uses: ./.github/workflows/verify-capability.yml
+    timeout-minutes: 5
+
+  # A skipped verify job must not block the smoke, and a failed one must.
+  # !cancelled() is what makes GitHub evaluate this after a skipped need.
+  cluster:
+    name: Cluster smoke — kind deploy
+    needs: [changes, classifier, backend, frontend, browser, labs, migrations, safety, capability]
+    if: >-
+      ${{ !cancelled()
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && github.ref == 'refs/heads/main'
+      && needs.changes.result == 'success'
+      && needs.classifier.result == 'success'
+      && needs.changes.outputs.deploy == 'true'
+      && contains(fromJSON('["success","skipped"]'), needs.backend.result)
+      && contains(fromJSON('["success","skipped"]'), needs.frontend.result)
+      && contains(fromJSON('["success","skipped"]'), needs.browser.result)
+      && contains(fromJSON('["success","skipped"]'), needs.labs.result)
+      && contains(fromJSON('["success","skipped"]'), needs.migrations.result)
+      && contains(fromJSON('["success","skipped"]'), needs.safety.result)
+      && contains(fromJSON('["success","skipped"]'), needs.capability.result) }}
+    uses: ./.github/workflows/cluster-smoke.yml
+    timeout-minutes: 45
+
+  gate:
+    name: CI gate
+    needs: [changes, classifier, backend, frontend, browser, labs, migrations, safety, capability, cluster]
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      # ~10 images (incl. the multi-GB TimescaleDB base) are built and then
-      # copied again into the kind node; reclaim preinstalled SDK space first.
-      - name: Free runner disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          df -h /
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm ci
-      - name: Install Playwright (chromium)
-        run: npx --workspace=apps/web playwright install --with-deps chromium
-      - uses: azure/setup-helm@v4
-      - name: Create kind cluster
-        uses: helm/kind-action@v1
-        with:
-          cluster_name: desktop
-          config: infra/local/kind-cluster.yaml
-      - name: Install ingress-nginx
-        run: bash infra/k8s/setup-ingress.sh
-      # The chart runs postgres/migrations/api/workers as kind-loaded `:local`
-      # images (imagePullPolicy: Never); without them the hooks never start.
-      - name: Build + load backend images into kind
-        run: bash infra/k8s/build-images.sh desktop
-      - name: Deploy web + run Home smoke against ingress
-        run: npm run deploy:smoke
-      - name: Dump cluster diagnostics
-        if: failure()
-        run: |
-          set +e
-          ns=wellbe
-          echo "::group::kubectl get pods -A"
-          kubectl get pods -A -o wide
-          echo "::endgroup::"
-          echo "::group::jobs + events ($ns)"
-          kubectl get jobs -n "$ns" -o wide
-          kubectl get events -n "$ns" --sort-by=.lastTimestamp
-          echo "::endgroup::"
-          for job in $(kubectl get jobs -n "$ns" -o name); do
-            echo "::group::describe $job"
-            kubectl describe -n "$ns" "$job"
-            echo "::endgroup::"
-            echo "::group::logs $job (all containers)"
-            kubectl logs -n "$ns" "$job" --all-containers --prefix --tail=300
-            echo "::endgroup::"
-          done
-          for pod in $(kubectl get pods -n "$ns" --no-headers \
-              | awk '{split($2, r, "/")} $3 != "Completed" && ($3 != "Running" || r[1] != r[2]) {print $1}'); do
-            echo "::group::describe pod/$pod"
-            kubectl describe pod -n "$ns" "$pod"
-            echo "::endgroup::"
-            echo "::group::logs pod/$pod"
-            kubectl logs -n "$ns" "$pod" --all-containers --prefix --tail=300
-            echo "::endgroup::"
-          done
-          for deploy in $(kubectl get deploy -n "$ns" -o name); do
-            echo "::group::logs $deploy"
-            kubectl logs -n "$ns" "$deploy" --all-containers --prefix --tail=200
-            echo "::endgroup::"
-          done
-          exit 0
+      - name: Require every module to pass or skip
+        env:
+          RESULT_CHANGES: ${{ needs.changes.result }}
+          RESULT_CLASSIFIER: ${{ needs.classifier.result }}
+          RESULT_BACKEND: ${{ needs.backend.result }}
+          RESULT_FRONTEND: ${{ needs.frontend.result }}
+          RESULT_BROWSER: ${{ needs.browser.result }}
+          RESULT_LABS: ${{ needs.labs.result }}
+          RESULT_MIGRATIONS: ${{ needs.migrations.result }}
+          RESULT_SAFETY: ${{ needs.safety.result }}
+          RESULT_CAPABILITY: ${{ needs.capability.result }}
+          RESULT_CLUSTER: ${{ needs.cluster.result }}
+        run: python3 scripts/ci/require_job_results.py

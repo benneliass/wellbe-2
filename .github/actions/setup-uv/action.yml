@@ -1,0 +1,14 @@
+name: Set up uv
+description: Install the pinned uv and Python 3.13 used by every Python CI job.
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v4
+      with:
+        version: "0.13.5"
+        enable-cache: true
+        cache-dependency-glob: backend/uv.lock
+
+    - shell: bash
+      run: uv python install 3.13

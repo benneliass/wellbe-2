@@ -1,0 +1,29 @@
+name: Verify labs
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  labs:
+    name: Labs — raw context brain
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: labs/raw-context-brain/package-lock.json
+
+      - name: Install, type-check, test
+        working-directory: labs/raw-context-brain
+        run: |
+          npm ci
+          npm run typecheck
+          npm test

@@ -98,12 +98,12 @@ test.beforeEach(async ({ page }) => {
   await stubApi(page);
 });
 
-test("L0–L2 are visible without scrolling on a 390px phone", async ({ page }) => {
+test("L0–L2 are visible without scrolling on a 390px phone", async ({ page }, testInfo) => {
   await page.goto(`/threads/${THREAD}`);
   const rail = page.getByRole("navigation", { name: "Thread journey" });
   await expect(rail).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your story" })).toBeVisible();
-  await page.screenshot({ path: "test-results/thread-mobile-fold.png" });
+  await page.screenshot({ path: testInfo.outputPath("thread-mobile-fold.png") });
   await expect(rail.getByText("Waiting for a result", { exact: true })).toBeInViewport();
   await expect(page.getByRole("link", { name: /See what's pending/ })).toBeInViewport();
   await expect(page.getByRole("region", { name: "One question for you" })).toBeInViewport();
@@ -111,17 +111,17 @@ test("L0–L2 are visible without scrolling on a 390px phone", async ({ page }) 
   await expect(page.getByRole("list", { name: "Thread timeline" })).toHaveCount(0);
 });
 
-test("a source marker opens the evidence drawer", async ({ page }) => {
+test("a source marker opens the evidence drawer", async ({ page }, testInfo) => {
   await page.goto(`/threads/${THREAD}`);
   await page.getByRole("button", { name: /cough.*Open evidence/ }).first().click();
   const drawer = page.getByRole("dialog", { name: "Sources" });
   await expect(drawer).toBeVisible();
   await expect(drawer.getByText("Well supported")).toBeVisible();
   await page.waitForTimeout(600);
-  await page.screenshot({ path: "test-results/thread-mobile-drawer.png" });
+  await page.screenshot({ path: testInfo.outputPath("thread-mobile-drawer.png") });
 });
 
-test("the timeline opens on request, in order", async ({ page }) => {
+test("the timeline opens on request, in order", async ({ page }, testInfo) => {
   await page.goto(`/threads/${THREAD}`);
   await page.getByRole("button", { name: "Show timeline" }).click();
   const tl = page.getByRole("list", { name: "Thread timeline" });
@@ -129,5 +129,5 @@ test("the timeline opens on request, in order", async ({ page }) => {
   await expect(events).toHaveCount(5);
   await expect(events.nth(2)).toContainText("Now: waiting for a result");
   await tl.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: "test-results/thread-mobile-timeline.png", fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("thread-mobile-timeline.png"), fullPage: true });
 });
