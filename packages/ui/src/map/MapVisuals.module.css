@@ -196,5 +196,7 @@
   }
 }
 
+.metadataBadge foreignObject,
+.metadataBadge .glyph { pointer-events: none; }
 .metadataBadge[role="button"] { cursor: pointer; }
 .metadataBadge[role="button"]:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }

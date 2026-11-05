@@ -84,6 +84,9 @@ export function MapConnection(props: MapConnectionProps) {
       gradient?.setAttribute("y2", String(b.y));
       group.current?.querySelectorAll<SVGPathElement>("path").forEach((path) => path.setAttribute("d", d));
       group.current?.setAttribute("data-route-plans", String(state.current!.plans));
+      // Animated frames already realign segments after this paint. Reduced motion
+      // has no shared clock, so the wedges would stay aimed at the previous ports.
+      if (calm) group.current?.dispatchEvent(new Event('map-ports', { bubbles: true }));
     };
     repaint.current = paint;
     paint();

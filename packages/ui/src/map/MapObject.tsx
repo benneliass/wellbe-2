@@ -38,10 +38,40 @@ export function MapFocusRing({ position, radius }: { position: Point; radius: nu
 
 export function MapObjectBadge({ badge, position }: { badge: MapBadge; position: Point }) {
   const r = badge.radius ?? 7.5;
+  // The glyph is HTML inside a foreignObject. A click on that icon does not
+  // reliably bubble to this SVG group, and hover emphasis can move a phone-sized
+  // badge between pointerdown and pointerup. Capture the gesture and let the
+  // following click fall through when the pointerup already activated it.
   return <g data-metadata-badge={badge.id} data-badge-offset-x={badge.offset.x} data-badge-offset-y={badge.offset.y} className={styles.metadataBadge} transform={`translate(${position.x + badge.offset.x} ${position.y + badge.offset.y})`} role={badge.onActivate ? 'button' : undefined} tabIndex={badge.onActivate ? 0 : undefined} aria-label={badge.accessibleLabel} aria-pressed={badge.pressed}
-    onPointerDown={badge.onActivate ? (event) => event.stopPropagation() : undefined}
-    onPointerUp={badge.onActivate ? (event) => event.stopPropagation() : undefined}
-    onClick={badge.onActivate ? (event) => { event.stopPropagation(); badge.onActivate!(); } : undefined}
+    onPointerDown={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      const node = event.currentTarget;
+      node.removeAttribute('data-badge-gesture');
+      try {
+        node.setPointerCapture(event.pointerId);
+        node.setAttribute('data-badge-gesture', 'captured');
+      } catch {
+        node.setAttribute('data-badge-gesture', 'click');
+      }
+    } : undefined}
+    onPointerUp={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      const node = event.currentTarget;
+      if (node.getAttribute('data-badge-gesture') !== 'captured') return;
+      node.setAttribute('data-badge-gesture', 'done');
+      if (node.hasPointerCapture(event.pointerId)) node.releasePointerCapture(event.pointerId);
+      badge.onActivate!();
+    } : undefined}
+    onClick={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      const node = event.currentTarget;
+      if (node.getAttribute('data-badge-gesture') === 'done') {
+        node.removeAttribute('data-badge-gesture');
+        return;
+      }
+      node.removeAttribute('data-badge-gesture');
+      badge.onActivate!();
+    } : undefined}
     onKeyDown={badge.onActivate ? (event) => { event.stopPropagation(); if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); badge.onActivate!(); } } : undefined}
     style={{ pointerEvents: badge.onActivate ? 'all' : 'none', color: badge.color }}>
     <circle data-badge-glint="" className={styles.badgeGlint} r={r} fill="none" stroke={badge.color} strokeWidth="3" opacity="0.12" />
