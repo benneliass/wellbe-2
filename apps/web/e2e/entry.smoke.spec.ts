@@ -1,27 +1,33 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Guided first-run is off by default (NEXT_PUBLIC_WELLBE_EXPERIENCE).
- * A dev deployment with the seeded workspace opens it directly: no front door,
- * and /onboarding does not show the wizard. Set the flag to on to restore both.
- * OIDC sign-in is unchanged and is covered by the live suite.
+ * Guided first-run is on unless NEXT_PUBLIC_WELLBE_EXPERIENCE is off.
+ * The front door offers New to WellBe and the seeded Dev workspace. Choosing
+ * the Dev workspace is explicit. OIDC "Try the demo" is covered by the live suite.
  */
 
-test("root opens the seeded workspace without the front door", async ({ page }) => {
+test("root shows the front door and the seeded profile", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /What do you need/ })).toBeVisible();
-  await expect(page.getByText("New to WellBe")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toBeVisible();
+  await expect(page.getByText("New to WellBe")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Dev workspace/ })).toBeVisible();
 });
 
-test("onboarding redirects home while the guided experience is off", async ({ page }) => {
-  await page.goto("/onboarding");
-  await expect(page).toHaveURL(/\/$/);
+test("choosing the Dev workspace opens the launcher", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Dev workspace/ }).click();
   await expect(page.getByRole("heading", { name: /What do you need/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Welcome to WellBe/ })).toHaveCount(0);
 });
 
-test("a workspace route opens without a prior sign-in click", async ({ page }) => {
+test("starting as a new user enters the welcome step", async ({ page }) => {
+  await page.goto("/");
+  await page.getByText("New to WellBe").click();
+  await expect(page).toHaveURL(/\/onboarding$/);
+  await expect(page.getByRole("heading", { name: /Welcome to WellBe/ })).toBeVisible();
+});
+
+test("a guarded workspace route returns to the front door without a session", async ({ page }) => {
   await page.goto("/workspace");
-  await expect(page).toHaveURL(/\/workspace$/);
-  await expect(page.getByRole("heading", { name: "Carrying forward" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Dev workspace/ })).toBeVisible();
 });

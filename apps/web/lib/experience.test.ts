@@ -15,26 +15,26 @@ describe("guided experience", () => {
     vi.unstubAllEnvs();
   });
 
-  it("stays off unless the flag is on, 1, or true", () => {
-    expect(guidedExperienceEnabled()).toBe(false);
-    for (const value of ["", "off", "0", "false", "no"]) {
-      vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", value);
-      expect(guidedExperienceEnabled()).toBe(false);
-    }
-    for (const value of ["on", "ON", "1", "true"]) {
+  it("stays on unless the flag is off, 0, or false", () => {
+    expect(guidedExperienceEnabled()).toBe(true);
+    for (const value of ["", "on", "ON", "1", "true"]) {
       vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", value);
       expect(guidedExperienceEnabled()).toBe(true);
     }
+    for (const value of ["off", "OFF", "0", "false"]) {
+      vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", value);
+      expect(guidedExperienceEnabled()).toBe(false);
+    }
   });
 
-  it("skips the wizard only for a configured dev workspace", () => {
+  it("skips the wizard only when the flag is off and a dev workspace is configured", () => {
     expect(skipGuidedExperience()).toBe(false);
 
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
-    expect(skipGuidedExperience()).toBe(true);
-
-    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "on");
     expect(skipGuidedExperience()).toBe(false);
+
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "off");
+    expect(skipGuidedExperience()).toBe(true);
   });
 
   it("does not skip OIDC sign-in", () => {
@@ -51,6 +51,7 @@ describe("guided experience", () => {
   });
 
   it("enters the seeded workspace when the guided flow is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "off");
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
     const session = enterTechnicalWorkspace();
     expect(session?.patientId).toBe(PATIENT);

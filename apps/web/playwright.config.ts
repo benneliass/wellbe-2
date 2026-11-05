@@ -31,7 +31,7 @@ export default defineConfig({
         timeout: 120_000,
         env: {
           // Same seeded identity the kind web image bakes in. The guided
-          // experience stays off (NEXT_PUBLIC_WELLBE_EXPERIENCE unset).
+          // experience stays on (NEXT_PUBLIC_WELLBE_EXPERIENCE unset).
           NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID: "de7a0000-0000-4000-8000-000000000001",
           NEXT_PUBLIC_WELLBE_DEV_ACTOR_ID: "de7a0000-0000-4000-8000-000000000001",
           NEXT_PUBLIC_WELLBE_DEV_ACTOR_TYPE: "controller",

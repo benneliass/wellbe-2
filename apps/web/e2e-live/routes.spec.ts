@@ -323,17 +323,19 @@ test.describe("signed out", () => {
     await expect(page.getByRole("button", { name: /Sign in/ })).toBeVisible();
   });
 
-  test("dev mode opens the seeded workspace without the front door", async ({ page }) => {
-    test.skip(OIDC, "OIDC deployment: sign-in stays on");
+  test("front door offers the Dev workspace and signs in to the launcher", async ({ page }) => {
+    test.skip(OIDC, "OIDC deployment: no dev identities");
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /What do you need/ })).toBeVisible();
-    await expect(page.getByText("New to WellBe")).toHaveCount(0);
-    await expectCleanPage(page);
+    await expect(page.getByRole("heading", { name: /Your private health workspace/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Dev workspace/ })).toBeVisible();
     await snap(page, "00-entry");
+    await page.getByRole("button", { name: /Dev workspace/ }).click();
+    await expect(page.getByRole("heading", { name: /What do you need/ })).toBeVisible();
+    await expectCleanPage(page);
   });
 
-  test("onboarding stays off while the guided experience is off", async ({ page }) => {
-    test.skip(OIDC, "OIDC keeps the wizard for a new identity");
+  test("onboarding renders its first step", async ({ page }) => {
+    test.skip(OIDC, "needs a fresh identity; scripts/qa/journey.py onboards one");
     await page.addInitScript(() => {
       window.localStorage.setItem(
         "wellbe.session",
@@ -348,8 +350,7 @@ test.describe("signed out", () => {
       );
     });
     await page.goto("/onboarding");
-    await expect(page.getByRole("heading", { name: /What do you need/ })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Welcome to WellBe/ })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /Welcome to WellBe/ })).toBeVisible();
     await expectCleanPage(page);
     await snap(page, "15-onboarding");
   });

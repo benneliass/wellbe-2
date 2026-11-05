@@ -24,6 +24,7 @@ describe("RequireSession", () => {
   });
 
   it("opens the workspace without a prior sign-in when the guided experience is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_WELLBE_EXPERIENCE", "off");
     vi.stubEnv("NEXT_PUBLIC_WELLBE_DEV_PATIENT_ID", PATIENT);
     render(
       <RequireSession>
