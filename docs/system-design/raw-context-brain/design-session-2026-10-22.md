@@ -22,6 +22,8 @@
 
 ## Candidate routing
 
+The storage rule below was superseded on 2026-11-04. Keywords are now stored once on the content node, the first match compares those stored lists, and the small link map extends `miniMapDepth` steps from the anchor (default 10). See `README.md`, "Keyword extraction" and "Small link map."
+
 Before association assessment:
 
 1. Extract about five to ten request-scoped keywords from the new Content.

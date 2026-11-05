@@ -201,6 +201,8 @@ Its location on a visible chain or branch is determined by active links and the 
 
 **Adjacency:** Zero or more active links may reference its `Node.id`.
 
+**Keywords:** Durable routing metadata on a content node. About five to ten strings, produced once from that source's vault text when the node is created. The source text does not change, and a later placement does not replace this list. A hub has no keywords. The list is part of the context map so later logic for this person can find a way toward a related source. It is not a copy of the vault text, and it does not by itself create a link.
+
 **Identity convention:** A content node currently uses its content id as its node id. The two fields still name different domains: graph identity and evidence identity.
 
 **Group invariant:** Every Content with a non-null `sourceGroupId` has its own content node and belongs to exactly one deterministic hub for that person and group.
@@ -220,6 +222,7 @@ Its location on a visible chain or branch is determined by active links and the 
 | `contentId` | `string \| null` | Referenced `Content.id`. Required for a content node; null for a hub | `vaultEventId` |
 | `memberContentIds` | `string[]` | Referenced `Content.id` values. Empty for a content node; one or more for a hub | `memberEventIds` |
 | `personId` | `string` | Owner, the same person as the content | — |
+| `keywords` | `string[]` | Routing metadata for a content node. About five to ten strings, written once from that source's vault text. Empty for a hub. Not a copy of vault text | none |
 
 #### Node kinds
 
@@ -327,28 +330,30 @@ A failed or exhausted association search leaves the content and its isolated nod
 
 ### Keyword extraction
 
-**Definition:** Request-scoped lexical evidence derived from the new content’s stored `text`.
+**Definition:** Routing metadata derived once from a content node's vault text.
 
 The keyword model returns about five to ten strings.
 
-The list belongs to the placement session. It is not stored on the Content or Node.
+The list is stored on that content node as `keywords` when the node is created. It stays on the node. It is not dropped at the end of placement.
+
+**Founder revision — 2026-11-04:** The 2026-10-22 session treated the list as request-scoped and unstored. That storage rule is superseded here. The list is map metadata. The vault text remains the only copy of the source.
 
 ### Candidate retrieval
 
 **Definition:** After Vault stores the new Content and the Tree creates its Node, the controller chooses one earlier content node as the comparison anchor.
 
-The comparison anchor is the existing Node at the center of the first [small link map](#small-link-map) shown to the assessment model.
+The comparison anchor is the existing node the keyword match chooses to send with the new record. It is the center of the first [small link map](#small-link-map) shown to the assessment model.
 
 **Eligible comparison anchor:** Same person, authorized, content-backed, same category, untried in this placement session, and meeting the current shared-keyword bar.
 
 #### Category and keyword routing
 
-1. The keyword model reads the new Content and returns about five to ten request-scoped keywords.
-2. The controller keeps only earlier Content records with exactly the same category.
-3. For each remaining Content, it counts how many of the new Content’s keywords appear in that record’s resolved `text`.
-4. A Content is eligible when its match count is at least the current keyword bar.
-5. The controller ranks the eligible Nodes and chooses the highest-ranked untried Node as the comparison anchor.
-6. The controller builds a small link map around that anchor.
+1. When the new node is created, the keyword model reads its vault text and the resulting list is stored on the node.
+2. The controller keeps only earlier content nodes with exactly the same category.
+3. For each remaining node, it counts how many of the new node's stored keywords also appear in that node's stored keywords.
+4. A node is eligible when its match count is at least the current keyword bar.
+5. The controller ranks the eligible nodes and chooses the highest-ranked untried node as the comparison anchor. That is the node sent with the new record.
+6. The controller builds a small link map around that anchor, out to `miniMapDepth` steps. The default depth is 10.
 
 “Enough shared keywords” means “at least the current keyword bar.” Category and keywords resolve the first route into the graph; they do not create a link.
 
@@ -364,7 +369,7 @@ The comparison anchor is the existing Node at the center of the first [small lin
 
 **Approximate index:** May supply possible comparison anchors, but cannot bypass person, authorization, category, or keyword-bar eligibility.
 
-**Small link map:** Contains the new Content, the comparison anchor, and the anchor’s highest-ranked eligible one-hop neighbors from the active-link projection.
+**Small link map:** Contains the new Content, the comparison anchor, and content nodes reached by active links from the anchor out to `miniMapDepth` steps (default 10). Each listed node includes its context-map metadata, its `keywords`, and its links inside that depth. Full vault text of those earlier nodes is not included until the agent asks for one node.
 
 **Stop:** The floor has been evaluated, or no eligible untried comparison anchor remains at any remaining bar. The newly created Node remains in the Tree without an active link.
 
@@ -374,9 +379,9 @@ The comparison anchor is the existing Node at the center of the first [small lin
 
 **Route resolution:** Category, keyword bar, policy, and ranking choose the comparison anchor.
 
-**Bounded route view:** The small link map exposes only the anchor and its selected neighborhood.
+**Bounded route view:** The small link map is the routing map for this attempt. It exposes the anchor and the nodes within `miniMapDepth` of it, with each node's metadata, keywords, and links.
 
-**Routing protocol analogue:** The context controller owns candidate snapshots, retries, lower-bar requests, handles, budgets, and legal continuations. The model evaluates routes presented by the controller; it does not route itself.
+**Routing protocol analogue:** The context controller owns candidate snapshots, retries, lower-bar requests, handles, budgets, and the map it issues. The agent chooses inside that map: keep a link, open one node's full content, walk to another node already listed, or leave the new node standalone. It does not leave the issued map or set budgets.
 
 These are routing design analogues. The module does not implement a literal network protocol.
 
@@ -828,11 +833,13 @@ A rebuild fails integrity validation when required structural policy rows are mi
 
 **Definition:** The bounded part of the Tree supplied to one association-assessment request.
 
-**Contains:** The new Content representation, one comparison anchor, the selected active links around that anchor, and a bounded set of eligible one-hop neighbors.
+**Contains:** The new Content, one comparison anchor, and content nodes reached by active links from that anchor out to `miniMapDepth` steps. The default is 10. `miniMapDepth` is one named variable.
 
-**Identifiers:** The controller retains the handle-to-`Node.id` mapping. The model receives only run-scoped item handles and redacted excerpts.
+**On each listed node:** The context-map metadata, the stored `keywords`, and that node's links inside the depth. The new node's content is included. Full vault text of an earlier node is included only after the agent asks for that node.
 
-**Boundary:** One person, one category, one candidate snapshot, the current keyword bar, and the request’s model budget.
+**Identifiers:** The controller retains the handle-to-`Node.id` mapping. The model receives run-scoped item handles for the nodes on this map.
+
+**Boundary:** One person, one category, one candidate snapshot, the current keyword bar, `miniMapDepth`, and the request’s model budget.
 
 **Model visibility:** This is the model's entire local view for one assessment.
 
@@ -840,7 +847,7 @@ It contains only the selected evidence and topology needed to assess the present
 
 It does not expose the full graph, Candidate Context RIB, saved frontier, or arbitrary retrieval.
 
-**Continue inside:** The model may request another connection to an eligible neighbor already included or authorized for this small link map.
+**Continue inside:** The agent may ask for the full vault text of one node already on the map, or walk to another node already on the map.
 
 **Reject whole map:** Ends this map. The controller may issue a new lower-bar request with a different comparison anchor.
 
@@ -872,15 +879,15 @@ It does not expose the full graph, Candidate Context RIB, saved frontier, or arb
 
 **Definition:** Constrained inference component that evaluates only controller-presented endpoint proposals.
 
-**Input:** Run-scoped handles, bounded excerpts, and active-link structure from one small link map.
+**Input:** The new node's content, plus one small link map. Each listed node includes its metadata, its stored keywords, and its links within `miniMapDepth`. Full vault text of an earlier node is not in this first payload.
 
-**Output:** One structured assessment for a proposed connection between the newly created Node and one presented Node.
+**Output:** One structured assessment for a proposed connection, a request for one listed node's full content, a walk to another node already on the map, or a decision that the new node stands alone.
 
 **Handle rule:** Every returned candidate handle must have been issued in that request.
 
 **Confidence rule:** Model confidence is proposed. The controller computes retained confidence before appending the ledger row.
 
-**Authority:** The model cannot retrieve arbitrary content, issue controls, choose later bars, or write graph state.
+**Authority:** The model cannot retrieve a node outside the issued map, issue controls, choose later bars, or write graph state. It may ask for the full vault text of one node already listed.
 
 #### The three answers
 
@@ -892,7 +899,7 @@ It does not expose the full graph, Candidate Context RIB, saved frontier, or arb
 
 Only a person’s non-link correction or explicit withdrawal removes an active link.
 
-The model may ask to assess another connection inside the small link map, or reject the whole map.
+The model may ask for one listed node's full content, walk to another node on the map, or reject the whole map. A decision that nothing matches leaves the new node with no new link.
 
 ---
 
@@ -969,11 +976,11 @@ Content and graph identity now persist independently of association success.
 
 **Start:** Vault has stored the new Content and the Tree has created its Node.
 
-The controller asks the keyword model for about five to ten keywords. It then looks only at earlier Content with the same category and counts how many of those keywords appear in each one.
+The controller stores about five to ten keywords on the new node, then counts how many of those strings appear in the stored keywords of earlier nodes in the same category.
 
-At the current keyword bar, the highest-ranked untried match becomes the comparison anchor. The controller builds a small link map containing the new Content, that anchor, and selected Nodes connected to the anchor by active Links.
+At the current keyword bar, the highest-ranked untried match becomes the comparison anchor sent with the new record. The controller builds a small link map out to `miniMapDepth` steps from that anchor (default 10). Each listed node carries its metadata, its keywords, and its links inside that depth.
 
-The assessment model evaluates proposed connections inside that map. Rejecting the whole map starts a new routing request with a lower keyword bar and a different comparison anchor.
+The assessment model reads the new content against that map. It may keep a link, ask for one listed node's full content, walk to another listed node, leave the new node standalone, or reject the map. Rejecting the map starts a new routing request with a lower keyword bar and a different comparison anchor.
 
 ```mermaid
 flowchart TB
@@ -1052,7 +1059,7 @@ Clearing removes only the session and view layout. Persistent Content, Nodes, le
 
 **Exploration continuation:** Advances one pinned exploration session through controller-issued actions.
 
-**Open parameters:** Category values, X, Y, and the lowest keyword bar.
+**Open parameters:** Category values, X, Y, and the lowest keyword bar. `miniMapDepth` is set: one named variable, default 10.
 
 **Production status:** The engine is in the product package and served to the signed-in person. A stored vault record is placed, with its links, when that record is processed. Explore reads vault records by pointer and keeps the session on the server. The context map is a secondary view, and a thread record can still start the walk. Note text stays in the vault. The decision record's open parameters remain open. WEL-58 stays blocked. The lab page remains the reference for the walk.
 
