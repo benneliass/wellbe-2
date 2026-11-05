@@ -272,11 +272,17 @@ def _request_body(
     mode: str,
     corrective: bool,
 ) -> dict[str, object]:
+    # OpenAI's current chat-completions field is max_completion_tokens.
+    # Reasoning models reject max_tokens, temperature, top_p, and the penalties.
+    # A local server still expects max_tokens and a temperature.
+    if binding.completion_tokens:
+        limit: dict[str, object] = {"max_completion_tokens": row.max_tokens}
+    else:
+        limit = {"max_tokens": row.max_tokens, "temperature": 0}
     body: dict[str, object] = {
         "model": binding.model,
-        "temperature": 0,
-        "max_tokens": row.max_tokens,
         "messages": _messages(row, payload, corrective),
+        **limit,
     }
     if mode == "json_schema" and row.schema is not None:
         body["response_format"] = {

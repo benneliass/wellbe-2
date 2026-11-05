@@ -158,8 +158,8 @@ def _issued_decision_handles(value: object, payload: Mapping[str, object]) -> bo
 register_purpose(
     Purpose(
         name=_JUDGE_PURPOSE,
-        deadline_ms=20_000,
-        max_tokens=800,
+        deadline_ms=60_000,
+        max_tokens=4_096,
         fields=(Field("content", "text"), Field("issued_handles", "context")),
         kind="schema",
         schema=_DECISION_SCHEMA,

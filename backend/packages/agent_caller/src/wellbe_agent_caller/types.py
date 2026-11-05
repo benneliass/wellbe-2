@@ -21,6 +21,7 @@ class Binding:
     require_parameters: bool = False
     include_store_false: bool = False
     require_key: bool = True
+    completion_tokens: bool = False
 
 
 @dataclass(frozen=True)

@@ -22,6 +22,7 @@ def load_bindings(env: Mapping[str, str] | None = None) -> dict[str, Binding]:
             api_key=openai_key,
             model=source.get("WELLBE_AGENT_OPENAI_MODEL", "gpt-4o-mini"),
             include_store_false=True,
+            completion_tokens=True,
         )
     openrouter_key = source.get("OPENROUTER_API_KEY", "")
     if openrouter_key:

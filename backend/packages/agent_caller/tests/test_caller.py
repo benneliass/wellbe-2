@@ -119,6 +119,7 @@ def _openai() -> Binding:
         "sk-sentinel-key-qq",
         "gpt-4o-mini",
         include_store_false=True,
+        completion_tokens=True,
     )
 
 
@@ -164,6 +165,9 @@ def test_a_registered_purpose_uses_its_binding_and_keeps_the_note_out_of_the_log
     assert isinstance(payload, dict)
     assert payload["model"] == "gpt-4o-mini"
     assert payload["store"] is False
+    assert payload["max_completion_tokens"] == 1024
+    assert "max_tokens" not in payload
+    assert "temperature" not in payload
     logged = json.dumps(grab.blobs)
     assert "note-sentinel-qq" not in logged
     assert "sk-sentinel-key-qq" not in logged
@@ -206,6 +210,9 @@ def test_an_image_field_is_sent_as_given_and_text_has_no_schema() -> None:
     assert isinstance(body, dict)
     assert "response_format" not in body
     assert "provider" not in body
+    assert body["max_tokens"] == 1024
+    assert body["temperature"] == 0
+    assert "max_completion_tokens" not in body
     messages = body["messages"]
     assert isinstance(messages, list)
     user = messages[-1]["content"]
