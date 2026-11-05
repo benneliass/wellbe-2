@@ -98,6 +98,8 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
   const [disputed, setDisputed] = useState<Set<string>>(new Set());
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const holdTimer = useRef<number | null>(null);
+  const holdCommitted = useRef(false);
+  const gestureSelection = useRef<Selection | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [moved, setMoved] = useState<Positions>({});
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
@@ -392,6 +394,7 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
   function startDrag(ev: React.PointerEvent, start: Positions) {
     if (ev.pointerType === "mouse" && ev.button !== 0) return;
     suppressClick.current = false;
+    gestureSelection.current = selection;
     const svg = svgRef.current;
     if (!svg) return;
     nodeDrag.current = { pointerId: ev.pointerId, client: { x: ev.clientX, y: ev.clientY }, origin: svgToGraph(clientToSvg(svg, ev.clientX, ev.clientY, { width: VIEW_W, height: VIEW_H }), zoom), start, active: false };
@@ -408,6 +411,13 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
       if (!passedThreshold(ev.clientX - d.client.x, ev.clientY - d.client.y)) return;
       d.active = true;
       clearHold();
+      // The same press may already have opened the long-press menu. A drag leaves selection as it was.
+      if (holdCommitted.current) {
+        holdCommitted.current = false;
+        setRadial(null);
+        const prior = gestureSelection.current;
+        if (prior) setSelection(prior);
+      }
       setDragging(true);
       setRadial(null);
     }
@@ -451,7 +461,14 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
     setMoved({});
   }
   useEffect(() => () => { if (holdTimer.current !== null) window.clearTimeout(holdTimer.current); }, []);
-  function startHold(id: string) { clearHold(); holdTimer.current = window.setTimeout(() => openRadial(id), 480); }
+  function startHold(id: string) {
+    clearHold();
+    holdCommitted.current = false;
+    holdTimer.current = window.setTimeout(() => {
+      holdCommitted.current = true;
+      openRadial(id);
+    }, 480);
+  }
   function clearHold() { if (holdTimer.current) window.clearTimeout(holdTimer.current); holdTimer.current = null; }
   const narration = useMemo(() => buildNarration(clusters, visibleNodes), [clusters, visibleNodes]);
   const emptyLayers = LAYERS.filter((l) => effLayers[l.id] && !hasData[l.id] && !l.defaultOn && EMPTY_LAYER_NOTE[l.id]);

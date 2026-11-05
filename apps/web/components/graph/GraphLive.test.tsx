@@ -200,6 +200,24 @@ describe("GraphLive dragging", () => {
     expect(within(screen.getByRole("complementary", { name: "Details" })).queryByText("Cough", { selector: "p" })).not.toBeInTheDocument();
   });
 
+  it("does not keep a long-press selection when that press becomes a drag", () => {
+    vi.useFakeTimers();
+    try {
+      render(<GraphLive model={model} patientId={PATIENT} />);
+      const cough = nodeEl(COUGH);
+      fireEvent.pointerDown(cough, { pointerId: 1, pointerType: "mouse", button: 0, clientX: 200, clientY: 200 });
+      act(() => { vi.advanceTimersByTime(500); });
+      expect(within(screen.getByRole("complementary", { name: "Details" })).getByText("Cough", { selector: "p" })).toBeInTheDocument();
+      fireEvent.pointerMove(cough, { pointerId: 1, pointerType: "mouse", clientX: 260, clientY: 230 });
+      fireEvent.pointerUp(cough, { pointerId: 1, pointerType: "mouse", clientX: 260, clientY: 230 });
+      fireEvent.click(cough);
+      expect(nodeEl(COUGH)).toHaveAttribute("aria-pressed", "false");
+      expect(within(screen.getByRole("complementary", { name: "Details" })).queryByText("Cough", { selector: "p" })).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("still opens the inspector on a press that moves less than the threshold", () => {
     render(<GraphLive model={model} patientId={PATIENT} />);
     const cough = nodeEl(COUGH);

@@ -10,7 +10,7 @@ export function useGraphPins(scope: string | null) {
       const value: unknown = JSON.parse(localStorage.getItem(`wellbe.graph.pins.${scope}`) ?? '{}');
       if (value && typeof value === 'object' && !Array.isArray(value)) pins = Object.fromEntries(Object.entries(value).filter(([, pinned]) => typeof pinned === 'boolean'));
     } catch { /* Storage is optional. */ }
-    setStored({ scope, pins });
+    setStored((previous) => previous.scope === scope ? previous : { scope, pins });
   }, [scope]);
   useEffect(() => {
     if (scope && stored.scope === scope) try { localStorage.setItem(`wellbe.graph.pins.${scope}`, JSON.stringify(stored.pins)); } catch { /* Keep session preferences. */ }
