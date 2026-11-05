@@ -8,7 +8,9 @@ from typing import Any
 
 import httpx
 import pytest
-from wellbe_processing_worker import main, ocr
+from wellbe_agent_caller import Binding
+from wellbe_agent_caller.types import HttpResponse
+from wellbe_processing_worker import main, ocr, vision_cache
 from wellbe_processing_worker.vault_reader import ReadKind, VaultFetchError, VaultReader
 
 _NEW = uuid.uuid4()
@@ -171,3 +173,73 @@ async def test_placement_does_not_fetch_neighbor_bytes(monkeypatch: pytest.Monke
             [(str(_OLDER), ""), (str(_NEW), "the new pdf")],
         )
     ]
+
+
+async def test_repeated_vault_read_uses_the_vision_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    vision_cache.clear()
+    content = b"\x89PNG\r\n\x1a\nrepeated-page"
+    reads = {"extract": 0}
+
+    def local(_content: bytes, _event_id: object = None) -> ocr.DocumentText:
+        return ocr.DocumentText("too short", ocr.OcrResult("too short", 1, 0.1, "test", 1))
+
+    original = ocr.extract_document_text
+
+    async def counted(raw: bytes, event_id: object = None) -> ocr.DocumentText:
+        reads["extract"] += 1
+        return await original(raw, event_id)
+
+    class _Transport:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def post(
+            self,
+            url: str,
+            payload: dict[str, object],
+            headers: dict[str, str],
+            timeout_s: float,
+        ) -> HttpResponse:
+            self.calls += 1
+            return HttpResponse(
+                status=200,
+                body={
+                    "model": "vision-test-model",
+                    "choices": [
+                        {
+                            "message": {
+                                "content": "cached vision transcription of the same page",
+                            }
+                        }
+                    ],
+                },
+            )
+
+    monkeypatch.setattr(ocr, "extract_document_text_sync", local)
+    monkeypatch.setattr(ocr, "extract_document_text", counted)
+    transport = _Transport()
+    token = ocr.using_caller(
+        ocr.CallerOverride(
+            transport,
+            Binding(
+                name="vision-test",
+                base_url="https://vision.example/v1",
+                api_key="sk-vault-reader-test",
+                model="vision-test-model",
+            ),
+        )
+    )
+    try:
+        client = _client(
+            {f"/vault/events/{_NEW}/content": httpx.Response(200, content=content)},
+            [],
+        )
+        reader = VaultReader(client)
+        event = _event(source_type="photo", mime_type="image/png")
+        first = await reader.read(event)
+        second = await reader.read(event)
+    finally:
+        ocr.reset_caller(token)
+    assert first.text == second.text == "cached vision transcription of the same page"
+    assert reads["extract"] == 1
+    assert transport.calls == 1
