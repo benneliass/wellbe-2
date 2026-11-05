@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from wellbe_processing_worker import ocr
+from wellbe_processing_worker import ocr, vision_cache
 from wellbe_processing_worker.ocr import DocumentText
 
 
@@ -69,6 +69,9 @@ class VaultReader:
 
         if _is_document(vault_event):
             response = await self._get(f"/vault/events/{event_id}/content")
+            cached = vision_cache.recall(response.content)
+            if cached is not None:
+                return DocumentText(text=cached)
             return await ocr.extract_document_text(response.content, event_id)
 
         return DocumentText(text="")

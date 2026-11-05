@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import base64
 import io
 import json
+import logging
 import shutil
 import uuid
 from datetime import UTC, datetime
@@ -9,10 +11,12 @@ from typing import Any
 
 import pytest
 from PIL import Image, ImageDraw, ImageFont
+from wellbe_agent_caller import Binding, known_purposes
+from wellbe_agent_caller.types import HttpResponse
 from wellbe_c4_processing import ExtractionResult
 from wellbe_c4_processing.extractor import parse_lab_lines
 from wellbe_contracts.c4_processing import FactType, QualityFlag
-from wellbe_processing_worker import ocr
+from wellbe_processing_worker import ocr, vision_cache
 
 LAB_LINES = ["Ferritin: 8 ng/mL (ref 15-150)", "Hemoglobin: 10.9 g/dL (ref 12-15.5)"]
 
@@ -337,3 +341,229 @@ async def test_pipeline_extracts_ocr_labs_with_provenance(
         )
     assert labs["Ferritin"]["quality_metadata"]["raw_value"] == "8"
     assert all(link["evidence_refs"][0].confidence < 0.97 for link in linked)
+
+
+# --------------------------------------------------------------- vision read
+
+
+_LOCAL = "local reading has enough letters and digits"
+_VISION = "vision transcription of this laboratory page"
+_KEY = "sk-page-transcription-test"
+_INSTRUCTION = "Transcribe this page. Return only the words you can read."
+
+
+class _Transport:
+    def __init__(self, responses: list[HttpResponse]) -> None:
+        self.responses = responses
+        self.calls: list[dict[str, object]] = []
+
+    async def post(
+        self,
+        url: str,
+        payload: dict[str, object],
+        headers: dict[str, str],
+        timeout_s: float,
+    ) -> HttpResponse:
+        self.calls.append({"url": url, "payload": payload, "headers": dict(headers)})
+        return self.responses.pop(0)
+
+
+def _tiny_png() -> bytes:
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), "white").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _binding() -> Binding:
+    return Binding(
+        name="vision-test",
+        base_url="https://vision.example/v1",
+        api_key=_KEY,
+        model="vision-test-model",
+        require_key=True,
+    )
+
+
+def _ok(content: str) -> HttpResponse:
+    return HttpResponse(
+        status=200,
+        body={"model": "vision-test-model", "choices": [{"message": {"content": content}}]},
+    )
+
+
+def _local(text: str, confidence: float | None) -> ocr.DocumentText:
+    if confidence is None:
+        return ocr.DocumentText(text)
+    return ocr.DocumentText(text, ocr.OcrResult(text, 1, confidence, "ocr-tesseract-test", 1))
+
+
+def _image_urls(payload: object) -> list[str]:
+    assert isinstance(payload, dict)
+    messages = payload["messages"]
+    assert isinstance(messages, list)
+    found: list[str] = []
+    for message in messages:
+        assert isinstance(message, dict)
+        content = message.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            assert isinstance(part, dict)
+            image = part.get("image_url")
+            if isinstance(image, dict) and isinstance(image.get("url"), str):
+                found.append(image["url"])
+    return found
+
+
+async def _read(content: bytes, transport: _Transport) -> ocr.DocumentText:
+    token = ocr.using_caller(ocr.CallerOverride(transport, _binding()))
+    try:
+        return await ocr.extract_document_text(content, "evt-vision")
+    finally:
+        ocr.reset_caller(token)
+
+
+def test_page_transcription_is_registered_on_this_worker() -> None:
+    ocr._register_page_transcription()
+    purpose = known_purposes()["page_transcription"]
+    assert purpose.deadline_ms == 60_000
+    assert purpose.max_tokens == 4_000
+    assert purpose.kind == "text"
+    assert purpose.instruction == _INSTRUCTION
+    assert [(field.name, field.kind) for field in purpose.fields] == [("page", "image")]
+
+
+async def test_text_layer_pdf_does_not_call_page_transcription(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vision_cache.clear()
+
+    def boom(_: bytes) -> ocr.OcrResult:
+        raise AssertionError("local OCR must not run for a digital PDF")
+
+    monkeypatch.setattr(ocr, "ocr_document", boom)
+    monkeypatch.setattr(ocr, "pdf_text_layer", lambda _: "Vitamin B12: 180 pg/mL (ref 200-900)")
+    transport = _Transport([_ok(_VISION)])
+    doc = await _read(b"%PDF-1.4 digital", transport)
+    assert "B12" in doc.text
+    assert transport.calls == []
+
+
+async def test_confidence_at_the_bar_stays_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    vision_cache.clear()
+    monkeypatch.setattr(
+        ocr,
+        "extract_document_text_sync",
+        lambda *_a, **_k: _local(_LOCAL, ocr.VISION_CONFIDENCE_BAR),
+    )
+    transport = _Transport([_ok(_VISION)])
+    doc = await _read(_tiny_png(), transport)
+    assert doc.text == _LOCAL
+    assert transport.calls == []
+
+
+async def test_confidence_below_the_bar_calls_page_transcription_once(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    vision_cache.clear()
+    content = _tiny_png()
+    monkeypatch.setattr(
+        ocr,
+        "extract_document_text_sync",
+        lambda *_a, **_k: _local(_LOCAL, ocr.VISION_CONFIDENCE_BAR - 0.01),
+    )
+    transport = _Transport([_ok(_VISION)])
+    with caplog.at_level(logging.INFO):
+        doc = await _read(content, transport)
+    assert doc.text == _VISION
+    assert len(transport.calls) == 1
+    payload = transport.calls[0]["payload"]
+    urls = _image_urls(payload)
+    assert urls == [f"data:image/png;base64,{base64.standard_b64encode(content).decode('ascii')}"]
+    assert isinstance(payload, dict)
+    messages = payload["messages"]
+    assert isinstance(messages, list)
+    assert messages[0] == {"role": "system", "content": _INSTRUCTION}
+    logged = caplog.text
+    assert _VISION not in logged
+    assert _INSTRUCTION not in logged
+    assert _KEY not in logged
+    assert base64.standard_b64encode(content).decode("ascii") not in logged
+    assert content.decode("latin-1") not in logged
+
+
+async def test_empty_local_read_calls_page_transcription_with_a_png(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vision_cache.clear()
+    monkeypatch.setattr(ocr, "extract_document_text_sync", lambda *_a, **_k: ocr.DocumentText(""))
+
+    def pages(_content: bytes) -> tuple[int, Any]:
+        def render() -> Any:
+            yield Image.new("RGB", (3, 3), "black")
+
+        return 1, render()
+
+    monkeypatch.setattr(ocr, "_pdf_pages", pages)
+    transport = _Transport([_ok(_VISION)])
+    content = b"%PDF-1.4 this scan is not the image"
+    doc = await _read(content, transport)
+    assert doc.text == _VISION
+    assert len(transport.calls) == 1
+    url = _image_urls(transport.calls[0]["payload"])[0]
+    assert url.startswith("data:image/png;base64,")
+    assert "application/pdf" not in url
+    assert "%PDF-1.4" not in url
+
+
+async def test_repeated_content_hash_uses_the_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    vision_cache.clear()
+    monkeypatch.setattr(
+        ocr,
+        "extract_document_text_sync",
+        lambda *_a, **_k: _local(_LOCAL, 0.1),
+    )
+    transport = _Transport([_ok(_VISION)])
+    content = _tiny_png()
+    first = await _read(content, transport)
+    second = await _read(content, transport)
+    assert first.text == second.text == _VISION
+    assert len(transport.calls) == 1
+
+
+async def test_typed_failure_keeps_the_local_string(monkeypatch: pytest.MonkeyPatch) -> None:
+    vision_cache.clear()
+    monkeypatch.setattr(
+        ocr,
+        "extract_document_text_sync",
+        lambda *_a, **_k: _local(_LOCAL, 0.1),
+    )
+    content = _tiny_png()
+    transport = _Transport([HttpResponse(status=400, body={"error": {"message": "no"}})])
+    doc = await _read(content, transport)
+    assert doc.text == _LOCAL
+    assert len(transport.calls) == 1
+    assert vision_cache.recall(content) is None
+
+    vision_cache.clear()
+    monkeypatch.setattr(ocr, "extract_document_text_sync", lambda *_a, **_k: ocr.DocumentText(""))
+    empty = _Transport([HttpResponse(status=400, body={"error": {"code": "bad"}})])
+    missed = await _read(content, empty)
+    assert missed.text == ""
+    assert vision_cache.recall(content) is None
+
+
+async def test_unusable_vision_text_does_not_replace_the_local_string(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vision_cache.clear()
+    monkeypatch.setattr(
+        ocr,
+        "extract_document_text_sync",
+        lambda *_a, **_k: _local(_LOCAL, 0.1),
+    )
+    content = _tiny_png()
+    transport = _Transport([_ok("x")])
+    doc = await _read(content, transport)
+    assert doc.text == _LOCAL
+    assert vision_cache.recall(content) is None

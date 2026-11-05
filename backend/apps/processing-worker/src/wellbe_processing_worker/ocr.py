@@ -1,14 +1,16 @@
-"""Local OCR for image-only documents (scanned PDFs, photos) via the Tesseract CLI.
+"""Local OCR for image-only documents, with a vision read when that read is unsure.
 
-Health data must never leave the homeserver: PDF rendering (pypdfium2), image
-preparation (Pillow) and recognition (a ``tesseract`` subprocess) all run inside
-the worker container. No network calls are made here.
+PDF rendering, image preparation, and Tesseract run in this process. A digital
+PDF with a usable text layer stays here. A low-confidence or empty local read
+sends this file's page image to the shared caller purpose ``page_transcription``.
 """
 
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
+import contextvars
 import io
 import logging
 import os
@@ -23,8 +25,20 @@ from typing import Any
 
 import pypdfium2 as pdfium
 from PIL import Image, ImageOps, ImageSequence, UnidentifiedImageError
+from wellbe_agent_caller import (
+    AskFailure,
+    AskSuccess,
+    Binding,
+    Field,
+    Purpose,
+    ask,
+    register_purpose,
+)
+from wellbe_agent_caller.types import Transport
 from wellbe_c4_processing import ExtractionResult, compute_quality_flag
 from wellbe_contracts.c4_processing import QualityFlag
+
+from wellbe_processing_worker import vision_cache
 
 logger = logging.getLogger("wellbe.processing_worker.ocr")
 
@@ -44,6 +58,13 @@ MAX_UPSCALE = 3.0
 # stamps, page numbers) and the document is OCR'd instead.
 MIN_MEANINGFUL_CHARS = 20
 OCR_CONFIDENCE_FLOOR = 0.3
+# Below this, a fact needs review. The same bar sends the page to vision.
+VISION_CONFIDENCE_BAR = 0.60
+
+_PAGE_PURPOSE = "page_transcription"
+_PAGE_INSTRUCTION = "Transcribe this page. Return only the words you can read."
+_PNG = b"\x89PNG\r\n\x1a\n"
+_JPEG = b"\xff\xd8\xff"
 
 _OCR_SEMAPHORE = asyncio.Semaphore(1)
 _FLAG_SEVERITY = {
@@ -338,10 +359,136 @@ def extract_document_text_sync(content: bytes, event_id: object = None) -> Docum
     return DocumentText(result.text, result)
 
 
+@dataclass(frozen=True)
+class CallerOverride:
+    """Test seam. Production leaves this unset and uses the caller's own binding."""
+
+    transport: Transport
+    binding: Binding
+
+
+_caller: contextvars.ContextVar[CallerOverride | None] = contextvars.ContextVar(
+    "page_transcription_caller", default=None
+)
+
+
+def using_caller(override: CallerOverride) -> contextvars.Token[CallerOverride | None]:
+    return _caller.set(override)
+
+
+def reset_caller(token: contextvars.Token[CallerOverride | None]) -> None:
+    _caller.reset(token)
+
+
+def _register_page_transcription() -> None:
+    """This worker's own purpose row. The caller package does not name it."""
+    register_purpose(
+        Purpose(
+            name=_PAGE_PURPOSE,
+            deadline_ms=60_000,
+            max_tokens=4_000,
+            fields=(Field("page", "image"),),
+            kind="text",
+            instruction=_PAGE_INSTRUCTION,
+        )
+    )
+
+
+def _data_url(media_type: str, raw: bytes) -> str:
+    encoded = base64.standard_b64encode(raw).decode("ascii")
+    return f"data:{media_type};base64,{encoded}"
+
+
+def _png_data_url(image: Image.Image) -> str:
+    buf = io.BytesIO()
+    image.convert("RGB").save(buf, format="PNG")
+    return _data_url("image/png", buf.getvalue())
+
+
+def _page_data_urls(content: bytes) -> list[str]:
+    """This file only, as PNG or JPEG, within the local page bound. Never a PDF."""
+    if content.startswith(_PNG):
+        return [_data_url("image/png", content)]
+    if content.startswith(_JPEG):
+        return [_data_url("image/jpeg", content)]
+    try:
+        _total, pages = _pdf_pages(content) if is_pdf_bytes(content) else _image_pages(content)
+    except OcrRejectedError:
+        return []
+    urls: list[str] = []
+    with contextlib.closing(pages) as page_iter:
+        for image in page_iter:
+            urls.append(_png_data_url(image))
+            if len(urls) >= MAX_PAGES:
+                break
+    return urls
+
+
+def _needs_vision(document: DocumentText) -> bool:
+    if not has_usable_text(document.text):
+        return True
+    if document.ocr is None:
+        return False
+    return document.ocr.mean_confidence < VISION_CONFIDENCE_BAR
+
+
+async def _transcribe(content: bytes, event_id: object) -> str | None:
+    urls = _page_data_urls(content)
+    if not urls:
+        return None
+    _register_page_transcription()
+    override = _caller.get()
+    pages: list[str] = []
+    for url in urls:
+        try:
+            outcome = await ask(
+                _PAGE_PURPOSE,
+                {"page": url},
+                transport=None if override is None else override.transport,
+                binding=None if override is None else override.binding,
+            )
+        except Exception:
+            logger.warning("document %s: page_transcription failed", event_id)
+            return None
+        if not isinstance(outcome, AskSuccess) or not isinstance(outcome.value, str):
+            code = outcome.code if isinstance(outcome, AskFailure) else "invalid_output"
+            logger.info(
+                "document %s: page_transcription kept the local read (%s)",
+                event_id,
+                code,
+            )
+            return None
+        pages.append(outcome.value)
+    text = "\n\n".join(page.strip() for page in pages if page.strip())
+    if not has_usable_text(text):
+        logger.info("document %s: page_transcription kept the local read", event_id)
+        return None
+    logger.info(
+        "document %s: page_transcription pages=%d chars=%d",
+        event_id,
+        len(urls),
+        len(text),
+    )
+    return text
+
+
 async def extract_document_text(content: bytes, event_id: object = None) -> DocumentText:
-    """Async wrapper: OCR is CPU-bound, so run it off-loop, one document at a time."""
+    """Local text, then one vision read when that text is missing or unsure.
+
+    A repeated content hash returns the cached vision string and does not ask again.
+    """
+    cached = vision_cache.recall(content)
+    if cached is not None:
+        return DocumentText(text=cached)
     async with _OCR_SEMAPHORE:
-        return await asyncio.to_thread(extract_document_text_sync, content, event_id)
+        local = await asyncio.to_thread(extract_document_text_sync, content, event_id)
+    if not _needs_vision(local):
+        return local
+    transcribed = await _transcribe(content, event_id)
+    if transcribed is None:
+        return local
+    vision_cache.remember(content, transcribed)
+    return DocumentText(text=transcribed)
 
 
 # ---------------------------------------------------------------- provenance
