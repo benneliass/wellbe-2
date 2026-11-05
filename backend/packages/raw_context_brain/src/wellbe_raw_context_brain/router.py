@@ -17,9 +17,22 @@ from dataclasses import dataclass, field, replace
 from functools import cmp_to_key
 from typing import Literal, cast
 
+from wellbe_agent_caller import AskFailure, Binding
+from wellbe_agent_caller.types import Transport
+
 from wellbe_raw_context_brain.hnsw import HnswIndex
 from wellbe_raw_context_brain.integrity.structural import assert_structural_ledger
 from wellbe_raw_context_brain.judge import heuristic_judge, sanitize_decision
+from wellbe_raw_context_brain.keywords import (
+    KEYWORD_BARS,
+    AnchorCandidate,
+    KeywordSession,
+    MapSource,
+    build_mini_map,
+    choose_anchor,
+    model_payload,
+    request_keywords,
+)
 from wellbe_raw_context_brain.persist.graph_store import (
     DurableSnapshot,
     GraphStore,
@@ -97,6 +110,7 @@ from wellbe_raw_context_brain.types import (
     LinkAdvertisement,
     LinkJudge,
     LocalCount,
+    MiniMap,
     NextRoute,
     PointerNode,
     PruneRecord,
@@ -195,6 +209,10 @@ class LabOptions:
     session_store: SessionStore | None = None
     # Durable snapshots keep pointers. Note text is read from the vault per request.
     pointer_only: bool = False
+    # When either is set, placement uses stored keywords and does not fall back
+    # to the overlap heuristic. Both unset keeps today's heuristic placement.
+    keyword_binding: Binding | None = None
+    keyword_transport: Transport | None = None
 
 
 @dataclass(frozen=True)
@@ -398,6 +416,9 @@ class RawContextLab:
         self._graph_store = options.graph_store
         self._session_store: SessionStore = options.session_store or MemorySessionStore()
         self._pointer_only = options.pointer_only
+        self._keyword_binding = options.keyword_binding
+        self._keyword_transport = options.keyword_transport
+        self._keyword_sessions: dict[str, KeywordSession] = {}
         self._in_flight = 0
         self._nodes: dict[str, PointerNode] = {}
         self._indexes: dict[str, HnswIndex] = {}
@@ -698,16 +719,9 @@ class RawContextLab:
     async def place_bound_event(self, event: VaultEvent) -> IngestResult:
         """Judge one vault record that is already bound. A repeat does not add links."""
         if event.id in self._placed:
-            return IngestResult(
-                event_id=event.id,
-                candidate_count=0,
-                export_bytes=0,
-                judgments=(),
-                terminal_reason=None,
-                detail="",
-                route_revision=None,
-                pruned=(),
-            )
+            return self._empty_ingest(event.id)
+        if self._keyword_transport is not None or self._keyword_binding is not None:
+            return await self._place_by_keywords(event)
         event_id = event.id
         candidate_ids = self._select_candidates(
             event.person_id,
@@ -842,6 +856,176 @@ class RawContextLab:
             detail="",
             route_revision=published[0],
             pruned=tuple(published[1]),
+        )
+
+    def lower_keyword_bar(self, event_id: str) -> IngestResult:
+        """Ask again at the next lower bar, excluding anchors already tried.
+
+        Does not write a link. A pass that finds nothing leaves the record in place.
+        """
+        session = self._keyword_sessions.get(event_id)
+        event = self.vault.get(event_id)
+        if session is None or event is None or not event.keywords:
+            return self._empty_ingest(event_id)
+        if session.anchor_id and session.anchor_id not in session.tried:
+            session.tried.append(session.anchor_id)
+        if session.bar_index < len(KEYWORD_BARS) - 1:
+            session.bar_index += 1
+        result = self._keyword_map(event, session)
+        self._save_durable()
+        return result
+
+    async def _place_by_keywords(self, event: VaultEvent) -> IngestResult:
+        stored = self.vault.get(event.id)
+        if stored is None:
+            self.vault.append(event)
+            stored = event
+        if event.id not in self._nodes:
+            self._nodes[event.id] = empty_pointer(stored)
+        if not stored.keywords:
+            found = await request_keywords(
+                stored.text,
+                binding=self._keyword_binding,
+                transport=self._keyword_transport,
+            )
+            if isinstance(found, AskFailure):
+                if found.code != "dependency_unavailable":
+                    self._placed.add(event.id)
+                self._save_durable()
+                reason: TerminalReason | None = (
+                    "dependency_unavailable" if found.code == "dependency_unavailable" else None
+                )
+                return IngestResult(
+                    event_id=event.id,
+                    candidate_count=0,
+                    export_bytes=0,
+                    judgments=(),
+                    terminal_reason=reason,
+                    detail=DETAILS["dependency_unavailable"] if reason else "",
+                    route_revision=None,
+                    pruned=(),
+                )
+            stored = replace(stored, keywords=found)
+            self.vault.replace(stored)
+        session = self._keyword_sessions.setdefault(event.id, KeywordSession())
+        result = self._keyword_map(stored, session)
+        self._placed.add(event.id)
+        self._save_durable()
+        return result
+
+    def _keyword_map(self, event: VaultEvent, session: KeywordSession) -> IngestResult:
+        anchor = self._seek_keyword_anchor(event, session)
+        session.anchor_id = anchor
+        mini = None
+        if anchor is not None:
+            mini = self._mini_map(event, anchor, session.tried, KEYWORD_BARS[session.bar_index])
+        payload = {} if mini is None else model_payload(mini)
+        encoded = json.dumps(payload, separators=(",", ":")).encode() if payload else b""
+        return IngestResult(
+            event_id=event.id,
+            candidate_count=0 if anchor is None else 1,
+            export_bytes=len(encoded),
+            judgments=(),
+            terminal_reason=None,
+            detail="",
+            route_revision=None,
+            pruned=(),
+            anchor_id=anchor,
+            keywords=event.keywords,
+            mini_map=mini,
+        )
+
+    def _seek_keyword_anchor(self, event: VaultEvent, session: KeywordSession) -> str | None:
+        candidates = self._keyword_candidates(event)
+        while True:
+            chosen = choose_anchor(
+                event.keywords,
+                candidates,
+                bar=KEYWORD_BARS[session.bar_index],
+                tried=session.tried,
+            )
+            if chosen is not None or session.bar_index >= len(KEYWORD_BARS) - 1:
+                return chosen
+            session.bar_index += 1
+
+    def _keyword_candidates(self, event: VaultEvent) -> list[AnchorCandidate]:
+        """Same person, same category, stored keywords. Hubs are never anchors.
+
+        The approximate index is not consulted. It cannot bypass the person,
+        the category, or the keyword bar.
+        """
+        if not event.category or not event.keywords:
+            return []
+        found: list[AnchorCandidate] = []
+        for other in self.vault.list():
+            if other.id == event.id or other.person_id != event.person_id:
+                continue
+            if other.category != event.category or not other.keywords:
+                continue
+            node = self._nodes.get(other.id)
+            if node is None or node.kind == "pseudonode" or node.person_id != event.person_id:
+                continue
+            found.append(
+                AnchorCandidate(
+                    node_id=other.id,
+                    keywords=other.keywords,
+                    inverse_degree=inverse_degree(self.projection.degree(other.id)),
+                )
+            )
+        return found
+
+    def _mini_map(
+        self,
+        event: VaultEvent,
+        anchor_id: str,
+        tried: list[str],
+        bar: int,
+    ) -> MiniMap:
+        sources: dict[str, MapSource] = {}
+        for item in self.vault.list():
+            if item.person_id != event.person_id:
+                continue
+            node = self._nodes.get(item.id)
+            sources[item.id] = MapSource(
+                node_id=item.id,
+                keywords=item.keywords,
+                source_type=item.source_type,
+                captured_at=item.captured_at,
+                category=item.category,
+                content=item.text if item.id == event.id else None,
+                is_hub=node is not None and node.kind == "pseudonode",
+            )
+        for node in self._nodes.values():
+            if node.person_id != event.person_id or node.id in sources:
+                continue
+            sources[node.id] = MapSource(
+                node_id=node.id,
+                keywords=(),
+                source_type="hub",
+                captured_at="",
+                category=None,
+                content=None,
+                is_hub=node.kind == "pseudonode",
+            )
+        return build_mini_map(
+            new_id=event.id,
+            anchor_id=anchor_id,
+            bar=bar,
+            nodes=sources,
+            neighbors=self.projection.neighbors,
+            excluded=tried,
+        )
+
+    def _empty_ingest(self, event_id: str) -> IngestResult:
+        return IngestResult(
+            event_id=event_id,
+            candidate_count=0,
+            export_bytes=0,
+            judgments=(),
+            terminal_reason=None,
+            detail="",
+            route_revision=None,
+            pruned=(),
         )
 
     def explore(self, explore_input: ExploreInput) -> SemanticData:

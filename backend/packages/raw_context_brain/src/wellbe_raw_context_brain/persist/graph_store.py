@@ -97,6 +97,12 @@ def _string(value: object) -> str:
     return value
 
 
+def _keywords(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise _unreadable()
+    return tuple(value)
+
+
 def _string_or_none(value: object) -> str | None:
     if value is None:
         return None
@@ -182,6 +188,7 @@ def _event_payload(event: VaultEvent) -> dict[str, object]:
         "copied_from_id": event.copied_from_id,
         "document_id": event.document_id,
         "category": event.category,
+        "keywords": list(event.keywords),
     }
 
 
@@ -263,6 +270,9 @@ def _parse_event(value: object) -> VaultEvent:
     category = None
     if "category" in record:
         category = _string_or_none(record["category"])
+    keywords: tuple[str, ...] = ()
+    if "keywords" in record:
+        keywords = _keywords(record["keywords"])
     return VaultEvent(
         id=_string(_required(record, "id")),
         person_id=_string(_required(record, "person_id")),
@@ -277,6 +287,7 @@ def _parse_event(value: object) -> VaultEvent:
         source_arrival=arrival,
         copied_from_id=copied_from_id,
         category=category,
+        keywords=keywords,
     )
 
 
