@@ -6,6 +6,7 @@ import { Icon } from "@wellbe/ui";
 import type { components } from "@wellbe/api-client";
 import { getApiClient } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { enterTechnicalWorkspace, skipGuidedExperience } from "@/lib/experience";
 import { updateSession } from "@/lib/session";
 import { useSession } from "@/lib/useSession";
 import styles from "./OnboardingFlow.module.css";
@@ -30,15 +31,23 @@ export function OnboardingFlow() {
   const [goals, setGoals] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // No session at all -> the user reached onboarding without a front-door choice.
+  // No session, an already-finalized account, or the guided flow switched off
+  // -> leave the wizard. The dev workspace opens directly when it is off.
   useEffect(() => {
-    if (session === null) router.replace("/");
-    else if (session?.onboarded) router.replace("/");
+    if (session === undefined) return;
+    if (skipGuidedExperience()) {
+      // signInDev always notifies subscribers, so only call it when this visit
+      // is not already the seeded workspace. Repeating it loops the effect.
+      if (!session?.onboarded) enterTechnicalWorkspace();
+      router.replace("/");
+      return;
+    }
+    if (session === null || session.onboarded) router.replace("/");
   }, [session, router]);
 
   // Open (or resume) the pending onboarding draft to load the core-consent set.
   useEffect(() => {
-    if (!session || session.onboarded) return;
+    if (skipGuidedExperience() || !session || session.onboarded) return;
     let active = true;
     (async () => {
       try {
@@ -87,6 +96,10 @@ export function OnboardingFlow() {
   }
 
   const consent = state?.core_consent ?? [];
+
+  if (session === undefined || skipGuidedExperience() || session === null || session.onboarded) {
+    return null;
+  }
 
   return (
     <div className={styles.screen}>

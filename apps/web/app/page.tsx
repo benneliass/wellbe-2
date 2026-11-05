@@ -1,7 +1,7 @@
 import { RootGate } from "@/components/auth/RootGate";
 import { RootFrame } from "@/components/shell/RootFrame";
 
-/** Root: the front door. Gated on an explicit session — never auto-entered. */
+/** Root. The guided front door is off unless NEXT_PUBLIC_WELLBE_EXPERIENCE is on. */
 export default function Home() {
   return (
     <RootFrame>
