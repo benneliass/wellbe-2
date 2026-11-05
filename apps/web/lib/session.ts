@@ -1,14 +1,13 @@
 /**
  * Frontend session (WEL-151).
  *
- * The session is established by an *explicit* sign-in — never baked in. There is
- * no auto-login. This is the single place that resolves "who is acting", modelled
- * on the OIDC (issuer, subject) federated identity the backend's resolve_identity
- * expects.
+ * The session is the single place that resolves "who is acting", modelled on the
+ * OIDC (issuer, subject) federated identity the backend's resolve_identity expects.
  *
  * Identity is held client-side (localStorage) so a sign-in survives reloads but is
- * never persisted into the build. The NEXT_PUBLIC dev env is NOT an auto-session;
- * it only supplies the default patient id for the explicitly-chosen "Dev workspace".
+ * never persisted into the build. The NEXT_PUBLIC dev env supplies the patient id
+ * for the seeded "Dev workspace". lib/experience.ts calls signInDev() when the
+ * guided first-run is off. It does not sign anyone in by itself.
  *
  * In OIDC mode (lib/auth-config) the session is a projection of the ZITADEL login
  * (issuer/subject from the token, patient id from onboarding), kept in

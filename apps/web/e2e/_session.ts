@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test";
 
 /**
- * Inject an onboarded session before the app loads. There is no auto-login
- * (WEL-151), so workspace/launcher smoke flows must establish a session first.
- * This mirrors what the Dev workspace sign-in produces, but is build-arg
- * independent so it works against any deployed web image.
+ * Inject an onboarded session before the app loads.
+ * With the guided experience off, a build that has the seeded patient id also
+ * signs that workspace in. This injection keeps smoke flows independent of
+ * that build arg, and matches the Dev workspace sign-in.
  */
 const DEV_PATIENT_ID = "de7a0000-0000-4000-8000-000000000001";
 
