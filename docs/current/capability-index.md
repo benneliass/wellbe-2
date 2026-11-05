@@ -39,6 +39,7 @@ Current behavior in code. Not identity, not intent, and not a decision record. C
 | processing | partial | A worker extracts facts with keyword rules and reads one vault record at a time: stored typed text, a PDF text layer, or local Tesseract. Placement does not fetch earlier records. | `backend/apps/processing-worker` | Extraction is not a model-based NER pipeline. Stored keyword lists and the comparison anchor are not built yet. | C4 |
 | continuity-worker | shipped | Due pending items are swept on a timer. | `backend/apps/continuity-worker` | | C9 |
 | safety-gate | partial | User-facing model output is checked by a fail-closed deterministic safety service. | `backend/apps/safety-gate` | NeMo Guardrails and Llama Guard are not in the gate. | C10 |
+| agent-caller | partial | One caller sends a named purpose to a configured chat-completions binding. Keyword, link judgment, and vision read share that path. A direct vendor URL is no longer held by the context judge. | `backend/packages/agent_caller` | Capture does not call it yet. A purpose runs only after its binding is selected. | C10 |
 | audit-service | partial | The audit service exposes the audit and notification derive endpoints. | `backend/apps/audit-service` | The ledger used by the standalone service is in memory. | C12 |
 | local-stack | shipped | Local Postgres and the app can be brought up with the repo's compose, kind, and Helm chart. | `infra/local` | | |
 | migrations | shipped | Alembic migrations through the current component schemas are in the repo. | `db/migrations` | | |
@@ -48,7 +49,7 @@ Current behavior in code. Not identity, not intent, and not a decision record. C
 | id | status | does | evidence | gap | intent |
 |---|---|---|---|---|---|
 | mobile | partial | The mobile package is an Expo shell with no screens. | `apps/mobile/index.ts` | No mobile UI is built. | |
-| temporal-ocr | partial | A Temporal worker is registered for durable OCR. | `backend/apps/temporal-worker` | Its OCR activities return placeholder text. | C4 |
+| temporal-ocr | partial | A Temporal worker is registered for durable OCR. Its vision step calls the shared agent caller and returns no text when that call has no page or fails. | `backend/apps/temporal-worker` | PaddleOCR and Tesseract still return placeholder text. | C4 |
 | webauthn | designed | Passkey login is specified for trust and consent and is not in the sign-in flow. | | Passkeys are not implemented. | C1 |
 | cross-patient | deferred | Comparing this person's record with other people is specified as opt-in and is not a running feature. | | | WB2-F032 |
 | fhir-import | deferred | Pulling records from a care institution is specified as user-initiated and is not built. | | | WB2-F041 |

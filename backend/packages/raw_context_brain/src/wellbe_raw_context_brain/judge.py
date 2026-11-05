@@ -1,13 +1,16 @@
-"""Local judge. Clinical reason codes abstain. A match is not a permitted link reason."""
+"""Local judge. Clinical reason codes abstain. A match is not a permitted link reason.
+
+The question stays here. The URL stays in the shared agent caller.
+"""
 
 from __future__ import annotations
 
 import json
 import re
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
-from typing import Protocol
+
+from wellbe_agent_caller import AskFailure, Binding, Purpose, ask, register_purpose
+from wellbe_agent_caller.types import Transport
 
 from wellbe_raw_context_brain.text import jaccard
 from wellbe_raw_context_brain.types import JudgeDecision, JudgeRequest, Judgment, LinkJudge
@@ -110,103 +113,76 @@ def heuristic_judge() -> LinkJudge:
     return HeuristicJudge()
 
 
-class _FetchResponse(Protocol):
-    @property
-    def status(self) -> int: ...
+_JUDGE_PURPOSE = "context_judge_decisions"
 
-    def json(self) -> object: ...
+_DECISION_SCHEMA: dict[str, object] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["decisions"],
+    "properties": {
+        "decisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["handle", "judgment", "reasonCode", "confidence"],
+                "properties": {
+                    "handle": {"type": "string"},
+                    "judgment": {"type": "string", "enum": ["link", "no_link", "uncertain"]},
+                    "reasonCode": {"type": "string"},
+                    "confidence": {"type": "number"},
+                },
+            },
+        }
+    },
+}
 
-
-class _Fetch(Protocol):
-    def __call__(
-        self,
-        url: str,
-        payload: bytes,
-        headers: dict[str, str],
-        timeout: float,
-    ) -> _FetchResponse: ...
-
-
-@dataclass(frozen=True)
-class _UrllibResponse:
-    status: int
-    body: object
-
-    def json(self) -> object:
-        return self.body
-
-
-def _urllib_fetch(
-    url: str,
-    payload: bytes,
-    headers: dict[str, str],
-    timeout: float,
-) -> _FetchResponse:
-    request = urllib.request.Request(url, data=payload, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw = response.read()
-            status = getattr(response, "status", 200)
-            return _UrllibResponse(status=int(status), body=json.loads(raw.decode()))
-    except urllib.error.HTTPError as error:
-        detail = error.read().decode(errors="replace")
-        try:
-            body: object = json.loads(detail) if detail else {}
-        except json.JSONDecodeError:
-            body = {}
-        return _UrllibResponse(status=error.code, body=body)
+register_purpose(
+    Purpose(
+        name=_JUDGE_PURPOSE,
+        kind="schema",
+        deadline_ms=20_000,
+        max_tokens=800,
+        send_fields=("instruction", "content"),
+        check_fields=("issued_handles",),
+        schema=_DECISION_SCHEMA,
+        checks=("decision_handles",),
+    )
+)
 
 
 @dataclass(frozen=True)
 class OpenAiJudgeOptions:
-    api_key: str
-    model: str = "gpt-4o-mini"
-    fetch_impl: _Fetch | None = None
+    binding: Binding | None = None
+    transport: Transport | None = None
 
 
 class OpenAiJudge:
-    def __init__(self, options: OpenAiJudgeOptions) -> None:
-        self._options = options
+    def __init__(self, options: OpenAiJudgeOptions | None = None) -> None:
+        self._options = options or OpenAiJudgeOptions()
 
     async def judge(self, request: JudgeRequest) -> list[JudgeDecision]:
-        fetch_impl = self._options.fetch_impl or _urllib_fetch
-        payload = json.dumps(
+        issued = [candidate.handle for candidate in request.candidates]
+        result = await ask(
+            _JUDGE_PURPOSE,
             {
-                "model": self._options.model,
-                "temperature": 0,
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {"role": "system", "content": _SYSTEM_PROMPT},
-                    {"role": "user", "content": json.dumps(_request_payload(request))},
-                ],
+                "instruction": _SYSTEM_PROMPT,
+                "content": json.dumps(_request_payload(request), separators=(",", ":")),
+                "issued_handles": issued,
             },
-            separators=(",", ":"),
-        ).encode()
-        headers = {
-            "Authorization": f"Bearer {self._options.api_key}",
-            "Content-Type": "application/json",
-        }
-        response = fetch_impl("https://api.openai.com/v1/chat/completions", payload, headers, 20.0)
-        if response.status < 200 or response.status >= 300:
-            raise RuntimeError(f"openai_http_{response.status}")
-        body = response.json()
-        if not isinstance(body, dict):
-            raise RuntimeError("openai_empty")
-        choices = body.get("choices")
-        content = _message_content(choices)
-        if not content:
-            raise RuntimeError("openai_empty")
-        parsed = json.loads(content)
-        if not isinstance(parsed, dict):
-            return []
-        raw_decisions = parsed.get("decisions")
+            binding=self._options.binding,
+            transport=self._options.transport,
+        )
+        if isinstance(result, AskFailure):
+            raise RuntimeError(result.code)
+        raw_decisions = result.value.get("decisions") if isinstance(result.value, dict) else None
         if not isinstance(raw_decisions, list):
             return []
         return [sanitize_decision(_decision_from_json(item)) for item in raw_decisions]
 
 
-def open_ai_judge(options: OpenAiJudgeOptions) -> LinkJudge:
-    """Optional live judge. Called only when the user supplies a key. Prompts are not logged."""
+def open_ai_judge(options: OpenAiJudgeOptions | None = None) -> LinkJudge:
+    """Optional live judge. The caller holds the provider. Prompts are not logged."""
     return OpenAiJudge(options)
 
 
@@ -226,21 +202,6 @@ def _request_payload(request: JudgeRequest) -> dict[str, object]:
             for candidate in request.candidates
         ],
     }
-
-
-def _message_content(choices: object) -> str | None:
-    if not isinstance(choices, list) or not choices:
-        return None
-    first = choices[0]
-    if not isinstance(first, dict):
-        return None
-    message = first.get("message")
-    if not isinstance(message, dict):
-        return None
-    content = message.get("content")
-    if not isinstance(content, str):
-        return None
-    return content
 
 
 def _decision_from_json(value: object) -> JudgeDecision:

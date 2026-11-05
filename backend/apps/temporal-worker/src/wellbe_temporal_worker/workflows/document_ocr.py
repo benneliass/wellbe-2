@@ -30,6 +30,8 @@ class OCRInput:
     mime_type: str
     correlation_id: str
     trace_id: str
+    page_b64: str | None = None
+    media_type: str | None = None
 
 
 @dataclass
@@ -80,17 +82,18 @@ async def ocr_with_tesseract(input: OCRInput) -> OCRResult | None:
 
 @activity.defn
 async def ocr_with_vision_llm(input: OCRInput) -> OCRResult | None:
-    """Run vision-LLM as final fallback for complex documents."""
-    try:
-        return OCRResult(
-            text="[Vision-LLM placeholder — awaiting model integration]",
-            model="vision-llm",
-            confidence=0.0,
-            pages=1,
-        )
-    except Exception as e:
-        activity.logger.warning(f"Vision-LLM failed: {e}")
+    """Read one page through the shared agent caller. This activity has no HTTP client."""
+    if not input.page_b64 or not input.media_type:
         return None
+    from wellbe_agent_caller import VISION_READ, AskSuccess, ask
+
+    outcome = await ask(
+        VISION_READ,
+        {"page": input.page_b64, "media_type": input.media_type},
+    )
+    if not isinstance(outcome, AskSuccess) or not isinstance(outcome.value, str):
+        return None
+    return OCRResult(text=outcome.value, model=outcome.model, confidence=0.5, pages=1)
 
 
 @activity.defn
