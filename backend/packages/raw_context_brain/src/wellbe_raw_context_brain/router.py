@@ -701,8 +701,7 @@ class RawContextLab:
             self.vault.append(event)
             self._nodes[event.id] = empty_pointer(event)
             self._index_for(ingest_input.person_id).add(event.id, token_vector(event.text))
-            if ingest_input.document_id:
-                self._attach_hub(event)
+            self._attach_hub(event)
 
         if self.projection.status == "rebuilding":
             return self._remember(
@@ -728,6 +727,7 @@ class RawContextLab:
         """Judge one vault record that is already bound. A repeat does not add links."""
         if event.id in self._placed:
             return self._empty_ingest(event.id)
+        self._attach_hub(event)
         if self._keyword_transport is not None or self._keyword_binding is not None:
             return await self._place_by_keywords(event)
         event_id = event.id
@@ -1390,7 +1390,7 @@ class RawContextLab:
             target = index.get(edge.to_id)
             if source is None or target is None:
                 continue
-            links.append(ViewLink(source=source, target=target, reason=edge.reason_code))
+            links.append(ViewLink(source=source, target=target, reason=edge.relation))
         view_nodes = [
             ViewNode(
                 id=node.id,
@@ -2414,9 +2414,18 @@ class RawContextLab:
         self._export_cache.clear()
 
     def _attach_hub(self, event: VaultEvent) -> None:
-        if not event.document_id:
+        """Open one hub once two records share an intake group. A lone record stays a circle."""
+        group_id = event.document_id
+        if not group_id:
             return
-        hub_id = f"hub_{event.person_id}_{event.document_id}"
+        member_ids = [
+            item.id
+            for item in self.vault.list()
+            if item.person_id == event.person_id and item.document_id == group_id
+        ]
+        if len(member_ids) < 2:
+            return
+        hub_id = f"hub_{event.person_id}_{group_id}"
         hub = self._nodes.get(hub_id)
         if hub is None:
             hub = PointerNode(
@@ -2426,9 +2435,14 @@ class RawContextLab:
                 member_event_ids=(),
                 person_id=event.person_id,
             )
-        hub = replace(hub, member_event_ids=(*hub.member_event_ids, event.id))
-        self._nodes[hub_id] = hub
-        self.link_structural(event.id, hub_id, "membership")
+        known = set(hub.member_event_ids)
+        added = [member_id for member_id in member_ids if member_id not in known]
+        if added or hub_id not in self._nodes:
+            hub = replace(hub, member_event_ids=(*hub.member_event_ids, *added))
+            self._nodes[hub_id] = hub
+        for member_id in hub.member_event_ids:
+            if self.projection.edge_between(member_id, hub_id) is None:
+                self.link_structural(member_id, hub_id, "membership")
 
     def _drop_acknowledgement(self, person_id: str, from_id: str, to_id: str) -> None:
         endpoint_ids = _endpoint_ids(from_id, to_id)

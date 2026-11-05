@@ -56,6 +56,9 @@ async def test_only_the_same_category_is_eligible_and_a_hub_is_not() -> None:
     await lab.ingest(
         _event("zephyrquartz alpha marker", category="Lab", document_id="bundle")
     )
+    await lab.ingest(
+        _event("unrelated folio page", category="packet", document_id="bundle")
+    )
     await lab.ingest(_event("zephyrquartz alpha panel", category="lab result"))
     saved = await lab.ingest(_event("zephyrquartz alpha marker again", category="Lab"))
 

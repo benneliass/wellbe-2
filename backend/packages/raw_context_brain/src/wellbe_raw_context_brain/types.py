@@ -10,6 +10,7 @@ This module does not choose category values, keyword floors, or ranking weights.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
@@ -65,6 +66,17 @@ DETAILS: dict[str, str] = {
 def assert_safe_detail(detail: str) -> None:
     if re.search(r"no relevant context", detail, re.IGNORECASE):
         raise ValueError("empty or failed results must not be phrased as no relevant context")
+
+
+def source_group_id(metadata: object) -> str | None:
+    """Intake group stored on a vault event. A blank value means the record stands alone."""
+    if not isinstance(metadata, Mapping):
+        return None
+    raw = metadata.get("source_group_id")
+    if not isinstance(raw, str):
+        return None
+    group_id = raw.strip()
+    return group_id or None
 
 
 @dataclass(frozen=True)

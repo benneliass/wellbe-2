@@ -22,7 +22,7 @@ from wellbe_contracts.c13_api import ProblemCode
 from wellbe_raw_context_brain.persist.sql_store import person_map, walk
 from wellbe_raw_context_brain.relation import source_name
 from wellbe_raw_context_brain.router import ViewModel
-from wellbe_raw_context_brain.types import ExploreInput, SemanticData, VaultEvent
+from wellbe_raw_context_brain.types import ExploreInput, SemanticData, VaultEvent, source_group_id
 
 from wellbe_api.config import ApiSettings
 from wellbe_api.deps import PrincipalDep, SessionDep
@@ -164,7 +164,7 @@ async def load_person_events(session: SessionDep, person_id: str) -> list[VaultE
                 text=note,
                 content_hash=row.content_hash,
                 lineage_id=str(row.id),
-                document_id=None,
+                document_id=source_group_id(row.source_metadata),
             )
         )
     return events
