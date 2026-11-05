@@ -166,6 +166,12 @@ class JudgeDecision:
     confidence: float
 
 
+class ContentReader(Protocol):
+    """Read one vault event. The brain does not choose which store serves it."""
+
+    async def read(self, event_id: str) -> str: ...
+
+
 class LinkJudge(Protocol):
     async def judge(self, request: JudgeRequest) -> list[JudgeDecision]: ...
 

@@ -22,7 +22,12 @@ from wellbe_agent_caller.types import Transport
 
 from wellbe_raw_context_brain.hnsw import HnswIndex
 from wellbe_raw_context_brain.integrity.structural import assert_structural_ledger
-from wellbe_raw_context_brain.judge import heuristic_judge, sanitize_decision
+from wellbe_raw_context_brain.judge import (
+    MapDecision,
+    heuristic_judge,
+    request_map_decision,
+    sanitize_decision,
+)
 from wellbe_raw_context_brain.keywords import (
     KEYWORD_BARS,
     AnchorCandidate,
@@ -96,6 +101,7 @@ from wellbe_raw_context_brain.store import (
 from wellbe_raw_context_brain.text import edge_key, jaccard, sha256, token_vector, tokenize
 from wellbe_raw_context_brain.types import (
     DETAILS,
+    ContentReader,
     ControlTag,
     Exhaustion,
     ExploreInput,
@@ -213,6 +219,7 @@ class LabOptions:
     # to the overlap heuristic. Both unset keeps today's heuristic placement.
     keyword_binding: Binding | None = None
     keyword_transport: Transport | None = None
+    content_reader: ContentReader | None = None
 
 
 @dataclass(frozen=True)
@@ -418,6 +425,7 @@ class RawContextLab:
         self._pointer_only = options.pointer_only
         self._keyword_binding = options.keyword_binding
         self._keyword_transport = options.keyword_transport
+        self._content_reader = options.content_reader
         self._keyword_sessions: dict[str, KeywordSession] = {}
         self._in_flight = 0
         self._nodes: dict[str, PointerNode] = {}
@@ -909,9 +917,179 @@ class RawContextLab:
             self.vault.replace(stored)
         session = self._keyword_sessions.setdefault(event.id, KeywordSession())
         result = self._keyword_map(stored, session)
-        self._placed.add(event.id)
+        result = await self._assess_keyword_map(stored, result)
+        if result.terminal_reason != "dependency_unavailable":
+            self._placed.add(event.id)
         self._save_durable()
         return result
+
+    async def _assess_keyword_map(self, event: VaultEvent, result: IngestResult) -> IngestResult:
+        """Decide the link from the small map.
+
+        A caller failure does not use the overlap heuristic.
+        """
+        mini = result.mini_map
+        if mini is None:
+            return result
+        opens = 0
+        walks = 0
+        opened: tuple[str, str] | None = None
+        vantage: str | None = None
+        current = mini
+        while True:
+            issued = [node.handle for node in current.nodes]
+            decision = await request_map_decision(
+                self._map_text(current, opened, vantage),
+                issued,
+                binding=self._keyword_binding,
+                transport=self._keyword_transport,
+            )
+            if isinstance(decision, AskFailure):
+                reason: TerminalReason | None = (
+                    "dependency_unavailable" if decision.code == "dependency_unavailable" else None
+                )
+                return replace(
+                    result,
+                    mini_map=current,
+                    anchor_id=current.anchor_id,
+                    judgments=(),
+                    terminal_reason=reason,
+                    detail=DETAILS["dependency_unavailable"] if reason else "",
+                )
+            if decision.action == "reject_map":
+                self._record_map_history(event, current, decision, linked=False)
+                nxt = self.lower_keyword_bar(event.id)
+                if nxt.mini_map is None:
+                    return replace(nxt, keywords=event.keywords)
+                current = nxt.mini_map
+                result = nxt
+                opened = None
+                vantage = None
+                opens = 0
+                walks = 0
+                continue
+            if decision.action == "open_content":
+                if opens >= 1:
+                    return result
+                node_id = self._node_for_handle(current, decision.handle)
+                if node_id is None or self._content_reader is None:
+                    return result
+                try:
+                    text = await self._content_reader.read(node_id)
+                except Exception:
+                    return replace(
+                        result,
+                        mini_map=current,
+                        anchor_id=current.anchor_id,
+                        terminal_reason="dependency_unavailable",
+                        detail=DETAILS["dependency_unavailable"],
+                    )
+                opened = (decision.handle or "", text)
+                opens += 1
+                continue
+            if decision.action == "walk":
+                if walks >= 1 or self._node_for_handle(current, decision.handle) is None:
+                    return result
+                vantage = decision.handle
+                walks += 1
+                continue
+            linked = self._record_map_history(
+                event,
+                current,
+                decision,
+                linked=decision.action == "link",
+            )
+            stored: Judgment = (
+                "link" if linked else "uncertain" if decision.action == "uncertain" else "no_link"
+            )
+            return replace(
+                result,
+                mini_map=current,
+                anchor_id=current.anchor_id,
+                keywords=event.keywords,
+                judgments=(
+                    JudgmentRecord(
+                        handle=decision.handle or "",
+                        judgment=stored,
+                        reason_code=decision.reason_code,
+                        accepted=linked,
+                    ),
+                ),
+            )
+
+    def _record_map_history(
+        self,
+        event: VaultEvent,
+        mini: MiniMap,
+        decision: MapDecision,
+        *,
+        linked: bool,
+    ) -> bool:
+        other_id = mini.anchor_id
+        if linked:
+            chosen = self._node_for_handle(mini, decision.handle)
+            if chosen != mini.anchor_id:
+                linked = False
+            elif chosen is not None:
+                other_id = chosen
+        if other_id == event.id:
+            return False
+        stored: Judgment = "link" if linked else (
+            "uncertain" if decision.action == "uncertain" else "no_link"
+        )
+        confidence = _clamp(decision.confidence)
+        if linked:
+            confidence = self._cap_confidence(
+                event.id,
+                other_id,
+                confidence,
+                (event.id, other_id),
+                "model",
+            )
+        ad = self._append_ad(
+            AdvertisementDraft(
+                person_id=event.person_id,
+                origin="model",
+                model_version=_MODEL_VERSION,
+                prompt_version=_PROMPT_VERSION,
+                policy_version=self._policy_version,
+                evidence_ids=(event.id, other_id),
+                from_id=event.id,
+                to_id=other_id,
+                judgment=stored,
+                reason_code=decision.reason_code or "shared_context",
+                relation=map_relation("model", decision.reason_code),
+                proposed_confidence=_clamp(decision.confidence),
+                confidence=confidence,
+                created_at=event.captured_at,
+                supersedes_id=None,
+                withdrawn=False,
+            )
+        )
+        if linked:
+            self.projection.apply(ad)
+        return linked
+
+    def _map_text(
+        self,
+        mini: MiniMap,
+        opened: tuple[str, str] | None,
+        vantage: str | None,
+    ) -> str:
+        body = model_payload(mini)
+        if opened is not None:
+            body["opened"] = {"handle": opened[0], "content": opened[1]}
+        if vantage is not None:
+            body["vantage"] = vantage
+        return json.dumps(body, separators=(",", ":"))
+
+    def _node_for_handle(self, mini: MiniMap, handle: str | None) -> str | None:
+        if handle is None:
+            return None
+        for node in mini.nodes:
+            if node.handle == handle:
+                return node.node_id
+        return None
 
     def _keyword_map(self, event: VaultEvent, session: KeywordSession) -> IngestResult:
         anchor = self._seek_keyword_anchor(event, session)
