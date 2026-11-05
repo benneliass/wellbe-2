@@ -82,6 +82,7 @@ def test_a_stored_record_is_placed_once_and_the_note_stays_out() -> None:
             content_hash=event_id,
             lineage_id=event_id,
             document_id=None,
+            category="note",
         )
         for event_id in ("a", "b")
     ]

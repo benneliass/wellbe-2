@@ -81,6 +81,7 @@ class VaultEvent:
     independence: Independence = "source_family"
     source_arrival: SourceArrival = "typed"
     copied_from_id: str | None = None
+    category: str | None = None
 
 
 @dataclass(frozen=True)
@@ -213,6 +214,7 @@ class IngestInput:
     source_arrival: SourceArrival = "typed"
     copied_from_id: str | None = None
     document_id: str | None = None
+    category: str | None = None
 
 
 @dataclass(frozen=True)

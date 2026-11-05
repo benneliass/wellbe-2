@@ -181,6 +181,7 @@ def _event_payload(event: VaultEvent) -> dict[str, object]:
         "source_arrival": event.source_arrival,
         "copied_from_id": event.copied_from_id,
         "document_id": event.document_id,
+        "category": event.category,
     }
 
 
@@ -259,6 +260,9 @@ def _parse_event(value: object) -> VaultEvent:
     copied_from_id = None
     if "copied_from_id" in record:
         copied_from_id = _string_or_none(record["copied_from_id"])
+    category = None
+    if "category" in record:
+        category = _string_or_none(record["category"])
     return VaultEvent(
         id=_string(_required(record, "id")),
         person_id=_string(_required(record, "person_id")),
@@ -272,6 +276,7 @@ def _parse_event(value: object) -> VaultEvent:
         independence=independence,
         source_arrival=arrival,
         copied_from_id=copied_from_id,
+        category=category,
     )
 
 
