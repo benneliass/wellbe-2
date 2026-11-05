@@ -39,9 +39,25 @@ export function MapFocusRing({ position, radius }: { position: Point; radius: nu
 export function MapObjectBadge({ badge, position }: { badge: MapBadge; position: Point }) {
   const r = badge.radius ?? 7.5;
   return <g data-metadata-badge={badge.id} data-badge-offset-x={badge.offset.x} data-badge-offset-y={badge.offset.y} className={styles.metadataBadge} transform={`translate(${position.x + badge.offset.x} ${position.y + badge.offset.y})`} role={badge.onActivate ? 'button' : undefined} tabIndex={badge.onActivate ? 0 : undefined} aria-label={badge.accessibleLabel} aria-pressed={badge.pressed}
-    onPointerDown={badge.onActivate ? (event) => event.stopPropagation() : undefined}
-    onPointerUp={badge.onActivate ? (event) => event.stopPropagation() : undefined}
-    onClick={badge.onActivate ? (event) => { event.stopPropagation(); badge.onActivate!(); } : undefined}
+    onPointerDown={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      if (event.button !== 0) return;
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    } : undefined}
+    onPointerUp={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      if (event.button !== 0) return;
+      const target = event.currentTarget;
+      if (target.hasPointerCapture?.(event.pointerId)) target.releasePointerCapture(event.pointerId);
+      target.setAttribute('data-badge-activated', '');
+      badge.onActivate!();
+    } : undefined}
+    onClick={badge.onActivate ? (event) => {
+      event.stopPropagation();
+      const target = event.currentTarget;
+      if (target.hasAttribute('data-badge-activated')) { target.removeAttribute('data-badge-activated'); return; }
+      badge.onActivate!();
+    } : undefined}
     onKeyDown={badge.onActivate ? (event) => { event.stopPropagation(); if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); badge.onActivate!(); } } : undefined}
     style={{ pointerEvents: badge.onActivate ? 'all' : 'none', color: badge.color }}>
     <circle data-badge-glint="" className={styles.badgeGlint} r={r} fill="none" stroke={badge.color} strokeWidth="3" opacity="0.12" />
