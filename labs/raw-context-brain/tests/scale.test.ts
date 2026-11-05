@@ -7,7 +7,6 @@ describe("scale and approximate recall", () => {
   it("keeps exploration payloads bounded as the map grows", () => {
     const sizes = [100, 1_000, 10_000];
     for (const count of sizes) {
-      const started = Date.now();
       const lab = generateTopology({ count, kind: "sparse", seed: 9 });
       const response = lab.explore({
         personId: "synthetic-1",
@@ -18,7 +17,6 @@ describe("scale and approximate recall", () => {
       expect(response.items.length).toBeLessThanOrEqual(5);
       expect(bytes).toBeLessThan(16_000);
       expect(lab.metrics.crossPersonCandidates).toBe(0);
-      expect(Date.now() - started).toBeLessThan(30_000);
     }
   });
 

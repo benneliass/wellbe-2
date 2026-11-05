@@ -1,0 +1,14 @@
+name: Set up Node workspace
+description: Install Node 22 and the root npm workspace from the lockfile.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: npm
+        cache-dependency-path: package-lock.json
+
+    - shell: bash
+      run: npm ci

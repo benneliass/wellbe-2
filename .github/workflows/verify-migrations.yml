@@ -1,22 +1,21 @@
-name: DB Migrations Check
+name: Verify migrations
+
+# Same Postgres image and Python as db/Dockerfile.migrations (python:3.13-slim).
+# Downgrading past 021 is not supported; the round-trip stops there.
 
 on:
-  pull_request:
-    paths:
-      - "db/**"
-      - "infra/local/Dockerfile.postgres"
-      - ".github/workflows/db-migrations.yml"
+  workflow_call:
 
 jobs:
   migrations:
     name: Validate Alembic migrations
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       DATABASE_URL: postgresql://wellbe:wellbe_test@localhost:5432/wellbe_test
     steps:
       - uses: actions/checkout@v4
 
-      # Migration 006 needs Apache AGE, so run the same Postgres image the chart deploys.
       - name: Start Postgres (AGE)
         run: |
           docker build -t wellbe-postgres:ci -f infra/local/Dockerfile.postgres infra/local
@@ -24,13 +23,13 @@ jobs:
             -e POSTGRES_USER=wellbe -e POSTGRES_PASSWORD=wellbe_test -e POSTGRES_DB=wellbe_test \
             wellbe-postgres:ci
           for i in $(seq 60); do docker exec pg pg_isready -U wellbe -q && exit 0; sleep 1; done
-          docker logs pg; exit 1
+          docker logs pg
+          exit 1
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
-      # Same pins as the migrations image (db/Dockerfile.migrations).
       - name: Install dependencies
         run: pip install -r db/requirements.txt
 
@@ -38,7 +37,6 @@ jobs:
         working-directory: db
         run: alembic upgrade head
 
-      # Downgrading past 021 is not supported (006 cannot drop AGE while graph objects exist).
       - name: Downgrade to 021 and upgrade again
         working-directory: db
         run: |

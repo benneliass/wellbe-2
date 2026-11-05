@@ -6,8 +6,9 @@ set -euo pipefail
 # Builds the web image, loads it into the kind cluster, deploys via Helm
 # (Helm-managed only — no raw `kubectl apply`, per infra-constraints.mdc),
 # actively monitors the web rollout (per infra-live-monitoring.mdc), waits for
-# ingress reachability, then runs the Playwright Home smoke against the LIVE
-# cluster ingress. Read-only kubectl (rollout status / get) is monitoring, not
+# ingress reachability, then runs the Playwright smoke specs against the LIVE
+# cluster ingress. The rest of the browser suite stays on the dev server.
+# Read-only kubectl (rollout status / get) is monitoring, not
 # mutation. This is the gate the build-out plan's "deploy to local kind when all
 # checks pass" refers to for the web surface.
 #
@@ -76,8 +77,8 @@ if [ -z "$ingress_up" ]; then
   exit 1
 fi
 
-echo "=== Running Playwright Home smoke against ${BASE_URL} ==="
+echo "=== Running Playwright smoke specs against ${BASE_URL} ==="
 cd "$REPO_ROOT"
-E2E_BASE_URL="$BASE_URL" npm run e2e --workspace=apps/web
+E2E_BASE_URL="$BASE_URL" npm run e2e:smoke --workspace=apps/web
 
 echo "=== Deploy + smoke complete ==="

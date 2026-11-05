@@ -11,10 +11,16 @@ Do not push to `main` unless the user explicitly asked to push or merge there. D
 
 Before the push or merge, run the checks that match the files changed. Stop if any fail.
 
-- `backend/`, `uv.lock`, or `scripts/qa/check_workspace_deps.py`: from `backend/`, `uv lock --check`, `uv run ruff check .`, `uv run mypy packages/ apps/`, and `uv run pytest --tb=short`. From the repo root, `uv run --no-project python scripts/qa/check_workspace_deps.py`.
-- `apps/`, `packages/`, `package.json`, or `package-lock.json`: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`.
-- A path listed in `.github/workflows/safety-gate.yml`: from `evals/safety`, `uv run --project ../../backend pytest tests/ -v --tb=short`.
-- `db/**` or `infra/local/Dockerfile.postgres`: do not merge until the DB migrations check on the pull request has passed.
-- `docs/current/capability-index.md`: `python3 scripts/check-capability-index.py`.
+The same split is what `.github/workflows/ci.yml` runs. Path rules live in `scripts/ci/classify_changes.py`.
 
-A green pull request is not the full main gate. A push to `main` also runs the kind cluster e2e in `.github/workflows/ci.yml` and the image build in `.github/workflows/build-images.yml`. After a merge to `main`, watch those two workflows. If either fails, say so and fix it before the next change.
+- `backend/` or `scripts/qa/check_workspace_deps.py`: from `backend/`, `uv lock --check`, `uv run ruff check .`, `uv run mypy packages/ apps/`, and `uv run pytest --tb=short`. From the repo root, `uv run --no-project python scripts/qa/check_workspace_deps.py`.
+- `apps/`, `packages/`, `package.json`, or `package-lock.json`: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`.
+- `apps/web/`, `packages/ui/`, or `packages/api-client/`: also `npm run e2e --workspace=apps/web`.
+- `labs/raw-context-brain/`: in that directory, `npm ci`, `npm run typecheck`, and `npm test`.
+- A safety path (c10, the safety-gate app, `evals/safety/`, `docs/safety/`, or the two audience rule files): from `evals/safety`, `uv run --project ../../backend pytest tests/ -v --tb=short`.
+- `db/**` or `infra/local/Dockerfile.postgres`: do not merge until the DB migrations check on the pull request has passed.
+- `docs/` or `scripts/check-capability-index.py`: `python3 scripts/check-capability-index.py`.
+
+A green pull request does not deploy a cluster. A push to `main` runs the verify jobs again. When that push changes a deploy input (backend, web, packages, db, helm other than the image-updater write-back, or `infra/k8s/`), CI also runs the kind smoke: deploy plus `npm run e2e:smoke`, not the full browser suite. A commit that only touches `infra/helm/wellbe-local/.argocd-source-wellbe.yaml` does not start CI. Build images still publishes changed images.
+
+After a merge to `main`, watch CI and Build images. If either fails, say so and fix it before the next change.

@@ -1,0 +1,14 @@
+name: Verify capability index
+
+on:
+  workflow_call:
+
+jobs:
+  capability:
+    name: Capability index
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check capability index
+        run: python3 scripts/check-capability-index.py

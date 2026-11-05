@@ -1,0 +1,28 @@
+name: Verify safety
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  safety:
+    name: Safety evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-uv
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --all-packages --locked
+
+      # Zero false-negatives required. Any failure blocks merge. Covers the triage
+      # red-flag corpus; the broader do-not-diagnose / panic / provenance suite is
+      # still to come (WB-DEV-205).
+      - name: Run safety evaluation harness
+        working-directory: evals/safety
+        run: uv run --project ../../backend pytest tests/ -v --tb=short

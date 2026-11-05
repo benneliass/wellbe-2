@@ -27,9 +27,17 @@ on:
       - ".github/workflows/build-images.yml"
   workflow_dispatch:
 
+# actions: write lets BuildKit save its layer cache. The repo token is
+# read-only by default, which can restore a cache and cannot write one.
+# cancel-in-progress stays off: cancelling a push can publish a partial tag.
 permissions:
   contents: read
   packages: write
+  actions: write
+
+concurrency:
+  group: build-images-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io

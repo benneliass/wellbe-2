@@ -46,7 +46,7 @@ export function MapObjectBadge({ badge, position }: { badge: MapBadge; position:
     style={{ pointerEvents: badge.onActivate ? 'all' : 'none', color: badge.color }}>
     <circle data-badge-glint="" className={styles.badgeGlint} r={r} fill="none" stroke={badge.color} strokeWidth="3" opacity="0.12" />
     <circle r={r} fill={badge.fill ?? 'var(--bg-surface, #fff)'} stroke={badge.color} strokeWidth="1" />
-    <foreignObject x="-6" y="-6" width="12" height="12"><span className={styles.glyph} style={{ color: badge.glyphColor ?? badge.color }}>{badge.glyph}</span></foreignObject>
+    <foreignObject x="-6" y="-6" width="12" height="12" pointerEvents="none"><span className={styles.glyph} style={{ color: badge.glyphColor ?? badge.color }}>{badge.glyph}</span></foreignObject>
   </g>;
 }
 
