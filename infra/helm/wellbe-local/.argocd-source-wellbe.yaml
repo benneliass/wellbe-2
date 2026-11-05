@@ -16,7 +16,7 @@ helm:
     value: ghcr.io/benneliass/wellbe-ingestion-worker:0.1.51
     forcestring: true
   - name: processingWorker.image
-    value: ghcr.io/benneliass/wellbe-processing-worker:0.1.51
+    value: ghcr.io/benneliass/wellbe-processing-worker:0.1.53
     forcestring: true
   - name: safetyGate.image
     value: ghcr.io/benneliass/wellbe-safety-gate:0.1.51
