@@ -428,6 +428,19 @@ async def test_advertises_a_document_hub_as_the_original_record() -> None:
             document_id="letter",
         )
     )
+    await lab.ingest(
+        IngestInput(
+            person_id="p1",
+            text="page two of the letter",
+            source_type="pdf_extract",
+            captured_at="2024-03-02T00:00:00.000Z",
+            lineage_id="letter-page-2",
+            independence="source_family",
+            source_arrival="imported",
+            idempotency_key="letter-2",
+            document_id="letter",
+        )
+    )
     opened = _explore(
         lab,
         person_id="p1",

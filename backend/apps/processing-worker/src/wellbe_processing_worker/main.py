@@ -60,7 +60,7 @@ async def _place_context(
         return
     from wellbe_c2_vault.repository import VaultRepository
     from wellbe_raw_context_brain.persist.sql_store import place_captured
-    from wellbe_raw_context_brain.types import VaultEvent
+    from wellbe_raw_context_brain.types import VaultEvent, source_group_id
 
     person_id = str(vault_event["patient_id"])
     event_id = str(vault_event["id"])
@@ -78,7 +78,7 @@ async def _place_context(
                 text=note,
                 content_hash=row.content_hash,
                 lineage_id=str(row.id),
-                document_id=None,
+                document_id=source_group_id(getattr(row, "source_metadata", None)),
             )
         )
     if not any(item.id == event_id for item in events):
@@ -92,7 +92,7 @@ async def _place_context(
                 text=text_content,
                 content_hash=str(vault_event.get("content_hash") or event_id),
                 lineage_id=event_id,
-                document_id=None,
+                document_id=source_group_id(vault_event.get("source_metadata")),
             )
         )
     await session.run_sync(

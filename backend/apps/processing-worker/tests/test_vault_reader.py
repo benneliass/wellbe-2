@@ -126,12 +126,18 @@ async def test_vault_failure_is_retryable() -> None:
 
 
 class _Row:
-    def __init__(self, event_id: uuid.UUID, source_type: str) -> None:
+    def __init__(
+        self,
+        event_id: uuid.UUID,
+        source_type: str,
+        source_metadata: dict[str, object] | None = None,
+    ) -> None:
         self.id = event_id
         self.patient_id = _PERSON
         self.source_type = source_type
         self.captured_at = datetime(2024, 2, 1, tzinfo=UTC)
         self.content_hash = str(event_id)
+        self.source_metadata = source_metadata
 
 
 class _Session:
@@ -171,6 +177,36 @@ async def test_placement_does_not_fetch_neighbor_bytes(monkeypatch: pytest.Monke
             str(_PERSON),
             str(_NEW),
             [(str(_OLDER), ""), (str(_NEW), "the new pdf")],
+        )
+    ]
+
+
+async def test_shared_intake_passes_the_group_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[Any] = []
+
+    class _Repo:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        async def list_events(self, _person_id: uuid.UUID) -> list[_Row]:
+            return [_Row(_OLDER, "pdf", {"source_group_id": " visit-9 "})]
+
+    def _place(_session: object, person_id: str, events: list[Any], event_id: str) -> None:
+        seen.append((person_id, event_id, [(item.id, item.document_id) for item in events]))
+
+    monkeypatch.setattr("wellbe_c2_vault.repository.VaultRepository", _Repo)
+    monkeypatch.setattr("wellbe_raw_context_brain.persist.sql_store.place_captured", _place)
+    await main._place_context(  # type: ignore[arg-type]
+        _Session(),
+        _client({}, []),
+        _event(source_metadata={"source_group_id": "visit-9"}),
+        "the new pdf",
+    )
+    assert seen == [
+        (
+            str(_PERSON),
+            str(_NEW),
+            [(str(_OLDER), "visit-9"), (str(_NEW), "visit-9")],
         )
     ]
 
