@@ -56,6 +56,21 @@ def _binding() -> Binding:
     )
 
 
+def _hold() -> HttpResponse:
+    content = json.dumps(
+        {
+            "action": "no_link",
+            "handle": None,
+            "reasonCode": "insufficient_overlap",
+            "confidence": 0.2,
+        }
+    )
+    return HttpResponse(
+        status=200,
+        body={"model": "keyword-test-model", "choices": [{"message": {"content": content}}]},
+    )
+
+
 def _ok(words: tuple[str, ...] = _WORDS) -> HttpResponse:
     content = json.dumps({"keywords": list(words)})
     return HttpResponse(
@@ -133,7 +148,7 @@ async def test_a_record_that_already_has_keywords_is_not_asked_again() -> None:
 
 
 async def test_the_anchor_is_the_greatest_same_category_overlap() -> None:
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     lab = _lab(transport)
     lab.add_fixture(_event("high", text="vault-high", keywords=_WORDS))
     lab.add_fixture(
@@ -151,7 +166,7 @@ async def test_the_anchor_is_the_greatest_same_category_overlap() -> None:
 
 
 async def test_a_hub_is_never_the_anchor() -> None:
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     lab = _lab(transport)
     lab.add_fixture(_event("hubish", text="vault-hub", keywords=_WORDS))
     lab.add_fixture(
@@ -171,7 +186,7 @@ async def test_a_hub_is_never_the_anchor() -> None:
 
 
 async def test_equal_overlap_prefers_the_lower_degree() -> None:
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     lab = _lab(transport)
     shared = ("sleep", "morning", "rest", "alpha", "beta")
     other = ("sleep", "morning", "rest", "gamma", "delta")
@@ -186,7 +201,7 @@ async def test_equal_overlap_prefers_the_lower_degree() -> None:
 
 
 async def test_the_mini_map_reaches_ten_steps_and_leaves_earlier_text_out() -> None:
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     lab = _lab(transport)
     chain = [f"c{index:02d}" for index in range(12)]
     for event_id in chain:
@@ -224,7 +239,7 @@ async def test_the_mini_map_reaches_ten_steps_and_leaves_earlier_text_out() -> N
 
 
 async def test_the_second_pass_excludes_the_first_anchor() -> None:
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     lab = _lab(transport)
     lab.add_fixture(_event("first", text="vault-first", keywords=_WORDS))
     lab.add_fixture(
@@ -265,7 +280,7 @@ async def test_no_anchor_at_the_floor_stores_keywords_and_writes_no_link() -> No
 
 async def test_a_caller_failure_stores_no_keywords_and_writes_no_link() -> None:
     failed = HttpResponse(status=400, body={"error": "no"})
-    transport = _Transport([failed, _ok()])
+    transport = _Transport([failed, _ok(), _hold()])
     lab = _lab(transport)
     lab.add_fixture(_event("high", keywords=_WORDS))
     lab.add_fixture(_event("new", text=_NOTE))
@@ -324,7 +339,7 @@ def test_keywords_survive_a_pointer_snapshot_and_the_note_stays_out() -> None:
             )
         )
     factory = sessionmaker(bind=engine)
-    transport = _Transport([_ok()])
+    transport = _Transport([_ok(), _hold()])
     with factory() as session:
         lab = RawContextLab(
             LabOptions(

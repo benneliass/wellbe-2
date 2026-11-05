@@ -11,6 +11,8 @@ from dataclasses import replace
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from wellbe_agent_caller import Binding
+from wellbe_agent_caller.types import Transport
 
 from wellbe_raw_context_brain.persist.graph_store import (
     DurableSnapshot,
@@ -20,7 +22,7 @@ from wellbe_raw_context_brain.persist.graph_store import (
 )
 from wellbe_raw_context_brain.persist.session_store import SessionJson
 from wellbe_raw_context_brain.router import LabOptions, RawContextLab, ViewModel
-from wellbe_raw_context_brain.types import ExploreInput, SemanticData, VaultEvent
+from wellbe_raw_context_brain.types import ContentReader, ExploreInput, SemanticData, VaultEvent
 
 
 def strip_event_text(snapshot: DurableSnapshot) -> DurableSnapshot:
@@ -149,13 +151,23 @@ def place_captured(
     event_id: str,
     *,
     table_prefix: str = "context_brain.",
+    keyword_binding: Binding | None = None,
+    keyword_transport: Transport | None = None,
+    content_reader: ContentReader | None = None,
 ) -> None:
-    """Place one stored vault record and judge its links. A repeat does not add more."""
+    """Place one stored vault record and judge its links. A repeat does not add more.
+
+    A keyword caller, when configured, chooses the anchor and the link. A missing
+    binding on that path does not fall back to the overlap heuristic.
+    """
     lab = RawContextLab(
         LabOptions(
             graph_store=SqlGraphStore(session, person_id, table_prefix=table_prefix),
             session_store=SqlSessionStore(session, person_id, table_prefix=table_prefix),
             pointer_only=True,
+            keyword_binding=keyword_binding,
+            keyword_transport=keyword_transport,
+            content_reader=content_reader,
         )
     )
     if lab.was_placed(event_id):
