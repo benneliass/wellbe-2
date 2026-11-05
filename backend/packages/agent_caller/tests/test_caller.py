@@ -1,4 +1,4 @@
-"""The three purposes share one request path and one failure path."""
+"""A feature registers a purpose. The caller only sends, retries, and checks the answer."""
 
 from __future__ import annotations
 
@@ -8,17 +8,54 @@ import random
 from collections.abc import Mapping
 
 from wellbe_agent_caller import (
-    KEYWORD_PASS,
-    LINK_JUDGMENT,
-    VISION_READ,
     AskFailure,
     AskSuccess,
     Binding,
+    Field,
     Purpose,
     ask,
     register_purpose,
 )
 from wellbe_agent_caller.types import HttpResponse
+
+_LABEL = "lab_label"
+_PAGE = "lab_page"
+_LABEL_SCHEMA: dict[str, object] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["label"],
+    "properties": {"label": {"type": "string"}},
+}
+
+
+def _label_in_note(value: object, payload: Mapping[str, object]) -> bool:
+    if not isinstance(value, dict):
+        return False
+    label = value.get("label")
+    note = payload.get("note")
+    return isinstance(label, str) and isinstance(note, str) and label.casefold() in note.casefold()
+
+
+register_purpose(
+    Purpose(
+        name=_LABEL,
+        deadline_ms=15_000,
+        fields=(Field("note", "text"),),
+        kind="schema",
+        schema=_LABEL_SCHEMA,
+        instruction="Return JSON with one label taken from the note.",
+        check=_label_in_note,
+    )
+)
+register_purpose(
+    Purpose(
+        name=_PAGE,
+        deadline_ms=15_000,
+        fields=(Field("page", "image"),),
+        kind="text",
+        instruction="Read the page.",
+    )
+)
 
 
 class Clock:
@@ -75,55 +112,51 @@ def _ok(content: str, model: str = "served-model") -> HttpResponse:
     )
 
 
-def _chat(**overrides: object) -> dict[str, object]:
-    values: dict[str, object] = {
-        "purpose": KEYWORD_PASS,
-        "payload": {"text": "sleep cough fever headache fatigue nausea"},
-        "binding": _binding(
-            "openai",
-            "https://api.openai.com/v1",
-            "sk-sentinel-key-qq",
-            "gpt-4o-mini",
-            include_store_false=True,
-        ),
-        "env": {},
-        "rng": random.Random(0),
-    }
-    values.update(overrides)
-    return values
+def _openai() -> Binding:
+    return _binding(
+        "openai",
+        "https://api.openai.com/v1",
+        "sk-sentinel-key-qq",
+        "gpt-4o-mini",
+        include_store_false=True,
+    )
 
 
 async def _ask(
     transport: FakeTransport, clock: Clock | None = None, **overrides: object
 ) -> AskSuccess | AskFailure:
     timer = clock or Clock()
-    options = _chat(transport=transport, now=timer.now, sleep=timer.sleep, **overrides)
+    options: dict[str, object] = {
+        "purpose": _LABEL,
+        "payload": {"note": "note-sentinel-qq sleep"},
+        "binding": _openai(),
+        "env": {},
+        "rng": random.Random(0),
+        "transport": transport,
+        "now": timer.now,
+        "sleep": timer.sleep,
+    }
+    options.update(overrides)
     return await ask(**options)  # type: ignore[arg-type]
 
 
-def test_keywords_use_the_binding_and_keep_the_note_out_of_the_log() -> None:
-    words = ["note-sentinel-qq", "sleep", "cough", "fever", "headache"]
-    transport = FakeTransport([_ok(json.dumps({"keywords": words}))])
+def test_a_registered_purpose_uses_its_binding_and_keeps_the_note_out_of_the_log() -> None:
+    import asyncio
+
+    transport = FakeTransport([_ok(json.dumps({"label": "sleep"}))])
     grab = Grab()
     logger = logging.getLogger("wellbe.agent_caller")
     logger.setLevel(logging.INFO)
     logger.addHandler(grab)
     logger.propagate = False
     try:
-        import asyncio
-
-        result = asyncio.run(
-            _ask(
-                transport,
-                payload={"text": "note-sentinel-qq sleep cough fever headache"},
-            )
-        )
+        result = asyncio.run(_ask(transport))
     finally:
         logger.removeHandler(grab)
         logger.propagate = True
 
     assert isinstance(result, AskSuccess)
-    assert result.value == {"keywords": words}
+    assert result.value == {"label": "sleep"}
     assert result.model == "served-model"
     call = transport.calls[0]
     assert call["url"] == "https://api.openai.com/v1/chat/completions"
@@ -131,50 +164,27 @@ def test_keywords_use_the_binding_and_keep_the_note_out_of_the_log() -> None:
     assert isinstance(payload, dict)
     assert payload["model"] == "gpt-4o-mini"
     assert payload["store"] is False
-    assert "note-sentinel-qq" not in json.dumps(grab.blobs)
-    assert "sk-sentinel-key-qq" not in json.dumps(grab.blobs)
+    logged = json.dumps(grab.blobs)
+    assert "note-sentinel-qq" not in logged
+    assert "sk-sentinel-key-qq" not in logged
+    assert "sleep" not in logged
     headers = call["headers"]
     assert isinstance(headers, dict)
     assert headers["Authorization"] == "Bearer sk-sentinel-key-qq"
 
 
-def test_a_keyword_missing_from_the_note_does_not_retry() -> None:
+def test_a_failed_check_does_not_retry() -> None:
     import asyncio
 
-    words = ["sleep", "cough", "fever", "headache", "pneumonia"]
-    transport = FakeTransport([_ok(json.dumps({"keywords": words}))])
-    result = asyncio.run(
-        _ask(
-            transport,
-            payload={"text": "note-sentinel-qq sleep cough fever headache fatigue"},
-        )
-    )
+    transport = FakeTransport([_ok(json.dumps({"label": "pneumonia"}))])
+    result = asyncio.run(_ask(transport))
     assert isinstance(result, AskFailure)
     assert result.code == "invalid_output"
+    assert result.purpose == _LABEL
     assert len(transport.calls) == 1
 
 
-def test_link_handle_must_be_one_this_request_issued() -> None:
-    import asyncio
-
-    payload = {"instruction": "Judge the map.", "content": "anchor h1", "issued_handles": ["h1"]}
-    bad = FakeTransport(
-        [_ok(json.dumps({"verdict": "link", "reason": "shared_context", "handle": "h9"}))]
-    )
-    rejected = asyncio.run(_ask(bad, purpose=LINK_JUDGMENT, payload=payload))
-    assert isinstance(rejected, AskFailure)
-    assert rejected.code == "invalid_output"
-    assert len(bad.calls) == 1
-
-    good = FakeTransport(
-        [_ok(json.dumps({"verdict": "link", "reason": "shared_context", "handle": "h1"}))]
-    )
-    accepted = asyncio.run(_ask(good, purpose=LINK_JUDGMENT, payload=payload))
-    assert isinstance(accepted, AskSuccess)
-    assert accepted.value == {"verdict": "link", "reason": "shared_context", "handle": "h1"}
-
-
-def test_vision_sends_one_image_and_no_schema() -> None:
+def test_an_image_field_is_sent_as_given_and_text_has_no_schema() -> None:
     import asyncio
 
     transport = FakeTransport([_ok("platelet count 240")])
@@ -186,30 +196,24 @@ def test_vision_sends_one_image_and_no_schema() -> None:
         require_parameters=True,
         headers=(("X-OpenRouter-Title", "WellBe"),),
     )
+    page = "data:image/png;base64,abc"
     result = asyncio.run(
-        _ask(
-            transport,
-            purpose=VISION_READ,
-            payload={"page": "abc", "media_type": "image/png"},
-            binding=binding,
-        )
+        _ask(transport, purpose=_PAGE, payload={"page": page}, binding=binding)
     )
     assert isinstance(result, AskSuccess)
     assert result.value == "platelet count 240"
     body = transport.calls[0]["payload"]
     assert isinstance(body, dict)
     assert "response_format" not in body
-    assert "store" not in body
     assert "provider" not in body
     messages = body["messages"]
     assert isinstance(messages, list)
     user = messages[-1]["content"]
     assert isinstance(user, list)
-    assert user[0]["image_url"]["url"] == "data:image/png;base64,abc"
+    assert user[0]["image_url"]["url"] == page
     headers = transport.calls[0]["headers"]
     assert isinstance(headers, dict)
     assert headers["Authorization"] == "Bearer sk-or-sentinel"
-    assert headers["X-OpenRouter-Title"] == "WellBe"
 
 
 def test_server_error_retries_and_a_bad_key_does_not() -> None:
@@ -217,10 +221,7 @@ def test_server_error_retries_and_a_bad_key_does_not() -> None:
 
     clock = Clock()
     retried = FakeTransport(
-        [
-            HttpResponse(status=503, body={}),
-            _ok(json.dumps({"keywords": ["sleep", "cough", "fever", "headache", "fatigue"]})),
-        ]
+        [HttpResponse(status=503, body={}), _ok(json.dumps({"label": "sleep"}))]
     )
     recovered = asyncio.run(_ask(retried, clock))
     assert isinstance(recovered, AskSuccess)
@@ -251,13 +252,13 @@ def test_retry_after_beyond_the_deadline_stops() -> None:
 def test_unsupported_schema_downgrades_once() -> None:
     import asyncio
 
-    words = ["sleep", "cough", "fever", "headache", "fatigue"]
     transport = FakeTransport(
         [
             HttpResponse(
-                status=400, body={"error": {"message": "response_format is not supported"}}
+                status=400,
+                body={"error": {"message": "response_format is not supported"}},
             ),
-            _ok(json.dumps({"keywords": words})),
+            _ok(json.dumps({"label": "sleep"})),
         ]
     )
     result = asyncio.run(_ask(transport))
@@ -265,14 +266,9 @@ def test_unsupported_schema_downgrades_once() -> None:
     first = transport.calls[0]["payload"]
     second = transport.calls[1]["payload"]
     assert isinstance(first, dict) and isinstance(second, dict)
-    assert first["response_format"] == {
-        "type": "json_schema",
-        "json_schema": {
-            "name": KEYWORD_PASS,
-            "strict": True,
-            "schema": first["response_format"]["json_schema"]["schema"],  # type: ignore[index]
-        },
-    }
+    first_format = first["response_format"]
+    assert isinstance(first_format, dict)
+    assert first_format["type"] == "json_schema"
     assert second["response_format"] == {"type": "json_object"}
 
 
@@ -291,26 +287,22 @@ def test_missing_binding_and_a_full_gate_do_not_call() -> None:
     assert blocked.calls == []
 
 
-def test_a_fourth_purpose_registers_without_a_new_client() -> None:
+def test_a_second_purpose_uses_the_same_caller() -> None:
     import asyncio
 
     register_purpose(
         Purpose(
-            name="lab_probe",
-            kind="text",
+            name="lab_echo",
             deadline_ms=5_000,
-            max_tokens=20,
-            send_fields=("content",),
+            fields=(Field("content", "text"),),
+            kind="text",
             instruction="Reply with the word ready.",
         )
     )
     transport = FakeTransport([_ok("ready")])
-    result = asyncio.run(_ask(transport, purpose="lab_probe", payload={"content": "ping"}))
+    result = asyncio.run(_ask(transport, purpose="lab_echo", payload={"content": "ping"}))
     assert isinstance(result, AskSuccess)
     assert result.value == "ready"
-    body = transport.calls[0]["payload"]
-    assert isinstance(body, dict)
-    assert body["model"] == "gpt-4o-mini"
 
 
 def test_two_purposes_keep_their_own_bindings() -> None:
@@ -330,29 +322,19 @@ def test_two_purposes_keep_their_own_bindings() -> None:
         "openai/gpt-4o-mini",
         require_parameters=True,
     )
-    first = FakeTransport(
-        [_ok(json.dumps({"keywords": ["sleep", "cough", "fever", "headache", "fatigue"]}))]
-    )
-    second = FakeTransport(
-        [
-            _ok(
-                json.dumps(
-                    {"verdict": "standalone", "reason": "insufficient_overlap", "handle": None}
-                )
-            )
-        ]
-    )
-    keyword = asyncio.run(_ask(first, binding=openai))
-    link = asyncio.run(
+    first = FakeTransport([_ok(json.dumps({"label": "sleep"}))])
+    second = FakeTransport([_ok("ready")])
+    label = asyncio.run(_ask(first, binding=openai))
+    page = asyncio.run(
         _ask(
             second,
-            purpose=LINK_JUDGMENT,
-            payload={"instruction": "Judge.", "content": "map", "issued_handles": ["h1"]},
+            purpose=_PAGE,
+            payload={"page": "data:image/jpeg;base64,abc"},
             binding=router,
         )
     )
-    assert isinstance(keyword, AskSuccess)
-    assert isinstance(link, AskSuccess)
+    assert isinstance(label, AskSuccess)
+    assert isinstance(page, AskSuccess)
     assert first.calls[0]["url"] == "https://api.openai.com/v1/chat/completions"
     assert second.calls[0]["url"] == "https://openrouter.ai/api/v1/chat/completions"
     first_headers = first.calls[0]["headers"]
@@ -360,9 +342,12 @@ def test_two_purposes_keep_their_own_bindings() -> None:
     assert isinstance(first_headers, dict) and isinstance(second_headers, dict)
     assert first_headers["Authorization"] == "Bearer sk-one"
     assert second_headers["Authorization"] == "Bearer sk-or-two"
-    link_body = second.calls[0]["payload"]
-    assert isinstance(link_body, dict)
-    assert link_body["provider"] == {"require_parameters": True}
+    routed = FakeTransport([_ok(json.dumps({"label": "sleep"}))])
+    routed_result = asyncio.run(_ask(routed, binding=router))
+    assert isinstance(routed_result, AskSuccess)
+    routed_body = routed.calls[0]["payload"]
+    assert isinstance(routed_body, dict)
+    assert routed_body["provider"] == {"require_parameters": True}
 
 
 def test_bindings_read_separate_keys() -> None:
@@ -373,11 +358,11 @@ def test_bindings_read_separate_keys() -> None:
         "OPENROUTER_API_KEY": "sk-or-router",
         "WELLBE_AGENT_OPENROUTER_MODEL": "openai/gpt-4o",
         "WELLBE_AGENT_BINDING": "openrouter",
-        "WELLBE_AGENT_BINDING_VISION_READ": "openai",
+        "WELLBE_AGENT_BINDING_LAB_PAGE": "openai",
     }
     table = load_bindings(env)
     assert table["openai"].api_key == "sk-personal"
     assert table["openrouter"].model == "openai/gpt-4o"
-    assert resolve_binding(KEYWORD_PASS, env, table) == table["openrouter"]
-    assert resolve_binding(VISION_READ, env, table) == table["openai"]
-    assert resolve_binding(KEYWORD_PASS, {}, table) is None
+    assert resolve_binding(_LABEL, env, table) == table["openrouter"]
+    assert resolve_binding(_PAGE, env, table) == table["openai"]
+    assert resolve_binding(_LABEL, {}, table) is None

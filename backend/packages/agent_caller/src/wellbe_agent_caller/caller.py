@@ -11,9 +11,7 @@ import time
 from collections.abc import Awaitable, Callable, Mapping
 
 from wellbe_agent_caller.bindings import resolve_binding
-from wellbe_agent_caller.checks import run_check
 from wellbe_agent_caller.http import ConnectionFailure, urllib_post
-from wellbe_agent_caller.purposes import allowed_media_types, builtin_purposes
 from wellbe_agent_caller.types import (
     AskFailure,
     AskSuccess,
@@ -40,7 +38,7 @@ _BILLING_CODES = frozenset(
 _REFUSAL_REASONS = frozenset({"content_filter", "refusal"})
 _SCHEMA_MODES = ("json_schema", "json_object", "prompt")
 
-_purposes: dict[str, Purpose] = builtin_purposes()
+_purposes: dict[str, Purpose] = {}
 _in_flight = 0
 _in_flight_lock = threading.Lock()
 
@@ -253,6 +251,8 @@ def _read_success(
     if row.kind == "text":
         if content.strip() == "":
             return "shape"
+        if not _passes_check(row, content, payload):
+            return "grounded"
         return AskSuccess(purpose=row.name, value=content, model=model)
     try:
         parsed = json.loads(content)
@@ -260,9 +260,8 @@ def _read_success(
         return "shape"
     if not isinstance(parsed, dict) or row.schema is None or not matches(row.schema, parsed):
         return "shape"
-    for check in row.checks:
-        if not run_check(check, parsed, payload):
-            return "grounded"
+    if not _passes_check(row, parsed, payload):
+        return "grounded"
     return AskSuccess(purpose=row.name, value=parsed, model=model)
 
 
@@ -298,10 +297,7 @@ def _messages(
     payload: Mapping[str, object],
     corrective: bool,
 ) -> list[dict[str, object]]:
-    if "instruction" in row.send_fields:
-        instruction = payload.get("instruction")
-    else:
-        instruction = row.instruction
+    instruction = row.instruction
     messages: list[dict[str, object]] = []
     if isinstance(instruction, str) and instruction:
         messages.append({"role": "system", "content": instruction})
@@ -318,27 +314,22 @@ def _messages(
 def _user_content(
     row: Purpose, payload: Mapping[str, object]
 ) -> str | list[dict[str, object]] | None:
-    texts = [
-        payload[name]
-        for name in row.send_fields
-        if name != "instruction" and isinstance(payload.get(name), str)
-    ]
-    text = "\n".join(item for item in texts if isinstance(item, str))
-    if row.image_field is None:
+    texts: list[str] = []
+    images: list[str] = []
+    for field in row.fields:
+        value = payload.get(field.name)
+        if field.kind == "text" and isinstance(value, str):
+            texts.append(value)
+        elif field.kind == "image" and isinstance(value, str):
+            images.append(value)
+    text = "\n".join(texts)
+    if not images:
         return text or None
-    page = payload.get(row.image_field)
-    media_type = payload.get(row.media_type_field or "")
-    if not isinstance(page, str) or not isinstance(media_type, str):
-        return None
     parts: list[dict[str, object]] = []
     if text:
         parts.append({"type": "text", "text": text})
-    parts.append(
-        {
-            "type": "image_url",
-            "image_url": {"url": f"data:{media_type};base64,{page}"},
-        }
-    )
+    for url in images:
+        parts.append({"type": "image_url", "image_url": {"url": url}})
     return parts
 
 
@@ -352,29 +343,24 @@ def _headers(binding: Binding) -> dict[str, str]:
 
 
 def _payload_error(row: Purpose, payload: Mapping[str, object]) -> str | None:
-    expected = set(row.send_fields)
-    if row.image_field is not None:
-        expected.add(row.image_field)
-    if row.media_type_field is not None:
-        expected.add(row.media_type_field)
-    expected.update(row.check_fields)
+    expected = {field.name for field in row.fields}
     if set(payload) != expected:
         return "fields"
-    for name in row.send_fields:
-        if not isinstance(payload[name], str) or payload[name] == "":
-            return "text"
-    if row.image_field is not None:
-        page = payload[row.image_field]
-        media = payload[row.media_type_field or ""]
-        if not isinstance(page, str) or page == "":
-            return "image"
-        if media not in allowed_media_types():
-            return "image"
-    for name in row.check_fields:
-        values = payload[name]
-        if not isinstance(values, list) or any(not isinstance(item, str) for item in values):
-            return "check"
+    for field in row.fields:
+        value = payload[field.name]
+        if field.kind == "context":
+            if value is None:
+                return "context"
+            continue
+        if not isinstance(value, str) or value == "":
+            return field.kind
     return None
+
+
+def _passes_check(row: Purpose, value: object, payload: Mapping[str, object]) -> bool:
+    if row.check is None:
+        return True
+    return row.check(value, payload)
 
 
 def _schema_rejected(response: HttpResponse, mode: str) -> bool:

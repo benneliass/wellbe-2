@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
@@ -23,20 +24,28 @@ class Binding:
 
 
 @dataclass(frozen=True)
-class Purpose:
-    """Registration data. A new purpose is another row, not another client."""
+class Field:
+    """One payload field. context stays with the check and is not sent."""
 
     name: str
-    kind: Literal["schema", "text"]
+    kind: Literal["text", "image", "context"]
+
+
+Check = Callable[[object, Mapping[str, object]], bool]
+
+
+@dataclass(frozen=True)
+class Purpose:
+    """A feature registers this. The caller does not name the feature."""
+
+    name: str
     deadline_ms: int
-    max_tokens: int
-    send_fields: tuple[str, ...] = ()
-    image_field: str | None = None
-    media_type_field: str | None = None
-    check_fields: tuple[str, ...] = ()
-    schema: dict[str, object] | None = None
-    checks: tuple[str, ...] = ()
+    fields: tuple[Field, ...]
+    kind: Literal["schema", "text"]
     instruction: str | None = None
+    schema: dict[str, object] | None = None
+    check: Check | None = None
+    max_tokens: int = 1024
 
 
 @dataclass(frozen=True)

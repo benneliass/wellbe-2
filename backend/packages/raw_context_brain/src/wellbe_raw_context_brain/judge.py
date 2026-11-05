@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 
-from wellbe_agent_caller import AskFailure, Binding, Purpose, ask, register_purpose
+from wellbe_agent_caller import AskFailure, Binding, Field, Purpose, ask, register_purpose
 from wellbe_agent_caller.types import Transport
 
 from wellbe_raw_context_brain.text import jaccard
@@ -137,16 +138,33 @@ _DECISION_SCHEMA: dict[str, object] = {
     },
 }
 
+def _issued_decision_handles(value: object, payload: Mapping[str, object]) -> bool:
+    if not isinstance(value, dict):
+        return False
+    decisions = value.get("decisions")
+    issued = payload.get("issued_handles")
+    if not isinstance(decisions, list) or not isinstance(issued, list):
+        return False
+    allowed = {item for item in issued if isinstance(item, str)}
+    for item in decisions:
+        if not isinstance(item, dict):
+            return False
+        handle = item.get("handle")
+        if not isinstance(handle, str) or handle not in allowed:
+            return False
+    return True
+
+
 register_purpose(
     Purpose(
         name=_JUDGE_PURPOSE,
-        kind="schema",
         deadline_ms=20_000,
         max_tokens=800,
-        send_fields=("instruction", "content"),
-        check_fields=("issued_handles",),
+        fields=(Field("content", "text"), Field("issued_handles", "context")),
+        kind="schema",
         schema=_DECISION_SCHEMA,
-        checks=("decision_handles",),
+        instruction=_SYSTEM_PROMPT,
+        check=_issued_decision_handles,
     )
 )
 
@@ -166,7 +184,6 @@ class OpenAiJudge:
         result = await ask(
             _JUDGE_PURPOSE,
             {
-                "instruction": _SYSTEM_PROMPT,
                 "content": json.dumps(_request_payload(request), separators=(",", ":")),
                 "issued_handles": issued,
             },
