@@ -82,6 +82,7 @@ class VaultEvent:
     source_arrival: SourceArrival = "typed"
     copied_from_id: str | None = None
     category: str | None = None
+    keywords: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -232,6 +233,34 @@ class PruneRecord:
 
 
 @dataclass(frozen=True)
+class MiniMapLink:
+    source_handle: str
+    target_handle: str
+
+
+@dataclass(frozen=True)
+class MiniMapNode:
+    """One node the small map may show. Earlier vault text stays out of ``content``."""
+
+    handle: str
+    node_id: str
+    keywords: tuple[str, ...]
+    source_type: str
+    captured_at: str
+    category: str | None
+    content: str | None
+    links: tuple[MiniMapLink, ...]
+
+
+@dataclass(frozen=True)
+class MiniMap:
+    anchor_handle: str
+    anchor_id: str
+    bar: int
+    nodes: tuple[MiniMapNode, ...]
+
+
+@dataclass(frozen=True)
 class IngestResult:
     event_id: str
     candidate_count: int
@@ -241,6 +270,9 @@ class IngestResult:
     detail: str
     route_revision: int | None
     pruned: tuple[PruneRecord, ...]
+    anchor_id: str | None = None
+    keywords: tuple[str, ...] = ()
+    mini_map: MiniMap | None = None
 
 
 @dataclass(frozen=True)
