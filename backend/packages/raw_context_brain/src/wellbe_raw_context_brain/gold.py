@@ -119,6 +119,7 @@ async def evaluate_gold(person_id: str = "gold-person") -> GoldScore:
                 captured_at=event.captured_at,
                 lineage_id=event.lineage_id,
                 idempotency_key=event.id,
+                category="gold",
             )
         )
         if event.id == "injection":

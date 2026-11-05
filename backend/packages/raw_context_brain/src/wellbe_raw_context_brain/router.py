@@ -667,6 +667,7 @@ class RawContextLab:
                 independence=ingest_input.independence,
                 source_arrival=ingest_input.source_arrival,
                 copied_from_id=ingest_input.copied_from_id,
+                category=ingest_input.category,
             )
             self.vault.append(event)
             self._nodes[event.id] = empty_pointer(event)
@@ -713,6 +714,8 @@ class RawContextLab:
             event.text,
             event_id,
             event.captured_at,
+            category=event.category,
+            restrict_category=True,
         )
         issued: dict[str, str] = {}
         judge_candidates: list[JudgeCandidate] = []
@@ -1417,10 +1420,23 @@ class RawContextLab:
         text: str,
         self_id: str,
         captured_at: str,
+        *,
+        category: str | None = None,
+        restrict_category: bool = False,
     ) -> list[str]:
+        """Placement keeps comparison inside one category. A hub is never a candidate."""
+        if restrict_category and not category:
+            return self._empty_selection(person_id)
         exact = self._exact_candidates(person_id, text, self_id)
         index = self._indexes.get(person_id)
         hits = index.search(token_vector(text), 16) if index is not None else []
+        if restrict_category and category is not None:
+            exact = [
+                node_id
+                for node_id in exact
+                if self._same_category(node_id, person_id, category)
+            ]
+            hits = [hit for hit in hits if self._same_category(hit.id, person_id, category)]
         distances = {hit.id: hit.distance for hit in hits}
         union = set(exact)
         union.update(hit.id for hit in hits)
@@ -1431,6 +1447,10 @@ class RawContextLab:
             node = self._nodes.get(node_id)
             if node is None or node.person_id != person_id:
                 self.metrics.cross_person_candidates += 1
+                continue
+            if node.kind == "pseudonode":
+                continue
+            if restrict_category and not self._same_category(node_id, person_id, category or ""):
                 continue
             tags = self._controls.get(node_id)
             if tags is not None and ("no-model" in tags or "no-forward" in tags):
@@ -1522,6 +1542,24 @@ class RawContextLab:
         if kept:
             self._last_primary[person_id] = kept[0]
         return kept
+
+    def _empty_selection(self, person_id: str) -> list[str]:
+        self._selection_draft = _SelectionDraft(
+            person_id=person_id,
+            candidate_ids=[],
+            selected_ids=[],
+            provenance={},
+            pruned=[],
+            candidates=[],
+        )
+        return []
+
+    def _same_category(self, node_id: str, person_id: str, category: str) -> bool:
+        node = self._nodes.get(node_id)
+        if node is None or node.kind == "pseudonode" or node.person_id != person_id:
+            return False
+        event = self.vault.get(node_id)
+        return event is not None and event.person_id == person_id and event.category == category
 
     async def _judge_with_retry(self, request: JudgeRequest) -> list[JudgeDecision]:
         started_at = self._now()

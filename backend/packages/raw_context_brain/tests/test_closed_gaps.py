@@ -28,6 +28,7 @@ def _fixture(event_id: str, text: str, **overrides: object) -> VaultEvent:
         content_hash="hash",
         lineage_id=str(lineage_id),
         document_id=None,
+        category=overrides.get("category", "note"),  # type: ignore[arg-type]
     )
 
 
@@ -100,6 +101,7 @@ async def test_records_route_set_history_and_prune_rows_on_the_save_result() -> 
             captured_at="2024-01-01T00:00:00.000Z",
             lineage_id="fever",
             idempotency_key="save-1",
+            category="note",
         )
     )
     assert saved.route_revision is not None
@@ -113,6 +115,7 @@ async def test_records_route_set_history_and_prune_rows_on_the_save_result() -> 
             captured_at="2024-02-01T00:00:00.000Z",
             lineage_id="fever-2",
             idempotency_key="save-2",
+            category="note",
         )
     )
     assert lab.route_history("p1") == [saved.route_revision, again.route_revision]
@@ -159,6 +162,7 @@ async def test_judges_a_closer_neighbor_after_a_non_link() -> None:
             captured_at="2024-06-01T00:00:00.000Z",
             lineage_id="new",
             idempotency_key="refer",
+            category="note",
         )
     )
     assert len(requests) == 2

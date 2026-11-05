@@ -28,6 +28,7 @@ def _fixture(event_id: str, text: str, person_id: str, **overrides: object) -> V
         lineage_id=str(overrides.get("lineage_id", event_id)),
         document_id=None,
         independence=overrides.get("independence", "source_family"),  # type: ignore[arg-type]
+        category=overrides.get("category", "note"),  # type: ignore[arg-type]
     )
 
 
@@ -248,6 +249,7 @@ async def test_drops_handles_the_model_was_not_issued_and_ignores_clinical_reaso
             captured_at="2024-04-02",
             lineage_id="quartz-2",
             idempotency_key="quartz",
+            category="note",
         )
     )
     assert lab.metrics.unissued_handles == 1
@@ -272,6 +274,7 @@ async def test_hides_no_model_notes_and_strips_summary_only_excerpts() -> None:
             captured_at="2024-05-02",
             lineage_id="new",
             idempotency_key="summary",
+            category="note",
         )
     )
     body = _dump(recorder.requests)
@@ -422,6 +425,7 @@ async def test_puts_a_low_degree_note_ahead_of_a_high_degree_hub_with_the_same_o
             captured_at="2024-08-01",
             lineage_id="query",
             idempotency_key="hub-rank",
+            category="note",
         )
     )
     assert recorder.requests[0].candidates[0].excerpt == "marker quartz"
@@ -444,6 +448,7 @@ async def test_puts_a_closer_hub_ahead_of_a_specific_note_with_a_weaker_match() 
             captured_at="2024-08-02",
             lineage_id="query-closer",
             idempotency_key="closer-hub",
+            category="note",
         )
     )
     assert recorder.requests[0].candidates[0].excerpt == "quartz marker alpha beta gamma"
