@@ -88,49 +88,42 @@ jobs:
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.python == 'true' }}
     uses: ./.github/workflows/verify-backend.yml
     secrets: inherit
-    timeout-minutes: 20
 
   frontend:
     name: Frontend — lint, type-check, build
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.node == 'true' }}
     uses: ./.github/workflows/verify-frontend.yml
-    timeout-minutes: 20
 
   browser:
     name: Browser — Playwright
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.browser == 'true' }}
     uses: ./.github/workflows/verify-browser.yml
-    timeout-minutes: 30
 
   labs:
     name: Labs — raw context brain
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.labs == 'true' }}
     uses: ./.github/workflows/verify-labs.yml
-    timeout-minutes: 15
 
   migrations:
     name: Validate Alembic migrations
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.migrations == 'true' }}
     uses: ./.github/workflows/verify-migrations.yml
-    timeout-minutes: 30
 
   safety:
     name: Safety evaluation
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.safety == 'true' }}
     uses: ./.github/workflows/verify-safety.yml
-    timeout-minutes: 20
 
   capability:
     name: Capability index
     needs: [changes, classifier]
     if: ${{ needs.classifier.result == 'success' && needs.changes.result == 'success' && needs.changes.outputs.capability == 'true' }}
     uses: ./.github/workflows/verify-capability.yml
-    timeout-minutes: 5
 
   # A skipped verify job must not block the smoke, and a failed one must.
   # !cancelled() is what makes GitHub evaluate this after a skipped need.
@@ -152,7 +145,6 @@ jobs:
       && contains(fromJSON('["success","skipped"]'), needs.safety.result)
       && contains(fromJSON('["success","skipped"]'), needs.capability.result) }}
     uses: ./.github/workflows/cluster-smoke.yml
-    timeout-minutes: 45
 
   gate:
     name: CI gate
