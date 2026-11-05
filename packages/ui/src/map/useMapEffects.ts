@@ -110,6 +110,16 @@ export function useMapEffects(svg: RefObject<SVGSVGElement | null>, reduced: boo
     // Reduced motion still needs to repaint after selection, dragging, or a new layout.
     const observer = calm ? new MutationObserver(() => paint(performance.now())) : null;
     observer?.observe(scene, { subtree: true, attributes: true, attributeFilter: ["data-pebble-x", "data-pebble-y", "data-pebble-hot", "data-pebble-grabbed", "data-map-selected", "data-group-layout"], childList: true });
-    return () => { disposed = true; unsubscribe(); observer?.disconnect(); if (groupFrame !== null) cancelAnimationFrame(groupFrame); scene.removeEventListener("pointermove", pointer, true); };
+    // Connection paint writes ports after this observer has already aligned the
+    // wedges. Follow that write directly. Watching the port attributes from here
+    // loops, because this paint updates the scale the connection painter observes.
+    const onPorts = () => {
+      const links = [...scene.querySelectorAll<SVGGElement>('[data-silk-link]')];
+      for (const node of scene.querySelectorAll<SVGGElement>('[data-pebble-node]')) {
+        if (node.hasAttribute('data-map-segment-keys')) alignSegmentedMaterial(node, links, performance.now(), true);
+      }
+    };
+    scene.addEventListener('map-ports', onPorts);
+    return () => { disposed = true; unsubscribe(); observer?.disconnect(); if (groupFrame !== null) cancelAnimationFrame(groupFrame); scene.removeEventListener("pointermove", pointer, true); scene.removeEventListener('map-ports', onPorts); };
   }, [svg, reduced, revision, motion]);
 }

@@ -104,6 +104,7 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
   const [dragging, setDragging] = useState(false);
   const nodeDrag = useRef<{ pointerId: number; client: Pt; origin: Pt; start: Positions; active: boolean } | null>(null);
   const suppressClick = useRef(false);
+  const armedHold = useRef<string | null>(null);
   const viewKey = `${VIEW_W}x${VIEW_H}`;
   const pan = useMapPan({ camera: zoom, viewport: { width: VIEW_W, height: VIEW_H }, onChange: setZoom, onBackgroundClick: () => { if (!linkFrom && !shareMode) setSelection({ kind: 'none' }); } });
   useMapEffects(svgRef, reducedMotion, viewKey);
@@ -407,7 +408,11 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
     if (!d.active) {
       if (!passedThreshold(ev.clientX - d.client.x, ev.clientY - d.client.y)) return;
       d.active = true;
+      // The long-press can win the race under load and select the object before
+      // this move is processed. A drag is not that selection, and it is not a click.
+      suppressClick.current = true;
       clearHold();
+      releaseHoldSelection();
       setDragging(true);
       setRadial(null);
     }
@@ -451,8 +456,18 @@ export function GraphLive({ model: input, notice, patientId, viewMode, onViewMod
     setMoved({});
   }
   useEffect(() => () => { if (holdTimer.current !== null) window.clearTimeout(holdTimer.current); }, []);
-  function startHold(id: string) { clearHold(); holdTimer.current = window.setTimeout(() => openRadial(id), 480); }
+  function startHold(id: string) {
+    clearHold();
+    holdTimer.current = window.setTimeout(() => { armedHold.current = id; openRadial(id); }, 480);
+  }
   function clearHold() { if (holdTimer.current) window.clearTimeout(holdTimer.current); holdTimer.current = null; }
+  function releaseHoldSelection() {
+    const held = armedHold.current;
+    if (!held) return;
+    armedHold.current = null;
+    setRadial((current) => current?.id === held ? null : current);
+    setSelection((current) => current.kind === "node" && current.id === held ? { kind: "none" } : current);
+  }
   const narration = useMemo(() => buildNarration(clusters, visibleNodes), [clusters, visibleNodes]);
   const emptyLayers = LAYERS.filter((l) => effLayers[l.id] && !hasData[l.id] && !l.defaultOn && EMPTY_LAYER_NOTE[l.id]);
   const hasInvestigation = hasData.investigation;
