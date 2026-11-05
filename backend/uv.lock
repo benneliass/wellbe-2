@@ -8,6 +8,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "wellbe-agent-caller",
     "wellbe-api",
     "wellbe-audit-service",
     "wellbe-c1-consent",
@@ -1652,6 +1653,11 @@ wheels = [
 ]
 
 [[package]]
+name = "wellbe-agent-caller"
+version = "0.1.0"
+source = { editable = "packages/agent_caller" }
+
+[[package]]
 name = "wellbe-api"
 version = "0.1.0"
 source = { virtual = "apps/api" }
@@ -2249,6 +2255,7 @@ name = "wellbe-raw-context-brain"
 version = "0.1.0"
 source = { editable = "packages/raw_context_brain" }
 dependencies = [
+    { name = "wellbe-agent-caller" },
     { name = "wellbe-contracts" },
     { name = "wellbe-db" },
     { name = "wellbe-platform" },
@@ -2256,6 +2263,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "wellbe-agent-caller", editable = "packages/agent_caller" },
     { name = "wellbe-contracts", editable = "packages/contracts" },
     { name = "wellbe-db", editable = "packages/db" },
     { name = "wellbe-platform", editable = "packages/platform" },
@@ -2288,6 +2296,7 @@ version = "0.1.0"
 source = { virtual = "apps/temporal-worker" }
 dependencies = [
     { name = "temporalio" },
+    { name = "wellbe-agent-caller" },
     { name = "wellbe-c2-vault" },
     { name = "wellbe-c4-processing" },
     { name = "wellbe-c5-evidence" },
@@ -2300,6 +2309,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "temporalio", specifier = ">=1.9" },
+    { name = "wellbe-agent-caller", editable = "packages/agent_caller" },
     { name = "wellbe-c2-vault", editable = "packages/c2_vault" },
     { name = "wellbe-c4-processing", editable = "packages/c4_processing" },
     { name = "wellbe-c5-evidence", editable = "packages/c5_evidence" },

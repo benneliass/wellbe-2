@@ -30,6 +30,8 @@ class OCRInput:
     mime_type: str
     correlation_id: str
     trace_id: str
+    page_b64: str | None = None
+    media_type: str | None = None
 
 
 @dataclass
@@ -78,19 +80,40 @@ async def ocr_with_tesseract(input: OCRInput) -> OCRResult | None:
         return None
 
 
+_PAGE_PURPOSE = "page_transcription"
+_PAGE_MEDIA = frozenset({"image/png", "image/jpeg"})
+
+
+def _register_page_transcription() -> None:
+    from wellbe_agent_caller import Field, Purpose, register_purpose
+
+    register_purpose(
+        Purpose(
+            name=_PAGE_PURPOSE,
+            deadline_ms=60_000,
+            max_tokens=4_000,
+            fields=(Field("page", "image"),),
+            kind="text",
+            instruction="Transcribe this page. Return only the words you can read.",
+        )
+    )
+
+
 @activity.defn
 async def ocr_with_vision_llm(input: OCRInput) -> OCRResult | None:
-    """Run vision-LLM as final fallback for complex documents."""
-    try:
-        return OCRResult(
-            text="[Vision-LLM placeholder — awaiting model integration]",
-            model="vision-llm",
-            confidence=0.0,
-            pages=1,
-        )
-    except Exception as e:
-        activity.logger.warning(f"Vision-LLM failed: {e}")
+    """Read one page through the shared agent caller. This activity has no HTTP client."""
+    if not input.page_b64 or input.media_type not in _PAGE_MEDIA:
         return None
+    from wellbe_agent_caller import AskSuccess, ask
+
+    _register_page_transcription()
+    outcome = await ask(
+        _PAGE_PURPOSE,
+        {"page": f"data:{input.media_type};base64,{input.page_b64}"},
+    )
+    if not isinstance(outcome, AskSuccess) or not isinstance(outcome.value, str):
+        return None
+    return OCRResult(text=outcome.value, model=outcome.model, confidence=0.5, pages=1)
 
 
 @activity.defn
