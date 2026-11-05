@@ -31,6 +31,7 @@ from wellbe_events.retry import (
 
 from wellbe_processing_worker.config import ProcessingWorkerSettings
 from wellbe_processing_worker.document_status import DocumentStatusTracker, is_document
+from wellbe_processing_worker.vault_reader import VaultFetchError, VaultReader
 
 logging.basicConfig(
     level=os.environ.get("WELLBE_LOG_LEVEL", "INFO"),
@@ -39,29 +40,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _is_pdf(vault_event: dict[str, Any]) -> bool:
-    return (
-        vault_event.get("mime_type") == "application/pdf"
-        or vault_event.get("source_type") == "pdf"
-    )
-
-
-class VaultFetchError(RuntimeError):
-    """The vault could not serve an event right now; the outbox row is retried."""
-
-
 OutboxHandler = Callable[[AsyncSession, dict[str, Any], uuid.UUID], Awaitable[str | None]]
 
 
 async def _place_context(
     session: AsyncSession | None,
-    vault_client: httpx.AsyncClient,
+    _vault_client: httpx.AsyncClient,
     vault_event: dict[str, Any],
     text_content: str,
 ) -> None:
-    """Turn a stored vault record into a context pointer and its links.
+    """Turn one stored vault record into a context pointer.
 
-    The outbox retry calls this again. Placement records the event id, so the
+    ``text_content`` is the new record only. Earlier records are listed so the
+    pointer can sit among them, and their vault bytes are not fetched. The
+    outbox retry calls this again. Placement records the event id, so the
     second call does not add another link. Note text is not written.
     """
     if session is None:
@@ -76,9 +68,6 @@ async def _place_context(
     events: list[VaultEvent] = []
     for row in rows:
         note = text_content if str(row.id) == event_id else ""
-        if str(row.id) != event_id and row.source_type == "manual_text":
-            response = await vault_client.get(f"/vault/events/{row.id}/content")
-            note = response.text if response.status_code == 200 else ""
         captured = row.captured_at
         events.append(
             VaultEvent(
@@ -126,16 +115,10 @@ def _make_raw_context_handler(
     (see ``document_status``).
     """
     from wellbe_processing_worker.document_status import default_tracker
-    from wellbe_processing_worker.ocr import extract_document_text, tesseract_version
+    from wellbe_processing_worker.ocr import tesseract_version
     from wellbe_processing_worker.tasks import _extract_facts
 
     tracker: DocumentStatusTracker | None = status_tracker
-
-    async def fetch(path: str, what: str) -> httpx.Response:
-        resp = await vault_client.get(path)
-        if resp.status_code != 200:
-            raise VaultFetchError(f"{what} fetch {path} returned {resp.status_code}")
-        return resp
 
     async def handle(
         session: AsyncSession, payload: dict[str, Any], row_id: uuid.UUID
@@ -181,23 +164,13 @@ def _make_raw_context_handler(
         await tracker.finish(doc_id, patient_id, detail_if_empty="no_facts_found")
         return "dispatched"
 
-    async def _run(session: AsyncSession, vault_event: dict[str, Any], event_id: object) -> bool:
+    async def _run(session: AsyncSession, vault_event: dict[str, Any], _event_id: object) -> bool:
         """Resolve text, place the context pointer, then extract facts."""
-        source_metadata = vault_event.get("source_metadata") or {}
-        text_content = source_metadata.get("text", "")
-        # The captured text lives in the raw blob, not in source_metadata (raw
-        # stays raw). Fetch it so the extractor has real input; without this the
-        # C4 pipeline runs on empty text and produces no facts.
-        content_path = f"/vault/events/{event_id}/content"
-        if not text_content and vault_event.get("source_type") == "manual_text":
-            content_resp = await fetch(content_path, "content")
-            text_content = content_resp.content.decode("utf-8", errors="replace")
-        if not text_content and _is_pdf(vault_event):
-            content_resp = await fetch(content_path, "document")
-            document = await extract_document_text(content_resp.content, event_id)
-            text_content = document.text
-            if document.ocr is not None:
-                vault_event["_ocr"] = document.ocr.provenance()
+        # One record. Keyword lists and neighbor text belong to later steps.
+        document = await VaultReader(vault_client).read(vault_event)
+        text_content = document.text
+        if document.ocr is not None:
+            vault_event["_ocr"] = document.ocr.provenance()
         vault_event["_raw_text"] = text_content
         await _place_context(session, vault_client, vault_event, text_content)
 
